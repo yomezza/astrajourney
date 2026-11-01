@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Cosmosimulator · Edem — главная + Chat Service</title>
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<header>
+  <a class="brand" href="#game" id="brand" aria-label="Вернуться на главную">◈ COSMOSIMULATOR <small>EDEM / 0.17.0</small></a>
+  <div class="header-actions">
+    <div id="window-switcher" class="window-switcher" aria-label="Открытые окна"></div>
+    <span id="demo-chip" title="Демонстрация без сервера">DEMO · MOCK DATA</span>
+    <button id="notifications-button" type="button" title="Уведомления" aria-label="Уведомления"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0v6l3 3H3l3-3V8M9 21h6"/></svg><span id="notification-count">2</span></button>
+    <details id="admin-menu" class="dropdown" hidden>
+      <summary>Панель администратора</summary>
+      <div class="menu">
+        <button type="button" data-module="Пропустить тик">Пропустить тик</button>
+        <button type="button" data-module="Бенчмарк">Бенчмарк</button>
+        <button type="button" data-module="Игровой процесс">Игровой процесс</button>
+        <button type="button" data-module="Галактики">Галактики</button>
+        <button type="button" data-module="Журнал изменений">Журнал изменений</button>
+        <button type="button" data-module="Выдача ресурсов">Выдача ресурсов</button>
+        <button type="button" data-module="Предложения игроков (админ)">Предложения игроков</button>
+        <button type="button" data-module="Пользователи">Пользователи</button>
+      </div>
+    </details>
+    <details id="profile-menu" class="dropdown">
+      <summary><svg class="profile-symbol" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 22v-3a8 8 0 0 1 16 0v3"/></svg><span id="profile-nick">Commander</span></summary>
+      <div class="menu"><button type="button" data-module="Профиль игрока">Профиль игрока</button><button type="button" data-module="Настройки">Настройки</button><button type="button" data-module="История финансов">История финансов</button><button type="button" id="logout">Выйти</button></div>
+    </details>
+  </div>
+</header>
+<aside id="sidebar" aria-label="Модули">
+  <div class="sidebar-heading"><span class="sidebar-title">Модули</span><button id="sidebar-toggle" type="button" aria-expanded="true" aria-label="Свернуть панель" title="Свернуть панель"><svg viewBox="0 0 20 20"><path d="M12 5l-5 5 5 5"/></svg></button></div>
+  <div class="sidebar-divider"></div>
+  <details id="maps-navigation" class="maps-navigation">
+    <summary title="Карты"><span class="nav-icon">▤</span><span class="nav-label">Карты</span></summary>
+    <button type="button" data-module="Галактическая карта" title="Галактическая карта"><span class="nav-icon">✦</span><span class="nav-label">Галактическая карта</span></button>
+    <button type="button" data-module="Карта текущей системы" title="Карта текущей системы"><span class="nav-icon">☉</span><span class="nav-label">Карта текущей системы</span></button>
+  </details>
+  <button type="button" data-module="Колонии" title="Колонии"><span class="nav-icon">⬡</span><span class="nav-label">Колонии</span></button>
+  <button type="button" data-module="Корабль" title="Корабль"><span class="nav-icon">◇</span><span class="nav-label">Корабль</span></button>
+  <button type="button" data-module="Верфи" title="Верфи"><span class="nav-icon">⚒</span><span class="nav-label">Верфи</span></button>
+  <button type="button" data-module="Добыча" title="Добыча"><span class="nav-icon">⛏</span><span class="nav-label">Добыча</span></button>
+  <button type="button" data-module="Исследования" title="Исследования"><span class="nav-icon">⌾</span><span class="nav-label">Исследования</span></button>
+  <button type="button" data-module="Рынок" title="Рынок"><span class="nav-icon">⇄</span><span class="nav-label">Рынок</span></button>
+  <button type="button" data-module="Корпорация" title="Корпорация"><span class="nav-icon">⬡</span><span class="nav-label">Корпорация</span></button>
+  <button type="button" data-module="Логистика" title="Логистика"><span class="nav-icon">▦</span><span class="nav-label">Логистика</span></button>
+  <button type="button" data-module="Планировщик задач" title="Планировщик задач"><span class="nav-icon">≡</span><span class="nav-label">Планировщик задач</span></button>
+  <button class="chat-bottom" type="button" data-chat-open title="Чат"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v12H9l-5 3V5zM8 9h8M8 13h5"/></svg></span><span class="nav-label">Чат</span></button>
+  <button type="button" data-module="Руководство пилота" title="Руководство пилота"><span class="nav-icon">▤</span><span class="nav-label">Руководство пилота</span></button>
+  <button type="button" data-module="Предложить идею" title="Предложить идею"><span class="nav-icon">✧</span><span class="nav-label">Предложить идею</span></button>
+</aside>
+<main>
+  <section id="game">
+    <p class="eyebrow">EDEM / COMMAND TERMINAL</p>
+    <div class="toolbar"><div>
+      <div class="pilot-line"><h1 id="welcome-name">Commander</h1><div class="level-overview">
+        <small>Стаж игрока</small><strong id="overview-level">7</strong>
+        <progress id="overview-xp" max="500" value="370" title="370 / 500 XP; опыт за разведку и добычу"></progress>
+        <small id="overview-xp-text">370 / 500 XP</small>
+        <button type="button" id="overview-upgrade" title="Недостаточно опыта для повышения стажа" disabled>Повысить стаж</button>
+      </div></div>
+      <p id="overview-company" title="Корпорация: NOVA Research"><span class="flag">✦</span> [NOVA]</p>
+    </div></div>
+    <div class="overview-stats">
+      <article class="panel"><small>БАЛАНС</small><strong id="credits">184 520</strong><small>CR</small><span id="balance-change" role="status"></span></article>
+      <article class="panel"><small>Местоположение</small><strong id="location">Эдем</strong><small id="overview-region">Орбита станции</small></article>
+      <article class="panel"><small>Хронология Эдема</small><strong id="star-date">0019 ЭД · 137 · 684</strong><small title="Год · день · импульс. 360 дней в году и 1000 импульсов в дне.">ED / CHRONOLOGY</small></article>
+    </div>
+    <div class="home-lower-grid" id="home-lower-grid" hidden><section id="chat-home-slot" aria-label="Чат на главной странице"></section><section id="news-home-slot" aria-label="Зарезервировано под будущие новости"></section></div>
+    <article class="workspace-intro"><span class="orbit-mark" aria-hidden="true">◈</span>
+      <h2>Ваш рабочий космос</h2>
+      <p>Открывайте модули слева. Окна можно перемещать, закреплять и менять их размер.</p>
+      <div><button data-module="Галактическая карта" type="button">✦ Галактическая карта</button><button data-module="Корабль" type="button">◇ Корабль</button></div>
+    </article>
+    <p id="connection" class="muted">Данные обновлены: 14:36:00</p>
+  </section>
+</main>
+<footer><span id="server-status" title="Демонстрационный сервер Иггдрасиль · Игроки онлайн: 74 · Боты: 12">● СЕРВЕР ОНЛАЙН</span><span>COSMOSIMULATOR · v0.17.0</span></footer>
+<div id="toast" role="status" aria-live="polite" hidden></div>
+<div id="demo-window" class="module-window" role="dialog" aria-labelledby="module-title" hidden>
+  <div id="demo-window-titlebar" class="module-titlebar"><h2 id="module-title">Модуль</h2><div class="window-actions"><button type="button" id="pin-window" title="Закрепить окно" aria-pressed="false">⌖</button><button type="button" id="max-window" title="Развернуть">□</button><button type="button" id="close-window" title="Закрыть">×</button></div></div>
+  <div class="module-content" id="module-content"></div>
+</div>
+<section id="chat-floating" class="chat-floating" aria-label="Плавающий чат" hidden></section>
+<div id="chat-root" class="chat-root" aria-label="Чат Cosmosimulator" hidden>
+  <div class="chat-titlebar" id="chat-draghandle">
+    <div class="chat-appname"><span id="chat-signal" class="chat-signal healthy" tabindex="0" role="img" aria-label="Сервис чата работает" aria-describedby="chat-status-tooltip"></span><b id="chat-title">Чат · Global</b></div>
+    <div class="chat-toolset">
+      <button type="button" id="chat-search-toggle" class="chat-icon" title="Поиск в текущем разделе" aria-label="Поиск">⌕</button>
+      <button type="button" id="chat-settings-toggle" class="chat-icon" title="Настройки чата" aria-label="Настройки чата">⚙</button>
+      <button type="button" id="chat-dock-toggle" class="chat-icon chat-dock" title="Закрепить на главной" aria-label="Закрепить на главной">▣ На главную</button>
+      <button type="button" id="chat-close" class="chat-icon" title="Закрыть чат" aria-label="Закрыть чат">×</button>
+    </div>
+  </div>
+  <div id="chat-settings-panel" class="chat-settings-panel" hidden>
+    <div class="chat-opacity-row"><label for="chat-opacity">Непрозрачность фона</label><input id="chat-opacity" type="range" min="40" max="100" step="5" value="100"><span id="chat-opacity-label">100%</span></div>
+    <label><input type="checkbox" id="chat-on-planet"> Тестовый визит на планету (Planet / Sector)</label>
+    <label style="margin-top:7px"><input type="checkbox" id="chat-sounds" checked> Звуки личных сообщений и упоминаний (демо)</label>
+    <div class="chat-inline-option"><label for="chat-availability">Подключение (демо)</label><select id="chat-availability"><option value="online">Все службы онлайн</option><option value="planet-off">Planet недоступен</option><option value="cosmic-off">Cosmic недоступен</option><option value="both-off">Cosmic и Planet недоступны</option><option value="chat-off">Chat Service недоступен</option></select></div>
+    <div class="chat-inline-option"><label for="chat-role-test">Роль для проверки модерации</label><select id="chat-role-test"><option value="owner">Руководитель NOVA</option><option value="moderator">Модератор NOVA</option><option value="member">Участник NOVA</option><option value="admin">Игровой администратор</option></select></div>
+    <label style="margin-top:7px"><input type="checkbox" id="chat-self-mute"> Пример ограничения моей отправки в Corporation</label>
+    <div class="chat-mini" style="margin-top:6px">Роли, статусы, жалобы и ограничения здесь демонстрационные. Права подтверждает сервер.</div>
+  </div>
+  <div id="chat-tabs" class="chat-tabs" role="tablist" aria-label="Разделы чата"></div>
+  <div id="chat-search-panel" class="chat-search-panel" hidden><input id="chat-search-input" type="search" aria-label="Поиск сообщений" placeholder="Поиск в текущем разделе…"><button type="button" id="chat-search-clear" class="chat-small-btn">Сброс</button></div>
+  <div id="chat-section-header" class="chat-section-header"></div>
+  <div id="chat-area" class="chat-area" aria-live="off"></div>
+  <div id="chat-compose" class="chat-compose">
+    <div id="chat-reply-preview" class="chat-reply-preview" hidden><span id="chat-reply-text"></span><button type="button" id="chat-cancel-reply" title="Отменить ответ">×</button></div>
+    <div class="chat-compose-main"><textarea id="chat-input" rows="2" aria-label="Текст сообщения" placeholder="Введите сообщение…"></textarea><button type="button" id="chat-emoji-trigger" class="chat-emoji-trigger" title="Выбрать эмодзи" aria-label="Выбрать эмодзи" aria-expanded="false" aria-controls="chat-emoji-panel">☺</button><button type="button" id="chat-send" class="chat-send">Отправить</button></div>
+    <div class="chat-compose-meta"><span id="chat-compose-hint">Enter — отправка · Shift+Enter — новая строка</span><span id="chat-char-counter">0 / 256</span></div>
+    <section id="chat-emoji-panel" class="chat-emoji-panel" role="dialog" aria-label="Выбор эмодзи" hidden>
+      <div class="chat-emoji-head"><strong>Эмодзи</strong><button type="button" id="chat-emoji-close" class="chat-emoji-close" aria-label="Закрыть выбор эмодзи">×</button></div>
+      <input id="chat-emoji-search" class="chat-emoji-search" type="search" placeholder="Поиск эмодзи…" aria-label="Поиск эмодзи" autocomplete="off">
+      <div id="chat-emoji-categories" class="chat-emoji-categories" role="group" aria-label="Категории эмодзи"></div>
+      <div id="chat-emoji-grid" class="chat-emoji-grid" role="group" aria-label="Эмодзи для вставки"></div>
+      <div class="chat-emoji-foot">Выберите эмодзи — он появится в сообщении</div>
+    </section>
+    <div id="chat-mentions" class="chat-mention" hidden></div>
+  </div>
+  <div class="chat-demo-hint">CHAT SERVICE v1 · UI PROTOTYPE 13 · NO BACKEND</div>
+</div>
+<div id="chat-players-overlay" class="chat-players-overlay" hidden>
+  <section class="chat-players-panel" role="dialog" aria-modal="true" aria-labelledby="chat-players-title" aria-describedby="chat-players-description">
+    <div class="chat-players-head"><h3 id="chat-players-title">Игроки · Global</h3><button type="button" id="chat-players-close" aria-label="Закрыть список игроков" title="Закрыть">×</button></div>
+    <div class="chat-players-summary"><span id="chat-players-description">Игроки онлайн</span><span id="chat-players-total" class="chat-players-total">0</span></div>
+    <div class="chat-players-filter"><input type="search" id="chat-players-query" placeholder="Поиск по позывному…" aria-label="Поиск игрока по позывному" maxlength="50" autocomplete="off"></div>
+    <div class="chat-players-result"><span id="chat-players-found">Показано: 0</span><span>ПОЗЫВНОЙ / КОРПОРАЦИЯ</span></div>
+    <div id="chat-players-list" class="chat-players-list" role="list"></div>
+    <div class="chat-players-foot">Демонстрационные игроки · сведения о составе выдаёт сервер</div>
+  </section>
+</div>
+<div id="chat-moderation-overlay" class="chat-moderation-overlay" hidden>
+  <section class="chat-moderation-panel" role="dialog" aria-modal="true" aria-labelledby="chat-moderation-title">
+    <div class="chat-moderation-heading"><div><h3 id="chat-moderation-title">Модерация · [NOVA]</h3><span id="chat-moderation-subtitle">Управление корпоративным чатом</span></div><button type="button" id="chat-moderation-close" aria-label="Закрыть модерацию">×</button></div>
+    <div id="chat-moderation-tabs" class="chat-moderation-tabs" role="tablist" aria-label="Разделы модерации"></div>
+    <div id="chat-moderation-body" class="chat-moderation-body"></div>
+    <div class="chat-moderation-foot">Демонстрация · срок и права проверяются сервером · журнал без текстов удалённых сообщений</div>
+  </section>
+</div>
+<div id="chat-status-tooltip" class="chat-status-tooltip" role="tooltip" hidden></div>
+<div id="chat-read-tooltip" class="chat-read-tooltip" role="tooltip" hidden></div>
+<div id="chat-pop-menu" class="chat-context-menu" role="menu" hidden></div>
+<div id="chat-modal" class="chat-modal" hidden><div class="chat-modal-panel" role="dialog" aria-modal="true"><h3 id="chat-modal-title">Подтверждение</h3><p id="chat-modal-desc"></p><div id="chat-modal-fields"></div><div id="chat-modal-error" class="chat-modal-error" role="alert" aria-live="assertive" hidden></div><div class="chat-modal-actions"><button type="button" id="chat-modal-cancel">Отмена</button><button type="button" id="chat-modal-ok" class="primary">Подтвердить</button></div></div></div>
+<script src="./shell.js"></script>
+<script src="./chat.js"></script>
+</body>
+</html>

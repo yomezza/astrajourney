@@ -1,0 +1,88 @@
+{
+  "project": "Cosmosimulator UI Mirror v2",
+  "release": "v0.23.0",
+  "source_commit": "31e849aa600bfd272d5b1f2f3a0adddcb00f3133",
+  "expected_original_web_files": 152,
+  "expected_original_web_size": 16710930,
+  "status": "metadata verified against GitHub; actual original-web files downloaded or copied on user machine",
+  "assets": {
+    "ships": [
+      "argus.svg",
+      "ark.svg",
+      "astra.svg",
+      "atlas.svg",
+      "crucible.svg",
+      "forge.svg",
+      "hermes.svg",
+      "iris.svg",
+      "leviathan.svg",
+      "lightning.svg",
+      "pilgrim.svg",
+      "titan.svg",
+      "vesper.svg",
+      "wanderer.svg",
+      "zephyr.svg"
+    ],
+    "objects": [
+      "object-asteroids.svg",
+      "object-black-hole.svg",
+      "object-desert.svg",
+      "object-garden.svg",
+      "object-gas.svg",
+      "object-ice-field.svg",
+      "object-icy.svg",
+      "object-lava.svg",
+      "object-rocky.svg",
+      "object-star-a.svg",
+      "object-star-b.svg",
+      "object-star-f.svg",
+      "object-star-g.svg",
+      "object-star-k.svg",
+      "object-star-m.svg",
+      "object-star-o.svg",
+      "object-station.svg"
+    ],
+    "planet_art": [
+      "planet-art/bush_sparse.png",
+      "planet-art/colonist.png",
+      "planet-art/colonist_8dir_atlas.png",
+      "planet-art/footstep_dust.png",
+      "planet-art/grass_dry.png",
+      "planet-art/grass_tuft.png",
+      "planet-art/move_blocked.png",
+      "planet-art/move_target.png",
+      "planet-art/rock_flat.png",
+      "planet-art/rock_large_cracked.png",
+      "planet-art/sector_boundary.png",
+      "planet-art/selection_ring.png",
+      "planet-art/shore_wet.png",
+      "planet-art/tree_old.png",
+      "planet-art/tree_young.png",
+      "planet-art/water_deep.png",
+      "planet-art/water_ripple_overlay.png",
+      "planet-art/water_shallow.png"
+    ],
+    "ground": [
+      "planet-landing-core.png",
+      "surface-ground-dry.png",
+      "surface-ground-grass.png",
+      "surface-ground-rock.png",
+      "surface-ground-sand.png",
+      "surface-ground-snow.png",
+      "surface-ground-volcanic.png"
+    ],
+    "other": [
+      "favicon.svg"
+    ]
+  },
+  "counts": {
+    "ships": 15,
+    "objects": 17,
+    "planet_art": 18,
+    "ground": 7,
+    "other": 1
+  },
+  "bundled_original_svg_count": 33,
+  "bundled_original_png_count": 0,
+  "source_web_files_bundled": false
+}

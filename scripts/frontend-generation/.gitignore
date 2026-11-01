@@ -1,0 +1,8 @@
+__pycache__/
+*.py[cod]
+original-web/
+.mirror-backup/
+.mirror-staging-*/
+.mirror-update-state.json
+.source-download.zip
+inventory-result.json

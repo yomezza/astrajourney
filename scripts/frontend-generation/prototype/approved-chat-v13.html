@@ -1,0 +1,1210 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Cosmosimulator · Edem — главная + Chat Service</title>
+<style>
+:root{--bg:#10151b;--panel:#171e26;--border:#2d3945;--muted:#8a9aab;--text:#dce5ed;--accent:#efad58;--control:32px;--focus:#78c7d9;--header:58px;--action:#192a35;--action-border:#405966;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font:13px/1.5 "Segoe UI",system-ui,sans-serif;min-height:100vh}
+button,input,select{font:12px/1.3 "Segoe UI",system-ui,sans-serif}
+button{min-height:32px;padding:6px 10px;border:1px solid #43505d;background:#222e3a;border-radius:6px;color:var(--text);cursor:pointer;transition:background .12s,border-color .12s}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button:disabled{opacity:.43;cursor:default}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+[hidden]{display:none!important}
+header{position:fixed;inset:0 0 auto;z-index:20;height:var(--header);display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 20px;border-bottom:1px solid var(--border);background:#131a22}
+.brand{display:block;text-decoration:none;color:var(--text);font-size:14px;font-weight:750;letter-spacing:1.6px;white-space:nowrap}
+.brand:hover{color:var(--accent)}
+.brand small{display:block;font:9px/1.5 monospace;letter-spacing:2px;color:var(--muted)}
+.header-actions{display:flex;align-items:center;gap:10px;min-width:0}
+.window-switcher{display:flex;align-items:center;gap:4px;max-width:30vw;overflow-x:auto;scrollbar-width:none}
+.window-switcher button{max-width:130px;font-size:10px;min-height:27px;background:#17232e;border-color:#304453;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.window-switcher button.active{border-color:#b18650;color:var(--accent)}
+#notifications-button{min-width:35px;height:33px;position:relative;padding:5px 8px;display:grid;place-items:center}
+#notifications-button svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.6}
+#notification-count{position:absolute;top:0;right:0;background:#e2aa63;color:#111e28;font:9px monospace;border-radius:8px;min-width:15px;padding:1px 3px}
+.dropdown{position:relative;font-size:12px}
+.dropdown>summary{list-style:none;display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--text);padding:6px 8px;border:1px solid var(--border);border-radius:3px;white-space:nowrap}
+.dropdown>summary::-webkit-details-marker{display:none}
+.dropdown[open]>summary{border-color:var(--accent);color:var(--accent)}
+.dropdown .menu{position:absolute;right:0;top:calc(100% + 8px);min-width:220px;padding:6px;background:#1b2530;border:1px solid #43515f;box-shadow:0 12px 40px #000a;z-index:100;border-radius:4px}
+.dropdown .menu button{display:block;width:100%;min-height:32px;padding:7px 9px;text-align:left;background:transparent;border:0;border-radius:3px;font-size:12px}
+.dropdown .menu button:hover{background:#273947;color:var(--accent)}
+.profile-symbol{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.5}
+#profile-nick{display:inline-block;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}
+#sidebar{position:fixed;top:var(--header);left:0;bottom:30px;width:178px;padding:8px 7px;z-index:18;background:#131c24;border-right:1px solid var(--border);overflow:auto;scrollbar-width:thin;scrollbar-color:#40515d transparent;transition:width .15s;display:flex;flex-direction:column}
+.sidebar-heading{display:flex;align-items:center;justify-content:flex-end;position:relative;height:28px;flex-shrink:0}
+.sidebar-title{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#90a5b4;font:10px/1.2 system-ui;letter-spacing:1.4px;text-transform:uppercase;pointer-events:none}
+#sidebar-toggle{display:flex;align-items:center;justify-content:center;width:24px;height:24px;min-height:24px;padding:3px;margin:0;border:1px solid #34434f;border-radius:1px;background:#1b2832;color:#aac2cf;z-index:1}
+#sidebar-toggle svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.4}
+.sidebar-divider{height:1px;background:#30404c;margin:8px 0 10px;flex-shrink:0}
+#sidebar>button,#sidebar .maps-navigation>button{display:flex;align-items:center;width:100%;height:28px;min-height:28px;padding:3px 7px;margin:0 0 5px;gap:7px;border:1px solid #2c3c47;border-radius:1px;background:#18252f;box-shadow:none;text-align:left;flex-shrink:0}
+#sidebar>button:hover,#sidebar .maps-navigation>button:hover{background:#243745;border-color:#52727e;color:#e1edf0}
+#sidebar>button.module-open,#sidebar .maps-navigation>button.module-open{border-color:#51818a;background:#21353e;box-shadow:inset 2px 0 #79bab9}
+.nav-icon{display:flex;align-items:center;justify-content:center;flex:0 0 18px;min-width:18px;width:18px;color:var(--accent);font-size:15px}
+.nav-icon svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.5}
+.nav-label{font-size:11px;line-height:18px;white-space:normal;overflow:hidden;text-overflow:ellipsis}
+#sidebar .maps-navigation{flex-shrink:0;min-width:0}
+#sidebar .maps-navigation>summary{display:flex;align-items:center;gap:7px;cursor:pointer;list-style:none;padding:5px 7px;margin-bottom:6px;border:1px solid #344652;color:#a2b2c0;background:#1a2833;font-size:11px}
+#sidebar .maps-navigation>summary::-webkit-details-marker{display:none}
+#sidebar .maps-navigation[open]>summary{border-color:#53727b;color:#d3e8e7}
+#sidebar .maps-navigation>button{padding-left:12px}
+#sidebar>button.sidebar-bottom{margin-top:auto;color:#9bd3cd;border-color:#48666b}
+#sidebar.collapsed{width:48px;padding-inline:5px}
+#sidebar.collapsed .sidebar-title{display:none}
+#sidebar.collapsed .sidebar-heading{justify-content:center}
+#sidebar.collapsed #sidebar-toggle svg{transform:rotate(180deg)}
+#sidebar.collapsed>.sidebar-button,#sidebar.collapsed>.sidebar-bottom,#sidebar.collapsed .maps-navigation>button{justify-content:center;padding-inline:0}
+#sidebar.collapsed .nav-label{display:none}
+#sidebar.collapsed .maps-navigation>summary{justify-content:center;padding:5px 1px}
+#sidebar.collapsed .maps-navigation>button{padding-left:0}
+main{max-width:1500px;margin-left:178px;padding:84px 26px 55px;min-height:100vh;transition:margin-left .15s}
+body.sidebar-collapsed main{margin-left:48px}
+.eyebrow{color:var(--accent);font:11px monospace;letter-spacing:1.5px;margin:0 0 14px}
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.pilot-line{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.toolbar h1{font-size:27px;line-height:1.35;margin:3px 0;font-weight:600;overflow-wrap:anywhere}
+.level-overview{display:grid;grid-template-columns:auto auto auto;gap:3px 8px;align-items:center}
+.level-overview>small:first-child{font-size:9px;color:var(--muted)}
+.level-overview strong{font:15px monospace;color:var(--accent)}
+.level-overview progress{grid-column:1/3;width:110px;height:5px;accent-color:var(--accent)}
+.level-overview #overview-xp-text{font:9px monospace;color:var(--muted)}
+.level-overview button{grid-row:1/3;grid-column:3;font-size:10px;min-height:26px;padding:4px 7px;margin:0}
+#overview-company{font-size:11px;margin:10px 0 0;display:inline-flex;align-items:center;gap:5px;border:1px solid #425461;padding:3px 7px;border-radius:4px}
+#overview-company .flag{display:inline-flex;align-items:center;justify-content:center;background:#273f4e;border-radius:3px;width:20px;height:20px;color:#ebbf7c}
+.overview-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:8px}
+.overview-stats article{padding:14px 17px;min-width:0;position:relative}
+.overview-stats small{display:block;color:var(--muted);font:10px monospace}
+.overview-stats strong{display:block;color:var(--accent);font:23px/1.8 monospace;overflow-wrap:anywhere}
+#location{font-size:18px}#star-date{font-size:18px;line-height:2.4}
+#balance-change{position:absolute;top:8px;right:9px;color:#93d8a9;font:11px monospace}
+.workspace-intro{text-align:center;padding:30px 15px;color:var(--muted)}
+.workspace-intro .orbit-mark{font-size:36px;color:#314151}
+.workspace-intro h2{font-size:18px;color:var(--text);font-weight:600;margin:0 0 8px}
+.workspace-intro p{max-width:440px;font-size:12px;margin:10px auto}
+.workspace-intro button{min-height:30px;margin:4px}
+.muted{color:var(--muted);font-size:11px}
+#connection{margin:14px 0;font:10px monospace;color:#718797}
+footer{position:fixed;bottom:0;left:0;right:0;z-index:9000;height:30px;min-height:30px;padding:0 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;border-top:1px solid var(--border);background:#131a22;color:var(--muted);font:9px monospace;letter-spacing:1px}
+#server-status{font-size:10px;color:#86c9ac;cursor:help}
+#toast{position:fixed;bottom:45px;right:22px;z-index:10050;max-width:min(440px,calc(100vw - 25px));padding:10px 14px;border:1px solid #5c7886;background:#253744;color:#dce8ee;box-shadow:0 9px 30px #000a;font-size:12px}
+#demo-chip{font-size:9px;color:#98b0bd;border:1px solid #38505b;padding:3px 7px;letter-spacing:.6px;white-space:nowrap}
+.module-window{position:fixed;left:max(200px,calc(50vw - 230px));top:15%;z-index:200;display:flex;flex-direction:column;width:min(520px,calc(100vw - 25px));height:360px;min-height:180px;min-width:260px;max-height:calc(100vh - 60px);background:#171e26;border:1px solid #8b7454;border-radius:9px;box-shadow:0 18px 70px #000c;resize:both;overflow:hidden}
+.module-titlebar{min-height:37px;padding:5px 9px;display:flex;align-items:center;justify-content:space-between;gap:8px;background:#263747;cursor:move;user-select:none;touch-action:none}
+.module-titlebar h2{font:11px/1.4 'Segoe UI',sans-serif;letter-spacing:.3px;margin:0}
+.window-actions{display:flex;gap:3px}.window-actions button{width:26px;height:25px;min-height:25px;padding:0;border:1px solid transparent;background:transparent}
+.window-actions button:hover{background:#354859;border-color:#527382}
+.module-content{padding:14px;overflow:auto;flex:1;min-height:0}
+.module-content p{color:#acbdc7;font-size:12px}
+.module-content .row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);gap:10px;font-size:12px}
+.module-content .row span{color:var(--muted)}
+.module-content .row b{font-weight:500;text-align:right}
+.terminal-action{min-height:26px;padding:3px 9px;border:1px solid var(--action-border);border-radius:1px;background:var(--action);font-size:11px;line-height:18px}
+.terminal-action:hover{background:#263f4b;border-color:#6d9c9e;color:#d4eeed}
+.modal-footer{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+label{display:block;font:11px/1.4 'Segoe UI',sans-serif;color:var(--muted);margin:10px 0}
+label>span{display:block;margin-bottom:4px}
+select,input:not([type=checkbox]){height:32px;padding:6px 9px;width:100%;background:#111923;color:var(--text);border:1px solid #43515f;border-radius:5px}
+input[type=checkbox]{accent-color:var(--accent)}
+select:focus,input:focus{outline-color:var(--focus)}
+.demo-note{display:flex;gap:8px;align-items:center;font:10px/1.5 monospace;color:#94aebd;margin-top:14px}
+.demo-note svg{width:15px;height:15px;fill:none;stroke:#8bbec4;stroke-width:1.5}
+@media(max-width:1100px){.window-switcher{max-width:22vw}}
+@media(max-width:760px){header{padding:0 9px}.brand{font-size:11px}.brand small{font-size:8px}.header-actions{gap:5px}.window-switcher{display:none}#demo-chip{display:none}#profile-nick{max-width:75px}.dropdown>summary{font-size:10px;padding:6px}#sidebar{width:48px;padding-inline:5px}#sidebar .sidebar-title,#sidebar .nav-label{display:none}#sidebar .sidebar-heading{justify-content:center}#sidebar>button,#sidebar .maps-navigation>button{justify-content:center;padding-inline:0;height:32px;min-height:32px}main{margin-left:48px!important;padding:78px 12px 45px}.overview-stats{grid-template-columns:1fr}.pilot-line{gap:10px}.toolbar h1{font-size:24px}.module-window{left:8px;max-width:calc(100vw - 16px)}.dropdown .menu{min-width:190px}.toolbar{margin-bottom:16px}}
+@media(max-width:430px){.header-actions{gap:4px}.brand{letter-spacing:1px}.brand small{letter-spacing:1px}.toolbar h1{font-size:21px}.level-overview{gap:2px 6px}.level-overview progress{width:85px}.level-overview button{padding:3px 5px;font-size:9px}.overview-stats article{padding:12px 13px}.workspace-intro{padding:26px 8px}footer{padding:0 7px;font-size:8px;letter-spacing:0}#server-status{font-size:9px}}
+/* Chat Service — frontend-only mock. Cosmosimulator tokens, isolated .chat-* styles. */
+#sidebar>button.chat-bottom{margin-top:auto;color:#9bd3cd;border-color:#48666b}
+#sidebar>button.chat-bottom.module-open{border-color:#79bab9;background:#21353e}
+.home-lower-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;margin-top:16px;min-width:0;align-items:start}
+#chat-home-slot{min-width:0;min-height:0}
+#news-home-slot{min-width:0;pointer-events:none}
+.chat-floating{position:fixed;top:clamp(66px,13vh,132px);left:clamp(65px,calc(100vw - 475px),calc(100vw - 365px));width:420px;height:540px;min-width:350px;min-height:380px;max-width:calc(100vw - 12px);max-height:calc(100vh - 102px);z-index:4600;resize:both;overflow:hidden;box-shadow:0 18px 70px #000b}
+.chat-floating:focus-within{z-index:4610}
+.chat-root{--chat-alpha:1;display:flex;flex-direction:column;width:100%;height:100%;min-height:0;min-width:0;color:var(--text);background:rgba(23,30,38,var(--chat-alpha));border:1px solid #526575;border-radius:0;font:11px/1.4 'Segoe UI',system-ui,sans-serif;overflow:hidden}
+.chat-floating .chat-root{border-color:#907958;box-shadow:inset 0 1px #ffffff08}
+.chat-root button,.chat-root select,.chat-root textarea,.chat-root input{font:11px/1.35 'Segoe UI',system-ui,sans-serif}
+.chat-root button{min-height:24px;padding:3px 7px;border-radius:0;box-shadow:none;border:1px solid #405966;background:#192a35;color:#dce5ed}
+.chat-root button:hover:not(:disabled){background:#263f4b;border-color:#6d9c9e;color:#d4eeed}
+.chat-root button:disabled{opacity:.44}
+.chat-root input,.chat-root select,.chat-root textarea{border-radius:0;color:#dce5ed;background:#111923;border:1px solid #3b505e;padding:5px 7px;min-height:26px;margin:0;min-width:0}
+.chat-root input[type=checkbox]{width:14px;min-height:14px;height:14px;accent-color:var(--accent)}
+.chat-root input[type=range]{height:auto;min-height:14px;padding:0;accent-color:var(--accent);border:0;background:transparent;width:100%;cursor:pointer}
+.chat-root label{margin:0}
+.chat-titlebar{height:34px;min-height:34px;display:flex;align-items:center;justify-content:space-between;gap:5px;padding:4px 7px;background:rgba(28,41,53,calc(var(--chat-alpha)*.98));border-bottom:1px solid #40505b;user-select:none}
+.chat-floating .chat-titlebar{cursor:move;touch-action:none}
+.chat-appname{min-width:0;display:flex;align-items:center;gap:7px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.chat-appname b{font-size:11px;letter-spacing:.3px;font-weight:600;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+/* The larger invisible hit area makes the service indicator keyboard/touch accessible. */
+.chat-signal{flex-shrink:0;display:inline-grid;place-items:center;width:16px;height:20px;position:relative;background:transparent;border:0;border-radius:0;cursor:help;color:#83cba6;outline-offset:2px}
+.chat-signal::before{content:"";display:block;width:7px;height:7px;background:currentColor;border-radius:50%;box-shadow:0 0 6px currentColor}
+.chat-signal.healthy{color:#83cba6}
+.chat-signal.partial{color:#efad58}
+.chat-signal.down{color:#dd786e}
+.chat-signal:focus-visible{outline:2px solid var(--focus)}
+/* Compact service-health panel: crisp status squares, two independent service rows. */
+.chat-status-tooltip{position:fixed;z-index:11000;width:205px;max-width:calc(100vw - 20px);padding:9px 11px;background:linear-gradient(150deg,#223744,#17252e 75%);color:#dce5ed;border:1px solid #6a8994;box-shadow:0 12px 32px #000c,0 0 0 1px #ffffff0a;font:11px/1.25 'Segoe UI',system-ui,sans-serif;pointer-events:none;border-radius:0}
+.chat-status-tooltip-title{font-size:11px;font-weight:600;line-height:1.3;color:#e1ebef;padding-bottom:6px;margin-bottom:5px;border-bottom:1px solid #46616c}
+.chat-status-tooltip-list{display:grid;gap:3px}
+.chat-status-tooltip-row{display:grid;grid-template-columns:8px minmax(0,1fr) auto;align-items:center;gap:7px;min-height:17px}
+.chat-service-square{display:block;width:8px;height:8px;border-radius:1px;border:1px solid #ffffff24;box-shadow:0 0 7px currentColor}
+.chat-service-square.online{background:#6bc69d;color:#6bc69d}
+.chat-service-square.offline{background:#e07871;color:#e07871}
+.chat-service-name{font-weight:550;color:#dce5ed}
+.chat-service-state{color:#93b3bf;font:10px/1.2 monospace}
+.chat-service-state.offline{color:#e19a92}
+.chat-toolset{display:flex;align-items:center;gap:2px;flex-shrink:0}
+.chat-root .chat-icon{height:24px;min-height:24px;min-width:24px;padding:0 3px;border:1px solid transparent;background:transparent;color:#a8c0cc;font:14px/1 monospace}
+.chat-root .chat-icon:hover,.chat-root .chat-icon.active{border-color:#526d77;background:#20333d;color:var(--accent)}
+.chat-root .chat-dock{font-size:10px;min-width:74px;padding:1px 5px;white-space:nowrap}
+.chat-tabs{display:flex;gap:0;flex:0 0 auto;min-height:31px;max-height:35px;overflow-x:auto;scrollbar-width:thin;scrollbar-color:#37525d transparent;background:rgba(20,29,38,var(--chat-alpha));border-bottom:1px solid var(--border)}
+.chat-root .chat-tab{border:0;border-bottom:2px solid transparent;min-height:29px;padding:5px 8px;font-size:10px;white-space:nowrap;flex:1 0 auto;background:transparent;color:#93a4b5;position:relative}
+.chat-root .chat-tab:hover:not(:disabled){background:#2234419a;color:var(--text)}
+.chat-root .chat-tab.active{border-color:var(--accent);color:var(--accent);background:rgba(34,48,60,.78)}
+.chat-root .chat-tab:disabled{opacity:.48}
+.chat-dot-new{display:inline-block;width:5px;height:5px;margin-left:4px;border-radius:50%;background:#efad58;vertical-align:middle}
+.chat-count{margin-left:4px;color:#111b23;background:#9ac7c8;padding:0 4px;font:9px/1.5 monospace}
+.chat-settings-panel,.chat-search-panel{background:rgba(20,31,40,calc(var(--chat-alpha)*.98));border-bottom:1px solid #3a4b57;padding:8px 10px;flex:0 0 auto}
+.chat-settings-panel label{display:flex;align-items:center;gap:7px;font-size:11px;color:#a8bdc8}
+.chat-opacity-row{display:grid;grid-template-columns:1fr 95px 38px;gap:8px;align-items:center;margin:5px 0 8px}
+.chat-inline-option{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:5px}
+.chat-inline-option select{width:125px}
+.chat-search-panel{display:flex;align-items:center;gap:6px}
+.chat-search-panel input{flex:1}
+.chat-root .chat-mini{font:10px/1.3 monospace;color:#849dac}
+.chat-section-header{min-height:31px;display:flex;align-items:center;justify-content:space-between;gap:6px;padding:5px 9px;background:rgba(19,31,40,var(--chat-alpha));border-bottom:1px solid #30424e;flex-shrink:0}
+.chat-section-name{color:#bfcfda;font-size:10px;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.chat-section-actions{display:flex;gap:4px;align-items:center;flex-shrink:0}
+.chat-root .chat-small-btn{min-height:21px;padding:2px 6px;font-size:10px}
+.chat-area{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:#3c505e transparent;background:rgba(15,21,29,calc(var(--chat-alpha)*.5));overscroll-behavior:contain}
+.chat-feed{padding:5px 7px;min-height:100%}
+.chat-message{position:relative;display:flex;align-items:flex-start;gap:7px;padding:7px 2px 8px;border-bottom:1px solid #34434b6b;line-height:1.45;min-width:0}
+.chat-message:hover,.chat-message:focus-within{background:rgba(62,92,104,.18)}
+.chat-msg-content{flex:1 1 auto;min-width:0}
+.chat-msg-head{display:flex;align-items:baseline;flex-wrap:wrap;gap:5px;min-width:0}
+.chat-time{font:9px/1.4 monospace;color:#72909f;white-space:nowrap}
+.chat-author{color:#b4dce0;font-weight:600;font-size:11px;overflow-wrap:anywhere}
+.chat-message.own .chat-author{color:#efad58}
+.chat-corp{font:9px/1.4 monospace;color:#8aadb0}
+.chat-msg-text{color:#d4dfe8;white-space:pre-wrap;overflow-wrap:anywhere;margin:3px 0 0;font-size:11px}
+.chat-reply-origin{margin:3px 0;padding:3px 6px;border-left:2px solid #729caa;background:#20313a;color:#9eb9c3;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chat-sector-no{font:10px/1.3 monospace;border:1px solid #395966;color:#a4c7d0;padding:2px 4px;margin-top:1px;cursor:help}
+.chat-root .chat-more{min-width:23px;min-height:21px;border:0;background:transparent;padding:0 2px;opacity:0;color:#8ca6b7;font:15px/1.1 monospace}
+.chat-message:hover .chat-more,.chat-message:focus-within .chat-more{opacity:1}
+/* Private read receipts use the same styled hover panel as the service status. */
+.chat-read-dot{display:inline-grid;place-items:center;margin-left:2px;width:16px;height:16px;flex:0 0 16px;vertical-align:middle;background:transparent;border:0;border-radius:0;cursor:help;color:#888f98;outline-offset:1px}
+.chat-read-dot::before{content:"";display:block;width:6px;height:6px;background:currentColor;border-radius:50%}
+.chat-read-dot.read{color:#63a8ed}
+.chat-read-dot:focus-visible{outline:2px solid var(--focus)}
+.chat-read-tooltip{position:fixed;z-index:11001;min-width:191px;max-width:calc(100vw - 20px);padding:9px 11px;background:linear-gradient(150deg,#223744,#17252e 75%);color:#dce5ed;border:1px solid #6a8994;box-shadow:0 12px 32px #000c,0 0 0 1px #ffffff0a;font:11px/1.25 'Segoe UI',system-ui,sans-serif;pointer-events:none;border-radius:0}
+.chat-read-tooltip-title{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600;color:#e1ebef}
+.chat-read-tooltip-indicator{width:7px;height:7px;flex:0 0 7px;border-radius:50%;background:#8b939d;box-shadow:0 0 6px #8b939d77}
+.chat-read-tooltip-indicator.read{background:#63a8ed;box-shadow:0 0 7px #63a8ed88}
+.chat-read-tooltip-description{margin:6px 0 0;padding-top:6px;border-top:1px solid #46616c;color:#a8beca;font-size:10px;line-height:1.4}
+.chat-system-message{padding:8px 5px;color:#8c9eab;text-align:center;font-size:10px;border-bottom:1px dashed #34434b6b}
+.chat-empty{padding:24px 12px;text-align:center;color:#8299a8;max-width:320px;margin:0 auto;line-height:1.7}
+.chat-empty b{display:block;font-size:12px;color:#c2d1d7;font-weight:500;margin-bottom:5px}
+.chat-compose{position:relative;flex:0 0 auto;padding:7px;background:rgba(23,34,43,calc(var(--chat-alpha)*.92));border-top:1px solid #40515d}
+.chat-compose-main{display:flex;align-items:flex-end;gap:5px;min-width:0}
+.chat-compose-main textarea{flex:1;min-height:32px;height:36px;max-height:104px;resize:vertical;line-height:1.4;width:100%;font-size:11px}
+.chat-root .chat-send{min-width:62px;min-height:33px;background:#253b46;border-color:#52717d;color:#dcebea;font-weight:600}
+.chat-root .chat-send:hover:not(:disabled){background:#2f4d55;color:#f6d09b;border-color:#c19a65}
+.chat-compose-meta{display:flex;justify-content:space-between;gap:8px;align-items:center;padding-top:3px;font-size:9px;color:#869fac}
+.chat-compose-meta span:last-child{font:9px monospace;white-space:nowrap}
+.chat-reply-preview{display:flex;align-items:center;gap:6px;background:#20333c;border-left:2px solid #86b5bf;padding:4px 6px;margin-bottom:5px;font-size:10px;color:#b1cbd3;min-width:0}
+.chat-reply-preview>span{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.chat-root .chat-reply-preview button{border:0;background:transparent;min-height:19px;padding:0 4px}
+
+/* Compact keyboard-accessible emoji palette, anchored above the chat composer. */
+.chat-root .chat-emoji-trigger{align-self:flex-end;flex:0 0 31px;width:31px;height:33px;min-height:33px;padding:0;background:#1c303b;border:1px solid #435d6c;color:#b9d6d9;font:19px/1 system-ui,sans-serif}
+.chat-root .chat-emoji-trigger:hover:not(:disabled),.chat-root .chat-emoji-trigger[aria-expanded="true"]{background:#2a414b;border-color:#8daeb0;color:#efad58}
+.chat-root .chat-emoji-trigger:focus-visible,.chat-emoji-panel button:focus-visible,.chat-emoji-panel input:focus-visible{outline:2px solid #78c7d9;outline-offset:1px}
+.chat-emoji-panel{position:absolute;right:7px;bottom:calc(100% + 4px);width:min(292px,calc(100% - 14px));max-height:min(326px,calc(100dvh - 120px));display:flex;flex-direction:column;min-height:0;z-index:110;background:#182832;border:1px solid #68818c;box-shadow:0 14px 40px #000d;color:#dce5ed}
+.chat-emoji-panel[hidden]{display:none!important}
+.chat-emoji-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 9px 5px;border-bottom:1px solid #38515f;background:#223541}
+.chat-emoji-head strong{font-size:11px;font-weight:600;letter-spacing:.2px;color:#dfebed}
+.chat-root .chat-emoji-close{min-width:21px;width:21px;min-height:21px;padding:0;border:1px solid transparent;background:transparent;font:17px/1 monospace;color:#b2c7d1}
+.chat-root .chat-emoji-close:hover{border-color:#527585}
+.chat-root .chat-emoji-search{width:calc(100% - 14px);height:28px;min-height:28px;margin:7px 7px 4px;padding:4px 8px;background:#111c25;border:1px solid #435b69;color:#dce5ed;font-size:11px}
+.chat-emoji-categories{display:flex;gap:2px;overflow-x:auto;padding:2px 6px 5px;border-bottom:1px solid #344c57;scrollbar-width:thin}
+.chat-root .chat-emoji-category{flex:1 0 auto;min-height:23px;padding:3px 5px;border:0;border-bottom:2px solid transparent;background:transparent;font:10px/1.3 system-ui,sans-serif;color:#91aab5;white-space:nowrap}
+.chat-root .chat-emoji-category[aria-pressed="true"]{color:#efad58;border-bottom-color:#efad58;background:#273c45}
+.chat-emoji-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;align-content:start;overflow:auto;min-height:0;flex:1 1 auto;padding:7px;scrollbar-width:thin;scrollbar-color:#3b535e transparent}
+.chat-root .chat-emoji-item{display:grid;place-items:center;width:100%;aspect-ratio:1/1;min-height:30px;padding:0;border:1px solid transparent;background:transparent;font:20px/1.2 'Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji',sans-serif}
+.chat-root .chat-emoji-item:hover,.chat-root .chat-emoji-item:focus-visible{background:#304a55;border-color:#638794}
+.chat-emoji-empty{grid-column:1/-1;padding:15px 8px;color:#99b1bf;text-align:center;font-size:11px}
+.chat-emoji-foot{padding:5px 8px;border-top:1px solid #344b55;color:#90a7b3;font:9px/1.3 'Segoe UI',system-ui,sans-serif}
+@media(max-width:550px){.chat-emoji-grid{grid-template-columns:repeat(6,minmax(0,1fr))}.chat-emoji-panel{max-height:min(300px,calc(100dvh - 155px))}}
+.chat-folder-bar{padding:6px;display:flex;flex-wrap:wrap;align-items:center;gap:4px;border-bottom:1px solid #344752;background:rgba(23,36,45,.67)}
+.chat-root .chat-folder{font-size:10px;min-height:23px;padding:2px 7px;background:#1b2b36;color:#a8bec8;border-color:#3a525f}
+.chat-root .chat-folder.selected{color:var(--accent);border-color:#a28558;background:#2c3031}
+.chat-favorite-card{margin:6px 8px;padding:9px 10px;background:rgba(28,42,53,.65);border:1px solid #334652}
+.chat-favorite-card-head{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:10px;color:#849dab}
+.chat-favorite-card p{margin:5px 0;color:#d5e2e8;white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px}
+.chat-favorite-card .chat-folder-label{color:#efad58}
+.chat-conversation-row,.chat-invitation-row{display:flex;align-items:center;gap:8px;border-bottom:1px solid #334651;padding:11px 9px;cursor:pointer;min-width:0}
+.chat-conversation-row:hover{background:#23374675}
+.chat-conversation-row>div{min-width:0;flex:1}
+.chat-conversation-row strong{display:block;color:#dbe6ea;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chat-conversation-row small{display:block;color:#8ea5b1;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:10px}
+.chat-avatar{display:grid;place-items:center;flex:0 0 29px;width:29px;height:29px;border:1px solid #52717b;background:#213641;color:#a4d7d9;font:12px monospace}
+.chat-unread{background:#365965;color:#d9eef0;padding:2px 6px;font:10px monospace}
+.chat-invitation-row{align-items:flex-start;cursor:default;background:rgba(47,50,38,.16)}
+.chat-invitation-row .chat-row-actions{display:flex;gap:5px;margin-top:7px}
+.chat-detail-actions{display:flex;align-items:center;gap:4px}
+/* One compact context-menu style for all Chat actions: messages, favorites, folders and Private. */
+.chat-context-menu{position:fixed;width:max-content;min-width:120px;max-width:calc(100vw - 16px);background:#1b2833;border:1px solid #617985;box-shadow:0 7px 18px #0009;z-index:10700;padding:2px;display:grid;gap:0}
+.chat-context-menu button{display:block;width:100%;border:0;background:transparent;text-align:left;font:10px/15px 'Segoe UI',system-ui,sans-serif;padding:3px 6px;min-height:21px;color:#dce5ed;border-radius:0;white-space:nowrap}
+.chat-context-menu button:hover,.chat-context-menu button:focus-visible{background:#314956;color:#efad58}
+.chat-context-menu button.danger-action:hover,.chat-context-menu button.danger-action:focus-visible{color:#f4a9a2;background:#423037}
+/* Compact nested folder list: same density and palette as the other chat context menus. */
+.chat-context-submenu{position:fixed;z-index:10701;display:grid;gap:0;padding:2px;min-width:120px;width:max-content;max-width:calc(100vw - 16px);max-height:min(265px,calc(100vh - 16px));overflow-y:auto;overscroll-behavior:contain;background:#1b2833;border:1px solid #617985;box-shadow:0 7px 18px #0009}
+.chat-context-menu .chat-submenu-trigger{display:flex;justify-content:space-between;align-items:center;gap:14px}
+.chat-submenu-trigger::after{content:'›';font:14px/12px 'Segoe UI',system-ui,sans-serif;color:#aac4cd}
+.chat-context-menu .chat-folder-choice[aria-checked="true"]{color:#efad58;background:#2c373d}
+.chat-folder-choice .chat-folder-check{display:inline-block;width:13px;color:#efad58}
+
+.chat-modal{position:fixed;inset:0;z-index:11020;background:#02070bcc;display:grid;place-items:center;padding:12px}
+.chat-modal-panel{background:#18242e;border:1px solid #69818b;color:#dce5ed;box-shadow:0 24px 85px #000c;width:min(370px,100%);padding:15px;border-radius:0;font-size:12px}
+.chat-modal-panel h3{margin:0 0 9px;font-size:13px;color:#efad58}
+.chat-modal-panel p{color:#afc1cc;margin:7px 0 12px;line-height:1.5}
+.chat-modal-panel label{font-size:11px;color:#a7bac6;margin:9px 0;display:block}
+.chat-modal-panel input,.chat-modal-panel select{width:100%;height:29px;background:#111923;color:#dce5ed;border:1px solid #506573;border-radius:0;padding:5px 8px;margin-top:5px;font-size:12px}
+/* Local form validation: error belongs to the field, not the global notification inbox. */
+.chat-modal-panel input[aria-invalid="true"]{border-color:#df8179}
+.chat-modal-panel input[aria-invalid="true"]{border-color:#df8179;box-shadow:0 0 0 1px #df817932}
+.chat-modal-error{display:flex;gap:8px;align-items:flex-start;margin:8px 0 0;padding:8px 9px;background:#352427;border:1px solid #925255;border-left:2px solid #e08277;color:#f0b8b1;font:11px/1.45 'Segoe UI',system-ui,sans-serif}
+.chat-modal-error::before{content:'!';display:grid;place-items:center;flex:0 0 15px;width:15px;height:15px;border:1px solid #db8980;color:#efaaa3;font:bold 10px/1 monospace}
+.chat-modal-pilots{margin:6px 0 0;color:#829da9;font:10px/1.4 'Segoe UI',system-ui,sans-serif;overflow-wrap:anywhere}
+
+.chat-modal-actions{display:flex;justify-content:flex-end;gap:6px;margin-top:15px}
+.chat-modal-actions button{min-height:27px;padding:4px 12px;border:1px solid #486270;background:#1d303c;color:#dce5ed;border-radius:0}
+.chat-modal-actions .primary{color:#141a21;background:#efad58;border-color:#efad58}
+.chat-mention{position:absolute;bottom:87px;left:7px;max-width:calc(100% - 14px);min-width:185px;background:#1b2c37;border:1px solid #5c7886;box-shadow:0 7px 26px #000a;z-index:50;padding:3px}
+.chat-mention button{display:block;width:100%;text-align:left;background:transparent;border:0;min-height:26px;padding:5px 7px}
+.chat-demo-hint{color:#768f9b;text-align:center;padding:4px;font:9px monospace;letter-spacing:.4px;flex:0 0 auto;border-top:1px solid #314653;background:rgba(19,26,34,.8)}
+/* Context-aware roster window: online pilots / current region / corporation / private members. */
+.chat-root .chat-players-trigger{display:inline-flex;align-items:center;gap:4px;white-space:nowrap;border-color:#415c6a;background:#1b303a;color:#b8d6dc}
+.chat-players-trigger svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.chat-players-overlay{position:fixed;inset:0;z-index:10900;display:grid;place-items:center;padding:12px;background:#02070bc2}
+.chat-players-panel{display:flex;flex-direction:column;min-height:0;max-height:min(650px,calc(100dvh - 32px));width:min(430px,100%);color:#dce5ed;background:#18242e;border:1px solid #78919a;box-shadow:0 24px 90px #000c;font:11px/1.4 'Segoe UI',system-ui,sans-serif}
+.chat-players-head{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;background:#223341;border-bottom:1px solid #405560}
+.chat-players-head h3{margin:0;color:#e3edf0;font-size:12px;font-weight:600}
+.chat-players-head button{display:grid;place-items:center;min-width:25px;min-height:25px;border:1px solid #486171;background:#203440;color:#a9c1cb;border-radius:0;cursor:pointer;font-size:17px;line-height:1}
+.chat-players-head button:hover{background:#2f4856;border-color:#7aa7ae}
+.chat-players-summary{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:9px;padding:8px 12px;color:#99aebb;border-bottom:1px solid #314550;font-size:10px}
+.chat-players-total{color:#efad58;font:11px/1 monospace;white-space:nowrap}
+.chat-players-filter{flex:0 0 auto;padding:8px 12px;background:#192933;border-bottom:1px solid #314550}
+.chat-players-filter input{display:block;width:100%;height:30px;padding:5px 9px;margin:0;background:#101923;color:#dce5ed;border:1px solid #46616e;border-radius:0;font-size:11px;outline-offset:1px}
+.chat-players-filter input:focus{outline:1px solid #78c7d9}
+.chat-players-result{flex:0 0 auto;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 12px;font:10px/1.3 monospace;color:#8fa7b5;background:#16232d}
+.chat-players-list{min-height:0;flex:1 1 auto;overflow-y:auto;overscroll-behavior:contain;scrollbar-color:#395766 transparent;scrollbar-width:thin;padding:1px 8px 5px}
+.chat-player-row{display:grid;grid-template-columns:8px 29px minmax(0,1fr) auto;gap:9px;align-items:center;min-height:47px;padding:7px 5px;border-bottom:1px solid #3446508c}
+.chat-player-presence{width:7px;height:7px;background:#72c6a0;border-radius:1px;box-shadow:0 0 6px #72c6a044}
+.chat-player-presence.offline{background:#71818e;box-shadow:none}
+.chat-player-avatar{display:grid;place-items:center;width:29px;height:29px;border:1px solid #476978;background:#223945;color:#c0dbe1;font:12px monospace}
+.chat-player-name{min-width:0;overflow:hidden}
+.chat-player-name strong{display:block;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;font-size:11px;font-weight:600;color:#dce9ec}
+.chat-player-name span{display:block;margin-top:1px;color:#829fad;font:10px/1.25 'Segoe UI',system-ui,sans-serif}
+.chat-player-role{font-size:10px;color:#a6b9c3;white-space:nowrap;text-align:right}
+.chat-player-role.owner{color:#efad58}
+.chat-players-empty{padding:28px 10px;color:#8ea6b2;text-align:center;font-size:11px}
+.chat-players-foot{flex:0 0 auto;padding:7px 12px;border-top:1px solid #344952;background:#17242d;color:#7f9aa8;font-size:10px}
+@media(max-width:550px){.chat-players-panel{max-height:calc(100dvh - 24px)}.chat-player-role{max-width:90px;overflow:hidden;text-overflow:ellipsis}.chat-root .chat-players-trigger{padding-inline:5px}}
+/* Moderation uses a single role-gated panel; no new chat connections. */
+.chat-moderation-overlay{position:fixed;inset:0;z-index:10790;background:#02070bd1;padding:14px;display:grid;place-items:center}
+.chat-moderation-panel{width:min(560px,100%);height:min(620px,calc(100dvh - 28px));display:flex;flex-direction:column;min-height:0;background:#18242e;border:1px solid #748d99;box-shadow:0 22px 90px #000c;color:#dce5ed;font:11px/1.5 'Segoe UI',system-ui,sans-serif}
+.chat-moderation-heading{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;gap:10px;background:#223440;border-bottom:1px solid #405761}
+.chat-moderation-heading h3{font-size:13px;color:#e8eff2;font-weight:600;margin:0}
+.chat-moderation-heading span{color:#8aa9b8;font-size:10px}
+.chat-moderation-heading button{min-width:26px;min-height:26px;background:#1b303e;border:1px solid #496675;color:#dce5ed;font:18px/1 monospace}
+.chat-moderation-tabs{display:flex;gap:0;background:#182a35;border-bottom:1px solid #3c5562;flex:0 0 auto}
+.chat-moderation-tabs button{flex:1;min-height:34px;border:0;border-bottom:2px solid transparent;background:transparent;color:#9eb4c0;font-size:11px;cursor:pointer}
+.chat-moderation-tabs button.active{border-color:#efad58;color:#efad58;background:#283842}
+.chat-moderation-body{min-height:0;flex:1;overflow-y:auto;padding:10px;scrollbar-color:#42616e transparent}
+.chat-moderation-note{padding:9px 10px;border:1px solid #3e5764;border-left:2px solid #6cb4b5;background:#1b303a;color:#a9c4cf;margin-bottom:9px}
+.chat-moderation-metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px}
+.chat-moderation-metric{background:#14232d;border:1px solid #364f5c;padding:8px 10px}
+.chat-moderation-metric span{display:block;color:#90a7b3;font-size:10px}
+.chat-moderation-metric b{font:18px/1.8 monospace;color:#efad58}
+.chat-moderation-section-title{font-size:10px;letter-spacing:.8px;color:#8cb2c0;margin:12px 0 5px}
+.chat-moderation-row{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;min-width:0;padding:9px 5px;border-bottom:1px solid #344a57}
+.chat-moderation-row:first-child{border-top:1px solid #344a57}
+.chat-moderation-row-main{flex:1;min-width:0}
+.chat-moderation-row-main strong{font-size:11px;color:#deebef;overflow-wrap:anywhere}
+.chat-moderation-row-main small{display:block;color:#87a2b1;font-size:10px;line-height:1.5;overflow-wrap:anywhere}
+.chat-moderation-row-main .chat-moderation-reason{color:#c7a99a;margin-top:3px}
+.chat-moderation-row-actions{display:flex;gap:5px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.chat-moderation-row-actions button,.chat-moderation-body button{min-height:26px;padding:4px 8px;border-radius:0;border:1px solid #476675;background:#1e3541;color:#cfe1e7;font-size:10px;cursor:pointer}
+.chat-moderation-body button:hover:not(:disabled){background:#30505b;border-color:#7da1ae}
+.chat-moderation-body button:disabled{opacity:.45;cursor:default}
+.chat-moderation-body .danger-action{border-color:#945e5b;color:#e5aaa5;background:#372b31}
+.chat-moderation-role{color:#efad58;font:10px monospace;white-space:nowrap}
+.chat-moderation-foot{flex:0 0 auto;padding:7px 10px;border-top:1px solid #405660;color:#8aa3ae;font-size:9px;background:#17252e}
+.chat-moderation-empty{padding:26px 10px;text-align:center;color:#97aebb}
+.chat-player-row .chat-player-manage{font:10px/1.2 'Segoe UI',system-ui,sans-serif;min-height:25px;padding:3px 6px;border:1px solid #526c78;border-radius:0;background:#203641;color:#b7d7de;cursor:pointer;white-space:nowrap}
+.chat-player-row.with-manage{grid-template-columns:8px 29px minmax(0,1fr) auto auto}
+.chat-player-role.muted{color:#e5ae75}
+@media(max-width:450px){.chat-moderation-overlay{padding:6px}.chat-moderation-panel{height:calc(100dvh - 12px)}.chat-moderation-row{align-items:flex-start}.chat-player-row.with-manage{grid-template-columns:8px 26px minmax(0,1fr) auto}.chat-player-row.with-manage .chat-player-role{display:none}}
+#chat-home-slot .chat-root{height:825px}
+#chat-home-slot .chat-titlebar{cursor:default}
+body.chat-docked .workspace-intro{padding-top:22px}
+@media (hover:none){.chat-root .chat-more{opacity:1}}
+@media(max-width:880px){.home-lower-grid{grid-template-columns:1fr}#news-home-slot{display:none}#chat-home-slot .chat-root{height:780px}}
+@media(max-width:550px){.chat-floating{left:54px!important;top:63px!important;width:calc(100vw - 60px)!important;height:calc(100vh - 106px)!important;min-width:0;min-height:380px;max-width:none;max-height:none;resize:none}.chat-root .chat-tab{padding:5px 6px;font-size:9px}.chat-titlebar{padding:4px 5px}.chat-appname{gap:4px}.chat-folder-bar{gap:3px}#chat-home-slot .chat-root{height:795px}}
+@media(max-height:640px){.chat-floating{top:61px;max-height:calc(100vh - 94px);height:calc(100vh - 100px)}}
+</style>
+</head>
+<body>
+<header>
+  <a class="brand" href="#game" id="brand" aria-label="Вернуться на главную">◈ COSMOSIMULATOR <small>EDEM / 0.17.0</small></a>
+  <div class="header-actions">
+    <div id="window-switcher" class="window-switcher" aria-label="Открытые окна"></div>
+    <span id="demo-chip" title="Демонстрация без сервера">DEMO · MOCK DATA</span>
+    <button id="notifications-button" type="button" title="Уведомления" aria-label="Уведомления"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0v6l3 3H3l3-3V8M9 21h6"/></svg><span id="notification-count">2</span></button>
+    <details id="admin-menu" class="dropdown" hidden>
+      <summary>Панель администратора</summary>
+      <div class="menu">
+        <button type="button" data-module="Пропустить тик">Пропустить тик</button>
+        <button type="button" data-module="Бенчмарк">Бенчмарк</button>
+        <button type="button" data-module="Игровой процесс">Игровой процесс</button>
+        <button type="button" data-module="Галактики">Галактики</button>
+        <button type="button" data-module="Журнал изменений">Журнал изменений</button>
+        <button type="button" data-module="Выдача ресурсов">Выдача ресурсов</button>
+        <button type="button" data-module="Предложения игроков (админ)">Предложения игроков</button>
+        <button type="button" data-module="Пользователи">Пользователи</button>
+      </div>
+    </details>
+    <details id="profile-menu" class="dropdown">
+      <summary><svg class="profile-symbol" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 22v-3a8 8 0 0 1 16 0v3"/></svg><span id="profile-nick">Commander</span></summary>
+      <div class="menu"><button type="button" data-module="Профиль игрока">Профиль игрока</button><button type="button" data-module="Настройки">Настройки</button><button type="button" data-module="История финансов">История финансов</button><button type="button" id="logout">Выйти</button></div>
+    </details>
+  </div>
+</header>
+<aside id="sidebar" aria-label="Модули">
+  <div class="sidebar-heading"><span class="sidebar-title">Модули</span><button id="sidebar-toggle" type="button" aria-expanded="true" aria-label="Свернуть панель" title="Свернуть панель"><svg viewBox="0 0 20 20"><path d="M12 5l-5 5 5 5"/></svg></button></div>
+  <div class="sidebar-divider"></div>
+  <details id="maps-navigation" class="maps-navigation">
+    <summary title="Карты"><span class="nav-icon">▤</span><span class="nav-label">Карты</span></summary>
+    <button type="button" data-module="Галактическая карта" title="Галактическая карта"><span class="nav-icon">✦</span><span class="nav-label">Галактическая карта</span></button>
+    <button type="button" data-module="Карта текущей системы" title="Карта текущей системы"><span class="nav-icon">☉</span><span class="nav-label">Карта текущей системы</span></button>
+  </details>
+  <button type="button" data-module="Колонии" title="Колонии"><span class="nav-icon">⬡</span><span class="nav-label">Колонии</span></button>
+  <button type="button" data-module="Корабль" title="Корабль"><span class="nav-icon">◇</span><span class="nav-label">Корабль</span></button>
+  <button type="button" data-module="Верфи" title="Верфи"><span class="nav-icon">⚒</span><span class="nav-label">Верфи</span></button>
+  <button type="button" data-module="Добыча" title="Добыча"><span class="nav-icon">⛏</span><span class="nav-label">Добыча</span></button>
+  <button type="button" data-module="Исследования" title="Исследования"><span class="nav-icon">⌾</span><span class="nav-label">Исследования</span></button>
+  <button type="button" data-module="Рынок" title="Рынок"><span class="nav-icon">⇄</span><span class="nav-label">Рынок</span></button>
+  <button type="button" data-module="Корпорация" title="Корпорация"><span class="nav-icon">⬡</span><span class="nav-label">Корпорация</span></button>
+  <button type="button" data-module="Логистика" title="Логистика"><span class="nav-icon">▦</span><span class="nav-label">Логистика</span></button>
+  <button type="button" data-module="Планировщик задач" title="Планировщик задач"><span class="nav-icon">≡</span><span class="nav-label">Планировщик задач</span></button>
+  <button class="chat-bottom" type="button" data-chat-open title="Чат"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v12H9l-5 3V5zM8 9h8M8 13h5"/></svg></span><span class="nav-label">Чат</span></button>
+  <button type="button" data-module="Руководство пилота" title="Руководство пилота"><span class="nav-icon">▤</span><span class="nav-label">Руководство пилота</span></button>
+  <button type="button" data-module="Предложить идею" title="Предложить идею"><span class="nav-icon">✧</span><span class="nav-label">Предложить идею</span></button>
+</aside>
+<main>
+  <section id="game">
+    <p class="eyebrow">EDEM / COMMAND TERMINAL</p>
+    <div class="toolbar"><div>
+      <div class="pilot-line"><h1 id="welcome-name">Commander</h1><div class="level-overview">
+        <small>Стаж игрока</small><strong id="overview-level">7</strong>
+        <progress id="overview-xp" max="500" value="370" title="370 / 500 XP; опыт за разведку и добычу"></progress>
+        <small id="overview-xp-text">370 / 500 XP</small>
+        <button type="button" id="overview-upgrade" title="Недостаточно опыта для повышения стажа" disabled>Повысить стаж</button>
+      </div></div>
+      <p id="overview-company" title="Корпорация: NOVA Research"><span class="flag">✦</span> [NOVA]</p>
+    </div></div>
+    <div class="overview-stats">
+      <article class="panel"><small>БАЛАНС</small><strong id="credits">184 520</strong><small>CR</small><span id="balance-change" role="status"></span></article>
+      <article class="panel"><small>Местоположение</small><strong id="location">Эдем</strong><small id="overview-region">Орбита станции</small></article>
+      <article class="panel"><small>Хронология Эдема</small><strong id="star-date">0019 ЭД · 137 · 684</strong><small title="Год · день · импульс. 360 дней в году и 1000 импульсов в дне.">ED / CHRONOLOGY</small></article>
+    </div>
+    <div class="home-lower-grid" id="home-lower-grid" hidden><section id="chat-home-slot" aria-label="Чат на главной странице"></section><section id="news-home-slot" aria-label="Зарезервировано под будущие новости"></section></div>
+    <article class="workspace-intro"><span class="orbit-mark" aria-hidden="true">◈</span>
+      <h2>Ваш рабочий космос</h2>
+      <p>Открывайте модули слева. Окна можно перемещать, закреплять и менять их размер.</p>
+      <div><button data-module="Галактическая карта" type="button">✦ Галактическая карта</button><button data-module="Корабль" type="button">◇ Корабль</button></div>
+    </article>
+    <p id="connection" class="muted">Данные обновлены: 14:36:00</p>
+  </section>
+</main>
+<footer><span id="server-status" title="Демонстрационный сервер Иггдрасиль · Игроки онлайн: 74 · Боты: 12">● СЕРВЕР ОНЛАЙН</span><span>COSMOSIMULATOR · v0.17.0</span></footer>
+<div id="toast" role="status" aria-live="polite" hidden></div>
+<div id="demo-window" class="module-window" role="dialog" aria-labelledby="module-title" hidden>
+  <div id="demo-window-titlebar" class="module-titlebar"><h2 id="module-title">Модуль</h2><div class="window-actions"><button type="button" id="pin-window" title="Закрепить окно" aria-pressed="false">⌖</button><button type="button" id="max-window" title="Развернуть">□</button><button type="button" id="close-window" title="Закрыть">×</button></div></div>
+  <div class="module-content" id="module-content"></div>
+</div>
+<section id="chat-floating" class="chat-floating" aria-label="Плавающий чат" hidden></section>
+<div id="chat-root" class="chat-root" aria-label="Чат Cosmosimulator" hidden>
+  <div class="chat-titlebar" id="chat-draghandle">
+    <div class="chat-appname"><span id="chat-signal" class="chat-signal healthy" tabindex="0" role="img" aria-label="Сервис чата работает" aria-describedby="chat-status-tooltip"></span><b id="chat-title">Чат · Global</b></div>
+    <div class="chat-toolset">
+      <button type="button" id="chat-search-toggle" class="chat-icon" title="Поиск в текущем разделе" aria-label="Поиск">⌕</button>
+      <button type="button" id="chat-settings-toggle" class="chat-icon" title="Настройки чата" aria-label="Настройки чата">⚙</button>
+      <button type="button" id="chat-dock-toggle" class="chat-icon chat-dock" title="Закрепить на главной" aria-label="Закрепить на главной">▣ На главную</button>
+      <button type="button" id="chat-close" class="chat-icon" title="Закрыть чат" aria-label="Закрыть чат">×</button>
+    </div>
+  </div>
+  <div id="chat-settings-panel" class="chat-settings-panel" hidden>
+    <div class="chat-opacity-row"><label for="chat-opacity">Непрозрачность фона</label><input id="chat-opacity" type="range" min="40" max="100" step="5" value="100"><span id="chat-opacity-label">100%</span></div>
+    <label><input type="checkbox" id="chat-on-planet"> Тестовый визит на планету (Planet / Sector)</label>
+    <label style="margin-top:7px"><input type="checkbox" id="chat-sounds" checked> Звуки личных сообщений и упоминаний (демо)</label>
+    <div class="chat-inline-option"><label for="chat-availability">Подключение (демо)</label><select id="chat-availability"><option value="online">Все службы онлайн</option><option value="planet-off">Planet недоступен</option><option value="cosmic-off">Cosmic недоступен</option><option value="both-off">Cosmic и Planet недоступны</option><option value="chat-off">Chat Service недоступен</option></select></div>
+    <div class="chat-inline-option"><label for="chat-role-test">Роль для проверки модерации</label><select id="chat-role-test"><option value="owner">Руководитель NOVA</option><option value="moderator">Модератор NOVA</option><option value="member">Участник NOVA</option><option value="admin">Игровой администратор</option></select></div>
+    <label style="margin-top:7px"><input type="checkbox" id="chat-self-mute"> Пример ограничения моей отправки в Corporation</label>
+    <div class="chat-mini" style="margin-top:6px">Роли, статусы, жалобы и ограничения здесь демонстрационные. Права подтверждает сервер.</div>
+  </div>
+  <div id="chat-tabs" class="chat-tabs" role="tablist" aria-label="Разделы чата"></div>
+  <div id="chat-search-panel" class="chat-search-panel" hidden><input id="chat-search-input" type="search" aria-label="Поиск сообщений" placeholder="Поиск в текущем разделе…"><button type="button" id="chat-search-clear" class="chat-small-btn">Сброс</button></div>
+  <div id="chat-section-header" class="chat-section-header"></div>
+  <div id="chat-area" class="chat-area" aria-live="off"></div>
+  <div id="chat-compose" class="chat-compose">
+    <div id="chat-reply-preview" class="chat-reply-preview" hidden><span id="chat-reply-text"></span><button type="button" id="chat-cancel-reply" title="Отменить ответ">×</button></div>
+    <div class="chat-compose-main"><textarea id="chat-input" rows="2" aria-label="Текст сообщения" placeholder="Введите сообщение…"></textarea><button type="button" id="chat-emoji-trigger" class="chat-emoji-trigger" title="Выбрать эмодзи" aria-label="Выбрать эмодзи" aria-expanded="false" aria-controls="chat-emoji-panel">☺</button><button type="button" id="chat-send" class="chat-send">Отправить</button></div>
+    <div class="chat-compose-meta"><span id="chat-compose-hint">Enter — отправка · Shift+Enter — новая строка</span><span id="chat-char-counter">0 / 256</span></div>
+    <section id="chat-emoji-panel" class="chat-emoji-panel" role="dialog" aria-label="Выбор эмодзи" hidden>
+      <div class="chat-emoji-head"><strong>Эмодзи</strong><button type="button" id="chat-emoji-close" class="chat-emoji-close" aria-label="Закрыть выбор эмодзи">×</button></div>
+      <input id="chat-emoji-search" class="chat-emoji-search" type="search" placeholder="Поиск эмодзи…" aria-label="Поиск эмодзи" autocomplete="off">
+      <div id="chat-emoji-categories" class="chat-emoji-categories" role="group" aria-label="Категории эмодзи"></div>
+      <div id="chat-emoji-grid" class="chat-emoji-grid" role="group" aria-label="Эмодзи для вставки"></div>
+      <div class="chat-emoji-foot">Выберите эмодзи — он появится в сообщении</div>
+    </section>
+    <div id="chat-mentions" class="chat-mention" hidden></div>
+  </div>
+  <div class="chat-demo-hint">CHAT SERVICE v1 · UI PROTOTYPE 13 · NO BACKEND</div>
+</div>
+<div id="chat-players-overlay" class="chat-players-overlay" hidden>
+  <section class="chat-players-panel" role="dialog" aria-modal="true" aria-labelledby="chat-players-title" aria-describedby="chat-players-description">
+    <div class="chat-players-head"><h3 id="chat-players-title">Игроки · Global</h3><button type="button" id="chat-players-close" aria-label="Закрыть список игроков" title="Закрыть">×</button></div>
+    <div class="chat-players-summary"><span id="chat-players-description">Игроки онлайн</span><span id="chat-players-total" class="chat-players-total">0</span></div>
+    <div class="chat-players-filter"><input type="search" id="chat-players-query" placeholder="Поиск по позывному…" aria-label="Поиск игрока по позывному" maxlength="50" autocomplete="off"></div>
+    <div class="chat-players-result"><span id="chat-players-found">Показано: 0</span><span>ПОЗЫВНОЙ / КОРПОРАЦИЯ</span></div>
+    <div id="chat-players-list" class="chat-players-list" role="list"></div>
+    <div class="chat-players-foot">Демонстрационные игроки · сведения о составе выдаёт сервер</div>
+  </section>
+</div>
+<div id="chat-moderation-overlay" class="chat-moderation-overlay" hidden>
+  <section class="chat-moderation-panel" role="dialog" aria-modal="true" aria-labelledby="chat-moderation-title">
+    <div class="chat-moderation-heading"><div><h3 id="chat-moderation-title">Модерация · [NOVA]</h3><span id="chat-moderation-subtitle">Управление корпоративным чатом</span></div><button type="button" id="chat-moderation-close" aria-label="Закрыть модерацию">×</button></div>
+    <div id="chat-moderation-tabs" class="chat-moderation-tabs" role="tablist" aria-label="Разделы модерации"></div>
+    <div id="chat-moderation-body" class="chat-moderation-body"></div>
+    <div class="chat-moderation-foot">Демонстрация · срок и права проверяются сервером · журнал без текстов удалённых сообщений</div>
+  </section>
+</div>
+<div id="chat-status-tooltip" class="chat-status-tooltip" role="tooltip" hidden></div>
+<div id="chat-read-tooltip" class="chat-read-tooltip" role="tooltip" hidden></div>
+<div id="chat-pop-menu" class="chat-context-menu" role="menu" hidden></div>
+<div id="chat-modal" class="chat-modal" hidden><div class="chat-modal-panel" role="dialog" aria-modal="true"><h3 id="chat-modal-title">Подтверждение</h3><p id="chat-modal-desc"></p><div id="chat-modal-fields"></div><div id="chat-modal-error" class="chat-modal-error" role="alert" aria-live="assertive" hidden></div><div class="chat-modal-actions"><button type="button" id="chat-modal-cancel">Отмена</button><button type="button" id="chat-modal-ok" class="primary">Подтвердить</button></div></div></div>
+<script>
+(()=>{
+  'use strict';
+  const $=id=>document.getElementById(id);
+  const state={name:'Commander',level:7,xp:370,required:500,upgradeCost:2400,credits:184520,admin:false,compact:false,lang:'ru',window:null,pinned:false,maximized:false,notifications:2};
+  const names=['Галактическая карта','Карта текущей системы','Колонии','Корабль','Верфи','Добыча','Исследования','Рынок','Корпорация','Логистика','Планировщик задач','Руководство пилота','Предложить идею','Профиль игрока','Настройки','История финансов','Уведомления','Бенчмарк','Игровой процесс','Галактики','Журнал изменений','Выдача ресурсов','Предложения игроков (админ)','Пользователи','Пропустить тик'];
+  let toastTimer=null;
+  function toast(message){$('toast').textContent=message;$('toast').hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').hidden=true,3600)}
+  function formatted(n){return Number(n).toLocaleString('ru-RU',{maximumFractionDigits:0})}
+  function addRow(root,label,value){const d=document.createElement('div');d.className='row';const s=document.createElement('span');s.textContent=label;const b=document.createElement('b');b.textContent=value;d.append(s,b);root.append(d)}
+  function action(root,label,onClick){const b=document.createElement('button');b.className='terminal-action';b.type='button';b.textContent=label;b.addEventListener('click',onClick);root.append(b);return b}
+  function text(root,value,cls){const p=document.createElement('p');p.textContent=value;if(cls)p.className=cls;root.append(p);return p}
+  function renderWindow(name){
+    const c=$('module-content');c.replaceChildren();
+    if(name==='Настройки'){
+      const h=document.createElement('h3');h.textContent='Язык';c.append(h);
+      const lang=document.createElement('select');[['ru','Русский'],['en','English']].forEach(([v,t])=>lang.add(new Option(t,v)));lang.value=state.lang;lang.addEventListener('change',()=>{state.lang=lang.value;toast('Демо: язык интерфейса переключается в основном приложении')});c.append(lang);
+      const view=document.createElement('h3');view.textContent='Отображение';view.style.marginTop='16px';c.append(view);
+      const density=document.createElement('select');[['normal','Обычный интерфейс'],['compact','Компактный интерфейс']].forEach(([v,t])=>density.add(new Option(t,v)));density.value=state.compact?'compact':'normal';density.addEventListener('change',()=>{state.compact=density.value==='compact';document.body.classList.toggle('compact-ui',state.compact);toast('Выбрано: '+density.selectedOptions[0].textContent)});c.append(density);
+      text(c,'Плотность меняет размеры элементов во всех рабочих модулях.','muted');
+      const ah=document.createElement('h3');ah.textContent='Управление окнами';c.append(ah);action(c,'Восстановить расположение окон',()=>{state.pinned=false;state.maximized=false;$('demo-window').style.cssText='';$('pin-window').setAttribute('aria-pressed','false');toast('Расположение окна восстановлено')});
+      const sep=document.createElement('hr');sep.style.border='0';sep.style.borderTop='1px solid var(--border)';sep.style.margin='18px 0';c.append(sep);
+      const l=document.createElement('label');const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.checked=state.admin;checkbox.style.width='auto';checkbox.addEventListener('change',()=>{state.admin=checkbox.checked;$('admin-menu').hidden=!state.admin;toast(state.admin?'Демо: права администратора включены':'Демо: обычный игрок')});l.append(checkbox,document.createTextNode(' Тестовый режим администратора'));c.append(l);
+      text(c,'Переключатель добавлен только в демоверсию, чтобы проверить административное меню.','muted');
+    }else if(name==='Профиль игрока'){
+      addRow(c,'Позывной',state.name);addRow(c,'Стаж',String(state.level));addRow(c,'Опыт',state.xp+' / '+state.required+' XP');addRow(c,'Корпорация','NOVA Research');addRow(c,'Роль','Пилот');
+    }else if(name==='Уведомления'){
+      text(c,'Новые уведомления','muted');addRow(c,'Задание','Добыча завершена');addRow(c,'Исследования','Новый этап доступен');action(c,'Отметить всё прочитанным',()=>{state.notifications=0;$('notification-count').hidden=true;toast('Уведомления прочитаны')});
+    }else if(name==='Корабль'){
+      addRow(c,'Название','Странник');addRow(c,'Класс','Исследователь');addRow(c,'Местоположение','Эдем · Орбита');addRow(c,'Топливо','420 / 600');addRow(c,'Груз','42 / 125');const wrap=document.createElement('div');wrap.className='modal-footer';c.append(wrap);action(wrap,'Трюм',()=>toast('Демо: отдельное окно трюма'));action(wrap,'Найти на карте',()=>openWindow('Галактическая карта'));
+    }else if(name==='Галактическая карта'||name==='Карта текущей системы'){
+      const x=document.createElement('div');x.style.cssText='min-height:165px;margin:10px 0;border:1px solid #354d5b;background:radial-gradient(circle at 42% 40%,#253a49,#111923 72%);position:relative;display:grid;place-items:center;color:#8fcbd1;letter-spacing:2px;font-size:10px';x.textContent='✦ · ЭДЕМ · ✦';c.append(x);text(c,'Демонстрационная заглушка карты. Здесь воспроизводится только главный экран; данные карт и симуляция не загружаются.');
+    }else if(name==='История финансов'){
+      addRow(c,'Баланс',formatted(state.credits)+' CR');addRow(c,'Доход от добычи','+5 200 CR');addRow(c,'Рынок','−1 400 CR');
+    }else if(name==='Пропустить тик'){
+      text(c,'Демо-действие администратора. Реальное игровое время не изменяется.');action(c,'Симулировать игровой тик',()=>{$('star-date').textContent='0019 ЭД · 137 · 685';toast('Тестовый тик выполнен')});
+    }else{
+      text(c,'Этот модуль существует в навигации Cosmosimulator. В данной демонстрации подробно воспроизведена только главная страница.');
+      text(c,'Все значения вымышленные; запросов к Go-серверу и PostgreSQL нет.','muted');
+      action(c,'Вернуться на главную',closeWindow);
+    }
+    const note=document.createElement('div');note.className='demo-note';note.textContent='DEMO MODE · FRONTEND ONLY · NO BACKEND';c.append(note);
+  }
+  function closeMenus(){document.querySelectorAll('.dropdown').forEach(m=>m.open=false)}
+  function openWindow(name){
+    if(!names.includes(name))return;
+    closeMenus();state.window=name;$('module-title').textContent=name;$('demo-window').hidden=false;
+    document.querySelectorAll('#sidebar [data-module]').forEach(b=>b.classList.toggle('module-open',b.dataset.module===name));
+    $('window-switcher').replaceChildren();const tab=action($('window-switcher'),name,()=>{$('demo-window').hidden=false});tab.classList.add('active');
+    renderWindow(name);
+  }
+  function closeWindow(){state.window=null;$('demo-window').hidden=true;$('window-switcher').replaceChildren();document.querySelectorAll('#sidebar [data-module]').forEach(b=>b.classList.remove('module-open'))}
+  document.addEventListener('click',e=>{
+    const b=e.target.closest('[data-module]');if(b){openWindow(b.dataset.module);return}
+    for(const menu of document.querySelectorAll('.dropdown'))if(!menu.contains(e.target))menu.open=false;
+  });
+  $('sidebar-toggle').addEventListener('click',()=>{
+    const value=$('sidebar').classList.toggle('collapsed');document.body.classList.toggle('sidebar-collapsed',value);
+    $('sidebar-toggle').setAttribute('aria-expanded',String(!value));$('sidebar-toggle').setAttribute('aria-label',value?'Развернуть панель':'Свернуть панель');$('sidebar-toggle').title=value?'Развернуть панель':'Свернуть панель';
+  });
+  $('brand').addEventListener('click',e=>{e.preventDefault();closeWindow();window.scrollTo({top:0,behavior:'smooth'})});
+  $('notifications-button').addEventListener('click',()=>openWindow('Уведомления'));
+  $('logout').addEventListener('click',()=>{closeMenus();toast('Демоверсия: выход не выполняется — авторизации нет')});
+  $('overview-upgrade').addEventListener('click',()=>{
+    if(state.xp<state.required||state.credits<state.upgradeCost)return;
+    state.level++;state.xp-=state.required;state.required=Math.round(state.required*1.4);state.credits-=state.upgradeCost;
+    state.upgradeCost=Math.round(state.upgradeCost*1.3);renderOverview();toast('Стаж игрока повышен!');
+  });
+  function renderOverview(){
+    $('welcome-name').textContent=$('profile-nick').textContent=state.name;
+    $('overview-level').textContent=String(state.level);$('overview-xp').value=state.xp;$('overview-xp').max=state.required;
+    $('overview-xp-text').textContent=state.xp+' / '+state.required+' XP';
+    $('overview-upgrade').disabled=state.xp<state.required||state.credits<state.upgradeCost;
+    $('overview-upgrade').title=state.upgradeCost+' CR';$('credits').textContent=formatted(state.credits);
+  }
+  $('close-window').addEventListener('click',closeWindow);
+  $('pin-window').addEventListener('click',()=>{state.pinned=!state.pinned;$('pin-window').setAttribute('aria-pressed',String(state.pinned));$('demo-window-titlebar').style.cursor=state.pinned?'default':'move';toast(state.pinned?'Окно закреплено':'Закрепление снято')});
+  $('max-window').addEventListener('click',()=>{state.maximized=!state.maximized;$('demo-window').style.cssText=state.maximized?'left:8px;top:65px;width:calc(100vw - 16px);height:calc(100vh - 106px);resize:none;max-height:none;':'';$('max-window').textContent=state.maximized?'❐':'□'});
+  const bar=$('demo-window-titlebar'),win=$('demo-window');let drag=null;
+  bar.addEventListener('pointerdown',e=>{if(state.pinned||state.maximized||e.target.closest('button'))return;drag={x:e.clientX,y:e.clientY,left:win.getBoundingClientRect().left,top:win.getBoundingClientRect().top};bar.setPointerCapture(e.pointerId)});
+  bar.addEventListener('pointermove',e=>{if(!drag)return;const box=win.getBoundingClientRect();win.style.left=Math.max(0,Math.min(window.innerWidth-box.width,drag.left+e.clientX-drag.x))+'px';win.style.top=Math.max(60,Math.min(window.innerHeight-box.height-25,drag.top+e.clientY-drag.y))+'px'});
+  bar.addEventListener('pointerup',()=>drag=null);bar.addEventListener('pointercancel',()=>drag=null);
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(document.querySelector('.dropdown[open]'))closeMenus();else closeWindow()}});
+  let now=new Date('2026-10-30T14:36:00');function refreshClock(){
+    now=new Date(now.getTime()+1000);$('connection').textContent='Данные обновлены: '+now.toLocaleTimeString('ru-RU',{hour12:false});
+  }setInterval(refreshClock,1000);
+  renderOverview();
+})();
+</script>
+<script>
+/* Chat Service UI prototype — isolated state, no network requests and no Chat WS. */
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id);
+const el=(tag,cls,txt)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(txt!==undefined)n.textContent=String(txt);return n};
+const btn=(label,fn,cls='chat-small-btn')=>{const b=el('button',cls,label);b.type='button';b.addEventListener('click',fn);return b};
+const tabs=[['favorites','★ Избранное'],['global','Global'],['planet','Planet'],['sector','Sector'],['corporation','Corporation'],['private','Private']];
+const sid=id=>'cosmosim-chat-demo-commander-'+id;
+// Authoritative user lookup belongs to the backend. This is strictly the local mock roster.
+const basePilots=['Commander','Elena','NovaScout','Vega','StarFox','Atlas','Navigator'];
+// 74 simulated online players to match the demo server footer; two more are offline.
+const onlinePilots=[...basePilots,...Array.from({length:67},(_,i)=>'Pilot_'+String(i+1).padStart(3,'0'))];
+const mockPilots=[...onlinePilots,'Sirius','Iona'];
+const pilotCompanies={Commander:'NOVA',Elena:'NOVA',NovaScout:'NOVA',Vega:'NOVA',StarFox:'FREE',Atlas:'ATLAS',Navigator:'ORION',Sirius:'NOVA',Iona:'ORION'};
+const pilotInfo=name=>({nick:name,corp:pilotCompanies[name]||(['FREE','ORION','ATLAS','NOVA'][Number(name.split('_')[1]||0)%4]),online:onlinePilots.includes(name)});
+function resolvePilot(callsign){return mockPilots.find(p=>p.toLocaleLowerCase('ru')===String(callsign).trim().toLocaleLowerCase('ru'))||null}
+function validateInvite(name,conversation){
+ if(!String(name).trim())return 'Укажите позывной игрока.';
+ const pilot=resolvePilot(name);
+ if(!pilot)return 'Пользователя с таким позывным не существует.';
+ if(pilot==='Commander')return 'Нельзя отправить приглашение самому себе.';
+ if(conversation?.people.some(p=>p.toLocaleLowerCase('ru')===pilot.toLocaleLowerCase('ru')))return 'Этот игрок уже участвует в беседе.';
+ return null;
+}
+
+let prefs={opacity:100,docked:false};try{prefs={opacity:Number(localStorage.getItem(sid('opacity'))) || 100,docked:localStorage.getItem(sid('dock'))==='true'}}catch{}
+const chat={isOpen:false,docked:false,tab:'global',conversation:null,folder:null,settings:false,search:false,query:'',onPlanet:false,availability:'online',muted:false,opacity:Math.max(40,Math.min(100,prefs.opacity)),drafts:{},scrolls:{},replies:{},menuMessage:null,modalAction:null,seq:500,sendEvents:{},newGlobal:true,deletedInvitations:[],
+  folders:[{id:'routes',title:'Маршруты'},{id:'useful',title:'Полезное'}],
+  favorites:[
+    {id:'fav1',folder:'routes',kind:'copy',source:'Global',author:'Navigator [ORION]',original:'14:21',saved:'14:29',text:'Безопасный путь к Эдему: Альтаир → Лира → Эдем. Проверьте запас топлива.'},
+    {id:'fav2',folder:'useful',kind:'copy',source:'Corporation',author:'Elena [NOVA]',original:'13:55',saved:'14:03',text:'После обновления рынка цены на титан стабилизировались. Стоит сравнить три станции.'},
+    {id:'fav3',folder:null,kind:'note',source:'Личная заметка',author:'Commander',original:'14:17',saved:'14:17',text:'Напомнить себе: пополнить водород перед следующей экспедицией.'},
+    {id:'fav4',folder:'routes',kind:'note',source:'Личная заметка',author:'Commander',original:'вчера',saved:'вчера',text:'Исследовать сектор 12 и проверить месторождение A-12.'}
+  ],
+  conversations:[
+    {id:'dm-elena',type:'dm',name:'Elena',people:['Commander','Elena'],unread:2,status:'active',owner:'Commander'},
+    {id:'group-pilots',type:'group',name:'Пилоты Эдема',people:['Commander','Elena','Navigator','Atlas'],unread:3,status:'active',owner:'Commander'},
+    {id:'dm-atlas',type:'dm',name:'Atlas',people:['Commander','Atlas'],unread:0,status:'active',owner:'Atlas'}
+  ],
+  invitations:[{id:'invite1',from:'NovaScout',type:'group',title:'Экспедиция Восток',expires:'через 6 дней'}],
+  messages:{
+    global:[
+      {id:'g1',author:'Navigator',corp:'ORION',time:'14:20',text:'Кто-нибудь уже проверял новый торговый маршрут через Лиру?'},
+      {id:'g2',author:'Elena',corp:'NOVA',time:'14:22',text:'Проверяла вчера. Переход безопасный, но топливо лучше взять с запасом.'},
+      {id:'g3',author:'Atlas',corp:'ATLAS',time:'14:24',text:'На рынке Эдема сейчас выгодно покупать медь.'},
+      {id:'g4',author:'Commander',corp:'NOVA',time:'14:26',text:'Спасибо! Сначала загляну на станцию и обновлю оборудование.',own:true},
+      {id:'g5',author:'StarFox',corp:'FREE',time:'14:27',text:'🚀 Кто летит на Альтаир? Есть свободный транспорт.'},
+      {id:'g6',author:'Vega',corp:'NOVA',time:'14:29',text:'Ресурсы в секторе A-12 скоро закончатся. Проверяйте залежи перед отправкой.'},
+      {id:'g7',author:'Navigator',corp:'ORION',time:'14:31',text:'Справка по маршрутам доступна в руководстве пилота. Удачных полётов!'}
+    ],
+    planet:[
+      {id:'p1',author:'Elena',corp:'NOVA',time:'14:21',sector:7,text:'Начинаем развёртывание солнечных панелей.'},
+      {id:'p2',author:'StarFox',corp:'FREE',time:'14:23',sector:12,text:'В секторе 12 много каменистого грунта.'},
+      {id:'p3',author:'Atlas',corp:'ATLAS',time:'14:25',sector:4,text:'Колониальный транспорт прибыл к площадке.'},
+      {id:'p4',author:'Commander',corp:'NOVA',time:'14:27',sector:12,text:'Проверю ближайшее месторождение.',own:true}
+    ],
+    sector:[
+      {id:'s1',author:'StarFox',corp:'FREE',time:'14:22',text:'Кто-нибудь видит рудное обнажение у северной границы?'},
+      {id:'s2',author:'Commander',corp:'NOVA',time:'14:23',text:'Да, рядом с каменистой грядой.',own:true},
+      {id:'s3',author:'Elena',corp:'NOVA',time:'14:25',text:'Я поставлю там маркер для команды.'}
+    ],
+    corporation:[
+      {id:'c1',author:'Elena',corp:'NOVA',time:'14:02',text:'Коллеги, обновила график перевозок на сегодня.'},
+      {id:'c2',author:'Commander',corp:'NOVA',time:'14:05',text:'Принято, спасибо. @all проверьте свои задачи.',own:true},
+      {id:'c3',author:'NovaScout',corp:'NOVA',time:'14:06',text:'Сбор ресурсов на Эдеме идёт по плану.'},
+      {id:'c4',author:'Vega',corp:'NOVA',time:'14:12',text:'Кто может отправить 20 единиц водорода?'},
+      {id:'c5',author:'Elena',corp:'NOVA',time:'14:14',text:'@Vega, передам после завершения добычи.'}
+    ],
+    'private:dm-elena':[
+      {id:'d1',author:'Commander',corp:'NOVA',time:'13:51',text:'Привет! Когда прибываешь на станцию?',own:true,read:true},
+      {id:'d2',author:'Elena',corp:'NOVA',time:'13:52',text:'Через десять минут. Могу привезти водород.'},
+      {id:'d3',author:'Commander',corp:'NOVA',time:'13:53',text:'Отлично, возьми 20 единиц, пожалуйста.',own:true,read:true},
+      {id:'d4',author:'Elena',corp:'NOVA',time:'14:29',text:'Я уже у причала. Забирай груз 👋'},
+      {id:'d5',author:'Elena',corp:'NOVA',time:'14:32',text:'И ещё: посмотри сообщение в корпоративном чате.'}
+    ],
+    'private:group-pilots':[
+      {id:'gp0',type:'system',time:'13:10',text:'Elena присоединилась к беседе'},
+      {id:'gp1',author:'Commander',corp:'NOVA',time:'13:12',text:'Добро пожаловать в группу! Планируем вылазку к Альтаиру.',own:true,read:true},
+      {id:'gp2',author:'Navigator',corp:'ORION',time:'13:22',text:'Маршрут построен. Переход займёт примерно 35 секунд.'},
+      {id:'gp3',author:'Elena',corp:'NOVA',time:'14:28',text:'Когда стартуем?'},
+      {id:'gp4',author:'Atlas',corp:'ATLAS',time:'14:30',text:'Я готов. Нужно только дозаправиться.'},
+      {id:'gp5',author:'Navigator',corp:'ORION',time:'14:34',text:'Отправил координаты в личные сообщения.'}
+    ],
+    'private:dm-atlas':[
+      {id:'da1',author:'Atlas',corp:'ATLAS',time:'11:40',text:'Есть предложение по обмену титаном.'},
+      {id:'da2',author:'Commander',corp:'NOVA',time:'11:42',text:'Давай обсудим после экспедиции.',own:true,read:false}
+    ]
+  }
+};
+// Only test UI state; no moderation commands are sent anywhere.
+chat.moderationRole='owner';
+chat.moderationPage='members';
+chat.mutes={Vega:{duration:'30 минут',actor:'Elena',reason:'Флуд в корпоративном чате',until:Date.now()+25*60*1000}};
+chat.moderationAudit=[{time:'14:24',actor:'Elena',action:'Ограничение отправки',target:'Vega',detail:'30 минут',reason:'Флуд в корпоративном чате'}];
+chat.reports=[{id:'rep01',source:'corporation',messageId:'c4',author:'Vega',from:'NovaScout',reason:'Подозрение на спам',created:'14:33',status:'open'},
+ {id:'rep02',source:'corporation',messageId:'c3',author:'NovaScout',from:'Elena',reason:'Нарушение правил общения',created:'14:34',status:'open'}];
+function corpRole(name){if(name==='Commander')return chat.moderationRole==='admin'?'admin':chat.moderationRole;if(name==='Elena')return 'moderator';if(name==='Sirius')return chat.moderationRole==='owner'?'member':'owner';return 'member'}
+const roleLabel=role=>({owner:'Руководитель',moderator:'Модератор',member:'Участник',admin:'Администратор'}[role]||'Участник');
+function isModerator(){return ['owner','moderator','admin'].includes(chat.moderationRole)}
+function canModerateTarget(name){if(!isAccessible('corporation')||!isModerator()||name==='Commander')return false;
+ return chat.moderationRole==='admin'||chat.moderationRole==='owner'||(chat.moderationRole==='moderator'&&corpRole(name)==='member')}
+function canUnmuteTarget(name){return isModerator()&&isAccessible('corporation')&&name!=='Commander'&&!!activeMute(name)}
+function activeMute(name){const v=chat.mutes[name];if(v&&v.until>Date.now())return v;if(v)delete chat.mutes[name];return null}
+const corpNames=['Commander','Elena','NovaScout','Vega','Sirius'];
+function addAudit(action,target,detail,reason){chat.moderationAudit.unshift({time:timestamp(),actor:'Commander',action,target,detail,reason})}
+const pref=(k,v)=>{try{localStorage.setItem(sid(k),String(v))}catch{}};
+const names={'global':'Global','planet':'Planet','sector':'Sector','corporation':'Corporation','private':'Private','favorites':'Избранное'};
+const timestamp=()=>new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+const findConversation=()=>chat.conversations.find(c=>c.id===chat.conversation);
+const contentKey=()=>chat.tab==='private'&&chat.conversation?'private:'+chat.conversation:chat.tab;
+const currentReply=()=>chat.replies[contentKey()];
+function isAccessible(tab){if(['cosmic-off','both-off','chat-off'].includes(chat.availability))return false;if(['planet','sector'].includes(tab))return chat.onPlanet&&chat.availability==='online';return true}
+function tell(message){const t=$('toast');t.textContent=message;t.hidden=false;clearTimeout(tell.timer);tell.timer=setTimeout(()=>t.hidden=true,3400)}
+function saveScroll(){if(chat.isOpen)chat.scrolls[contentKey()]=$('chat-area').scrollTop}
+function restoreScroll(last=false){const a=$('chat-area');if(last){a.scrollTop=a.scrollHeight}else a.scrollTop=chat.scrolls[contentKey()]??a.scrollHeight}
+function setDock(dock){closeEmojiPicker();
+ if(!chat.isOpen)return;
+ closeModerationWindow();
+ closePlayersWindow();hideChatStatusTooltip();hideChatReadTooltip();
+ const oldScroll=$('chat-area').scrollTop;
+ chat.docked=dock;pref('dock',dock);
+ $('chat-floating').hidden=dock;
+ $('home-lower-grid').hidden=!dock;
+ $('chat-root').hidden=false;
+ (dock?$('chat-home-slot'):$('chat-floating')).append($('chat-root'));
+ document.body.classList.toggle('chat-docked',dock);
+ $('chat-dock-toggle').textContent=dock?'↗ В окно':'▣ На главную';
+ $('chat-dock-toggle').title=dock?'Открепить · Плавающее окно':'Закрепить на главной';
+ $('chat-dock-toggle').setAttribute('aria-label',$('chat-dock-toggle').title);
+ $('chat-close').hidden=dock;
+ $('chat-area').scrollTop=oldScroll;
+ updateActiveNav();
+ if(dock)$('chat-home-slot').scrollIntoView({behavior:'smooth',block:'center'});
+}
+function openChat(){
+ if(chat.isOpen){if(chat.docked)$('chat-home-slot').scrollIntoView({behavior:'smooth',block:'center'});else {$('chat-floating').hidden=false;$('chat-floating').style.zIndex='4610'}return}
+ chat.isOpen=true;$('chat-root').hidden=false;
+ setDock(prefs.docked===true||chat.docked);
+ renderAll();
+ if(!chat.docked){$('chat-floating').hidden=false;restoreScroll(true)}
+ updateActiveNav();
+}
+function closeChat(){if(chat.docked)return;closeEmojiPicker();closeModerationWindow();closePlayersWindow();hideChatStatusTooltip();hideChatReadTooltip();saveScroll();chat.isOpen=false;$('chat-floating').hidden=true;hideMenu();updateActiveNav()}
+function updateActiveNav(){const nav=document.querySelector('[data-chat-open]');nav?.classList.toggle('module-open',chat.isOpen);}
+function showSettings(){chat.settings=!chat.settings;$('chat-settings-panel').hidden=!chat.settings;$('chat-settings-toggle').classList.toggle('active',chat.settings);}
+function showSearch(){chat.search=!chat.search;$('chat-search-panel').hidden=!chat.search;$('chat-search-toggle').classList.toggle('active',chat.search);if(chat.search)$('chat-search-input').focus();else{chat.query='';$('chat-search-input').value='';renderBody()}}
+function switchTab(tab){closeEmojiPicker();closeModerationWindow();if(!isAccessible(tab)){tell('Раздел недоступен в текущем игровом контексте');return}closePlayersWindow();saveScroll();chat.tab=tab;chat.conversation=null;chat.query='';$('chat-search-input').value='';hideMenu();renderAll();restoreScroll(true)}
+function renderTabs(){const host=$('chat-tabs');host.replaceChildren();for(const [id,label] of tabs){const b=btn(label,()=>switchTab(id),'chat-tab');b.setAttribute('role','tab');b.setAttribute('aria-selected',String(chat.tab===id));b.setAttribute('title',!isAccessible(id)?(['planet','sector'].includes(id)?'Нужен активный визит на планету и доступный Planet Service':'Нет соединения'):label);b.classList.toggle('active',chat.tab===id);b.disabled=!isAccessible(id)&&id!==chat.tab;if(id==='global'&&chat.newGlobal&&chat.tab!=='global')b.append(el('span','chat-dot-new'));if(id==='private'){const unread=chat.conversations.reduce((n,c)=>n+c.unread,0)+chat.invitations.length;if(unread){b.append(el('span','chat-count',unread))}}host.append(b)} }
+// The dot summarizes Cosmic/Planet health; Chat Service outage is a separate failure.
+const serviceIndicator={
+  online:{kind:'healthy',title:'Сервис чата работает',cosmos:true,planet:true},
+  'planet-off':{kind:'partial',title:'Чат работает частично',cosmos:true,planet:false},
+  'cosmic-off':{kind:'partial',title:'Чат недоступен',cosmos:false,planet:true},
+  'both-off':{kind:'down',title:'Чат недоступен',cosmos:false,planet:false},
+  'chat-off':{kind:'down',title:'Нет соединения с чатом',cosmos:true,planet:true}
+};
+function renderChatStatusTooltip(){
+ const data=serviceIndicator[chat.availability]||serviceIndicator.online;
+ const tooltip=$('chat-status-tooltip');tooltip.replaceChildren();
+ tooltip.append(el('div','chat-status-tooltip-title',data.title));
+ const list=el('div','chat-status-tooltip-list');
+ for(const [name,available] of [['Cosmos',data.cosmos],['Planet',data.planet]]){
+  const row=el('div','chat-status-tooltip-row');
+  const square=el('span','chat-service-square '+(available?'online':'offline'));
+  square.setAttribute('aria-hidden','true');
+  row.append(square,el('span','chat-service-name',name),el('span','chat-service-state'+(available?'':' offline'),available?'Доступен':'Недоступен'));
+  list.append(row);
+ }
+ tooltip.append(list);
+}
+function renderHeader(){
+ const conv=findConversation();
+ $('chat-title').textContent=chat.tab==='private'&&conv?'Чат · '+conv.name:'Чат · '+names[chat.tab];
+ const badge=$('chat-signal'),data=serviceIndicator[chat.availability]||serviceIndicator.online;
+ badge.classList.remove('healthy','partial','down');badge.classList.add(data.kind);
+ badge.setAttribute('aria-label',data.title+'; Cosmos: '+(data.cosmos?'доступен':'недоступен')+'; Planet: '+(data.planet?'доступен':'недоступен'));
+ if(!$('chat-status-tooltip').hidden){renderChatStatusTooltip();positionChatStatusTooltip()}
+}
+function positionChatStatusTooltip(){
+ const r=$('chat-signal').getBoundingClientRect(),tooltip=$('chat-status-tooltip');
+ tooltip.style.left=Math.max(8,Math.min(window.innerWidth-tooltip.offsetWidth-8,r.left-4))+'px';
+ tooltip.style.top=(r.bottom+tooltip.offsetHeight+9<window.innerHeight?r.bottom+8:Math.max(8,r.top-tooltip.offsetHeight-8))+'px';
+}
+function showChatStatusTooltip(){
+ renderChatStatusTooltip();$('chat-status-tooltip').hidden=false;positionChatStatusTooltip();
+}
+function hideChatStatusTooltip(){$('chat-status-tooltip').hidden=true}
+// A lightweight, non-native tooltip shared by all outgoing Private read dots.
+function positionChatReadTooltip(target){
+ const tip=$('chat-read-tooltip');if(tip.hidden||!target?.isConnected)return;
+ const r=target.getBoundingClientRect();
+ const w=tip.offsetWidth,h=tip.offsetHeight;
+ tip.style.left=Math.max(8,Math.min(window.innerWidth-w-8,r.left-8))+'px';
+ tip.style.top=(r.bottom+h+8<=window.innerHeight-8?r.bottom+7:Math.max(8,r.top-h-7))+'px';
+}
+function showChatReadTooltip(target,read){
+ const tip=$('chat-read-tooltip');tip.replaceChildren();
+ const head=el('div','chat-read-tooltip-title');
+ head.append(el('span','chat-read-tooltip-indicator'+(read?' read':'')),el('span',null,read?'Сообщение прочитано':'Сообщение не прочитано'));
+ tip.append(head,el('div','chat-read-tooltip-description',read?'Прочитал хотя бы один другой участник.':'Пока никто из других участников не прочитал.'));
+ tip.hidden=false;tip.dataset.target=target.dataset.messageId||'';
+ positionChatReadTooltip(target);
+}
+function hideChatReadTooltip(){$('chat-read-tooltip').hidden=true}
+function addPrivateReadDot(head,message){
+ const d=el('span','chat-read-dot'+(message.read?' read':''));
+ const description=message.read?'Сообщение прочитано хотя бы одним другим участником':'Сообщение пока не прочитано другими участниками';
+ d.setAttribute('role','img');d.tabIndex=0;
+ d.setAttribute('aria-label',description);d.setAttribute('aria-describedby','chat-read-tooltip');
+ d.dataset.messageId=message.id;
+ d.addEventListener('mouseenter',()=>showChatReadTooltip(d,message.read));
+ d.addEventListener('mouseleave',hideChatReadTooltip);
+ d.addEventListener('focus',()=>showChatReadTooltip(d,message.read));
+ d.addEventListener('blur',hideChatReadTooltip);
+ // Tapping the indicator also reveals the explanation on touch screens.
+ d.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'){e.stopPropagation();showChatReadTooltip(d,message.read)}});
+ head.append(d);
+}
+// Context-aware roster uses the same Chat state (never a separate Chat connection).
+// Only public online users are listed globally. Private and corp show participants,
+// including offline members. Planet/Sector require the current authoritative visit.
+function playersContext(){
+ if(!isAccessible(chat.tab)||chat.tab==='favorites')return null;
+ if(chat.tab==='global')return {title:'Игроки · Global',description:'Игроки онлайн на сервере Иггдрасиль',people:onlinePilots.map(pilotInfo),mode:'online'};
+ if(chat.tab==='planet')return {title:'Игроки · Planet',description:'Эдем-IV · игроки на поверхности',people:['Commander','Elena','StarFox','Atlas','Navigator'].map(pilotInfo),mode:'present'};
+ if(chat.tab==='sector')return {title:'Игроки · Sector',description:'Эдем-IV · сектор 12',people:['Commander','Elena','StarFox'].map(pilotInfo),mode:'present'};
+ if(chat.tab==='corporation')return {title:'Игроки · Corporation',description:'Корпорация NOVA · все участники',people:['Commander','Elena','NovaScout','Vega','Sirius'].map(pilotInfo),mode:'corporation'};
+ if(chat.tab==='private'){
+  const conv=findConversation();if(!conv)return null;
+  return {title:'Участники · '+conv.name,description:conv.type==='group'?'Групповая беседа · участники':'Личный диалог · собеседники',people:conv.people.map(name=>({...pilotInfo(name),role:name===conv.owner?'Владелец':conv.type==='dm'?'Собеседник':'Участник'})),mode:'private'};
+ }
+ return null;
+}
+let playersFocusReturn=null;
+function renderPlayersWindow(){
+ const context=playersContext();if(!context){closePlayersWindow();return}
+ $('chat-players-title').textContent=context.title;
+ $('chat-players-description').textContent=context.description;
+ const search=$('chat-players-query').value.trim().toLocaleLowerCase('ru');
+ const people=context.people.filter(p=>p.nick.toLocaleLowerCase('ru').includes(search)).sort((a,b)=>{
+  if(a.nick==='Commander')return -1;if(b.nick==='Commander')return 1;
+  return (Number(b.online)-Number(a.online))||a.nick.localeCompare(b.nick,'ru',{numeric:true});
+ });
+ $('chat-players-total').textContent=context.people.length+' '+(context.mode==='online'?'в сети':'всего');
+ $('chat-players-found').textContent='Показано: '+people.length;
+ const host=$('chat-players-list');host.replaceChildren();
+ if(!people.length){host.append(el('div','chat-players-empty','По вашему запросу игроки не найдены.'));return}
+ for(const p of people){
+  const row=el('div','chat-player-row');row.setAttribute('role','listitem');
+  const dot=el('span','chat-player-presence'+(p.online?'':' offline'));
+  dot.setAttribute('aria-label',p.online?'В сети':'Не в сети');dot.setAttribute('title',p.online?'В сети':'Не в сети');
+  const avatar=el('div','chat-player-avatar',p.nick.slice(0,1).toLocaleUpperCase('ru'));
+  const identity=el('div','chat-player-name');identity.append(el('strong',null,p.nick),el('span',null,'['+p.corp+']'));
+  const role=context.mode==='private'?(p.role||'Участник'):context.mode==='corporation'?roleLabel(corpRole(p.nick)):(p.online?'В сети':'Не в сети');
+  const badge=el('div','chat-player-role'+(['Владелец','Руководитель','Администратор'].includes(role)?' owner':''),role);
+  if(context.mode==='corporation'&&activeMute(p.nick)&& (isModerator()||p.nick==='Commander')){const tag=el('span','chat-moderation-role',' · запрет отправки');identity.append(tag)}
+  row.append(dot,avatar,identity,badge);
+  if(context.mode==='corporation'&&(canModerateTarget(p.nick)||canUnmuteTarget(p.nick))){
+   const manage=el('button','chat-player-manage',activeMute(p.nick)?'Снять запрет':'Ограничить');manage.type='button';manage.setAttribute('aria-label','Модерация '+p.nick);
+   manage.addEventListener('click',()=>{closePlayersWindow();activeMute(p.nick)?openUnmuteDialog(p.nick):openMuteDialog(p.nick)});row.classList.add('with-manage');row.append(manage)
+  }host.append(row);
+ }
+}
+function openPlayersWindow(){
+ if(!playersContext())return;
+ hideMenu();hideChatStatusTooltip();hideChatReadTooltip();
+ playersFocusReturn=document.activeElement;
+ $('chat-players-query').value='';$('chat-players-overlay').hidden=false;
+ renderPlayersWindow();$('chat-players-query').focus();
+}
+function closePlayersWindow(){
+ if($('chat-players-overlay').hidden)return;
+ $('chat-players-overlay').hidden=true;
+ if(playersFocusReturn?.isConnected&&!playersFocusReturn.disabled)playersFocusReturn.focus();
+ playersFocusReturn=null;
+}
+function playersButton(){
+ const button=btn('Игроки',openPlayersWindow,'chat-small-btn chat-players-trigger');
+ button.prepend(Object.assign(document.createElementNS('http://www.w3.org/2000/svg','svg'),{}));
+ const svg=button.firstChild;svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');
+ for(const path of ['M16 20v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2','M9 10a4 4 0 1 0 0-8a4 4 0 0 0 0 8','M22 20v-2a4 4 0 0 0-3-3.87','M16 2.13a4 4 0 0 1 0 7.75']){
+  const p=document.createElementNS('http://www.w3.org/2000/svg','path');p.setAttribute('d',path);svg.append(p)
+ }
+ button.title='Показать список игроков этого раздела';button.disabled=!isAccessible(chat.tab);
+ button.setAttribute('aria-label','Показать список игроков');return button;
+}
+
+const moderationDurations=[['300','5 минут'],['1800','30 минут'],['3600','1 час'],['86400','24 часа'],['604800','7 дней']];
+function openMuteDialog(name){if(!canModerateTarget(name))return;
+ showModal({title:'Ограничить отправку · '+name,description:'Запрет действует только в Corporation [NOVA]. Игрок сможет читать и искать историю.',fields:[
+ {name:'duration',label:'Срок запрета',type:'select',options:moderationDurations,value:'1800'},
+ {name:'reason',label:'Причина (обязательно)',placeholder:'Укажите причину ограничения',maxLength:200}],ok:'Применить запрет',submit:vals=>{
+  if(!vals.reason){modalError('Укажите причину ограничения.','reason');return false}
+  if(!canModerateTarget(name))return false;
+  const label=moderationDurations.find(x=>x[0]===vals.duration)?.[1]||'30 минут';
+  chat.mutes[name]={duration:label,reason:vals.reason,actor:'Commander',until:Date.now()+Number(vals.duration)*1000};
+  addAudit('Ограничение отправки',name,label,vals.reason);renderAll();renderModerationWindow();tell('Отправка запрещена для '+name+' на '+label)
+ }});
+}
+function openUnmuteDialog(name){if(!isModerator()||!isAccessible('corporation')||name==='Commander'||!activeMute(name))return;
+ showModal({title:'Снять ограничение · '+name,description:'Разрешить отправлять сообщения в Corporation до истечения запрета.',fields:[{name:'reason',label:'Причина снятия (обязательно)',placeholder:'Например: нарушение устранено',maxLength:200}],ok:'Снять запрет',submit:({reason})=>{
+ if(!reason){modalError('Укажите причину снятия ограничения.','reason');return false}
+ delete chat.mutes[name];addAudit('Досрочное снятие ограничения',name,'',reason);renderAll();renderModerationWindow();tell('Ограничение снято: '+name)
+ }});
+}
+function openModeratorDeleteDialog(m,k){if(k!=='corporation'||!canModerateTarget(m.author))return;
+ showModal({title:'Удалить сообщение · '+m.author,description:'Модераторское удаление удалит оригинал и связанные сохранённые копии. Причина обязательна.',fields:[{name:'reason',label:'Причина удаления (обязательно)',placeholder:'Опишите нарушение правил',maxLength:200}],ok:'Удалить сообщение',submit:({reason})=>{
+  if(!reason){modalError('Укажите причину модераторского удаления.','reason');return false}
+  if(!canModerateTarget(m.author))return false;
+  chat.messages[k]=(chat.messages[k]||[]).filter(x=>x.id!==m.id);
+  chat.favorites=chat.favorites.filter(f=>!(f.kind==='copy'&&f.sourceId===m.id));
+  addAudit('Модераторское удаление',m.author,'ID: '+m.id,reason);
+  for(const r of chat.reports){if(r.messageId===m.id&&r.source===k&&r.status==='open')r.status='resolved'}
+  renderAll();renderModerationWindow();tell('Сообщение удалено; связанные копии очищены (демо)')
+ }});
+}
+function openReportDialog(m,k){showModal({title:'Пожаловаться на сообщение',description:'Автор: '+m.author+'. Жалоба попадёт на рассмотрение администрации. Текст сообщения не копируется в журнал.',fields:[{name:'reason',label:'Причина жалобы (обязательно)',maxLength:200,placeholder:'Опишите нарушение'}],ok:'Отправить жалобу',submit:({reason})=>{
+ if(!reason){modalError('Опишите причину жалобы.','reason');return false}
+ if(chat.reports.some(r=>r.source===k&&r.messageId===m.id&&r.from==='Commander'&&r.status==='open')){modalError('Вы уже отправили жалобу на это сообщение.','reason');return false}
+ chat.reports.unshift({id:'rep'+(++chat.seq),source:k,messageId:m.id,author:m.author,from:'Commander',reason,created:timestamp(),status:'open'});
+ tell('Жалоба отправлена на проверку (демо)');renderModerationWindow()
+ }});}
+function openModerationWindow(){if(!isModerator()||!isAccessible('corporation'))return;
+ closePlayersWindow();hideMenu();hideChatStatusTooltip();hideChatReadTooltip();
+ $('chat-moderation-overlay').hidden=false;chat.moderationPage='members';renderModerationWindow();$('chat-moderation-close').focus();}
+function closeModerationWindow(){$('chat-moderation-overlay').hidden=true}
+function renderModerationWindow(){if($('chat-moderation-overlay').hidden)return;
+ if(!isModerator()||!isAccessible('corporation')){closeModerationWindow();return}
+ $('chat-moderation-subtitle').textContent='Вы: '+roleLabel(chat.moderationRole)+' · действующие полномочия (демо)';
+ const tabs=[['members','Участники'],['audit','Журнал']];if(chat.moderationRole==='admin')tabs.splice(1,0,['reports','Жалобы']);
+ if(!tabs.some(([k])=>k===chat.moderationPage))chat.moderationPage='members';
+ const tabHost=$('chat-moderation-tabs');tabHost.replaceChildren();
+ tabs.forEach(([key,name])=>{const b=el('button',chat.moderationPage===key?'active':'',name+(key==='reports'?' ('+chat.reports.filter(r=>r.status==='open'&&r.source==='corporation').length+')':''));b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',String(key===chat.moderationPage));b.addEventListener('click',()=>{chat.moderationPage=key;renderModerationWindow()});tabHost.append(b)});
+ const body=$('chat-moderation-body');body.replaceChildren();
+ if(chat.moderationPage==='members'){
+  const active=corpNames.filter(x=>activeMute(x));
+  const metrics=el('div','chat-moderation-metrics');for(const [caption,value] of [['Участников',corpNames.length],['Ограничений',active.length]]){const box=el('div','chat-moderation-metric');box.append(el('span',null,caption),el('b',null,String(value)));metrics.append(box)}body.append(metrics);
+  body.append(el('div','chat-moderation-note','Запрет отправки не лишает игрока права читать и искать историю Corporation. Список участников и полномочия выдаёт Cosmic Service.'));
+  body.append(el('div','chat-moderation-section-title','УЧАСТНИКИ КОРПОРАЦИИ'));
+  for(const name of corpNames){const row=el('div','chat-moderation-row'),info=el('div','chat-moderation-row-main'),headline=el('strong',null,name);info.append(headline,el('small',null,roleLabel(corpRole(name))+(name==='Commander'?' · вы':'')));
+   const active=activeMute(name);
+   if(active){info.append(el('small','chat-moderation-reason','Запрет отправки · '+active.duration));if(isModerator()||name==='Commander')info.append(el('small',null,'Причина: '+active.reason));}
+   const actions=el('div','chat-moderation-row-actions');
+   if(active?canUnmuteTarget(name):canModerateTarget(name))actions.append(btn(active?'Снять запрет':'Ограничить',()=>active?openUnmuteDialog(name):openMuteDialog(name),'chat-small-btn'));
+   row.append(info,actions);body.append(row);
+  }
+  if(!corpNames.some(name=>canModerateTarget(name)||canUnmuteTarget(name)))body.append(el('div','chat-moderation-empty','Нет участников, на которых распространяются ваши права.'));
+ } else if(chat.moderationPage==='reports'){
+  body.append(el('div','chat-moderation-note','Жалобы в демоверсии доступны только в режиме игрового администратора. В реальной игре доступ ограничен полномочиями и проверяется сервером.'));
+  const reports=chat.reports.filter(r=>r.source==='corporation'&&r.status==='open');
+  if(!reports.length)body.append(el('div','chat-moderation-empty','Открытых жалоб нет.'));
+  for(const report of reports){const row=el('div','chat-moderation-row'),info=el('div','chat-moderation-row-main');info.append(el('strong',null,'На '+report.author+' · '+report.created),el('small',null,'От '+report.from+' · сообщение '+report.messageId),el('small','chat-moderation-reason','Причина жалобы: '+report.reason));
+   const msg=chat.messages[report.source]?.find(m=>m.id===report.messageId);
+   info.append(el('small',null,msg?'Оригинал: '+msg.text:'Оригинальное сообщение недоступно'));
+   const actions=el('div','chat-moderation-row-actions');
+   if(msg&&canModerateTarget(msg.author))actions.append(btn('Удалить',()=>openModeratorDeleteDialog(msg,report.source),'danger-action'));
+   actions.append(btn('Закрыть',()=>showModal({title:'Закрыть жалобу?',description:'Сообщение останется без изменений.',ok:'Закрыть жалобу',submit:()=>{report.status='closed';addAudit('Закрытие жалобы',report.author,'ID: '+report.messageId,'Жалоба проверена');renderModerationWindow();tell('Жалоба закрыта')}}),'chat-small-btn'));
+   row.append(info,actions);body.append(row)}
+ } else {
+  body.append(el('div','chat-moderation-note','Здесь отображаются метаданные действий. Тексты удалённых сообщений в журнал не сохраняются. Причины доступны только уполномоченным лицам.'));
+  if(!chat.moderationAudit.length)body.append(el('div','chat-moderation-empty','Действий пока нет.'));
+  for(const log of chat.moderationAudit){const row=el('div','chat-moderation-row'),info=el('div','chat-moderation-row-main');info.append(el('strong',null,log.action+' · '+log.target),el('small',null,log.time+' · '+log.actor+(log.detail?' · '+log.detail:'')),el('small','chat-moderation-reason','Причина: '+log.reason));row.append(info);body.append(row)}
+ }
+}
+
+function renderSection(){const sec=$('chat-section-header');sec.replaceChildren();const h=el('div','chat-section-name');const acts=el('div','chat-section-actions');sec.append(h,acts);
+ if(chat.tab==='global'){h.textContent='ОБЩИЙ КАНАЛ · все пилоты';}
+ if(chat.tab==='planet'){h.textContent='ПЛАНЕТА · Эдем-IV · все сектора';}
+ if(chat.tab==='sector'){h.textContent='СЕКТОР 12 · Эдем-IV';}
+ if(chat.tab==='corporation'){h.textContent='КОРПОРАЦИЯ · [NOVA]';if(isModerator()&&isAccessible('corporation')){acts.append(btn('⚑ Модерация',openModerationWindow,'chat-small-btn'))}}
+ if(chat.tab==='favorites'){h.textContent='★ ЛИЧНОЕ ИЗБРАННОЕ';acts.append(btn('+ Заметка',()=>noteModal(),'chat-small-btn'));acts.append(btn('+ Папка',()=>folderModal(),'chat-small-btn'))}
+ if(chat.tab==='private'){
+  const conv=findConversation();if(conv){acts.append(btn('← Назад',()=>{closePlayersWindow();saveScroll();chat.conversation=null;renderAll()},'chat-small-btn'));h.textContent=(conv.type==='group'?'ГРУППА · ':'ЛИЧНОЕ · ')+conv.name;
+   acts.append(btn('⋯',()=>conversationActions(conv),'chat-small-btn'));
+  }else{h.textContent='ЛИЧНЫЕ БЕСЕДЫ И ПРИГЛАШЕНИЯ';acts.append(btn('+ Беседа',()=>newConversationModal(),'chat-small-btn'))}
+ }
+ if(['global','planet','sector','corporation'].includes(chat.tab)||(chat.tab==='private'&&findConversation()))acts.append(playersButton());
+}
+function errorState(){if(chat.availability==='chat-off')return['Нет соединения с Chat Service','Черновики сохраняются в открытой вкладке. После восстановления ничего не отправится автоматически.'];if(chat.availability==='both-off')return['Cosmic Service и Planet Service недоступны','Весь пользовательский чат временно заблокирован.'];if(chat.availability==='cosmic-off')return['Cosmic Service недоступен','Весь пользовательский чат временно заблокирован.'];if(['planet','sector'].includes(chat.tab)&&chat.availability==='planet-off')return['Planet Service недоступен','Global, Corporation, Private и Избранное продолжают работать.'];if(['planet','sector'].includes(chat.tab)&&!chat.onPlanet)return['Нет активного визита на планету','Откройте настройки ⚙ и включите «Тестовый визит на планету».'];return null}
+function renderBody(){hideChatReadTooltip();const host=$('chat-area');host.replaceChildren();const state=errorState();if(state){const n=el('div','chat-empty');n.append(el('b',null,state[0]),el('span',null,state[1]));host.append(n);return}
+ if(chat.tab==='favorites'){renderFavorites(host);return}
+ if(chat.tab==='private'&&!chat.conversation){renderConversationList(host);return}
+ const k=contentKey();const messages=chat.messages[k]||[];const visible=messages.filter(m=>!chat.query||((m.text||'')+' '+(m.author||'')).toLocaleLowerCase('ru').includes(chat.query.toLocaleLowerCase('ru')));
+ const feed=el('div','chat-feed');host.append(feed);
+ if(!visible.length){const empty=el('div','chat-empty');empty.append(el('b',null,chat.query?'Ничего не найдено':'Сообщений пока нет'),el('span',null,chat.query?'Попробуйте изменить поисковый запрос.':'Напишите первое сообщение.'));feed.append(empty)}
+ for(const m of visible)feed.append(messageNode(m,k));
+ if(chat.tab==='global')chat.newGlobal=false;
+ if(chat.tab==='private'&&chat.conversation){const conv=findConversation();if(conv)conv.unread=0;renderTabs()}
+}
+function messageNode(m,k){if(m.type==='system')return el('div','chat-system-message',m.time+' · '+m.text);
+ const row=el('article','chat-message'+(m.own?' own':''));row.dataset.id=m.id;
+ if(chat.tab==='planet'&&m.sector){const sec=el('span','chat-sector-no','#'+m.sector);sec.tabIndex=0;sec.title='Сектор '+m.sector+' · '+(m.sector===12?'Каменистое плато':'Поверхность Эдем-IV');row.append(sec)}
+ const content=el('div','chat-msg-content');const head=el('div','chat-msg-head');head.append(el('span','chat-time',m.time),el('span','chat-author',m.author));if(m.corp)head.append(el('span','chat-corp','['+m.corp+']'));
+ if(k.startsWith('private:')&&m.own)addPrivateReadDot(head,m);
+ content.append(head);
+ if(m.reply){const orig=(chat.messages[k]||[]).find(x=>x.id===m.reply);const rp=el('div','chat-reply-origin',orig?'↳ '+orig.author+': '+orig.text:'↳ Исходное сообщение недоступно');content.append(rp)}
+ const p=el('p','chat-msg-text',m.text);content.append(p);row.append(content);
+ const more=btn('⋯',e=>{},'chat-more');more.setAttribute('aria-label','Действия с сообщением '+m.author);more.title='Действия с сообщением';more.addEventListener('click',e=>{e.stopPropagation();messageMenu(m,k,more)});row.append(more);return row}
+function renderFavorites(host){const bar=el('div','chat-folder-bar');const all=btn('Все',()=>{chat.folder=null;renderBody()},'chat-folder'+(chat.folder===null?' selected':''));bar.append(all);
+ chat.folders.forEach(f=>bar.append(btn('▤ '+f.title,()=>{chat.folder=f.id;renderBody()},'chat-folder'+(chat.folder===f.id?' selected':''))));
+ if(chat.folder){const more=btn('⋯',()=>folderOptions(more),'chat-folder chat-folder-options');more.setAttribute('aria-label','Действия с папкой');more.setAttribute('aria-haspopup','menu');more.title='Действия с папкой';bar.append(more);}
+ host.append(bar);const matches=chat.favorites.filter(f=>(!chat.folder||f.folder===chat.folder)&&(!chat.query||(f.text+' '+f.source+' '+f.author).toLocaleLowerCase('ru').includes(chat.query.toLocaleLowerCase('ru'))));
+ if(!matches.length){const emp=el('div','chat-empty');emp.append(el('b',null,'Записей нет'),el('span',null,'Сохраните сообщение через «⋯» или создайте заметку.'));host.append(emp)}
+ for(const f of matches){const card=el('article','chat-favorite-card');const head=el('div','chat-favorite-card-head');const meta=el('span');meta.append(el('span','chat-folder-label',f.kind==='note'?'Заметка':'Копия сообщения'),document.createTextNode(' · '+f.source+' · '+f.saved));head.append(meta);
+ const more=btn('⋯',()=>favoriteOptions(f,more),'chat-small-btn');head.append(more);card.append(head,el('p',null,f.text),el('span','chat-mini',f.kind==='copy'?'Автор: '+f.author+' · оригинал: '+f.original:'Личная запись · редактирование разрешено'));host.append(card)}
+}
+function renderConversationList(host){if(chat.invitations.length){const cap=el('div','chat-mini','ВХОДЯЩИЕ ПРИГЛАШЕНИЯ');cap.style.cssText='padding:9px 10px 4px;color:#d4ab70';host.append(cap)}
+ for(const inv of chat.invitations){if(chat.query&&!`${inv.title} ${inv.from}`.toLowerCase().includes(chat.query.toLowerCase()))continue;const row=el('div','chat-invitation-row');row.append(el('span','chat-avatar','✉'));const content=el('div');content.style.flex='1';content.append(el('strong',null,inv.title),el('small','chat-mini','Приглашение от '+inv.from+' · '+inv.expires));const actions=el('div','chat-row-actions');actions.append(btn('Принять',()=>{const id='demo-'+(++chat.seq);chat.conversations.unshift({id,type:'group',name:inv.title,people:['Commander',inv.from],status:'active',owner:inv.from,unread:0});chat.messages['private:'+id]=[{id:'sys-'+chat.seq,type:'system',time:timestamp(),text:'Commander принял приглашение'}];chat.invitations=chat.invitations.filter(x=>x.id!==inv.id);renderAll();tell('Приглашение принято')},'chat-small-btn'),btn('Отклонить',()=>showModal({title:'Отклонить приглашение?',description:'Повторное приглашение в эту беседу после отказа возможно не раньше чем через 24 часа.',ok:'Отклонить',submit:()=>{chat.invitations=chat.invitations.filter(x=>x.id!==inv.id);renderAll();tell('Приглашение отклонено')}}),'chat-small-btn'));content.append(actions);row.append(content);host.append(row)}
+ if(chat.conversations.length){const cap=el('div','chat-mini','БЕСЕДЫ');cap.style.cssText='padding:10px 10px 4px';host.append(cap)}
+ const matches=chat.conversations.filter(c=>!chat.query||c.name.toLowerCase().includes(chat.query.toLowerCase())||(chat.messages['private:'+c.id]||[]).some(m=>(m.text||'').toLowerCase().includes(chat.query.toLowerCase())));
+ if(!matches.length&&!chat.invitations.length){const emp=el('div','chat-empty','Бесед пока нет');host.append(emp)}
+ for(const conv of matches){const row=el('div','chat-conversation-row');row.tabIndex=0;row.setAttribute('role','button');row.setAttribute('aria-label','Открыть '+conv.name);const avatar=el('span','chat-avatar',conv.type==='group'?'♧':conv.name[0].toUpperCase());const info=el('div');info.append(el('strong',null,conv.name+(conv.type==='group'?' · группа':'')));const list=chat.messages['private:'+conv.id]||[];const last=list.at(-1);info.append(el('small',null,last?.text||'Сообщений пока нет'));row.append(avatar,info);if(conv.unread)row.append(el('span','chat-unread',conv.unread));row.addEventListener('click',()=>openConversation(conv.id));row.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openConversation(conv.id)}});host.append(row)}
+}
+function openConversation(id){closeEmojiPicker();saveScroll();chat.conversation=id;chat.query='';$('chat-search-input').value='';const conv=findConversation();if(conv)conv.unread=0;renderAll();restoreScroll(true)}
+function renderCompose(){const compose=$('chat-compose');const k=contentKey();const blocked=errorState();const show=chat.tab!=='favorites' && (chat.tab!=='private'||!!chat.conversation);compose.hidden=!show;if(!show)return;
+ const max=chat.tab==='private'?500:256;const input=$('chat-input');input.removeAttribute('maxlength');input.value=chat.drafts[k]||'';composerCaret={start:input.value.length,end:input.value.length};input.placeholder=chat.tab==='corporation'&&chat.muted?'Отправка ограничена модератором':blocked?'Нет соединения / нет доступа':'Введите сообщение…';
+ const awaiting=chat.tab==='private'&&findConversation()?.status==='pending';input.disabled=!!blocked||!!awaiting||(chat.tab==='corporation'&&chat.muted);$('chat-send').disabled=input.disabled||!input.value.trim();$('chat-emoji-trigger').disabled=input.disabled; if(input.disabled)closeEmojiPicker();if(awaiting)input.placeholder='Ожидание принятия приглашения';const info=blocked?'':awaiting?'До принятия приглашения писать нельзя.':chat.tab==='corporation'&&chat.muted?'Вы можете читать и искать сообщения, но не отправлять.':'Enter — отправка · Shift+Enter — новая строка';$('chat-compose-hint').textContent=info;
+ $('chat-char-counter').textContent=codepoints(input.value)+' / '+max;const reply=currentReply();$('chat-reply-preview').hidden=!reply;if(reply){const original=(chat.messages[k]||[]).find(m=>m.id===reply);$('chat-reply-text').textContent=original?'Ответ на '+original.author+': '+original.text:'Исходное сообщение недоступно'}
+}
+function renderAll(){renderHeader();renderTabs();renderSection();renderBody();renderCompose();if(!$('chat-players-overlay').hidden)renderPlayersWindow()}
+function send(){const k=contentKey();const input=$('chat-input');const value=input.value.trim();if(!value||input.disabled||errorState())return;
+ const lim=chat.tab==='private'?500:256;if(codepoints(value)>lim){tell('Превышен лимит '+lim+' символов');return}
+ const span=chat.tab==='global'?3000:chat.tab==='planet'?2000:chat.tab==='private'?1000:1000;
+ const stamp=Date.now(),recent=(chat.sendEvents[chat.tab]||[]).filter(t=>stamp-t<10000);
+ if(chat.tab==='private'&&recent.length>=10){tell('Лимит: 10 сообщений за 10 секунд');return}
+ if(chat.tab!=='private'&&recent.length&&stamp-recent.at(-1)<span){tell('Подождите перед следующей отправкой');return}
+ recent.push(stamp);chat.sendEvents[chat.tab]=recent;
+ const m={id:'mock-'+(++chat.seq),author:'Commander',corp:'NOVA',time:timestamp(),text:value,own:true,read:false};if(chat.replies[k]){m.reply=chat.replies[k];delete chat.replies[k]};if(chat.tab==='planet')m.sector=12;
+ (chat.messages[k]??=[]).push(m);chat.drafts[k]='';input.value='';closeEmojiPicker();$('chat-mentions').hidden=true;renderAll();restoreScroll(true)
+}
+function hideMenu(){const menu=$('chat-pop-menu');menu.hidden=true;menu.replaceChildren();menu.classList.remove('folder-menu');chat.menuMessage=null}
+function positionMenu(source){const menu=$('chat-pop-menu');menu.hidden=false;const rect=source.getBoundingClientRect();const w=menu.offsetWidth,h=menu.offsetHeight;menu.style.left=Math.max(8,Math.min(window.innerWidth-w-8,rect.right-w))+'px';menu.style.top=(rect.bottom+h+8>window.innerHeight?Math.max(8,rect.top-h):rect.bottom+3)+'px'}
+function messageMenu(m,k,source){const menu=$('chat-pop-menu');menu.replaceChildren();const item=(text,fn)=>{const action=btn(text,()=>{hideMenu();fn()},'');action.setAttribute('role','menuitem');menu.append(action)};
+ item('Ответить',()=>{chat.replies[k]=m.id;renderCompose();$('chat-input').focus()});
+ item('★ Сохранить в избранное',()=>{chat.favorites.unshift({id:'fav-'+(++chat.seq),folder:null,kind:'copy',source:k.startsWith('private:')?'Private · '+(findConversation()?.name||'беседа'):names[chat.tab],author:m.author+' ['+(m.corp||'')+']',original:m.time,saved:timestamp(),text:m.text,sourceId:m.id});tell('Копия сохранена в Избранное → Все')});
+ if(!m.own)item('Пожаловаться',()=>openReportDialog(m,k));
+ if(m.own)item('Удалить своё сообщение',()=>showModal({title:'Удалить своё сообщение?',description:'Сообщение будет удалено для всех, но ранее сохранённые копии останутся.',ok:'Удалить',submit:()=>{chat.messages[k]=chat.messages[k].filter(x=>x.id!==m.id);renderAll();tell('Ваше сообщение удалено')}}));
+ else if(k==='corporation'&&canModerateTarget(m.author))item('Удалить как модератор',()=>openModeratorDeleteDialog(m,k));
+ positionMenu(source)
+}
+function modalError(message,fieldName='name'){
+ const target=$('chat-modal-error');target.textContent=message;target.hidden=false;
+ const input=Array.from($('chat-modal-fields').querySelectorAll('input,select')).find(x=>x.name===fieldName);
+ if(input){input.setAttribute('aria-invalid','true');input.setAttribute('aria-describedby','chat-modal-error');input.focus()}
+}
+function clearModalError(){const target=$('chat-modal-error');target.hidden=true;target.textContent='';$('chat-modal-fields').querySelectorAll('[aria-invalid]').forEach(x=>{x.removeAttribute('aria-invalid');x.removeAttribute('aria-describedby')})}
+function showModal(config){const modal=$('chat-modal');$('chat-modal-title').textContent=config.title;$('chat-modal-desc').textContent=config.description||'';$('chat-modal-fields').replaceChildren();chat.modalAction=config;clearModalError();
+ const f=$('chat-modal-fields');for(const field of config.fields||[]){const label=el('label',null,field.label);let input;if(field.type==='select'){input=el('select');for(const [v,txt] of field.options)input.add(new Option(txt,v))}else{input=el('input');input.type='text';input.maxLength=field.maxLength||140;input.placeholder=field.placeholder||''}input.name=field.name;input.value=field.value||'';input.addEventListener('input',clearModalError);input.addEventListener('change',clearModalError);label.append(input);f.append(label);if(field.userLookup){f.append(el('div','chat-modal-pilots','Тестовые игроки: Elena, NovaScout, Vega, StarFox, Atlas, Navigator.'))}}
+ $('chat-modal-ok').textContent=config.ok||'Подтвердить';modal.hidden=false;f.querySelector('input,select')?.focus();if(!f.children.length)$('chat-modal-ok').focus();}
+function closeModal(){chat.modalAction=null;$('chat-modal').hidden=true;clearModalError()}
+function submitModal(){const config=chat.modalAction;if(!config)return;const vals={};$('chat-modal-fields').querySelectorAll('input,select').forEach(x=>vals[x.name]=x.value.trim());if(config.submit?.(vals)===false)return;closeModal()}
+function folderModal(){showModal({title:'Создать папку',description:'Новая папка в личном Избранном.',fields:[{name:'title',label:'Название папки',placeholder:'Например: Торговля',maxLength:40}],ok:'Создать',submit:({title})=>{if(!title){tell('Введите название папки');return false}const id='folder-'+(++chat.seq);chat.folders.push({id,title});chat.folder=id;renderAll();tell('Папка создана')}})}
+function folderOptions(source){const folder=chat.folders.find(f=>f.id===chat.folder);if(!folder)return;const menu=$('chat-pop-menu');
+ if(!menu.hidden&&menu.classList.contains('folder-menu')){hideMenu();return}
+ hideMenu();menu.classList.add('folder-menu');menu.setAttribute('aria-label','Действия с папкой «'+folder.title+'»');
+ const item=(label,callback,css='')=>{const choice=btn(label,()=>{hideMenu();callback()},css);choice.setAttribute('role','menuitem');menu.append(choice)};
+ item('Переименовать',()=>showModal({title:'Переименовать папку',description:'Измените название папки «'+folder.title+'».',fields:[{name:'title',label:'Название папки',value:folder.title,maxLength:40}],ok:'Сохранить',submit:({title})=>{if(!title){modalError('Введите название папки.','title');return false}folder.title=title;renderAll();tell('Папка переименована')}}));
+ item('Удалить',()=>showModal({title:'Удалить папку «'+folder.title+'»?',description:'Папка будет удалена, но все записи сохранятся в разделе «Все».',ok:'Удалить',submit:()=>{chat.folders=chat.folders.filter(f=>f.id!==folder.id);chat.favorites.forEach(f=>{if(f.folder===folder.id)f.folder=null});chat.folder=null;renderAll();tell('Папка удалена, записи сохранены в «Все»')}}),'danger-action');
+ positionMenu(source);menu.querySelector('button')?.focus()
+}
+function noteModal(fav){showModal({title:fav?'Редактировать заметку':'Новая заметка',description:'Личная заметка хранится в Избранном. Копии чужих сообщений редактировать нельзя.',fields:[{name:'text',label:'Текст заметки',value:fav?.text||'',maxLength:2500,placeholder:'Введите заметку…'}],ok:fav?'Сохранить':'Добавить',submit:({text})=>{if(!text)return false;if(fav)fav.text=text;else chat.favorites.unshift({id:'note-'+(++chat.seq),folder:chat.folder,kind:'note',source:'Личная заметка',author:'Commander',original:timestamp(),saved:timestamp(),text});renderAll();tell(fav?'Заметка обновлена':'Заметка добавлена')}})}
+function favoriteOptions(fav,source){
+ const menu=$('chat-pop-menu');menu.replaceChildren();
+ let submenu=null,trigger=null;
+ const closeSubmenu=()=>{if(submenu){submenu.hidden=true;if(trigger)trigger.setAttribute('aria-expanded','false')}};
+ const item=(text,fn)=>{const action=btn(text,()=>{hideMenu();fn()},'');action.setAttribute('role','menuitem');action.addEventListener('pointerenter',closeSubmenu);action.addEventListener('focus',closeSubmenu);menu.append(action)};
+ if(fav.kind==='note')item('Редактировать заметку',()=>noteModal(fav));
+ trigger=btn('Переместить в папку',()=>openSubmenu(false),'chat-submenu-trigger');
+ trigger.setAttribute('role','menuitem');trigger.setAttribute('aria-haspopup','menu');trigger.setAttribute('aria-expanded','false');trigger.setAttribute('aria-controls','chat-folder-submenu');
+ menu.append(trigger);
+ item('Удалить из избранного',()=>showModal({title:'Удалить запись?',description:'Запись исчезнет из вашего личного Избранного.',ok:'Удалить',submit:()=>{chat.favorites=chat.favorites.filter(x=>x!==fav);renderBody()}}));
+ submenu=el('div','chat-context-submenu');submenu.id='chat-folder-submenu';submenu.setAttribute('role','menu');submenu.setAttribute('aria-label','Переместить запись в папку');submenu.hidden=true;
+ const folders=[{id:null,title:'Без папки (Все)'},...chat.folders];
+ folders.forEach(folder=>{
+  const selected=(fav.folder||null)===folder.id;
+  const choice=btn((selected?'✓ ':'  ')+folder.title,()=>{fav.folder=folder.id;hideMenu();renderBody();tell(folder.id?'Запись перемещена в «'+folder.title+'»':'Запись перемещена в «Все»')},'chat-folder-choice');
+  choice.setAttribute('role','menuitemcheckbox');choice.setAttribute('aria-checked',String(selected));
+  submenu.append(choice);
+ });
+ menu.append(submenu);
+ function openSubmenu(focusFirst){
+  submenu.hidden=false;trigger.setAttribute('aria-expanded','true');
+  const main=menu.getBoundingClientRect(),anchor=trigger.getBoundingClientRect(),width=submenu.offsetWidth,height=submenu.offsetHeight;
+  const right=main.right-1,left=main.left-width+1;
+  if(right+width<=window.innerWidth-8)submenu.style.left=right+'px';
+  else if(left>=8)submenu.style.left=left+'px';
+  else submenu.style.left=Math.max(8,Math.min(window.innerWidth-width-8,main.left))+'px';
+  const belowNeitherFits=right+width>window.innerWidth-8&&left<8;
+  const top=belowNeitherFits?main.bottom-1:anchor.top;
+  submenu.style.top=Math.max(8,Math.min(window.innerHeight-height-8,top))+'px';
+  if(focusFirst)submenu.querySelector('button')?.focus();
+ }
+ trigger.addEventListener('pointerenter',e=>{if(e.pointerType!=='touch')openSubmenu(false)});
+ trigger.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();openSubmenu(true)}});
+ submenu.addEventListener('keydown',e=>{
+  const items=[...submenu.querySelectorAll('button')],index=items.indexOf(document.activeElement);
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+   e.preventDefault();items[(index+(e.key==='ArrowDown'?1:-1)+items.length)%items.length]?.focus();
+  }else if(e.key==='ArrowLeft'){
+   e.preventDefault();closeSubmenu();trigger.focus();
+  }
+ });
+ positionMenu(source);
+}
+function newConversationModal(){showModal({title:'Новая беседа',description:'Личная беседа или группа (макет без серверных приглашений).',fields:[{name:'type',label:'Тип',type:'select',options:[['dm','Личный диалог'],['group','Группа']]},{name:'name',label:'Позывной игрока или название группы',placeholder:'Например: StarFox',maxLength:40}],ok:'Создать',submit:({type,name})=>{if(!name){modalError(type==='dm'?'Укажите позывной игрока.':'Укажите название группы.');return false}
+ const isGroup=type==='group';if(!isGroup){const error=validateInvite(name);if(error){modalError(error);return false}name=resolvePilot(name);if(chat.conversations.some(c=>c.type==='dm'&&c.people.includes(name))){modalError('У вас уже есть личный диалог с этим игроком.');return false}}
+ const id='new-'+(++chat.seq);chat.conversations.unshift({id,type,name,people:['Commander',...(isGroup?[]:[name])],unread:0,status:'pending',owner:'Commander'});chat.messages['private:'+id]=[];chat.tab='private';chat.conversation=id;renderAll();tell(isGroup?'Группа создана как черновик. Пригласите участника.':'Приглашение отправлено, ожидается принятие')}})}
+function conversationActions(conv){const menu=$('chat-pop-menu');menu.replaceChildren();const item=(label,fn)=>{const action=btn(label,()=>{hideMenu();fn()},'');action.setAttribute('role','menuitem');menu.append(action)};
+ if(conv.type==='group'){
+  if(conv.owner==='Commander'){
+   item('Пригласить участника',()=>showModal({title:'Пригласить в группу',description:'Для демонстрации приглашение будет принято сразу.',fields:[{name:'name',label:'Позывной игрока',placeholder:'NovaScout',userLookup:true}],ok:'Пригласить',submit:({name})=>{const error=validateInvite(name,conv);if(error){modalError(error);return false}if(conv.people.length>=50){modalError('Лимит группы: не более 50 участников.');return false}name=resolvePilot(name);conv.people.push(name);conv.status='active';chat.messages['private:'+conv.id].push({type:'system',id:'sys'+(++chat.seq),text:name+' присоединился к беседе',time:timestamp()});renderAll();tell('Приглашение принято (демонстрация)')}}));
+   item('Переименовать группу',()=>showModal({title:'Название группы',description:'Изменить может только текущий владелец.',fields:[{name:'title',label:'Название группы',value:conv.name,maxLength:40}],ok:'Сохранить',submit:({title})=>{if(!title)return false;conv.name=title;renderAll()}}));
+   item('Участники / Передать права',()=>showModal({title:'Управление участниками',description:'В группе: '+conv.people.join(', ')+'. Права владельца можно передать активному участнику.',fields:[{name:'owner',label:'Новый владелец',type:'select',options:conv.people.filter(n=>n!=='Commander').map(n=>[n,n])}],ok:'Передать права',submit:({owner})=>{if(!owner)return false;conv.owner=owner;renderAll();tell('Владелец изменён: '+owner)}}));
+   item('Удалить группу для всех',()=>showModal({title:'Удалить группу для всех?',description:'Участники потеряют доступ к истории. Сохранённые копии останутся.',ok:'Удалить',submit:()=>{removeConversation(conv)}}));
+  }
+  item('Покинуть группу',()=>showModal({title:'Покинуть группу?',description:'Вы утратите доступ к беседе и её истории.',ok:'Выйти',submit:()=>removeConversation(conv)}));
+ }else{
+  if(conv.owner==='Commander'&&conv.status==='active')item('Пригласить игрока',()=>showModal({title:'Приглашение в личную беседу',description:'После принятия приглашения текущий DM станет группой с сохранением истории.',fields:[{name:'name',label:'Позывной игрока',placeholder:'StarFox',userLookup:true}],ok:'Пригласить',submit:({name})=>{const error=validateInvite(name,conv);if(error){modalError(error);return false}name=resolvePilot(name);conv.type='group';conv.people.push(name);conv.name=conv.name+' + '+name;chat.messages['private:'+conv.id].push({type:'system',id:'sys'+(++chat.seq),text:name+' принял приглашение. Личный диалог преобразован в группу.',time:timestamp()});renderAll();tell('Приглашение принято (демонстрация): DM → Group')}}));
+  if(conv.status==='pending')item('Симулировать принятие приглашения',()=>{conv.status='active';renderAll();tell('Беседа активирована')});
+  item('Выйти из личного диалога',()=>showModal({title:'Закрыть личный диалог?',description:'Выход любого участника удаляет беседу для обоих.',ok:'Выйти и удалить',submit:()=>removeConversation(conv)}));
+ }
+ const src=$('chat-section-header');const rect=src.getBoundingClientRect();menu.hidden=false;menu.style.left=Math.max(8,Math.min(window.innerWidth-menu.offsetWidth-8,rect.right-menu.offsetWidth))+'px';menu.style.top=Math.min(window.innerHeight-menu.offsetHeight-9,rect.bottom+3)+'px';
+}
+function removeConversation(conv){chat.conversations=chat.conversations.filter(x=>x.id!==conv.id);delete chat.messages['private:'+conv.id];chat.conversation=null;renderAll();tell('Беседа удалена (демо)')}
+function updateMentions(){const wrap=$('chat-mentions'),input=$('chat-input');wrap.replaceChildren();wrap.hidden=true;if(input.disabled)return;const before=input.value.slice(0,input.selectionStart);const match=before.match(/@([A-Za-zА-Яа-яЁё0-9_-]*)$/);if(!match)return;const candidates=chat.tab==='private'?(findConversation()?.people||[]):chat.tab==='corporation'?['Commander','Elena','NovaScout','Vega']:chat.tab==='global'?['Commander','Elena','Navigator','Atlas','Vega','StarFox']:['Elena','StarFox','Commander'];if(['corporation','private'].includes(chat.tab))candidates.unshift('all');const choices=candidates.filter(n=>n.toLowerCase().startsWith(match[1].toLowerCase())).slice(0,6);if(!choices.length)return;for(const n of choices){wrap.append(btn('@'+n,()=>{const start=before.slice(0,-match[0].length);input.value=start+'@'+n+' '+input.value.slice(input.selectionStart);input.dispatchEvent(new Event('input'));input.focus();wrap.hidden=true},''))}wrap.hidden=false}
+// Emoji are Unicode text, not attachments; the same per-channel codepoint limit applies.
+const emojiGroups={
+ 'Частые':[['😀','Улыбка'],['😂','Смех'],['👍','Одобрение'],['❤️','Сердце'],['🚀','Ракета'],['👋','Привет'],['✨','Блеск'],['🔥','Огонь'],['🎉','Праздник'],['😎','Круто'],['🪐','Планета'],['💎','Драгоценность']],
+ 'Эмоции':[['😀','Улыбка'],['😄','Радость'],['😁','Широкая улыбка'],['😂','Смех'],['🤣','Смеюсь'],['😊','Счастье'],['🙂','Спокойно'],['😉','Подмигивание'],['😍','Влюбленность'],['🥰','Любовь'],['😎','Круто'],['🤔','Думаю'],['😮','Удивление'],['😢','Грусть'],['😭','Плач'],['😡','Злость'],['😴','Сон'],['🤖','Робот'],['👽','Пришелец'],['💀','Череп']],
+ 'Жесты':[['👍','Одобрение'],['👎','Не нравится'],['👏','Аплодисменты'],['🙌','Ура'],['👋','Привет'],['🤝','Рукопожатие'],['🙏','Спасибо'],['💪','Сила'],['✌️','Победа'],['👌','Хорошо'],['👀','Глаза'],['🫡','Приветствие'],['👈','Влево'],['👉','Вправо']],
+ 'Космос':[['🚀','Ракета'],['🛸','НЛО'],['🪐','Планета'],['🌍','Земля'],['🌕','Луна'],['☀️','Солнце'],['⭐','Звезда'],['🌟','Сияющая звезда'],['🌌','Галактика'],['🌠','Падающая звезда'],['☄️','Комета'],['🛰️','Спутник'],['👨‍🚀','Космонавт'],['👩‍🚀','Астронавт'],['🔭','Телескоп'],['🧭','Компас'],['✨','Искры'],['🌙','Ночь']],
+ 'Предметы':[['⚒️','Инструменты'],['⛏️','Кирка'],['🔧','Ключ'],['🛠️','Ремонт'],['📡','Антенна'],['⚡','Энергия'],['🔋','Батарея'],['🧪','Исследование'],['📦','Груз'],['💎','Кристалл'],['🪙','Монета'],['🔑','Ключ'],['📍','Метка'],['🎯','Цель'],['✅','Готово'],['❌','Отмена'],['⚠️','Внимание'],['🔔','Уведомление'],['🔥','Огонь'],['🎉','Праздник']]
+};
+let emojiCategory='Частые';let composerCaret={start:0,end:0};
+const codepoints=text=>[...text].length;
+function rememberComposerCaret(){const input=$('chat-input');composerCaret={start:input.selectionStart,end:input.selectionEnd}}
+function closeEmojiPicker(restoreFocus=false){const panel=$('chat-emoji-panel');if(panel.hidden)return;panel.hidden=true;$('chat-emoji-trigger').setAttribute('aria-expanded','false');if(restoreFocus&&!$('chat-input').disabled)$('chat-input').focus({preventScroll:true})}
+function renderEmojiPicker(){
+ const cats=$('chat-emoji-categories');cats.replaceChildren();
+ for(const category of Object.keys(emojiGroups)){
+  const control=btn(category,()=>{emojiCategory=category;renderEmojiPicker()},'chat-emoji-category');
+  control.setAttribute('aria-pressed',String(category===emojiCategory));cats.append(control);
+ }
+ const query=$('chat-emoji-search').value.trim().toLocaleLowerCase('ru');
+ const items=query?[...new Map(Object.values(emojiGroups).flat().map(([emoji,name])=>[emoji,[emoji,name]])).values()].filter(([symbol,name])=>name.toLocaleLowerCase('ru').includes(query)||symbol.includes(query)):emojiGroups[emojiCategory];
+ const grid=$('chat-emoji-grid');grid.replaceChildren();
+ if(!items.length){grid.append(el('p','chat-emoji-empty','Эмодзи не найдены'));return}
+ for(const [emoji,name] of items){const control=btn(emoji,()=>insertEmoji(emoji),'chat-emoji-item');control.title=name;control.setAttribute('aria-label',name);grid.append(control)}
+}
+function openEmojiPicker(){
+ if($('chat-input').disabled)return;
+ const panel=$('chat-emoji-panel');panel.hidden=false;$('chat-emoji-trigger').setAttribute('aria-expanded','true');
+ $('chat-emoji-search').value='';emojiCategory='Частые';renderEmojiPicker();$('chat-mentions').hidden=true;
+}
+function insertEmoji(emoji){
+ const input=$('chat-input');if(input.disabled){closeEmojiPicker();return}
+ const start=Math.min(composerCaret.start,input.value.length),end=Math.min(composerCaret.end,input.value.length);
+ const result=input.value.slice(0,start)+emoji+input.value.slice(end);
+ const limit=chat.tab==='private'?500:256;
+ if(codepoints(result)>limit){tell('Достигнут лимит '+limit+' символов');return}
+ input.focus({preventScroll:true});input.setRangeText(emoji,start,end,'end');rememberComposerCaret();
+ input.dispatchEvent(new Event('input',{bubbles:true}));
+ // Leave the palette open to allow inserting several emoji in a row.
+}
+function onInput(){
+ const input=$('chat-input'),k=contentKey();const max=chat.tab==='private'?500:256;
+ if(codepoints(input.value)>max){input.value=[...input.value].slice(0,max).join('');tell('Достигнут лимит '+max+' символов')}
+ chat.drafts[k]=input.value;$('chat-char-counter').textContent=codepoints(input.value)+' / '+max;
+ $('chat-send').disabled=!input.value.trim()||input.disabled;rememberComposerCaret();updateMentions()
+}
+function applyOpacity(v){chat.opacity=Number(v);$('chat-opacity-label').textContent=v+'%';$('chat-root').style.setProperty('--chat-alpha',String(chat.opacity/100));pref('opacity',chat.opacity)}
+function init(){
+ document.querySelector('[data-chat-open]').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openChat()});
+ $('chat-dock-toggle').addEventListener('click',()=>setDock(!chat.docked));$('chat-close').addEventListener('click',closeChat);
+ $('chat-settings-toggle').addEventListener('click',showSettings);$('chat-search-toggle').addEventListener('click',showSearch);
+ $('chat-players-close').addEventListener('click',closePlayersWindow);
+ $('chat-moderation-close').addEventListener('click',closeModerationWindow);
+ $('chat-moderation-overlay').addEventListener('pointerdown',e=>{if(e.target===$('chat-moderation-overlay'))closeModerationWindow()});
+ $('chat-role-test').addEventListener('change',e=>{chat.moderationRole=e.target.value;closeModerationWindow();renderAll();tell('Тестовая роль: '+roleLabel(chat.moderationRole))});
+ $('chat-self-mute').addEventListener('change',e=>{chat.muted=e.target.checked;renderAll();tell(chat.muted?'Тестовый запрет отправки включён':'Тестовый запрет снят')});
+ $('chat-players-query').addEventListener('input',renderPlayersWindow);
+ $('chat-players-overlay').addEventListener('pointerdown',e=>{if(e.target===$('chat-players-overlay'))closePlayersWindow()});
+ $('chat-players-overlay').addEventListener('keydown',e=>{if(e.key==='Tab'){const focusables=[$('chat-players-close'),$('chat-players-query')];const index=focusables.indexOf(document.activeElement);if(e.shiftKey&&index===0){e.preventDefault();focusables.at(-1).focus()}else if(!e.shiftKey&&index===focusables.length-1){e.preventDefault();focusables[0].focus()}}});
+ $('chat-search-input').addEventListener('input',e=>{chat.query=e.target.value;renderBody()});$('chat-search-clear').addEventListener('click',()=>{chat.query='';$('chat-search-input').value='';renderBody()});
+ $('chat-opacity').value=chat.opacity;applyOpacity(chat.opacity);$('chat-opacity').addEventListener('input',e=>applyOpacity(e.target.value));
+ $('chat-sounds').addEventListener('change',e=>tell(e.target.checked?'Звуки уведомлений включены (демо)':'Звуки уведомлений выключены'));
+ $('chat-on-planet').addEventListener('change',e=>{chat.onPlanet=e.target.checked;if(!chat.onPlanet&&['planet','sector'].includes(chat.tab))chat.tab='global';renderAll();tell(chat.onPlanet?'Тестовый визит: Эдем-IV · сектор 12':'Возврат с планеты: Planet/Sector недоступны')});
+ $('chat-availability').addEventListener('change',e=>{chat.availability=e.target.value;renderAll();tell('Тестовый статус служб изменён')});
+ const signal=$('chat-signal');
+ signal.addEventListener('mouseenter',showChatStatusTooltip);signal.addEventListener('mouseleave',hideChatStatusTooltip);
+ signal.addEventListener('focus',showChatStatusTooltip);signal.addEventListener('blur',hideChatStatusTooltip);
+ window.addEventListener('resize',()=>{hideChatStatusTooltip();hideChatReadTooltip()});
+ document.addEventListener('scroll',()=>{hideChatStatusTooltip();hideChatReadTooltip()},true);
+ document.addEventListener('pointerdown',e=>{if(!e.target.closest('.chat-read-dot'))hideChatReadTooltip()},true);
+ $('chat-emoji-trigger').addEventListener('click',()=>{$('chat-emoji-panel').hidden?openEmojiPicker():closeEmojiPicker(true)});
+ $('chat-emoji-trigger').addEventListener('pointerdown',e=>{if(e.pointerType==='mouse')e.preventDefault()});
+ $('chat-emoji-close').addEventListener('click',()=>closeEmojiPicker(true));
+ $('chat-emoji-search').addEventListener('input',renderEmojiPicker);
+ $('chat-emoji-search').addEventListener('keydown',e=>{if(e.key==='Enter'){const first=$('chat-emoji-grid').querySelector('button');if(first){e.preventDefault();first.click()}}});
+ document.addEventListener('pointerdown',e=>{if(!$('chat-emoji-panel').hidden&&!e.target.closest('#chat-emoji-panel')&&!e.target.closest('#chat-emoji-trigger'))closeEmojiPicker()},true);
+ $('chat-input').addEventListener('select',rememberComposerCaret);
+ $('chat-input').addEventListener('input',onInput);$('chat-input').addEventListener('click',updateMentions);$('chat-input').addEventListener('keyup',updateMentions);
+ $('chat-input').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();send()}if(e.key==='Escape')$('chat-mentions').hidden=true});
+ $('chat-send').addEventListener('click',send);$('chat-cancel-reply').addEventListener('click',()=>{delete chat.replies[contentKey()];renderCompose()});
+ $('chat-modal-cancel').addEventListener('click',closeModal);$('chat-modal-ok').addEventListener('click',submitModal);$('chat-modal').addEventListener('pointerdown',e=>{if(e.target===$('chat-modal'))closeModal()});
+ $('chat-modal').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.tagName==='INPUT'){e.preventDefault();submitModal()}});
+ document.addEventListener('pointerdown',e=>{if(!e.target.closest('#chat-pop-menu')&&!e.target.closest('.chat-more')&&!e.target.closest('#chat-section-header')&&!e.target.closest('.chat-favorite-card-head'))hideMenu()},true);
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('chat-modal').hidden){e.stopImmediatePropagation();closeModal()}else if(!$('chat-moderation-overlay').hidden){e.stopImmediatePropagation();closeModerationWindow()}else if(!$('chat-players-overlay').hidden){e.stopImmediatePropagation();closePlayersWindow()}else if(!$('chat-pop-menu').hidden){e.stopImmediatePropagation();hideMenu()}else if(!$('chat-emoji-panel').hidden){e.stopImmediatePropagation();closeEmojiPicker(true)}else if(chat.search&&chat.isOpen){e.stopImmediatePropagation();showSearch()}else if(chat.isOpen&&!chat.docked){e.stopImmediatePropagation();closeChat()}}},true);
+ const bar=$('chat-draghandle'),win=$('chat-floating');let drag=null;
+ bar.addEventListener('pointerdown',e=>{if(chat.docked||e.target.closest('button')||e.button!==0)return;const rect=win.getBoundingClientRect();drag={x:e.clientX,y:e.clientY,left:rect.left,top:rect.top};bar.setPointerCapture(e.pointerId)});
+ bar.addEventListener('pointermove',e=>{if(!drag)return;const r=win.getBoundingClientRect();win.style.left=Math.max(2,Math.min(window.innerWidth-r.width-2,drag.left+e.clientX-drag.x))+'px';win.style.top=Math.max(59,Math.min(window.innerHeight-r.height-30,drag.top+e.clientY-drag.y))+'px'});
+ bar.addEventListener('pointerup',()=>drag=null);bar.addEventListener('pointercancel',()=>drag=null);
+ renderAll();
+}
+init();
+})();
+</script>
+</body>
+</html>

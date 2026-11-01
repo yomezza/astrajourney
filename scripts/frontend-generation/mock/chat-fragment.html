@@ -1,0 +1,61 @@
+<div aria-label="Чат Cosmosimulator" class="chat-root" hidden="" id="chat-root">
+<div class="chat-titlebar" id="chat-draghandle">
+<div class="chat-appname"><span aria-describedby="chat-status-tooltip" aria-label="Сервис чата работает" class="chat-signal healthy" id="chat-signal" role="img" tabindex="0"></span><b id="chat-title">Чат · Global</b></div>
+<div class="chat-toolset">
+<button aria-label="Поиск" class="chat-icon" id="chat-search-toggle" title="Поиск в текущем разделе" type="button">⌕</button>
+<button aria-label="Настройки чата" class="chat-icon" id="chat-settings-toggle" title="Настройки чата" type="button">⚙</button>
+<button aria-label="Закрепить на главной" class="chat-icon chat-dock" id="chat-dock-toggle" title="Закрепить на главной" type="button">▣ На главную</button>
+<button aria-label="Закрыть чат" class="chat-icon" id="chat-close" title="Закрыть чат" type="button">×</button>
+</div>
+</div>
+<div class="chat-settings-panel" hidden="" id="chat-settings-panel">
+<div class="chat-opacity-row"><label for="chat-opacity">Непрозрачность фона</label><input id="chat-opacity" max="100" min="40" step="5" type="range" value="100"/><span id="chat-opacity-label">100%</span></div>
+<label><input id="chat-on-planet" type="checkbox"/> Тестовый визит на планету (Planet / Sector)</label>
+<label style="margin-top:7px"><input checked="" id="chat-sounds" type="checkbox"/> Звуки личных сообщений и упоминаний (демо)</label>
+<div class="chat-inline-option"><label for="chat-availability">Подключение (демо)</label><select id="chat-availability"><option value="online">Все службы онлайн</option><option value="planet-off">Planet недоступен</option><option value="cosmic-off">Cosmic недоступен</option><option value="both-off">Cosmic и Planet недоступны</option><option value="chat-off">Chat Service недоступен</option></select></div>
+<div class="chat-inline-option"><label for="chat-role-test">Роль для проверки модерации</label><select id="chat-role-test"><option value="owner">Руководитель NOVA</option><option value="moderator">Модератор NOVA</option><option value="member">Участник NOVA</option><option value="admin">Игровой администратор</option></select></div>
+<label style="margin-top:7px"><input id="chat-self-mute" type="checkbox"/> Пример ограничения моей отправки в Corporation</label>
+<div class="chat-mini" style="margin-top:6px">Роли, статусы, жалобы и ограничения здесь демонстрационные. Права подтверждает сервер.</div>
+</div>
+<div aria-label="Разделы чата" class="chat-tabs" id="chat-tabs" role="tablist"></div>
+<div class="chat-search-panel" hidden="" id="chat-search-panel"><input aria-label="Поиск сообщений" id="chat-search-input" placeholder="Поиск в текущем разделе…" type="search"/><button class="chat-small-btn" id="chat-search-clear" type="button">Сброс</button></div>
+<div class="chat-section-header" id="chat-section-header"></div>
+<div aria-live="off" class="chat-area" id="chat-area"></div>
+<div class="chat-compose" id="chat-compose">
+<div class="chat-reply-preview" hidden="" id="chat-reply-preview"><span id="chat-reply-text"></span><button id="chat-cancel-reply" title="Отменить ответ" type="button">×</button></div>
+<div class="chat-compose-main"><textarea aria-label="Текст сообщения" id="chat-input" placeholder="Введите сообщение…" rows="2"></textarea><button aria-controls="chat-emoji-panel" aria-expanded="false" aria-label="Выбрать эмодзи" class="chat-emoji-trigger" id="chat-emoji-trigger" title="Выбрать эмодзи" type="button">☺</button><button class="chat-send" id="chat-send" type="button">Отправить</button></div>
+<div class="chat-compose-meta"><span id="chat-compose-hint">Enter — отправка · Shift+Enter — новая строка</span><span id="chat-char-counter">0 / 256</span></div>
+<section aria-label="Выбор эмодзи" class="chat-emoji-panel" hidden="" id="chat-emoji-panel" role="dialog">
+<div class="chat-emoji-head"><strong>Эмодзи</strong><button aria-label="Закрыть выбор эмодзи" class="chat-emoji-close" id="chat-emoji-close" type="button">×</button></div>
+<input aria-label="Поиск эмодзи" autocomplete="off" class="chat-emoji-search" id="chat-emoji-search" placeholder="Поиск эмодзи…" type="search"/>
+<div aria-label="Категории эмодзи" class="chat-emoji-categories" id="chat-emoji-categories" role="group"></div>
+<div aria-label="Эмодзи для вставки" class="chat-emoji-grid" id="chat-emoji-grid" role="group"></div>
+<div class="chat-emoji-foot">Выберите эмодзи — он появится в сообщении</div>
+</section>
+<div class="chat-mention" hidden="" id="chat-mentions"></div>
+</div>
+<div class="chat-demo-hint">CHAT SERVICE v1 · UI PROTOTYPE 13 · NO BACKEND</div>
+</div>
+<div class="chat-players-overlay" hidden="" id="chat-players-overlay">
+<section aria-describedby="chat-players-description" aria-labelledby="chat-players-title" aria-modal="true" class="chat-players-panel" role="dialog">
+<div class="chat-players-head"><h3 id="chat-players-title">Игроки · Global</h3><button aria-label="Закрыть список игроков" id="chat-players-close" title="Закрыть" type="button">×</button></div>
+<div class="chat-players-summary"><span id="chat-players-description">Игроки онлайн</span><span class="chat-players-total" id="chat-players-total">0</span></div>
+<div class="chat-players-filter"><input aria-label="Поиск игрока по позывному" autocomplete="off" id="chat-players-query" maxlength="50" placeholder="Поиск по позывному…" type="search"/></div>
+<div class="chat-players-result"><span id="chat-players-found">Показано: 0</span><span>ПОЗЫВНОЙ / КОРПОРАЦИЯ</span></div>
+<div class="chat-players-list" id="chat-players-list" role="list"></div>
+<div class="chat-players-foot">Демонстрационные игроки · сведения о составе выдаёт сервер</div>
+</section>
+</div>
+<div class="chat-moderation-overlay" hidden="" id="chat-moderation-overlay">
+<section aria-labelledby="chat-moderation-title" aria-modal="true" class="chat-moderation-panel" role="dialog">
+<div class="chat-moderation-heading"><div><h3 id="chat-moderation-title">Модерация · [NOVA]</h3><span id="chat-moderation-subtitle">Управление корпоративным чатом</span></div><button aria-label="Закрыть модерацию" id="chat-moderation-close" type="button">×</button></div>
+<div aria-label="Разделы модерации" class="chat-moderation-tabs" id="chat-moderation-tabs" role="tablist"></div>
+<div class="chat-moderation-body" id="chat-moderation-body"></div>
+<div class="chat-moderation-foot">Демонстрация · срок и права проверяются сервером · журнал без текстов удалённых сообщений</div>
+</section>
+</div>
+<div class="chat-status-tooltip" hidden="" id="chat-status-tooltip" role="tooltip"></div>
+<div class="chat-read-tooltip" hidden="" id="chat-read-tooltip" role="tooltip"></div>
+<div class="chat-context-menu" hidden="" id="chat-pop-menu" role="menu"></div>
+<div class="chat-modal" hidden="" id="chat-modal"><div aria-modal="true" class="chat-modal-panel" role="dialog"><h3 id="chat-modal-title">Подтверждение</h3><p id="chat-modal-desc"></p><div id="chat-modal-fields"></div><div aria-live="assertive" class="chat-modal-error" hidden="" id="chat-modal-error" role="alert"></div><div class="chat-modal-actions"><button id="chat-modal-cancel" type="button">Отмена</button><button class="primary" id="chat-modal-ok" type="button">Подтвердить</button></div></div></div>
+<div id="chat-toast" role="status" aria-live="polite" hidden></div>
