@@ -33,5 +33,18 @@
   "integration": "v3 native chat root inside original Modules window + inline home dock",
   "chat_v13_mode": "native_dom_without_iframe",
   "chat_duplicate_home": "removed",
-  "download_progress": "console download bytes and extraction file counts"
+  "download_progress": "console download bytes and extraction file counts",
+  "frontend_generation_repository": "yomezza/cosmosimulator",
+  "frontend_generation_directory": "scripts/frontend-generation/",
+  "frontend_generation_published_commit": "e037371575a3ec832bbfee9d214afeca69ef0d27",
+  "frontend_generation_source_files_published": 45,
+  "auto_update": {
+    "trigger": "launch.py / start.bat / start.sh",
+    "branch": "main",
+    "scope": "scripts/frontend-generation/",
+    "validation": "size and Git blob SHA",
+    "backup": ".mirror-backup/",
+    "network_failure": "continue with local installed files"
+  },
+  "original_assets_repository_location": "internal/server/web/; copied by prepare.py; not duplicated as static images in scripts/frontend-generation/"
 }
