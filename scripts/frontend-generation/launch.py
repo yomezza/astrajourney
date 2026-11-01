@@ -16,10 +16,23 @@ def main():
     p.add_argument("--no-prepare", action="store_true", help="skip installation of original frontend")
     args = p.parse_args()
     if not args.no_update:
-        cmd = [sys.executable, str(ROOT / "update.py")]
-        if args.offline: cmd.append("--offline")
-        # Always continue with the currently installed, tested version on failure.
-        subprocess.run(cmd, cwd=ROOT, check=False)
+        print('[демо] Проверка обновлений программы перед запуском…', flush=True)
+        cmd = [sys.executable, str(ROOT / 'update.py'), '--strict']
+        if args.offline: cmd.append('--offline')
+        result = subprocess.run(cmd, cwd=ROOT, check=False)
+        if result.returncode:
+            print('[демо] ВНИМАНИЕ: автоматическое обновление НЕ прошло! '
+                  'Демоверсия запускается из локальных файлов. '
+                  'Запустите python update.py вручную и проверьте сообщения выше.',
+                  flush=True)
+    else:
+        print('[демо] Обновления пропущены по параметру --no-update.', flush=True)
+    # Read the state after the updater exits; never invent an installed commit.
+    from update import local_version
+    info = local_version()
+    print('[демо] Установленный коммит: ' + (info['commit'] or 'НЕИЗВЕСТЕН') + (' [проверен]' if info['verified'] else ' [не подтверждён]'), flush=True)
+    if not info['verified']:
+        print('[демо] ' + info['message'] + '. Выполните python update.py для повторной проверки.', flush=True)
     if not args.no_prepare:
         cmd = [sys.executable, str(ROOT / "prepare.py")]
         if args.offline:

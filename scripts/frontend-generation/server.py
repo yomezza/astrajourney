@@ -9,6 +9,9 @@ import json
 import mimetypes
 import os
 import sys
+import urllib.error
+import urllib.request
+from update import local_version
 
 ROOT=Path(__file__).resolve().parent
 WEB=ROOT/'original-web'
@@ -36,6 +39,11 @@ class DemoHandler(SimpleHTTPRequestHandler):
             star=fixture.STARS[index]
             sites=fixture.SITES if index==0 else [{**s,'id':s['id']+index*10,'name':s['name'].replace('Эдем',star['name'])} for s in fixture.SITES[:3]]
             return self.respond({'star':star,'sites':sites,'region':fixture.REGIONS[star['region']-1]['name'],'surveyed':True,'notes':[],'ports':[]})
+        if route == 'planet/project':
+            try: project_id = int(query.get('id', ['0'])[0])
+            except (ValueError, TypeError): project_id = 0
+            detail = fixture.colony_detail(project_id)
+            return self.respond(detail) if detail else self.respond({'error':'Проект не найден'},404)
         if route=='estimate':
             data=fixture.api_data(route).copy()
             try: to=int(query.get('to',[1])[0])
@@ -59,7 +67,46 @@ class DemoHandler(SimpleHTTPRequestHandler):
                     target=int(body.get('to',1))
                     fixture.RESEARCH.append({'ship':13,'star':target,'scanned':0,'total':6,'seconds':2,'paused':False})
                 return self.respond({'ok':True})
-            if route=='notifications': return self.respond({'ok':True})
+            if route == 'planet/action':
+                action = body.get('action')
+                project_id = body.get('id')
+                project = next((p for p in fixture.COLONY_PROJECTS if p['id'] == project_id), None)
+                if action == 'claim_refund':
+                    fixture.COLONY_REFUNDS[:] = [r for r in fixture.COLONY_REFUNDS if r.get('id') != project_id]
+                elif project is None:
+                    return self.respond({'error':'Проект не найден'},404)
+                elif action == 'contribute' and project['status'] == 'funding':
+                    resource = body.get('resource')
+                    try: amount = int(body.get('amount', 0))
+                    except (ValueError,TypeError): amount = 0
+                    if resource not in project['required'] or amount <= 0:
+                        return self.respond({'error':'Некорректный взнос'},400)
+                    remaining = max(0, project['required'][resource] - project['received'].get(resource, 0))
+                    project['received'][resource] = project['received'].get(resource, 0) + min(amount,remaining)
+                    if all(project['received'].get(k, 0) >= v for k,v in project['required'].items()):
+                        project['status'] = 'building'
+                elif action == 'admin_fill' and project['status'] == 'funding':
+                    project['received'] = dict(project['required'])
+                    project['status'] = 'building'
+                elif action == 'cancel' and project['status'] == 'funding':
+                    project['status'] = 'cancelled'
+                return self.respond({'ok':True})
+            if route=='notifications':
+                action = body.get('action')
+                if action == 'clear':
+                    fixture.NOTICES.clear()
+                elif action == 'delete':
+                    ids = body.get('ids', [])
+                    if not isinstance(ids, list): return self.respond({'error':'Некорректный список'},400)
+                    fixture.NOTICES[:] = [notice for notice in fixture.NOTICES if notice['id'] not in ids]
+                elif action == 'add':
+                    message = str(body.get('message', '')).strip()
+                    if message:
+                        next_id = max((notice['id'] for notice in fixture.NOTICES), default=0) + 1
+                        fixture.NOTICES.insert(0, {'id':next_id, 'message':message, 'kind':'message',
+                            'created_at':datetime.now(timezone.utc).isoformat(),
+                            'level':body.get('level','info'), 'read':False})
+                return self.respond({'ok':True})
             if route=='profile/upgrade':
                 fixture.PROFILE['level']+=1
                 fixture.PROFILE['xp']=0
@@ -89,6 +136,11 @@ class DemoHandler(SimpleHTTPRequestHandler):
         url=urlparse(self.path)
         if url.path.startswith('/api/'):
             return self.route_api(url.path[5:],parse_qs(url.query),None)
+        if url.path=='/demo/version':
+            status = local_version()
+            status.update({'process_id': os.getpid(), 'root': str(ROOT), 'port': self.server.server_port,
+                           'chat_mode': 'one-window', 'module_window_for_chat': False})
+            return self.respond(status)
         if url.path=='/demo/assets.json':
             return self.respond(json.loads((ROOT/'graphics-inventory.json').read_text('utf-8')))
         if url.path in ('/demo/assets','/demo/assets/'):
@@ -109,7 +161,8 @@ python server.py</pre><p>Если GitHub недоступен: <code>python prep
             index=index.replace(marker,marker+'\n    <link rel="stylesheet" href="/mock/ui-overlay.css">\n    <link rel="stylesheet" href="/mock/chat-native.css">\n    <script type="module" src="/mock/ui-overlay.js"></script>')
             encoded=index.encode('utf-8')
             self.send_response(200); self.send_header('Content-Type','text/html; charset=utf-8')
-            self.send_header('Content-Length',str(len(encoded)));self.send_header('Cache-Control','no-store');self.end_headers()
+            self.send_header('Content-Length',str(len(encoded)));self.send_header('Cache-Control','no-store');
+            self.send_header('Pragma','no-cache');self.end_headers()
             return self.wfile.write(encoded)
         for mount,base in [('/mock/',ROOT/'mock'),('/prototype/',ROOT/'prototype'),('/',WEB)]:
             if path.startswith(mount):
@@ -127,6 +180,9 @@ python server.py</pre><p>Если GitHub недоступен: <code>python prep
                 self.send_response(200)
                 self.send_header('Content-Type',(mimetypes.guess_type(target.name)[0] or 'application/octet-stream')+('; charset=utf-8' if target.suffix in ['.js','.css','.html','.svg','.json'] else ''))
                 self.send_header('Content-Length',str(len(encoded)))
+                # Never serve stale JS/CSS from the previous chat implementation.
+                self.send_header('Cache-Control','no-store, max-age=0')
+                self.send_header('Pragma','no-cache')
                 self.end_headers()
                 return self.wfile.write(encoded)
         return self.send_error(404)
@@ -134,10 +190,29 @@ python server.py</pre><p>Если GitHub недоступен: <code>python prep
 if __name__=='__main__':
     if not (WEB/'bootstrap.js').is_file():
         print('ВНИМАНИЕ: original-web ещё не подготовлен. Сейчас доступна галерея всех 33 SVG; для полной игры выполните python prepare.py.')
-    server=ThreadingHTTPServer((HOST,PORT),DemoHandler)
-    print('Cosmosimulator / оригинальный frontend + вымышленные данные')
-    print(f'Откройте http://{HOST}:{PORT}/')
-    print('Сервер слушает только localhost. Для остановки Ctrl+C.')
+    status = local_version()
+    print('Cosmosimulator / оригинальный frontend + вымышленные данные', flush=True)
+    print('[версия] Коммит демоверсии: ' + (status['commit'] or 'НЕИЗВЕСТЕН'), flush=True)
+    print('[версия] ' + status['message'] + (' (' + str(status['files']) + ' файлов)' if status['verified'] else ''), flush=True)
+    print('[версия] Исполняемый каталог: ' + str(ROOT), flush=True)
+    print('[версия] Фиктивные данные: Колонии и уведомления доступны через /api/planet/projects и /api/notifications', flush=True)
+    try:
+        server=ThreadingHTTPServer((HOST,PORT),DemoHandler)
+    except OSError as exc:
+        print(f'[ошибка] Не удалось запустить сервер на {HOST}:{PORT}: {exc}', file=sys.stderr, flush=True)
+        try:
+            with urllib.request.urlopen(f'http://{HOST}:{PORT}/demo/version', timeout=2) as response:
+                existing=json.loads(response.read())
+            print('[ошибка] Порт занят уже запущенной демоверсией.', file=sys.stderr, flush=True)
+            print('[ошибка] Старый сервер: ' + str(existing.get('commit') or 'коммит неизвестен') + ' · PID ' + str(existing.get('process_id')), file=sys.stderr, flush=True)
+            print('[ошибка] Каталог старого сервера: ' + str(existing.get('root')), file=sys.stderr, flush=True)
+        except (OSError, ValueError, urllib.error.URLError):
+            print('[ошибка] На порту уже есть другое приложение или старая версия без /demo/version.', file=sys.stderr, flush=True)
+        print('[решение] Остановите предыдущую консоль через Ctrl+C и запустите start.bat снова.', file=sys.stderr, flush=True)
+        raise SystemExit(2)
+    print(f'Откройте http://{HOST}:{PORT}/', flush=True)
+    print(f'Проверка версии в браузере: http://{HOST}:{PORT}/demo/version', flush=True)
+    print('Сервер слушает только localhost. Для остановки Ctrl+C.', flush=True)
     try:server.serve_forever()
     except KeyboardInterrupt:print('\nОстановка сервера.')
     finally:server.server_close()

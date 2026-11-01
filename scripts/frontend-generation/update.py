@@ -26,7 +26,8 @@ ALLOWED = {".py", ".js", ".json", ".css", ".html", ".md", ".bat", ".sh", ".svg",
 IGNORE_DIRS = {"original-web", "__pycache__", ".git", "node_modules", ".mirror-backup", "tmp", "local-data"}
 MAX_FILES = 350
 MAX_TOTAL = 25_000_000
-TIMEOUT = 7
+TIMEOUT = 18
+RETRIES = 3
 
 
 class UpdateError(RuntimeError):
@@ -38,9 +39,21 @@ def git_sha(payload):
 
 
 def request(url, *, timeout=TIMEOUT):
-    req = urllib.request.Request(url, headers={"User-Agent": "Cosmosimulator-Frontend-Mirror/1", "Accept": "application/vnd.github+json"})
-    with urllib.request.urlopen(req, timeout=timeout) as res:
-        return res.read()
+    req = urllib.request.Request(url, headers={
+        'User-Agent': 'Cosmosimulator-Frontend-Mirror/1',
+        'Accept': 'application/vnd.github+json',
+    })
+    for attempt in range(RETRIES):
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as res:
+                return res.read()
+        except urllib.error.HTTPError as error:
+            if error.code not in (429, 500, 502, 503, 504) or attempt + 1 == RETRIES:
+                raise
+        except (urllib.error.URLError, TimeoutError, ConnectionError):
+            if attempt + 1 == RETRIES:
+                raise
+        time.sleep(0.75 * (attempt + 1))
 
 
 def remote_manifest(fetch=request, ref="main"):
@@ -93,6 +106,37 @@ def changed_files(files):
     return result
 
 
+def save_state(commit, files):
+    """Persist the checked commit, even when no files needed downloading."""
+    payload = {
+        "commit": commit,
+        "checked_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "files": len(files),
+        "file_shas": {name: sha for name, (sha, _) in files.items()},
+    }
+    staged = STATE.with_name(STATE.name + '.tmp')
+    staged.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    os.replace(staged, STATE)
+
+
+def local_version():
+    state = load_state()
+    commit = state.get('commit', '')
+    if not isinstance(commit, str) or len(commit) != 40 or any(c not in '0123456789abcdef' for c in commit):
+        return {'commit': None, 'verified': False, 'files': 0, 'message': 'Коммит демоверсии неизвестен: обновление ещё не завершено'}
+    sha_map = state.get('file_shas')
+    if not isinstance(sha_map, dict) or not sha_map:
+        return {'commit': commit, 'verified': False, 'files': state.get('files', 0), 'message': 'Необходима повторная проверка исходников'}
+    missing = []
+    for name, expected in sha_map.items():
+        target = ROOT.joinpath(*PurePosixPath(name).parts)
+        if (not target.is_file() or target.is_symlink()
+                or git_sha(target.read_bytes()) != expected):
+            missing.append(name)
+    return {'commit': commit, 'verified': not missing, 'files': len(sha_map), 'changed': missing[:10],
+            'message': 'Исходники проверены' if not missing else 'Локальные файлы не совпадают с записанным коммитом'}
+
+
 def update(*, check_only=False, offline=False, fetch=request, announce=print):
     if offline:
         announce("[обновление] Проверка отключена: локальный режим.")
@@ -100,7 +144,9 @@ def update(*, check_only=False, offline=False, fetch=request, announce=print):
     commit, files = remote_manifest(fetch)
     changed = changed_files(files)
     if not changed:
-        announce("[обновление] Исходники актуальны (" + commit[:12] + ").")
+        if not check_only:
+            save_state(commit, files)
+        announce("[обновление] Исходники актуальны. Установленный коммит: " + commit + ".")
         return 0
     total = sum(files[name][1] for name in changed)
     announce(f"[обновление] Найдено {len(changed)} изменений ({total / 1048576:.2f} MiB), коммит {commit[:12]}.")
@@ -147,8 +193,9 @@ def update(*, check_only=False, offline=False, fetch=request, announce=print):
                 if copy: shutil.copy2(copy, dst)
                 else: dst.unlink(missing_ok=True)
             raise
-        STATE.write_text(json.dumps({"commit": commit, "checked_at": time.strftime("%Y-%m-%dT%H:%M:%S"), "files": files and len(files)}, ensure_ascii=False, indent=2) + "\n", "utf-8")
-        announce("[обновление] Установлено. Предыдущие версии изменённых файлов: " + str(backup.relative_to(ROOT)) + "/")
+        save_state(commit, files)
+        announce("[обновление] Установленный коммит: " + commit)
+        announce("[обновление] Предыдущие версии изменённых файлов: " + str(backup.relative_to(ROOT)) + "/")
     return len(changed)
 
 

@@ -37,6 +37,43 @@ FLEET_CLASSES=[{"id":"agni","name":"Пилигрим","model":"pilgrim.svg","car
 for class_id, name in [("wanderer","Странник"),("forge","Кузнец"),("ark","Ковчег"),("hermes","Гермес"),("vesper","Веспер"),("astra","Астра"),("argus","Аргус"),("crucible","Крусибл"),("titan","Титан"),("atlas","Атлас"),("leviathan","Левиафан"),("iris","Ирис"),("zephyr","Зефир"),("lightning","Молния")]:
     FLEET_CLASSES.append({"id":class_id,"name":name,"model":class_id+".svg","cargo":80,"fuel":100,"required_level":1,"jump_seconds":6,"jump_fuel":3,"price":2500})
 
+# Demo-only colony data. Shape mirrors GET /api/planet/projects from Go ColonyList.
+COLONY_PROJECTS = [
+    {"id": 201, "surface": 3101, "sector": 12, "status": "funding", "progress": 0,
+     "build_ticks": 12, "expires_at": (NOW + timedelta(days=2)).isoformat(),
+     "star": 1, "planet": 2, "name": "Эдем II", "owner": "Stellar_07",
+     "owner_user": 7, "owner_company": None,
+     "initiator": 7, "required": {"credits": 5000, "iron": 120, "silicon": 60},
+     "received": {"credits": 3400, "iron": 60, "silicon": 22}, "refund_percent": 100},
+    {"id": 202, "surface": 3102, "sector": 7, "status": "building", "progress": 6,
+     "build_ticks": 18, "expires_at": (NOW + timedelta(days=5)).isoformat(),
+     "star": 3, "planet": 1, "name": "Альтаир I", "owner": "Союз Ориона",
+     "owner_user": None, "owner_company": 3, "initiator": 12,
+     "required": {"credits": 8000, "iron": 250},
+     "received": {"credits": 8000, "iron": 250}, "refund_percent": 100},
+]
+COLONY_REFUNDS = []
+# Notifications live only for this process; a deleted item must not return on refresh.
+NOTICES = [
+    {"id": 1, "kind": "research_complete", "message": "Исследование системы ED-0114 завершено",
+     "level": "success", "created_at": ISO, "read": False},
+]
+
+def colony_detail(project_id):
+    project = next((item for item in COLONY_PROJECTS if item['id'] == project_id), None)
+    if project is None:
+        return None
+    return {"project": dict(project), "name": project['name'], "star": project['star'],
+            "planet": project['planet'], "owner": project['owner'],
+            "initiator_name": "Stellar_07" if project['initiator'] == 7 else "Vega",
+            "contributions": [], "events": [], "can_manage": True, "can_contribute": True,
+            "land_reason": "", "server_time": ISO}
+
+
+def notifications():
+    return {"count": len(NOTICES), "items": [dict(item) for item in NOTICES]}
+
+
 def world():
     lanes=[]
     for s in STARS:
@@ -62,7 +99,8 @@ def api_data(path):
             "members":MEMBERS,"roles":[{"id":1,"name":"Владелец","company_id":3,"permissions":{}},{"id":2,"name":"Навигатор","company_id":3,"permissions":{}}],
             "requests":[],"company_finance":[],"company_balance":93240,"company_owner":7,"company_storage":[],"projects":[],"project_contributions":[],"portal":[],"reputation":[],"population":[{"players":17,"bots":22}]}
     if path=='galaxy': return world()
-    if path=='notifications': return {"count":2,"items":[{"id":1,"message":"Исследование системы ED-0114 завершено","level":"success","created_at":ISO,"read":False},{"id":2,"message":"Новые торговые предложения на маяке","level":"info","created_at":ISO,"read":False}]}
+    if path=='notifications': return notifications()
+    if path=='planet/projects': return {"projects": [dict(p) for p in COLONY_PROJECTS], "refunds": [dict(r) for r in COLONY_REFUNDS]}}
     if path=='server-status': return {"name":"Иггдрасиль","players":17,"bots":22,"online":True}
     if path=='companies': return [{**COMPANY,"members":len(MEMBERS),"founder":False,"starter":False}]
     if path=='market/global': return {"orders":[],"offers":[],"items":[],"total":0}

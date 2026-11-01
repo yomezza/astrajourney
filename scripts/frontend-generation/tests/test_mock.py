@@ -22,6 +22,17 @@ class MockApi(unittest.TestCase):
         self.assertTrue(all(s['class'] in 'OBAFGKM' for s in w['stars']))
     def test_fake_company_is_list(self):
         self.assertIsInstance(data.api_data('companies'),list)
+    def test_colony_mock_uses_real_frontend_shape(self):
+        data_projects = data.api_data('planet/projects')
+        self.assertIsInstance(data_projects['projects'], list)
+        self.assertIsInstance(data_projects['refunds'], list)
+        self.assertGreater(len(data_projects['projects']), 0)
+        self.assertTrue(all({'id','surface','star','planet','sector','name','owner','status'} <= set(p) for p in data_projects['projects']))
+        detail = data.colony_detail(data_projects['projects'][0]['id'])
+        self.assertIsInstance(detail['project']['required'], dict)
+        self.assertIsInstance(detail['contributions'], list)
+        self.assertIsInstance(detail['events'], list)
+
     def test_sources(self):
         self.assertTrue(any(e['source']=='purchased' for e in data.KNOWN))
         self.assertTrue(any(e['source']=='survey' for e in data.KNOWN))
