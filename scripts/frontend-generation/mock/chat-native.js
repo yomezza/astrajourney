@@ -1,6 +1,5 @@
 
 /* Chat Service UI prototype — isolated state, no network requests and no Chat WS. */
-import { Modules } from '/ui/runtime.js';
 (()=>{
 'use strict';
 const $=id=>document.getElementById(id);
@@ -125,9 +124,7 @@ function setDock(dock){closeEmojiPicker();
  $('home-lower-grid').hidden=!dock;
  $('chat-root').hidden=false;
  (dock?$('chat-home-slot'):$('chat-floating')).append($('chat-root'));
- // The same chat root moves between home and the original Modules window.
- if(dock)Modules.close('chat-v13-mock');
- else Modules.open('chat-v13-mock');
+ // Move the same chat root: no extra application window is created.
  document.body.classList.toggle('chat-docked',dock);
  $('chat-dock-toggle').textContent=dock?'↗ В окно':'▣ На главную';
  $('chat-dock-toggle').title=dock?'Открепить · Плавающее окно':'Закрепить на главной';
@@ -138,14 +135,14 @@ function setDock(dock){closeEmojiPicker();
  if(dock)$('chat-home-slot').scrollIntoView({behavior:'smooth',block:'center'});
 }
 function openChat(){
- if(chat.isOpen){if(chat.docked)$('chat-home-slot').scrollIntoView({behavior:'smooth',block:'center'});else {Modules.open('chat-v13-mock');$('chat-floating').hidden=false;}return}
+ if(chat.isOpen){if(chat.docked)$('chat-home-slot').scrollIntoView({behavior:'smooth',block:'center'});else {$('chat-floating').hidden=false;$('chat-floating').focus({preventScroll:true});}return}
  chat.isOpen=true;$('chat-root').hidden=false;
  setDock(prefs.docked===true||chat.docked);
  renderAll();
- if(!chat.docked){$('chat-floating').hidden=false;restoreScroll(true)}
+ if(!chat.docked){$('chat-floating').hidden=false;restoreScroll(true);$('chat-floating').focus({preventScroll:true})}
  updateActiveNav();
 }
-function closeChat(){if(chat.docked)return;closeEmojiPicker();closeModerationWindow();closePlayersWindow();hideChatStatusTooltip();hideChatReadTooltip();saveScroll();chat.isOpen=false;$('chat-floating').hidden=true;hideMenu();Modules.close('chat-v13-mock');updateActiveNav()}
+function closeChat(){if(chat.docked)return;closeEmojiPicker();closeModerationWindow();closePlayersWindow();hideChatStatusTooltip();hideChatReadTooltip();saveScroll();chat.isOpen=false;$('chat-floating').hidden=true;hideMenu();updateActiveNav()}
 function updateActiveNav(){const nav=document.querySelector('[data-chat-open]');nav?.classList.toggle('module-open',chat.isOpen);}
 function showSettings(){chat.settings=!chat.settings;$('chat-settings-panel').hidden=!chat.settings;$('chat-settings-toggle').classList.toggle('active',chat.settings);}
 function showSearch(){chat.search=!chat.search;$('chat-search-panel').hidden=!chat.search;$('chat-search-toggle').classList.toggle('active',chat.search);if(chat.search)$('chat-search-input').focus();else{chat.query='';$('chat-search-input').value='';renderBody()}}
@@ -611,12 +608,25 @@ function init(){
  $('chat-modal').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.tagName==='INPUT'){e.preventDefault();submitModal()}});
  document.addEventListener('pointerdown',e=>{if(!e.target.closest('#chat-pop-menu')&&!e.target.closest('.chat-more')&&!e.target.closest('#chat-section-header')&&!e.target.closest('.chat-favorite-card-head'))hideMenu()},true);
  document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('chat-modal').hidden){e.stopImmediatePropagation();closeModal()}else if(!$('chat-moderation-overlay').hidden){e.stopImmediatePropagation();closeModerationWindow()}else if(!$('chat-players-overlay').hidden){e.stopImmediatePropagation();closePlayersWindow()}else if(!$('chat-pop-menu').hidden){e.stopImmediatePropagation();hideMenu()}else if(!$('chat-emoji-panel').hidden){e.stopImmediatePropagation();closeEmojiPicker(true)}else if(chat.search&&chat.isOpen){e.stopImmediatePropagation();showSearch()}else if(chat.isOpen&&!chat.docked){e.stopImmediatePropagation();closeChat()}}},true);
- // Native Modules handles drag, resize, pin, maximize, close and focus.
- window.addEventListener('moduleclose', event=>{
-  if(event.detail!=='chat-v13-mock'||chat.docked||!chat.isOpen)return;
-  saveScroll();chat.isOpen=false;$('chat-floating').hidden=true;
-  closeEmojiPicker();closeModerationWindow();closePlayersWindow();hideMenu();updateActiveNav();
+ // Drag only the chat's own header. CSS resize:both handles sizing; no second window.
+ const floating=$('chat-floating'),handle=$('chat-draghandle');
+ let drag=null;
+ handle.addEventListener('pointerdown',event=>{
+  if(chat.docked||!chat.isOpen||event.button!==0||event.target.closest('button,[role="img"],input,select,textarea'))return;
+  const r=floating.getBoundingClientRect();
+  drag={id:event.pointerId,dx:event.clientX-r.left,dy:event.clientY-r.top};
+  handle.setPointerCapture(event.pointerId);event.preventDefault();
  });
+ handle.addEventListener('pointermove',event=>{
+  if(!drag||drag.id!==event.pointerId||chat.docked)return;
+  const r=floating.getBoundingClientRect();
+  floating.style.left=Math.max(4,Math.min(window.innerWidth-r.width-4,event.clientX-drag.dx))+'px';
+  floating.style.top=Math.max(62,Math.min(window.innerHeight-r.height-4,event.clientY-drag.dy))+'px';
+ });
+ const stopDrag=()=>{drag=null};
+ handle.addEventListener('pointerup',stopDrag);
+ handle.addEventListener('pointercancel',stopDrag);
+ handle.addEventListener('lostpointercapture',stopDrag);
  // The mock client contains one fictitious pilot, but it must still detach
  // the docked UI when the game logs out or resets the account session.
  window.addEventListener('signedout',()=>{
@@ -626,7 +636,7 @@ function init(){
   $('chat-root').hidden=true;
   $('chat-floating').append($('chat-root'));$('chat-floating').hidden=true;
   $('home-lower-grid').hidden=true;document.body.classList.remove('chat-docked');
-  Modules.close('chat-v13-mock');updateActiveNav();
+  updateActiveNav();
  });
  renderAll();
 }

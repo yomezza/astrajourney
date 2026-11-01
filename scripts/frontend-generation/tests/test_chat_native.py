@@ -8,7 +8,8 @@ class ChatNativeIntegration(unittest.TestCase):
     def test_no_chat_iframe(self):
         overlay = (ROOT/'mock/ui-overlay.js').read_text('utf-8')
         self.assertNotIn("frame.src='/prototype/chat/index.html'", overlay)
-        self.assertIn("Modules.create('chat-v13-mock'", overlay)
+        self.assertNotIn("Modules.create('chat-v13-mock'", overlay)
+        self.assertIn('document.body.append(floating)', overlay)
         self.assertIn("await import('/mock/chat-native.js')", overlay)
         self.assertIn("floating.append(document.getElementById('chat-root'))", overlay)
         self.assertIn("stats.after(grid)", overlay)
@@ -24,14 +25,17 @@ class ChatNativeIntegration(unittest.TestCase):
         self.assertNotIn('id="sidebar"',frag)
         self.assertNotIn('<iframe',frag)
 
-    def test_one_dom_root_and_native_lifecycle(self):
+    def test_one_dom_root_and_single_window_lifecycle(self):
         code=(ROOT/'mock/chat-native.js').read_text('utf-8')
-        self.assertIn("Modules.open('chat-v13-mock')",code)
-        self.assertIn("Modules.close('chat-v13-mock')",code)
-        self.assertIn("'moduleclose'",code)
-        self.assertNotIn("bar.addEventListener('pointerdown'",code)
+        self.assertNotIn('Modules.',code)
+        self.assertNotIn("'moduleclose'",code)
+        self.assertIn("handle.addEventListener('pointerdown'",code)
+        self.assertIn("handle.addEventListener('pointermove'",code)
         self.assertNotIn('chat-floating\').style.zIndex',code)
         self.assertIn("(dock?$('chat-home-slot'):$('chat-floating')).append($('chat-root'))",code)
+        css=(ROOT/'mock/chat-native.css').read_text('utf-8')
+        self.assertNotIn('#window-chat-v13-mock',css)
+        self.assertIn('#chat-floating[hidden]',css)
 
     def test_original_chat_safe_and_studies_untouched(self):
         self.assertTrue((ROOT/'prototype/approved-chat-v13.html').is_file())

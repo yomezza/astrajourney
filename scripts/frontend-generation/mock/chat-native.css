@@ -239,19 +239,12 @@ body.chat-docked .workspace-intro{padding-top:22px}
 @media(max-width:550px){.chat-floating{left:54px!important;top:63px!important;width:calc(100vw - 60px)!important;height:calc(100vh - 106px)!important;min-width:0;min-height:380px;max-width:none;max-height:none;resize:none}.chat-root .chat-tab{padding:5px 6px;font-size:9px}.chat-titlebar{padding:4px 5px}.chat-appname{gap:4px}.chat-folder-bar{gap:3px}#chat-home-slot .chat-root{height:795px}}
 @media(max-height:640px){.chat-floating{top:61px;max-height:calc(100vh - 94px);height:calc(100vh - 100px)}}
 
-/* Native application integration: original Modules controls the chat window.
-   These overrides apply only to the integrated chat, never to other modules. */
-#window-chat-v13-mock .module-content {padding:0 !important;overflow:hidden !important;display:flex;flex-direction:column;min-height:0;}
-#window-chat-v13-mock .chat-floating {position:relative !important;inset:auto !important;top:auto !important;left:auto !important;width:100% !important;height:100% !important;min-width:0 !important;min-height:0 !important;max-width:none !important;max-height:none !important;resize:none !important;box-shadow:none !important;z-index:auto !important;flex:1 1 auto;}
-#window-chat-v13-mock .chat-root {border:0 !important;min-height:0 !important;box-shadow:none !important;}
-#window-chat-v13-mock #chat-draghandle {cursor:default;touch-action:auto;}
-#window-chat-v13-mock #chat-close {display:none !important;} /* Original titlebar already has × */
-#window-chat-v13-mock .chat-root .chat-titlebar {border-top:0;}
+/* Chat itself is the only floating surface. There is no extra Modules window. */
+#chat-floating[hidden]{display:none!important}
+#chat-floating:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 #chat-toast {position:fixed;bottom:45px;right:22px;z-index:11030;max-width:min(440px,calc(100vw - 25px));padding:10px 14px;border:1px solid #5c7886;background:#253744;color:#dce8ee;box-shadow:0 9px 30px #000a;font-size:12px;}
 #chat-toast[hidden] {display:none !important;}
 /* The home slot lives inside original #game, below .overview-stats. */
 #home-lower-grid[hidden] {display:none !important;}
 #home-lower-grid {margin-bottom:16px;}
 #sidebar > button[data-chat-open].sidebar-bottom {margin-top:auto;}
-/* Older demo's responsive floating positioning must NOT move native Modules windows. */
-@media(max-width:550px){#window-chat-v13-mock .chat-floating{inset:auto !important;width:100% !important;height:100% !important;min-height:0 !important;}}

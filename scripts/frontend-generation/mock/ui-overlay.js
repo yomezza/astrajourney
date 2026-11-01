@@ -36,11 +36,10 @@ async function addChatEntry() {
   const slot=document.createElement('section');slot.id='chat-home-slot';slot.setAttribute('aria-label','Чат на главной странице');
   const news=document.createElement('section');news.id='news-home-slot';news.setAttribute('aria-label','Резерв для новостей');
   grid.append(slot,news);stats.after(grid);
-  // A single native window with actual original pin/maximize/drag/resize controls.
-  const nativeContent=Modules.create('chat-v13-mock','Чат',420,540,{private:false});
-  nativeContent.classList.add('chat-native-content');
+  // Chat has its own draggable/resizable shell, not a nested Modules window.
   const floating=document.createElement('section');floating.id='chat-floating';floating.className='chat-floating';floating.hidden=true;
-  floating.setAttribute('aria-label','Содержимое чата');nativeContent.append(floating);
+  floating.setAttribute('role','dialog');floating.setAttribute('aria-label','Чат');
+  floating.tabIndex=-1;document.body.append(floating);
   // Extract ONLY the chat markup. Do not import its demo page/header/sidebar.
   const response=await fetch('/mock/chat-fragment.html');
   if(!response.ok)throw Error('Не удалось загрузить интерфейс чата');
