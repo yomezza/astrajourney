@@ -1,0 +1,47 @@
+{
+  "project": "Cosmosimulator",
+  "area": "Planetary 2D — graphic art direction",
+  "guidance": [
+    "STYLE_GUIDE.ru.md",
+    "PROMPTS.ru.md"
+  ],
+  "canonicalArtpack": "docs/design/planet-colony/artpacks/cosmosimulator_planet_2d_artpack_v2.zip",
+  "canonicalArtpackVersion": "0.2.0-preview",
+  "note": "Images below are unchanged reference copies of files already committed elsewhere in this repository, not newly generated gameplay assets.",
+  "references": [
+    {
+      "id": "objects",
+      "file": "ref-objects.jpg",
+      "copiedFrom": "docs/planetary/P2-0/art-review/objects-contact.jpg",
+      "role": "Main overview of original object art style; a contact sheet, not a standalone sprite",
+      "priority": 1
+    },
+    {
+      "id": "sector",
+      "file": "ref-sector.png",
+      "copiedFrom": "docs/planetary/P2-8/checks/preview.png",
+      "role": "In-game scale, readability, composition, terrain and water",
+      "priority": 2
+    },
+    {
+      "id": "terrain",
+      "file": "ref-terrain.png",
+      "copiedFrom": "docs/design/planet-colony/previews/surface-textures-0.12.5.png",
+      "role": "Top-down terrain material families; separate from slanted object sprites",
+      "priority": 3
+    },
+    {
+      "id": "colonist",
+      "file": "ref-colonist-atlas.png",
+      "copiedFrom": "docs/planetary/P2-0/art-review/colonist-atlas.png",
+      "role": "Technical sprite atlas layout only; animation is preview and needs improvement",
+      "priority": 4
+    }
+  ],
+  "technicalSources": {
+    "review": "docs/planetary/P2-0/ART.ru.md",
+    "currentUsage": "docs/planetary/P2-8/ART.ru.md",
+    "assetRegistry": "docs/planetary/P2-8/assets.json",
+    "historicalSpriteCorrections": "docs/design/planet-colony/sprite-corrections-prompt.md"
+  }
+}
