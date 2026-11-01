@@ -100,7 +100,7 @@ def api_data(path):
             "requests":[],"company_finance":[],"company_balance":93240,"company_owner":7,"company_storage":[],"projects":[],"project_contributions":[],"portal":[],"reputation":[],"population":[{"players":17,"bots":22}]}
     if path=='galaxy': return world()
     if path=='notifications': return notifications()
-    if path=='planet/projects': return {"projects": [dict(p) for p in COLONY_PROJECTS], "refunds": [dict(r) for r in COLONY_REFUNDS]}}
+    if path=='planet/projects': return {"projects": [dict(p) for p in COLONY_PROJECTS], "refunds": [dict(r) for r in COLONY_REFUNDS]}
     if path=='server-status': return {"name":"Иггдрасиль","players":17,"bots":22,"online":True}
     if path=='companies': return [{**COMPANY,"members":len(MEMBERS),"founder":False,"starter":False}]
     if path=='market/global': return {"orders":[],"offers":[],"items":[],"total":0}

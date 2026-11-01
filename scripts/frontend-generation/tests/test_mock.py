@@ -1,4 +1,5 @@
 import sys
+import ast
 import unittest
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'mock'))
@@ -32,6 +33,13 @@ class MockApi(unittest.TestCase):
         self.assertIsInstance(detail['project']['required'], dict)
         self.assertIsInstance(detail['contributions'], list)
         self.assertIsInstance(detail['events'], list)
+
+    def test_all_program_python_sources_compile(self):
+        root = Path(__file__).resolve().parents[1]
+        for directory in (root, root/'mock', root/'tests'):
+            for source in directory.glob('*.py'):
+                with self.subTest(source=str(source.relative_to(root))):
+                    ast.parse(source.read_text(encoding='utf-8'), filename=str(source))
 
     def test_sources(self):
         self.assertTrue(any(e['source']=='purchased' for e in data.KNOWN))

@@ -5,6 +5,7 @@ This updates scripts/frontend-generation only, never the original game, database
 user data. Source files downloaded from GitHub are checked against Git blob SHAs.
 """
 import argparse
+import ast
 import hashlib
 import json
 import os
@@ -163,6 +164,11 @@ def update(*, check_only=False, offline=False, fetch=request, announce=print):
             sha, size = files[name]
             if len(data) != size or git_sha(data) != sha:
                 raise UpdateError(f"Контрольная сумма не совпадает: {name}")
+            if name.endswith('.py'):
+                try:
+                    ast.parse(data.decode('utf-8'), filename=name)
+                except (SyntaxError, UnicodeDecodeError) as error:
+                    raise UpdateError(f"Ошибка синтаксиса в обновлении {name}: {error}") from error
             dst = staged.joinpath(*PurePosixPath(name).parts)
             dst.parent.mkdir(parents=True, exist_ok=True)
             dst.write_bytes(data)
