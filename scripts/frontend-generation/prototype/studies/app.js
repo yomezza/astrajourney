@@ -35,15 +35,16 @@ function renderDetail(){
   if(!shipHere)view+=`<p class="study-detail-properties"><span>Звезда класса ${escape(system.class)}</span><span>${escape(system.galaxy)}</span></p>`;
   if(isKnown)view+=`<p class="muted">${sourceName(system)}</p>`;
   if(ongoing){
-    view+=bar(7,12,'Объекты');
-    view+=`<p class="muted">${scenario==='paused'?'Приостановлено':'Сканирование'} · 18 s / Объект</p>`;
+    const active=jobs.find(j=>j.star===CURRENT_SYSTEM.name)||{scanned:0,total:6,seconds:2};
+    view+=bar(active.scanned,active.total,'Объекты');
+    view+=`<p class="muted">${scenario==='paused'?'Приостановлено':'Сканирование'} · ${active.seconds} s / Объект</p>`;
     view+=`<button class="terminal-action" id="study-action">${scenario==='paused'?'Продолжить':'Приостановить'}</button>`;
   }else if(shipHere){
     view+=`<div class="study-detail-actions"><button class="terminal-action" id="study-action" ${isKnown?'disabled title="Система уже исследована"':scenario==='travel'?'disabled title="Корабль в пути"':''}>Исследовать систему · 10 CR</button></div>`;
   }else{
     view+=`<button class="terminal-action" id="detail-map">На карте</button>`;
   }
-  let allJobs=jobs.filter(j=>j.star!=='Эдем');
+  let allJobs=jobs.filter(j=>j.star!==CURRENT_SYSTEM.name);
   if(scenario==='scanning'||scenario==='paused')allJobs.unshift({...jobs[0],paused:scenario==='paused'});
   view+='<section class="studies-active"><h3>Текущие экспедиции</h3>';
   view+=allJobs.length?allJobs.map(j=>`<div class="study-job"><b>${escape(j.ship)}</b><p>${escape(j.star)}</p>${bar(j.scanned,j.total,'Объекты')}<small>${j.paused?'Приостановлено':'Сканирование'}</small></div>`).join(''):'<p class="empty-state">Нет активных экспедиций</p>';
@@ -68,6 +69,10 @@ function markSelection(){
   }
 }
 function openOnMap(system){
+  if(window.parent!==window && new URLSearchParams(location.search).has('embed')){
+    window.parent.postMessage({type:'cosmosimulator-demo:show-star',star:system.star},location.origin);
+    return;
+  }
   modal('Галактическая карта',`<div class="fake-map"><div class="starline"><b>✦ ${escape(system.name)}</b><p>${escape(system.galaxy)} · ${escape(system.region)} · Звезда класса ${escape(system.class)}</p></div><p>В настоящей игре «На карте» открывает модуль галактики с выбранной звездой.</p></div>`,()=>{},true);
 }
 function rowHTML(item,isCurrent=false){
@@ -209,4 +214,39 @@ $('window-studies').addEventListener('pointerdown',e=>{
 gear.addEventListener('click',()=>{if(!sourcePop.hidden)closeSourcePicker()},true);
 sourceLabel();
 
-update();})();
+update();
+// The standalone approved prototype retains its own offline fallback fixtures.
+// In the integrated mirror, its data comes from the same registry as the maps.
+if(new URLSearchParams(location.search).has('embed')){
+  fetch('/api/demo/registry',{cache:'no-store'}).then(response=>{
+    if(!response.ok)throw Error('Registry HTTP '+response.status);
+    return response.json();
+  }).then(registry=>{
+    if(!Array.isArray(registry.stars)||!Array.isArray(registry.known)||
+       !Array.isArray(registry.regions)||!registry.ship_star)throw Error('Некорректный реестр');
+    const regionById=new Map(registry.regions.map(region=>[region.id,region.name]));
+    const byId=new Map(registry.stars.map(star=>[star.id,star]));
+    const shipStar=byId.get(registry.ship_star);
+    if(!shipStar)throw Error('Неизвестная система корабля');
+    const adapt=(star,known)=>({star:star.id,name:star.name,
+      region:regionById.get(star.region)||'Регион неизвестен',galaxy:'Эдем',
+      class:star.class,source:known?.source||'survey',
+      received_at:known?.received_at||'2026-11-01T11:30:00Z'});
+    const current=adapt(shipStar);
+    Object.assign(CURRENT_SYSTEM,current);
+    entries=registry.known.filter(item=>item.star!==registry.ship_star)
+      .map(item=>{const star=byId.get(item.star);return star?adapt(star,item):null})
+      .filter(Boolean);
+    if(Array.isArray(registry.research)){
+      jobs=registry.research.map(job=>({ship:job.ship===13?'Титанчик':'Вектор-12',
+        star:byId.get(job.star)?.name||String(job.star),scanned:job.scanned,
+        total:job.total,seconds:job.seconds,paused:job.paused}));
+      const currentJob=registry.research.find(job=>job.star===registry.ship_star);
+      scenario=currentJob?(currentJob.paused?'paused':'scanning'):
+        registry.known.some(item=>item.star===registry.ship_star)?'known':'new';
+      $('scenario').value=scenario;
+    }
+    selectedStar=registry.ship_star;page=1;update();
+  }).catch(error=>console.warn('[Исследования] Автономные данные вместо общего реестра:',error));
+}
+})();

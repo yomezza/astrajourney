@@ -15,8 +15,7 @@ from update import local_version
 
 ROOT=Path(__file__).resolve().parent
 WEB=ROOT/'original-web'
-sys.path.insert(0,str(ROOT/'mock'))
-import data as fixture
+from mock import data as fixture, registry as objects
 
 HOST='127.0.0.1'; PORT=int(os.getenv('PORT','8765'))
 
@@ -37,8 +36,8 @@ class DemoHandler(SimpleHTTPRequestHandler):
             except (ValueError,TypeError): index=0
             if index not in range(len(fixture.STARS)): return self.respond({'error':'Нет такой системы'},404)
             star=fixture.STARS[index]
-            sites=fixture.SITES if index==0 else [{**s,'id':s['id']+index*10,'name':s['name'].replace('Эдем',star['name'])} for s in fixture.SITES[:3]]
-            return self.respond({'star':star,'sites':sites,'region':fixture.REGIONS[star['region']-1]['name'],'surveyed':True,'notes':[],'ports':[]})
+            progress=next((job['scanned'] for job in fixture.RESEARCH if job['star']==star['id']),0)
+            return self.respond(objects.system(star['id'],scanned=progress))
         if route == 'planet/project':
             try: project_id = int(query.get('id', ['0'])[0])
             except (ValueError, TypeError): project_id = 0
@@ -55,6 +54,55 @@ class DemoHandler(SimpleHTTPRequestHandler):
         if route.startswith('login') or route=='logout' or route=='register':
             return self.respond({'ok':True})
         if body is not None:
+            if route=='market/global':
+                action=body.get('action')
+                try: rid=int(body.get('id',0))
+                except (TypeError,ValueError): rid=0
+                if action=='reserve':
+                    try:
+                        star=int(body.get('star',0)); station=int(body.get('station',0))
+                        qty=int(body.get('quantity',0)); price=int(body.get('expected_price',0))
+                    except (TypeError,ValueError): return self.respond({'error':'Неверные параметры'},400)
+                    offer=next((o for o in objects.OFFERS.get((star,station),[]) if o['resource']==body.get('resource')),None)
+                    if not offer or qty<1 or qty>240 or qty>offer['stock'] or price!=offer['buy']:
+                        return self.respond({'error':'Предложение недоступно'},400)
+                    cost=qty*offer['buy']
+                    if fixture.USER['credits']<cost: return self.respond({'error':'Недостаточно CR'},400)
+                    fixture.USER['credits']-=cost;offer['stock']-=qty
+                    new_id=max((r['id'] for r in objects.RESERVATIONS),default=500)+1
+                    objects.RESERVATIONS.append({'id':new_id,'star':star,'station':station,
+                        'resource':body['resource'],'quantity':qty,'cost':cost,'status':'reserved',
+                        'expires_at':(datetime.now(timezone.utc)+__import__('datetime').timedelta(days=3)).isoformat()})
+                    return self.respond({'ok':True,'id':new_id})
+                reservation=next((r for r in objects.RESERVATIONS if r['id']==rid),None)
+                if not reservation or reservation['status']!='reserved': return self.respond({'error':'Бронь не найдена'},404)
+                if action=='cancel':
+                    fixture.USER['credits']+=reservation['cost'];reservation['status']='cancelled'
+                    offer=next((o for o in objects.OFFERS[(reservation['star'],reservation['station'])] if o['resource']==reservation['resource']),None)
+                    if offer:offer['stock']+=reservation['quantity']
+                    return self.respond({'ok':True})
+                if action=='collect':
+                    if not fixture.SHIP['star']==reservation['star'] or fixture.SHIP['object_id']!=reservation['station'] or fixture.SHIP['position_mode']!='docked':
+                        return self.respond({'error':'Прибудьте на станцию'},400)
+                    cargo=fixture.SHIP['cargo'];key=reservation['resource']
+                    cargo[key]=cargo.get(key,0)+reservation['quantity'];reservation['status']='collected'
+                    return self.respond({'ok':True})
+                return self.respond({'error':'Неизвестное действие'},400)
+            if route=='expedition' and body.get('action') in ('buy','sell'):
+                port=(fixture.SHIP['star'],fixture.SHIP['object_id'])
+                offers=objects.OFFERS.get(port,[])
+                offer=next((o for o in offers if o['resource']==body.get('resource')),None)
+                try:qty=int(body.get('quantity',0))
+                except (ValueError,TypeError):qty=0
+                if not offer or qty<1 or fixture.SHIP['position_mode']!='docked':return self.respond({'error':'Торговля недоступна'},400)
+                cargo=fixture.SHIP['cargo'];resource=offer['resource']
+                if body['action']=='buy':
+                    if qty>offer['stock'] or qty*offer['buy']>fixture.USER['credits']:return self.respond({'error':'Недостаточно средств или запасов'},400)
+                    offer['stock']-=qty;fixture.USER['credits']-=qty*offer['buy'];cargo[resource]=cargo.get(resource,0)+qty
+                else:
+                    if qty>cargo.get(resource,0):return self.respond({'error':'Недостаточно груза'},400)
+                    cargo[resource]-=qty;offer['stock']+=qty;fixture.USER['credits']+=qty*offer['sell']
+                return self.respond({'ok':True})
             if route=='workbench':
                 action=body.get('action')
                 if action=='pause_research':
@@ -134,6 +182,8 @@ class DemoHandler(SimpleHTTPRequestHandler):
 
     def do_GET(self):
         url=urlparse(self.path)
+        if url.path=='/api/demo/registry':
+            return self.respond({**objects.export(fixture.SHIP['star']), 'research': fixture.RESEARCH})
         if url.path.startswith('/api/'):
             return self.route_api(url.path[5:],parse_qs(url.query),None)
         if url.path=='/demo/version':

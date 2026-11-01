@@ -59,6 +59,16 @@ document.addEventListener('click', event => {
   event.stopImmediatePropagation();
   openResearch();
 },true);
+// The embedded studies preview opens the ORIGINAL galaxy map for its star.
+window.addEventListener('message', event => {
+  if(event.origin !== location.origin || event.data?.type !== 'cosmosimulator-demo:show-star')return;
+  const frame=document.querySelector('#window-studies-v13-mock iframe');
+  if(event.source !== frame?.contentWindow)return;
+  const star=Number(event.data.star);
+  if(!Number.isInteger(star) || star<1 || star>80)return;
+  Modules.open('galaxy');
+  window.dispatchEvent(new CustomEvent('showstar',{detail:star}));
+});
 window.addEventListener('moduleclose', ({ detail }) => {
   if(detail==='studies-v13-mock')
     document.querySelectorAll('#sidebar [data-open="studies"]').forEach(el=>el.classList.remove('module-open'));
