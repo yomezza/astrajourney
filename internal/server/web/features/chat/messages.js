@@ -5,6 +5,42 @@ export function renderMessages(rows, context) {
   const result = [];
   const input = context.tab === "favorites" ? rows : [...rows].reverse();
   for (const m of input) {
+    if (context.tab === "favorites") {
+      const card = n("article", undefined, "chat-favorite-card"),
+        head = n("div", undefined, "chat-favorite-card-head"),
+        meta = n("span"),
+        more = n("button", "⋯", "chat-small-btn");
+      card.dataset.id = m.id;
+      meta.append(
+        n(
+          "span",
+          tr(m.kind === "note" ? "Заметка" : "Копия сообщения"),
+          "chat-folder-label",
+        ),
+        document.createTextNode(
+          " · " + new Date(m.saved_at).toLocaleString(I18n.language),
+        ),
+      );
+      more.type = "button";
+      more.setAttribute("aria-label", tr("Действия с сообщением"));
+      more.onclick = (e) => context.menu(m, e);
+      card.oncontextmenu = (e) => context.menu(m, e);
+      head.append(meta, more);
+      card.append(
+        head,
+        n("p", m.body),
+        n(
+          "span",
+          m.kind === "note"
+            ? tr("Личная заметка")
+            : m.author_name_snapshot || m.author || "",
+          "chat-mini",
+        ),
+      );
+      result.push(card);
+      continue;
+    }
+
     if (m.system_code) {
       result.push(
         n(

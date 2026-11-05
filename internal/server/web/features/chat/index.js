@@ -5,6 +5,7 @@ import { Modules, UI } from "../../ui/runtime.js";
 import { node as n } from "../../ui/dom.js";
 import { openPlanet } from "../planet/loader.js";
 import { Game } from "../runtime.js";
+import { initChatTooltips } from "./tooltips.js";
 import { ChatClient } from "./transport.js";
 import { moderationPanel, corporateModeration } from "./moderation.js";
 import { renderMessages, emojiPicker } from "./messages.js";
@@ -89,6 +90,7 @@ export function initChat() {
     conversation = "",
     folder = "",
     search = "",
+    searchTimer,
     reply = null,
     docked = false,
     loading = false,
@@ -102,13 +104,20 @@ export function initChat() {
     settingsOpen = false,
     unresolved = null,
     entities = [];
-  const toolbar = n("div", undefined, "chat-titlebar"),
-    name = n("div", tr("Связь Эдема"), "chat-appname"),
+  initChatTooltips(() => health);
+  const toolbar = Modules.header("chat"),
+    heading = toolbar.querySelector("h2"),
+    nativeActions = toolbar.querySelector(".window-actions"),
+    pinWindow = nativeActions.children[0],
+    maxWindow = nativeActions.children[1],
+    closeWindow = nativeActions.children[2],
+    name = n("div", undefined, "chat-appname"),
     signal = n("span", undefined, "chat-signal down"),
     tools = n("div", undefined, "chat-toolset");
+  toolbar.classList.add("chat-titlebar");
   signal.tabIndex = 0;
-  name.prepend(signal);
-  toolbar.append(name, tools);
+  name.append(signal, heading);
+  toolbar.replaceChildren(name, tools);
   const dock = button(
       "На главную",
       () => setDock(!docked),
@@ -126,12 +135,20 @@ export function initChat() {
   const linkButton = button("↗", pickLink, "chat-icon");
   linkButton.title = tr("Ссылка на объект");
   linkButton.setAttribute("aria-label", tr("Ссылка на объект"));
-  tools.append(
-    dock,
-    linkButton,
-    button("♟", roster, "chat-icon"),
-    settingsButton,
-  );
+  const searchToggle = button("⌕", () => toggleSearch(), "chat-icon");
+  searchToggle.setAttribute("aria-label", tr("Поиск сообщений"));
+  searchToggle.setAttribute("aria-expanded", "false");
+  maxWindow.classList.add("chat-icon");
+  closeWindow.classList.add("chat-icon");
+  closeWindow.onclick = () => {
+    if (docked) {
+      grid.hidden = true;
+      document
+        .querySelector('#sidebar [data-open="chat"]')
+        ?.classList.remove("module-open");
+    } else Modules.close("chat");
+  };
+  tools.append(searchToggle, settingsButton, dock, maxWindow, closeWindow);
   const moderation = button(
     "Модерация",
     () =>
@@ -141,7 +158,7 @@ export function initChat() {
     "chat-icon chat-dock",
   );
   moderation.hidden = true;
-  tools.append(moderation);
+
   const tabbar = n("div", undefined, "chat-tabs");
   tabbar.setAttribute("role", "tablist");
   const tabButtons = new Map();
@@ -153,6 +170,7 @@ export function initChat() {
   }
   const settings = n("div", undefined, "chat-settings-panel");
   settings.hidden = true;
+  pinWindow.textContent = tr("Закрепить окно");
   const opacity = n("input");
   opacity.type = "range";
   opacity.min = 40;
@@ -194,14 +212,38 @@ export function initChat() {
       Modules.open("chat-my-moderation");
     }),
   );
+  settings.append(linkButton, moderation, pinWindow);
   const searchPanel = n("form", undefined, "chat-search-panel"),
     searchInput = n("input"),
-    searchSubmit = button("Поиск");
+    searchSubmit = button("Сброс", () => {
+      searchInput.value = "";
+      search = "";
+      loadFeed();
+    });
+  searchPanel.hidden = true;
   searchInput.type = "search";
   searchInput.placeholder = tr("Поиск сообщений");
   searchInput.setAttribute("aria-label", searchInput.placeholder);
-  searchSubmit.type = "submit";
+  searchSubmit.type = "button";
   searchPanel.append(searchInput, searchSubmit);
+  function toggleSearch() {
+    searchPanel.hidden = !searchPanel.hidden;
+    searchToggle.setAttribute("aria-expanded", String(!searchPanel.hidden));
+    searchToggle.classList.toggle("active", !searchPanel.hidden);
+    if (!searchPanel.hidden) searchInput.focus();
+    else {
+      search = "";
+      searchInput.value = "";
+      loadFeed();
+    }
+  }
+  searchInput.oninput = () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+      search = searchInput.value.trim();
+      loadFeed();
+    }, 220);
+  };
   searchPanel.onsubmit = (e) => {
     e.preventDefault();
     search = searchInput.value.trim();
@@ -211,6 +253,8 @@ export function initChat() {
     sectionName = n("span", undefined, "chat-section-name"),
     actions = n("div", undefined, "chat-section-actions");
   section.append(sectionName, actions);
+  const folderbar = n("div", undefined, "chat-folder-bar");
+  folderbar.hidden = true;
   const restriction = n("div", undefined, "chat-inline-error");
   restriction.hidden = true;
   const area = n("div", undefined, "chat-area"),
@@ -224,7 +268,8 @@ export function initChat() {
     replyPreview = n("div", undefined, "chat-reply-preview"),
     composeMain = n("div", undefined, "chat-compose-main"),
     textarea = n("textarea"),
-    send = button("Отправить");
+    send = button("Отправить", undefined, "chat-send");
+  replyPreview.hidden = true;
   send.type = "submit";
   textarea.placeholder = tr("Сообщение");
   textarea.setAttribute("aria-label", tr("Сообщение"));
@@ -234,7 +279,7 @@ export function initChat() {
     "chat-emoji-trigger",
   );
   emoji.setAttribute("aria-label", tr("Эмодзи"));
-  composeMain.append(emoji, textarea, send);
+  composeMain.append(textarea, emoji, send);
   const meta = n("div", undefined, "chat-compose-meta"),
     hint = n("span", tr("Enter — отправить · Shift+Enter — новая строка")),
     counter = n("span");
@@ -247,6 +292,7 @@ export function initChat() {
     searchPanel,
     section,
     restriction,
+    folderbar,
     area,
     error,
     compose,
@@ -336,6 +382,7 @@ export function initChat() {
         entities = [];
         reply = null;
         replyPreview.replaceChildren();
+        replyPreview.hidden = true;
       }
       await sync();
     } catch (e) {
@@ -388,6 +435,7 @@ export function initChat() {
   }
   function setDock(value) {
     docked = value;
+    maxWindow.hidden = value;
     grid.hidden = !value;
     if (value) {
       slot.append(root);
@@ -402,6 +450,9 @@ export function initChat() {
       dock.textContent = tr("На главную");
       Modules.open("chat");
     }
+    document
+      .querySelector('#sidebar [data-open="chat"]')
+      ?.classList.toggle("module-open", value || dialog.open);
     saveSettings();
   }
   function select(value) {
@@ -413,6 +464,7 @@ export function initChat() {
     delete root.dataset.seen;
     reply = null;
     replyPreview.replaceChildren();
+    replyPreview.hidden = true;
     const draft = drafts.get(key());
     textarea.value = draft?.body || "";
     entities = draft?.entities || [];
@@ -525,6 +577,7 @@ export function initChat() {
       k = key();
     observer?.disconnect();
     sectionName.textContent = title();
+    Modules.title("chat", tr("Чат") + " · " + title());
     restriction.hidden = tab !== "corporation" || !boot.restrictions?.length;
     if (!restriction.hidden) {
       const r = boot.restrictions[0];
@@ -535,7 +588,9 @@ export function initChat() {
         " · " +
         r.reason;
     }
+    folderbar.hidden = tab !== "favorites";
     actions.replaceChildren();
+    if (tab !== "favorites") actions.append(button("Пилоты в чате", roster));
     error.hidden = true;
     count();
     const oldScroll = area.scrollTop,
@@ -567,10 +622,78 @@ export function initChat() {
       }
       return;
     }
-    compose.hidden = false;
+    compose.hidden = tab === "favorites";
+    folderbar.hidden = tab !== "favorites";
+    folderbar.replaceChildren();
     if (tab === "favorites") {
+      const all = button(
+        "Все",
+        () => {
+          folder = "";
+          select("favorites");
+        },
+        "chat-folder",
+      );
+      all.classList.toggle("selected", !folder);
+      folderbar.append(all);
+      for (const f of boot.folders || []) {
+        const b = button(
+          "▤ " + f.name,
+          () => {
+            folder = f.id;
+            select("favorites");
+          },
+          "chat-folder",
+        );
+        b.classList.toggle("selected", folder === f.id);
+        folderbar.append(b);
+      }
+      if (folder)
+        folderbar.append(
+          button(
+            "⋯",
+            (event) => {
+              const f = boot.folders?.find((f) => f.id === folder);
+              if (!f) return;
+              UI.menu(
+                [
+                  {
+                    label: "Переименовать",
+                    action: () =>
+                      ask(
+                        "Название папки",
+                        [["name", "Название", f.name]],
+                        (v) => command("folder.rename", { id: f.id, ...v }),
+                      ),
+                  },
+                  {
+                    label: "Удалить папку, сохранить записи",
+                    danger: true,
+                    action: () =>
+                      confirmAction(
+                        "Удалить папку, сохранить записи?",
+                        async () => {
+                          await command("folder.delete", { id: f.id });
+                          folder = "";
+                          select("favorites");
+                        },
+                      ),
+                  },
+                ],
+                event.clientX,
+                event.clientY,
+                { theme: "chat", owner: event.currentTarget },
+              );
+            },
+            "chat-folder chat-folder-options",
+          ),
+        );
       actions.append(
-        button("Папки", folderMenu),
+        button("Новая заметка", () =>
+          ask("Заметка", [["body", "Текст"]], (v) =>
+            command("favorite.note", { ...v, folder }),
+          ),
+        ),
         button("Новая папка", () =>
           ask("Новая папка", [["name", "Название"]], (v) =>
             command("folder.create", v),
@@ -675,11 +798,13 @@ export function initChat() {
   }
   function replyTo(m) {
     reply = m;
+    replyPreview.hidden = false;
     replyPreview.replaceChildren(
       n("span", m.author + ": " + m.body.slice(0, 80)),
       button("×", () => {
         reply = null;
         replyPreview.replaceChildren();
+        replyPreview.hidden = true;
       }),
     );
     textarea.focus();
@@ -752,14 +877,16 @@ export function initChat() {
     const items = [];
     if (tab === "favorites") {
       items.push({
-        label: "Переместить",
+        label: "Переместить в папку",
         children: [
           {
-            label: "Все",
+            label: "Без папки (Все)",
+            checked: !m.folder_id,
             action: () => command("favorite.move", { id: m.id, folder: "" }),
           },
           ...(boot.folders || []).map((f) => ({
             label: f.name,
+            checked: m.folder_id === f.id,
             action: () => command("favorite.move", { id: m.id, folder: f.id }),
           })),
         ],
@@ -774,6 +901,7 @@ export function initChat() {
         });
       items.push({
         label: "Удалить",
+        danger: true,
         action: () =>
           confirmAction("Удалить заметку?", () =>
             command("favorite.delete", { id: m.id }),
@@ -797,6 +925,7 @@ export function initChat() {
       if (String(m.author_id) === String(boot.user.id))
         items.push({
           label: "Удалить сообщение",
+          danger: true,
           action: () =>
             confirmAction("Удалить сообщение?", () =>
               command("message.delete", { id: m.id }),
@@ -811,6 +940,7 @@ export function initChat() {
       )
         items.push({
           label: "Удалить как модератор",
+          danger: true,
           action: () =>
             ask("Удалить сообщение", [["reason", "Причина"]], (v) =>
               command("message.delete", { id: m.id, ...v }),
@@ -818,46 +948,10 @@ export function initChat() {
         });
     }
     event.preventDefault();
-    UI.menu(items, event.clientX, event.clientY);
-  }
-  function folderMenu(event) {
-    const items = [
-      {
-        label: "Все",
-        action: () => {
-          folder = "";
-          select("favorites");
-        },
-      },
-      ...(boot.folders || []).map((f) => ({
-        label: f.name,
-        children: [
-          {
-            label: "Открыть",
-            action: () => {
-              folder = f.id;
-              select("favorites");
-            },
-          },
-          {
-            label: "Переименовать",
-            action: () =>
-              ask("Название папки", [["name", "Название", f.name]], (v) =>
-                command("folder.rename", { id: f.id, ...v }),
-              ),
-          },
-          {
-            label: "Удалить папку, сохранить записи",
-            action: () =>
-              confirmAction("Удалить папку, сохранить записи?", () =>
-                command("folder.delete", { id: f.id }),
-              ),
-          },
-        ],
-      })),
-    ];
-    const r = actions.getBoundingClientRect();
-    UI.menu(items, r.x, r.bottom);
+    UI.menu(items, event.clientX, event.clientY, {
+      theme: "chat",
+      owner: event.currentTarget,
+    });
   }
   function privateList() {
     actions.append(
@@ -933,6 +1027,7 @@ export function initChat() {
         });
       items.push({
         label: "Удалить беседу",
+        danger: true,
         action: () =>
           confirmAction("Удалить беседу и все её сообщения?", async () => {
             await command("private.delete", {
@@ -957,7 +1052,10 @@ export function initChat() {
           },
         ),
     });
-    UI.menu(items, event.clientX, event.clientY);
+    UI.menu(items, event.clientX, event.clientY, {
+      theme: "chat",
+      owner: event.currentTarget,
+    });
   }
   async function roster() {
     const rows = await client.get(
@@ -978,7 +1076,12 @@ export function initChat() {
         }),
       );
     for (const u of rows) {
-      const row = n("div", undefined, "chat-player-row");
+      const row = n(
+        "div",
+        undefined,
+        "chat-player-row chat-player-row-compact",
+      );
+      row.append(n("span", u.name.slice(0, 1).toUpperCase(), "chat-avatar"));
       row.append(
         button(u.name, () => mentionUser(u)),
         button("⋯", (event) => {
@@ -1060,7 +1163,10 @@ export function initChat() {
                   }),
               },
             );
-          UI.menu(items, event.clientX, event.clientY);
+          UI.menu(items, event.clientX, event.clientY, {
+            theme: "chat",
+            owner: event.currentTarget,
+          });
         }),
       );
       panel.append(row);
@@ -1089,6 +1195,10 @@ export function initChat() {
       l.append(el);
       form.append(l);
       controls[key] = el;
+      el.addEventListener("input", () => {
+        el.removeAttribute("aria-invalid");
+        inline.textContent = "";
+      });
     }
     const b = button("Сохранить");
     b.type = "submit";
@@ -1105,6 +1215,8 @@ export function initChat() {
         Modules.close("chat-form");
       } catch (e) {
         inline.textContent = tr(errors[e.message] || e.message);
+        for (const field of Object.values(controls))
+          field.setAttribute("aria-invalid", "true");
       } finally {
         b.disabled = false;
       }
@@ -1122,7 +1234,7 @@ export function initChat() {
       "chat-signal " +
       (health.ready && health.cosmic && health.planet
         ? "healthy"
-        : health.ready
+        : !!health.cosmic !== !!health.planet
           ? "partial"
           : "down");
     signal.dataset.help =
@@ -1183,6 +1295,7 @@ export function initChat() {
     observer?.disconnect();
     clearTimeout(refreshTimer);
     clearTimeout(readTimer);
+    clearTimeout(searchTimer);
     drafts.clear();
     root.querySelector(".chat-emoji-panel")?.remove();
     readIDs.clear();
@@ -1207,8 +1320,12 @@ export function initChat() {
     if (detail === "chat") {
       start();
       if (docked) {
+        grid.hidden = false;
         slot.scrollIntoView({ behavior: "smooth", block: "center" });
         Modules.close("chat");
+        document
+          .querySelector('#sidebar [data-open="chat"]')
+          ?.classList.add("module-open");
       } else sync();
     }
   });

@@ -23,7 +23,7 @@ import (
 	"time"
 )
 
-const Version = "0.24.0"
+const Version = "0.24.1"
 
 type Config struct {
 	DatabaseURL, Schema, Addr, CosmicURL, PlanetURL, Journal string

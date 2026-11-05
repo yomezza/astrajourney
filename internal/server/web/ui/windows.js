@@ -81,6 +81,9 @@ export function initWindows() {
     return result;
   }
   Object.assign(Modules, {
+    header(id) {
+      return windows.get(id)?.bar;
+    },
     create(id, title, width = 820, height = 600, options = {}) {
       if (windows.has(id)) {
         const existing = windows.get(id);
@@ -233,7 +236,7 @@ export function initWindows() {
       close.onclick = hide;
       max.onclick = maximize;
       bar.ondblclick = (e) => {
-        if (!e.target.closest("button")) maximize();
+        if (d.open && !e.target.closest("button")) maximize();
       };
       let drag, resize;
       d.addEventListener("pointerdown", (e) => {
@@ -253,6 +256,7 @@ export function initWindows() {
       });
       bar.onpointerdown = (e) => {
         if (
+          !d.open ||
           w.pinned ||
           w.maximized ||
           e.target.closest("button") ||
@@ -323,7 +327,8 @@ export function initWindows() {
           ArrowUp: [0, -20],
           ArrowDown: [0, 20],
         }[e.key];
-        if (!delta || w.pinned || w.maximized || e.target !== bar) return;
+        if (!d.open || !delta || w.pinned || w.maximized || e.target !== bar)
+          return;
         e.preventDefault();
         d.style.left = d.offsetLeft + delta[0] + "px";
         d.style.top = d.offsetTop + delta[1] + "px";

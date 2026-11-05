@@ -47,6 +47,19 @@ export function initMenu() {
       b.type = "button";
       b.setAttribute("role", "menuitem");
       b.disabled = !!item.disabled;
+      b.classList.toggle("danger-action", !!item.danger);
+      if (typeof item.checked === "boolean") {
+        b.setAttribute("role", "menuitemradio");
+        b.setAttribute("aria-checked", String(item.checked));
+        const check = node(
+          "span",
+          item.checked ? "✓" : "",
+          "context-choice-check",
+        );
+        check.setAttribute("aria-hidden", "true");
+        b.prepend(check);
+      }
+
       if (item.reason) b.dataset.help = item.reason;
       if (item.children) {
         b.classList.add("context-parent");
@@ -131,12 +144,13 @@ export function initMenu() {
   });
   context.onkeydown = menuKeys;
   window.addEventListener("signedout", hideMenus);
-  UI.menu = function menu(items, x, y) {
+  UI.menu = function menu(items, x, y, options = {}) {
     hideMenus();
-    anchor = document.activeElement;
+    anchor = options.owner || document.activeElement;
     context.classList.toggle(
       "chat-compact",
-      !!anchor?.closest(".chat-root,#window-chat-roster"),
+      options.theme === "chat" ||
+        (!options.theme && !!anchor?.closest(".chat-root,#window-chat-roster")),
     );
     populateMenu(context, items);
     overlayHost(anchor).append(context);

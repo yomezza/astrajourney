@@ -37,8 +37,14 @@ try {
     .getByText("Real PostgreSQL browser chat ✨", { exact: true })
     .waitFor();
   await root.locator(".chat-tab").nth(0).click();
-  await root.locator("textarea").fill("Personal test note");
-  await root.locator('.chat-compose button[type="submit"]').click();
+  await root
+    .getByRole("button", { name: "Новая заметка", exact: true })
+    .click();
+  await page.locator("#window-chat-form textarea").fill("Personal test note");
+  await page
+    .locator("#window-chat-form")
+    .getByRole("button", { name: "Сохранить", exact: true })
+    .click();
   await root.getByText("Personal test note", { exact: true }).waitFor();
   const original = await root.evaluate((el) => {
     el.dataset.instance = "single";
@@ -65,6 +71,7 @@ try {
     el.dispatchEvent(new Event("change"));
   });
   assert.equal(await root.evaluate((el) => getComputedStyle(el).opacity), "1");
+  await root.locator(".chat-tab").nth(1).click();
   await root.locator(".chat-emoji-trigger").click();
   await root.locator(".chat-emoji-grid button").first().click();
   await root.locator(".chat-emoji-grid button").nth(1).click();

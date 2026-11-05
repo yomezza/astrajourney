@@ -1,4 +1,4 @@
-# Chat Service · 0.24.0
+# Chat Service · 0.24.1
 
 Отдельная служба `cosmosimulator-chat.exe`, общая PostgreSQL и существующие игровые аккаунты. Исходные утверждённые требования и макет v13 сохранены в [docs/ideas/chat-service](../ideas/chat-service/README.ru.md). Продуктовые правила 01/02 имеют приоритет перед ранними техническими предложениями: обычное удаление беседы/корпорации сохраняет независимые копии в избранном; модераторское удаление конкретного оригинала удаляет связанные копии.
 
@@ -16,7 +16,7 @@ $env:COSMIC_INTERNAL_URL = 'http://127.0.0.1:8080'
 $env:PLANET_INTERNAL_URL = 'http://127.0.0.1:8081'
 $env:CHAT_ALLOWED_ORIGINS = 'http://YOUR_GAME_HOST:8080'
 $env:CHAT_ERASURE_JOURNAL = 'C:\Cosmosimulator\data\chat-erasure.log'
-.\downloads\cosmosimulator-chat-v0.24.0-windows-amd64.exe
+.\downloads\cosmosimulator-chat-v0.24.1-windows-amd64.exe
 ```
 
 Каталог журнала должен существовать. Служебному аккаунту Windows нужен доступ к файлу; другим аккаунтам доступ ограничить. Браузер обращается к Cosmic `/chat/api/v1/*` и `/chat/ws/v1`; открывать порт 8082 наружу не требуется. В Cosmic при необходимости задать `CHAT_INTERNAL_URL`. Для сайта за HTTPS указывать точный HTTPS Origin. `DATABASE_URL` используется как запасной адрес Chat, если не задан `CHAT_DATABASE_URL`.
@@ -24,7 +24,7 @@ $env:CHAT_ERASURE_JOURNAL = 'C:\Cosmosimulator\data\chat-erasure.log'
 SCM поддерживается с именем `CosmosimulatorChat`:
 
 ```powershell
-sc.exe create CosmosimulatorChat binPath= 'C:\Cosmosimulator\cosmosimulator-chat-v0.24.0-windows-amd64.exe' start= auto
+sc.exe create CosmosimulatorChat binPath= 'C:\Cosmosimulator\cosmosimulator-chat-v0.24.1-windows-amd64.exe' start= auto
 sc.exe start CosmosimulatorChat
 ```
 
@@ -44,7 +44,7 @@ CREATE ROLE chat_definer NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE;
 ```powershell
 $env:CHAT_RUNTIME_ROLE = 'chat_runtime'
 $env:CHAT_DEFINER_ROLE = 'chat_definer'
-.\cosmosimulator-chat-v0.24.0-windows-amd64.exe --grant-runtime
+.\cosmosimulator-chat-v0.24.1-windows-amd64.exe --grant-runtime
 ```
 
 Команда выдаёт права на чат, ограниченное чтение игровых данных и EXECUTE на защищённые функции. Владельцем этих функций становится отдельная NOLOGIN-роль; PUBLIC execute отозван, `search_path` фиксирован. Логин runtime не получает UPDATE пользователей, корпораций, присутствия или fences и не читает пароли/сессии напрямую. После команды убрать DBA-реквизиты из окружения Chat. При последующих миграциях DBA/migration-роль должна иметь право заменять функции, принадлежащие `chat_definer`; повторить выдачу прав после обновления контракта.
@@ -57,7 +57,7 @@ Chat runtime не выполняет DDL. Запланировать ежедн�
 
 ```powershell
 $env:CHAT_MAINTENANCE_DATABASE_URL = 'postgres://PARTITION_OWNER:YOUR_PASSWORD@127.0.0.1:5432/YOUR_DATABASE?sslmode=disable'
-.\cosmosimulator-chat-v0.24.0-windows-amd64.exe --maintain
+.\cosmosimulator-chat-v0.24.1-windows-amd64.exe --maintain
 ```
 
 Она создаёт дневные секции на 14 дней и недельные на 8 недель вперёд, удаляет полностью просроченные пустые секции. Владельцу обслуживания нужны права на родительские таблицы/секции и CREATE в выбранной схеме; это **не** runtime-логин. Опционально `CHAT_MAINTENANCE_DATABASE_URL` запускает обслуживание внутри процесса раз в час; для строгого разделения реквизитов использовать отдельную задачу. Без обслуживания начальный запас секций закончится, отправка сообщений будет отклонена; не заменять эту ошибку записью в произвольную секцию.

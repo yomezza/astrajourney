@@ -1839,5 +1839,9 @@
   "Беседа удаляется": "Conversation is being deleted",
   "Выберите нового владельца перед выходом": "Choose a new owner before leaving",
   "Подтвердите удаление": "Confirm deletion",
-  "Укажите причину без цитирования исходного сообщения": "Give a reason without quoting the original message"
+  "Укажите причину без цитирования исходного сообщения": "Give a reason without quoting the original message",
+  "Копия сообщения": "Saved message",
+  "Новая заметка": "New note",
+  "Переместить в папку": "Move to folder",
+  "Без папки (Все)": "No folder (All)"
 }
