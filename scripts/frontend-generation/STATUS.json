@@ -13,14 +13,14 @@
     "25 оригинальных PNG не вложены; установщик переносит их из репозитория и проверяет, что получен полный комплект.",
     "Многие оригинальные модули и программная графика не прошли интеграционную браузерную проверку с оригинальным web в этой среде.",
     "Для части Go-операций mock DTO/логика ещё неполные; нельзя утверждать полноценную работу всех кнопок.",
-    "Чат v13 подключён в original Modules нативным DOM без iframe. Исследования v13 по-прежнему показываются во вспомогательном iframe; исходные версии обоих модулей сохранены."
+    "Новости используют точные пять SVG, но полноценная браузерная проверка с original-web на целевых размерах пока не проведена; доступен tests/browser_news_smoke.py."
   ],
   "coverage": {
     "index_sidebar_windows": "source_files_unmodified_not_browser_verified",
     "spaceship_svg": "source_download_validation + gallery",
     "planet_graphics": "source_download_validation + gallery",
     "source_svg_animation": "retained_svg_files",
-    "chat_v13": "snapshot + native DOM integration with Modules, tested Chromium 1440 and 390 using simulated Modules; full original-web E2E awaits preparation",
+    "chat_v13": "approved DOM integration with one native draggable chat surface; independent home news layout; original-web E2E not rerun",
     "studies_v13": "snapshot_copy + split source, offline standalone previously verified",
     "mock_back_end": "HTTP + Python unit tests"
   },
@@ -29,8 +29,8 @@
   "source_web_modules_installed_in_archive": false,
   "all_visual_modules_verified_in_browser": false,
   "source_rel_v": "v0.23.0",
-  "tests": "20 Python unit tests + Chromium 1440/390 inline integration harness (no original web files in build environment)",
-  "integration": "v3 native chat root inside original Modules window + inline home dock",
+  "tests": "Python: existing suite plus tests/test_news_home.py (10 cases); the whole updated suite has not been executed in this environment. Optional Chromium smoke: tests/browser_news_smoke.py (not run here).",
+  "integration": "Chat v13: native self-contained panel, no Modules wrapper or iframe; news widget: persistent home lower grid, local SVG + JSON and original Modules all-news window.",
   "chat_v13_mode": "native_dom_without_iframe",
   "chat_duplicate_home": "removed",
   "download_progress": "console download bytes and extraction file counts",
