@@ -46,5 +46,20 @@
     "backup": ".mirror-backup/",
     "network_failure": "continue with local installed files"
   },
-  "original_assets_repository_location": "internal/server/web/; copied by prepare.py; not duplicated as static images in scripts/frontend-generation/"
+  "original_assets_repository_location": "internal/server/web/; copied by prepare.py; not duplicated as static images in scripts/frontend-generation/",
+  "uiux_lab": {
+    "state": "interactive-catalog-incomplete-coverage",
+    "directory": "mock/ui-lab/",
+    "categories": 18,
+    "entries": 156,
+    "original_api": 56,
+    "approved_v13": 26,
+    "isolated_adapters": 58,
+    "pending": 16,
+    "original_game_changed": false,
+    "chat_v13_changed": false,
+    "studies_v13_changed": false,
+    "full_browser_e2e_verified": false,
+    "notice": "All demo interactions are local. Some complex original renderers remain pending; see mock/ui-lab/AUDIT.ru.md."
+  }
 }

@@ -80,3 +80,10 @@ const bootChat=()=>addChatEntry().catch(err=>{
 });
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootChat);
 else bootChat();
+
+// Demo-only UI/UX component laboratory; original sidebar and modules stay untouched.
+const bootUiLab=()=>import('/mock/ui-lab/lab.js')
+  .then(({initUiLab})=>initUiLab())
+  .catch(error=>console.error('[Cosmosimulator UI/UX]',error));
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootUiLab);
+else bootUiLab();
