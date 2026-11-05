@@ -926,6 +926,10 @@ export function initUiLab() {
         document.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true}));
       for(const id of activeWindows) Modules.close(id);
       activeWindows.clear();
+      // Closing releases the advanced canvases, image leases and listeners.
+      // Rebuild on next open so every specimen becomes interactive again.
+      root=null;
+      labWindow=null;
     }
   });
   window.addEventListener('signedout',()=>{menuCleanup();disposeAdvanced();activeCompare.clear();stateById.clear();});
