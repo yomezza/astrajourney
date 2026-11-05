@@ -76,5 +76,38 @@
       "rich_resource_tooltip",
       "linked_windows"
     ]
+  },
+  "news_hologram": {
+    "state": "implemented-source-review-and-unit-tests; browser-full-original-web-not-yet-run",
+    "directory": "mock/news/",
+    "placement": "home-lower-grid / news-home-slot",
+    "variant_selector": "news-variant-select",
+    "variants": [
+      "a",
+      "b",
+      "c"
+    ],
+    "default_variant": "b",
+    "preference_key": "cosmosim-demo-news-variant-v1",
+    "svg_count": 5,
+    "svg_source": "docs/ideas/news/ (exact Git blobs copied inside scripts/frontend-generation)",
+    "fixture": "mock/news/news.json",
+    "fixture_items": 12,
+    "news_ids_consistent_with_registry": true,
+    "language_support": [
+      "ru",
+      "en"
+    ],
+    "window_id": "news-all-demo",
+    "chat_v13_semantics_unchanged": true,
+    "studies_v13_unchanged": true,
+    "uiux_lab_unchanged": true,
+    "production_web_changed": false,
+    "browser_full_original_web_verified": false,
+    "tests": [
+      "tests/test_news_home.py",
+      "tests/browser_news_smoke.py"
+    ],
+    "notes": "Offline after first update. No news Go API, no real news. Exact Chromium viewport smoke requires original-web installation."
   }
 }

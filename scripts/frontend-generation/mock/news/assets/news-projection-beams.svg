@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="560" viewBox="0 0 900 560" fill="none" role="img" aria-labelledby="np-beam-title np-beam-desc"><title id="np-beam-title">Проекционные лучи</title><desc id="np-beam-desc">Три расходящихся световых потока с бегущими импульсами.</desc>
+<!-- news-component:begin -->
+
+<defs>
+<linearGradient id="np-beam-vapor" x1="0" y1="1" x2="0" y2="0"><stop stop-color="#7decdc" stop-opacity=".20"/><stop offset=".55" stop-color="#5cd7e7" stop-opacity=".075"/><stop offset="1" stop-color="#73dce7" stop-opacity="0"/></linearGradient>
+<linearGradient id="np-beam-halo" x1="0" y1="1" x2="0" y2="0"><stop stop-color="#73e8dc" stop-opacity=".8"/><stop offset="1" stop-color="#62cfe2" stop-opacity=".08"/></linearGradient>
+<filter id="np-beam-soft" x="-50%" y="-30%" width="200%" height="160%"><feGaussianBlur stdDeviation="5"/></filter>
+</defs>
+<style>
+@keyframes np-beam-drift{from{stroke-dashoffset:88}to{stroke-dashoffset:0}}
+@keyframes np-beam-breathe{0%,100%{opacity:.45}50%{opacity:.74}}
+@keyframes np-beam-start{0%{opacity:0}100%{opacity:1}}
+.np-beam-particles{animation:np-beam-drift 5.6s linear infinite}
+.np-beam-fade{animation:np-beam-breathe 5s ease-in-out infinite}
+.np-beam-in{animation:np-beam-start 1.7s ease-out both}
+@media(prefers-reduced-motion:reduce){.np-beam-particles,.np-beam-fade,.np-beam-in{animation:none!important;transform:none!important}}
+</style>
+<g class="np-beam-in">
+<!-- vector cones spreading from the three active apertures -->
+<path d="M341 458Q240 411 64 341L75 226Q251 327 341 458Z" fill="url(#np-beam-vapor)" opacity=".5"/>
+<path d="M559 458Q660 411 836 341L825 226Q649 327 559 458Z" fill="url(#np-beam-vapor)" opacity=".5"/>
+<path d="M450 453Q424 375 385 256L515 256Q476 375 450 453Z" fill="url(#np-beam-vapor)" opacity=".4"/>
+<g stroke="url(#np-beam-halo)" stroke-width="2.5" filter="url(#np-beam-soft)" opacity=".4">
+<path d="M340 459Q249 383 103 296"/><path d="M560 459Q651 383 797 296"/><path d="M450 454V275"/>
+</g>
+<g class="np-beam-fade" stroke="url(#np-beam-halo)" stroke-width="1" opacity=".72">
+<path d="M340 458Q265 393 85 310"/><path d="M340 458Q220 399 150 260"/>
+<path d="M560 458Q635 393 815 310"/><path d="M560 458Q680 399 750 260"/>
+<path d="M448 455 421 293M452 455 479 293M450 451V283"/>
+</g>
+<g class="np-beam-particles" stroke="#b9fff0" stroke-width="1.9" stroke-dasharray="3 16" opacity=".6">
+<path d="M340 458Q265 393 85 310"/><path d="M340 458Q220 399 150 260"/>
+<path d="M560 458Q635 393 815 310"/><path d="M560 458Q680 399 750 260"/>
+<path d="M450 455V282"/>
+</g>
+<path d="M340 457Q245 392 125 339M560 457Q655 392 775 339" stroke="#d5fff1" opacity=".2" stroke-width=".8" stroke-dasharray="1 11"/>
+<g fill="#cafff1" opacity=".67">
+<circle cx="251" cy="404" r="2"/><circle cx="649" cy="404" r="2"/>
+<circle cx="177" cy="349" r="1.6"/><circle cx="723" cy="349" r="1.6"/>
+<circle cx="450" cy="366" r="1.5"/>
+</g>
+</g>
+
+<!-- news-component:end -->
+</svg>

@@ -32,10 +32,13 @@ async function addChatEntry() {
   const label=document.createElement('span');label.className='nav-label';label.textContent='Чат';
   button.append(icon,label);guide.before(button);
   // A single dock slot immediately under the original overview stats.
-  const grid=document.createElement('div');grid.className='home-lower-grid';grid.id='home-lower-grid';grid.hidden=true;
-  const slot=document.createElement('section');slot.id='chat-home-slot';slot.setAttribute('aria-label','Чат на главной странице');
-  const news=document.createElement('section');news.id='news-home-slot';news.setAttribute('aria-label','Резерв для новостей');
+  const grid=document.createElement('div');grid.className='home-lower-grid';grid.id='home-lower-grid';grid.hidden=false;
+  const slot=document.createElement('section');slot.id='chat-home-slot';slot.hidden=true;slot.setAttribute('aria-label','Чат на главной странице');
+  const news=document.createElement('section');news.id='news-home-slot';news.setAttribute('aria-label','Голографические новости');
   grid.append(slot,news);stats.after(grid);
+  // Independent local news feed, available even if chat is never opened.
+  import('/mock/news/news.js').then(({mountNewsWidget})=>mountNewsWidget(news))
+    .catch(error=>console.error('[Cosmosimulator News]',error));
   // Chat has its own draggable/resizable shell, not a nested Modules window.
   const floating=document.createElement('section');floating.id='chat-floating';floating.className='chat-floating';floating.hidden=true;
   floating.setAttribute('role','dialog');floating.setAttribute('aria-label','Чат');
