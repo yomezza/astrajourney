@@ -1,0 +1,215 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="560" viewBox="0 0 900 560" fill="none" role="img" aria-labelledby="np-preview-title np-preview-desc"><title id="np-preview-title">Вариант C — демонстрационная голограмма</title><desc id="np-preview-desc">Три световых потока от проекционного устройства: две новости и центральная кнопка «Все новости». Примерные новости только в этом превью.</desc>
+<!-- news-projection-beams.svg -->
+<defs>
+<linearGradient id="np-beam-vapor" x1="0" y1="1" x2="0" y2="0"><stop stop-color="#7decdc" stop-opacity=".20"/><stop offset=".55" stop-color="#5cd7e7" stop-opacity=".075"/><stop offset="1" stop-color="#73dce7" stop-opacity="0"/></linearGradient>
+<linearGradient id="np-beam-halo" x1="0" y1="1" x2="0" y2="0"><stop stop-color="#73e8dc" stop-opacity=".8"/><stop offset="1" stop-color="#62cfe2" stop-opacity=".08"/></linearGradient>
+<filter id="np-beam-soft" x="-50%" y="-30%" width="200%" height="160%"><feGaussianBlur stdDeviation="5"/></filter>
+</defs>
+<style>
+@keyframes np-beam-drift{from{stroke-dashoffset:88}to{stroke-dashoffset:0}}
+@keyframes np-beam-breathe{0%,100%{opacity:.45}50%{opacity:.74}}
+@keyframes np-beam-start{0%{opacity:0}100%{opacity:1}}
+.np-beam-particles{animation:np-beam-drift 5.6s linear infinite}
+.np-beam-fade{animation:np-beam-breathe 5s ease-in-out infinite}
+.np-beam-in{animation:np-beam-start 1.7s ease-out both}
+@media(prefers-reduced-motion:reduce){.np-beam-particles,.np-beam-fade,.np-beam-in{animation:none!important;transform:none!important}}
+</style>
+<g class="np-beam-in">
+<!-- vector cones spreading from the three active apertures -->
+<path d="M341 458Q240 411 64 341L75 226Q251 327 341 458Z" fill="url(#np-beam-vapor)" opacity=".5"/>
+<path d="M559 458Q660 411 836 341L825 226Q649 327 559 458Z" fill="url(#np-beam-vapor)" opacity=".5"/>
+<path d="M450 453Q424 375 385 256L515 256Q476 375 450 453Z" fill="url(#np-beam-vapor)" opacity=".4"/>
+<g stroke="url(#np-beam-halo)" stroke-width="2.5" filter="url(#np-beam-soft)" opacity=".4">
+<path d="M340 459Q249 383 103 296"/><path d="M560 459Q651 383 797 296"/><path d="M450 454V275"/>
+</g>
+<g class="np-beam-fade" stroke="url(#np-beam-halo)" stroke-width="1" opacity=".72">
+<path d="M340 458Q265 393 85 310"/><path d="M340 458Q220 399 150 260"/>
+<path d="M560 458Q635 393 815 310"/><path d="M560 458Q680 399 750 260"/>
+<path d="M448 455 421 293M452 455 479 293M450 451V283"/>
+</g>
+<g class="np-beam-particles" stroke="#b9fff0" stroke-width="1.9" stroke-dasharray="3 16" opacity=".6">
+<path d="M340 458Q265 393 85 310"/><path d="M340 458Q220 399 150 260"/>
+<path d="M560 458Q635 393 815 310"/><path d="M560 458Q680 399 750 260"/>
+<path d="M450 455V282"/>
+</g>
+<path d="M340 457Q245 392 125 339M560 457Q655 392 775 339" stroke="#d5fff1" opacity=".2" stroke-width=".8" stroke-dasharray="1 11"/>
+<g fill="#cafff1" opacity=".67">
+<circle cx="251" cy="404" r="2"/><circle cx="649" cy="404" r="2"/>
+<circle cx="177" cy="349" r="1.6"/><circle cx="723" cy="349" r="1.6"/>
+<circle cx="450" cy="366" r="1.5"/>
+</g>
+</g>
+<!-- news-panel-left.svg -->
+<defs>
+<linearGradient id="np-left-mist" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#73e7d2" stop-opacity=".12"/><stop offset="1" stop-color="#174554" stop-opacity=".035"/></linearGradient>
+<filter id="np-left-glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.2"/></filter>
+</defs>
+<style>
+@keyframes np-left-float{0%,100%{transform:translateY(0px)}50%{transform:translateY(-5px)}}
+@keyframes np-left-chase{to{stroke-dashoffset:-190}}
+@keyframes np-left-materialize{from{opacity:0}to{opacity:1}}
+.np-left-float{animation:np-left-float 6.8s ease-in-out infinite}
+.np-left-dash{animation:np-left-chase 5.7s linear infinite}
+.np-left-fade{animation:np-left-materialize 1.8s ease-out both}
+@media(prefers-reduced-motion:reduce){.np-left-float,.np-left-dash,.np-left-fade{animation:none!important;transform:none!important}}
+</style>
+<g><g class="np-left-float np-left-fade" stroke-linejoin="round" stroke-linecap="round">
+<!-- rear extrusion reinforces the volumetric perspective -->
+<path d="M75 158 329 128 351 151 351 325 336 341 78 370 55 351 51 180Z" stroke="#73e7d2" stroke-width="1" opacity=".38"/>
+<path d="M75 158 65 178M329 128 320 148M351 151 339 169M351 325 339 341M55 351 78 370" stroke="#73e7d2" stroke-width="1.2" opacity=".57"/>
+<path d="M65 178 320 148 339 169 339 341 78 370 60 351Z" fill="url(#np-left-mist)" stroke="#73e7d2" stroke-width="1.8"/>
+<path d="M65 178 320 148 339 169 339 341 78 370 60 351Z" stroke="#73e7d2" stroke-width="4" opacity=".22" filter="url(#np-left-glow)"/>
+<!-- circuitry panel edges, angular clamps -->
+<path d="M78 190 305 164 324 181 324 323 92 350 77 336Z" stroke="#73e7d2" stroke-width=".85" opacity=".55"/>
+<path d="M65 213 83 211 89 200M339 187 325 186 321 175M78 336 94 334M321 310 339 307" stroke="#b6fff0" stroke-width="1.5" opacity=".76"/>
+<path d="M87 234 318 207M91 321 326 297" stroke="#73e7d2" stroke-width=".7" opacity=".27"/>
+<path d="M97 271 316 245M100 304 316 279" stroke="#73e7d2" stroke-width=".55" opacity=".13" stroke-dasharray="2 7"/>
+<path d="M85 250 94 246 99 268 105 265M319 222 323 218 328 233" stroke="#73e7d2" stroke-width="1" opacity=".65"/>
+<!-- header ornaments -->
+<path d="M99 199 207 186M102 204 178 195" stroke="#b6fff0" stroke-width="1" opacity=".74"/>
+<circle cx="97" cy="220" r="2.2" fill="#b6fff0" stroke="none"/>
+<path d="M111 339 175 332M252 322 302 316" stroke="#73e7d2" stroke-width="1" opacity=".65"/>
+<circle cx="288" cy="199" r="13" stroke="#b6fff0" stroke-width="1.1"/><circle cx="288" cy="199" r="5" stroke="#b6fff0" stroke-width="1.1"/><path d="M288 184V214M273 199H303" stroke="#b6fff0" stroke-width=".7"/>
+<!-- perimeter energy tracing -->
+<path class="np-left-dash" d="M65 178 320 148 339 169 339 341 78 370 60 351Z" stroke="#ccfff7" stroke-width="1.9" stroke-dasharray="16 174" opacity=".65"/>
+<!-- floating telemetry stencil -->
+<path d="M75 379 97 376M304 355 329 352" stroke="#73e7d2" stroke-width="1.1" opacity=".48"/>
+<circle cx="54" cy="178" r="1.6" fill="#b6fff0" stroke="none" opacity=".8"/>
+</g></g>
+<!-- news-panel-right.svg -->
+<defs>
+<linearGradient id="np-right-mist" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#7fd5ee" stop-opacity=".12"/><stop offset="1" stop-color="#174554" stop-opacity=".035"/></linearGradient>
+<filter id="np-right-glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.2"/></filter>
+</defs>
+<style>
+@keyframes np-right-float{0%,100%{transform:translateY(0px)}50%{transform:translateY(-5px)}}
+@keyframes np-right-chase{to{stroke-dashoffset:-190}}
+@keyframes np-right-materialize{from{opacity:0}to{opacity:1}}
+.np-right-float{animation:np-right-float 7.5s ease-in-out infinite}
+.np-right-dash{animation:np-right-chase 5.7s linear infinite}
+.np-right-fade{animation:np-right-materialize 1.8s ease-out both}
+@media(prefers-reduced-motion:reduce){.np-right-float,.np-right-dash,.np-right-fade{animation:none!important;transform:none!important}}
+</style>
+<g transform="translate(900 0) scale(-1 1)"><g class="np-right-float np-right-fade" stroke-linejoin="round" stroke-linecap="round">
+<!-- rear extrusion reinforces the volumetric perspective -->
+<path d="M75 158 329 128 351 151 351 325 336 341 78 370 55 351 51 180Z" stroke="#7fd5ee" stroke-width="1" opacity=".38"/>
+<path d="M75 158 65 178M329 128 320 148M351 151 339 169M351 325 339 341M55 351 78 370" stroke="#7fd5ee" stroke-width="1.2" opacity=".57"/>
+<path d="M65 178 320 148 339 169 339 341 78 370 60 351Z" fill="url(#np-right-mist)" stroke="#7fd5ee" stroke-width="1.8"/>
+<path d="M65 178 320 148 339 169 339 341 78 370 60 351Z" stroke="#7fd5ee" stroke-width="4" opacity=".22" filter="url(#np-right-glow)"/>
+<!-- circuitry panel edges, angular clamps -->
+<path d="M78 190 305 164 324 181 324 323 92 350 77 336Z" stroke="#7fd5ee" stroke-width=".85" opacity=".55"/>
+<path d="M65 213 83 211 89 200M339 187 325 186 321 175M78 336 94 334M321 310 339 307" stroke="#dcb985" stroke-width="1.5" opacity=".76"/>
+<path d="M87 234 318 207M91 321 326 297" stroke="#7fd5ee" stroke-width=".7" opacity=".27"/>
+<path d="M97 271 316 245M100 304 316 279" stroke="#7fd5ee" stroke-width=".55" opacity=".13" stroke-dasharray="2 7"/>
+<path d="M85 250 94 246 99 268 105 265M319 222 323 218 328 233" stroke="#7fd5ee" stroke-width="1" opacity=".65"/>
+<!-- header ornaments -->
+<path d="M99 199 207 186M102 204 178 195" stroke="#dcb985" stroke-width="1" opacity=".74"/>
+<circle cx="97" cy="220" r="2.2" fill="#dcb985" stroke="none"/>
+<path d="M111 339 175 332M252 322 302 316" stroke="#7fd5ee" stroke-width="1" opacity=".65"/>
+<rect x="278" y="198" width="4" height="10" fill="#dcb985" opacity=".8"/><rect x="286" y="191" width="4" height="17" fill="#dcb985" opacity=".7"/><rect x="294" y="185" width="4" height="23" fill="#dcb985" opacity=".9"/>
+<!-- perimeter energy tracing -->
+<path class="np-right-dash" d="M65 178 320 148 339 169 339 341 78 370 60 351Z" stroke="#ccfff7" stroke-width="1.9" stroke-dasharray="16 174" opacity=".65"/>
+<!-- floating telemetry stencil -->
+<path d="M75 379 97 376M304 355 329 352" stroke="#7fd5ee" stroke-width="1.1" opacity=".48"/>
+<circle cx="54" cy="178" r="1.6" fill="#dcb985" stroke="none" opacity=".8"/>
+</g></g>
+<!-- news-all-button.svg -->
+<defs>
+<radialGradient id="np-ctrl-well"><stop stop-color="#53cfdb" stop-opacity=".14"/><stop offset=".7" stop-color="#39718f" stop-opacity=".06"/><stop offset="1" stop-color="#53cfd8" stop-opacity="0"/></radialGradient>
+<filter id="np-ctrl-glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="3"/></filter>
+</defs>
+<style>
+@keyframes np-ctrl-breathe{0%,100%{opacity:.45}50%{opacity:.8}}
+@keyframes np-ctrl-trace{to{stroke-dashoffset:-220}}
+@keyframes np-ctrl-hover{0%,100%{opacity:.45}50%{opacity:.75}}
+.np-ctrl-signal{animation:np-ctrl-breathe 4.4s ease-in-out infinite}
+.np-ctrl-trace{animation:np-ctrl-trace 6s linear infinite}
+svg:hover .np-ctrl-hot{opacity:.95}
+@media(prefers-reduced-motion:reduce){.np-ctrl-signal,.np-ctrl-trace{animation:none!important;transform:none!important}}
+</style>
+<g stroke-linejoin="round" stroke-linecap="round">
+<ellipse cx="450" cy="260" rx="83" ry="96" fill="url(#np-ctrl-well)"/>
+<path d="M450 170 522 213 522 300 450 343 378 300 378 213Z" stroke="#86e0df" opacity=".20" stroke-width="4" filter="url(#np-ctrl-glow)"/>
+<path d="M450 170 522 213 522 300 450 343 378 300 378 213Z" stroke="#76cbda" stroke-width="1.9" opacity=".62"/>
+<path d="M450 184 509 219 509 294 450 328 391 294 391 219Z" stroke="#aedce2" stroke-width="1.1" opacity=".62"/>
+<path d="M450 200 496 227 496 286 450 312 404 286 404 227Z" stroke="#7dccdc" stroke-width="1" opacity=".33" stroke-dasharray="2 8"/>
+<ellipse class="np-ctrl-signal" cx="450" cy="257" rx="58" ry="68" stroke="#4bd0d1" stroke-width="1.3" opacity=".52" transform="rotate(-17 450 257)"/>
+<ellipse cx="450" cy="257" rx="68" ry="43" stroke="#84c6cf" opacity=".2" transform="rotate(25 450 257)"/>
+<!-- central horizontal label-free readout slot -->
+<path d="M407 247 417 234H483L493 247V276L483 289H417L407 276Z" fill="#1a4852" fill-opacity=".13" stroke="#6ddacb" stroke-width=".75" opacity=".65"/>
+<path d="M413 263H487" stroke="#bdfff2" stroke-width=".7" opacity=".24"/>
+<path d="M450 170V154M450 343V358M378 256H361M522 256H539" stroke="#9fd8dc" opacity=".5" stroke-width="1.5"/>
+<path d="M444 154H456M444 358H456M354 250V262M546 250V262" stroke="#dfb778" opacity=".55" stroke-width="1.2"/>
+<circle cx="450" cy="177" r="3" fill="#cefdf5" stroke="none" opacity=".85"/>
+<path class="np-ctrl-trace" d="M450 170 522 213 522 300 450 343 378 300 378 213Z" stroke="#d6fff7" stroke-width="2.6" stroke-dasharray="13 207" opacity=".76"/>
+<path class="np-ctrl-hot" d="M450 170 522 213 522 300 450 343 378 300 378 213Z" stroke="#c1fff9" stroke-width="3.4" opacity=".08" filter="url(#np-ctrl-glow)"/>
+</g>
+<!-- news-projector-base.svg -->
+<defs>
+<linearGradient id="np-base-metal" x1="0" x2=".25" y1="0" y2="1"><stop stop-color="#41616b"/><stop offset=".35" stop-color="#263d4a"/><stop offset="1" stop-color="#0b1722"/></linearGradient>
+<linearGradient id="np-base-inset" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#163e48"/><stop offset="1" stop-color="#09242f"/></linearGradient>
+<radialGradient id="np-base-core"><stop stop-color="#d4ffef" stop-opacity=".93"/><stop offset=".25" stop-color="#85e8d6" stop-opacity=".8"/><stop offset=".66" stop-color="#209da7" stop-opacity=".3"/><stop offset="1" stop-color="#209da7" stop-opacity="0"/></radialGradient>
+<filter id="np-base-glow" x="-35%" y="-80%" width="170%" height="260%"><feGaussianBlur stdDeviation="3"/></filter>
+</defs>
+<style>
+@keyframes np-base-breathe{0%,100%{opacity:.6}50%{opacity:1}}
+@keyframes np-base-scan{from{stroke-dashoffset:0}to{stroke-dashoffset:-170}}
+@keyframes np-base-ring{0%,100%{opacity:.45;transform:scale(1)}50%{opacity:.85;transform:scale(1.045)}}
+.np-base-core{animation:np-base-breathe 4.8s ease-in-out infinite}
+.np-base-scan{animation:np-base-scan 5s linear infinite}
+.np-base-ring{transform-box:fill-box;transform-origin:center;animation:np-base-ring 5s ease-in-out infinite}
+@media(prefers-reduced-motion:reduce){.np-base-core,.np-base-scan,.np-base-ring{animation:none!important;transform:none!important}}
+</style>
+<!-- grounded shadow halo, SVG background remains transparent -->
+<ellipse cx="450" cy="527" rx="245" ry="19" fill="#58c4bd" opacity=".08"/>
+<ellipse cx="450" cy="525" rx="181" ry="11" stroke="#5e9eae" opacity=".19" stroke-width="1.2"/>
+<!-- armoured lower housing -->
+<path d="M281 478 324 516 576 516 619 478 590 457 310 457Z" fill="url(#np-base-metal)" stroke="#72909a" stroke-width="2"/>
+<path d="M324 516 353 535 547 535 576 516Z" fill="#0c1a25" stroke="#486575" stroke-width="1.4"/>
+<path d="M305 486 345 515 555 515 596 486" stroke="#9bc0bf" opacity=".42" stroke-width="1.5"/>
+<path d="M352 523H548" stroke="#2ccfbe" opacity=".5" stroke-width="1.6"/>
+<path d="M385 525h130" stroke="#e2aa63" stroke-width="1.2" opacity=".45" stroke-dasharray="6 15"/>
+<!-- mechanical articulation arms -->
+<path d="M303 467 270 476 249 501 286 509 330 494" fill="url(#np-base-metal)" stroke="#6a8794" stroke-width="1.8"/>
+<path d="M597 467 630 476 651 501 614 509 570 494" fill="url(#np-base-metal)" stroke="#6a8794" stroke-width="1.8"/>
+<path d="M260 497 287 500 305 487M640 497 613 500 595 487" stroke="#85ceca" opacity=".55" stroke-width="1.5"/>
+<!-- top tilted elliptical emitter platform -->
+<ellipse cx="450" cy="462" rx="158" ry="39" fill="#091c28" stroke="#5ab0ba" stroke-width="2.8"/>
+<ellipse cx="450" cy="460" rx="146" ry="32" fill="url(#np-base-inset)" stroke="#254e5b" stroke-width="2"/>
+<ellipse class="np-base-ring" cx="450" cy="458" rx="128" ry="25" stroke="#8ad8d6" stroke-width="1.6" opacity=".6"/>
+<ellipse class="np-base-scan" cx="450" cy="458" rx="141" ry="32" stroke="#c3fff0" stroke-width="2.2" stroke-dasharray="12 158" opacity=".6"/>
+<path d="M327 456H573M344 445H556M344 472H556" stroke="#3e91a2" stroke-width="1.1" stroke-dasharray="2 12" opacity=".45"/>
+<!-- three illuminated emitter sockets -->
+<g stroke="#9dc6c9" stroke-width="1.3">
+<ellipse cx="340" cy="458" rx="27" ry="11" fill="#142e38"/><ellipse cx="560" cy="458" rx="27" ry="11" fill="#142e38"/>
+<ellipse cx="340" cy="458" rx="17" ry="6" stroke="#9beadd" fill="#266c71" fill-opacity=".38"/>
+<ellipse cx="560" cy="458" rx="17" ry="6" stroke="#9beadd" fill="#266c71" fill-opacity=".38"/>
+</g>
+<path d="M323 456 331 453 335 449M577 456 569 453 565 449" stroke="#b3e9ec" opacity=".75" stroke-width="1.8"/>
+<!-- levitating energy core -->
+<ellipse cx="450" cy="456" rx="63" ry="18" fill="#20afbd" opacity=".13" filter="url(#np-base-glow)"/>
+<path d="M409 449 432 430 468 430 491 449 468 471 432 471Z" fill="#10313c" stroke="#73d3cd" stroke-width="2"/>
+<path d="M432 430 450 444 468 430M409 449 450 444 491 449M432 471 450 444 468 471" stroke="#80e8df" stroke-width="1.3" opacity=".85"/>
+<ellipse class="np-base-core" cx="450" cy="446" rx="27" ry="21" fill="url(#np-base-core)"/>
+<path class="np-base-core" d="M450 429V465M430 446H470" stroke="#dcfff5" stroke-width="1.6" opacity=".75"/>
+<!-- technical status lights -->
+<g fill="#c8f7e9"><circle cx="298" cy="491" r="2.4"/><circle cx="602" cy="491" r="2.4"/></g>
+<g fill="#e2aa63" opacity=".8"><circle cx="375" cy="515" r="2"/><circle cx="525" cy="515" r="2"/></g>
+<path d="M318 475 333 478M567 478 582 475M387 485H405M495 485H513" stroke="#6cc8c7" stroke-width="1.3" opacity=".72"/>
+<g aria-label="Примерные новости, только для иллюстрации"><g stroke="#9af1e7" fill="none" stroke-width="1.2" opacity=".9"><circle cx="132" cy="273" r="21"/><ellipse cx="132" cy="273" rx="10" ry="21"/><path d="M110 273h44M132 252v42"/><path d="M119 258 145 286M119 287l26-27"/></g>
+<g stroke="#efc88e" fill="none" stroke-width="1.4"><path d="M607 293v-33h7v33M623 293v-24h7v24M639 293v-44h7v44M600 300h59"/><path d="m605 259 15-14 14 6 20-25" stroke-dasharray="2 4"/></g>
+<text x="103" y="229" font-family="Segoe UI,Arial,sans-serif" font-size="10.5" fill="#a4e9dd" letter-spacing="1">ГАЛАКТИКА</text>
+<text x="162" y="262" font-family="Segoe UI,Arial,sans-serif" font-size="16.5" fill="#bafff1" font-weight="700">Открыта</text>
+<text x="162" y="282" font-family="Segoe UI,Arial,sans-serif" font-size="16.5" fill="#bafff1" font-weight="700">система</text>
+<text x="109" y="316" font-family="Segoe UI,Arial,sans-serif" font-size="10.2" fill="#9bc9cb" >Получены координаты</text>
+<text x="109" y="343" font-family="Segoe UI,Arial,sans-serif" font-size="9.5" fill="#9bc9cb" >15 минут назад</text>
+<text x="596" y="229" font-family="Segoe UI,Arial,sans-serif" font-size="10.5" fill="#e7c38b" letter-spacing="1">ЭКОНОМИКА</text>
+<text x="661" y="263" font-family="Segoe UI,Arial,sans-serif" font-size="16.5" fill="#deeff8" font-weight="700">Рынок</text>
+<text x="661" y="283" font-family="Segoe UI,Arial,sans-serif" font-size="16.5" fill="#deeff8" font-weight="700">реагирует</text>
+<text x="603" y="316" font-family="Segoe UI,Arial,sans-serif" font-size="10.2" fill="#9bc9cb" >Новый контракт</text>
+<text x="605" y="343" font-family="Segoe UI,Arial,sans-serif" font-size="9.5" fill="#9bc9cb" >42 минуты назад</text>
+<text x="30" y="33" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#aac8d0" letter-spacing="2.1">C // STATIC CONCEPT PREVIEW</text>
+<text x="30" y="53" font-family="Segoe UI,Arial,sans-serif" font-size="9" fill="#8ca8ad" >ДЕМО-ТЕКСТ · в HTML заголовки динамические</text>
+<text x="450" y="263" font-family="Segoe UI,Arial,sans-serif" font-size="14.4" fill="#ddfff4" font-weight="700" text-anchor="middle">Все новости</text>
+<text x="450" y="280" font-family="Segoe UI,Arial,sans-serif" font-size="8" fill="#96cbca" text-anchor="middle" letter-spacing="1">NEWS UPLINK</text></g>
+</svg>
