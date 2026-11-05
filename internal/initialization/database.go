@@ -5,11 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/fs"
+	"os"
 	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/yomezza/cosmosimulator/internal/chatintegration"
 	"github.com/yomezza/cosmosimulator/internal/fleet"
 	"github.com/yomezza/cosmosimulator/internal/platform/postgres"
 	"github.com/yomezza/cosmosimulator/internal/universe"
@@ -184,6 +186,27 @@ func OpenDatabase(ctx context.Context, dsn, schema string, schemas fs.ReadFileFS
 	if _, e = tx.Exec(ctx, string(upgrade210)); e != nil {
 		return nil, fmt.Errorf("upgrade 0.21.0: %w", e)
 	}
+
+	var chatInstalled bool
+	if e = tx.QueryRow(ctx, `SELECT to_regclass('chat_schema_state') IS NOT NULL`).Scan(&chatInstalled); e != nil {
+		return nil, e
+	}
+	if os.Getenv("CHAT_ENABLED") == "true" || chatInstalled {
+		upgrade240, e := schemas.ReadFile("schema240.sql")
+		if e != nil {
+			return nil, e
+		}
+		if _, e = tx.Exec(ctx, string(upgrade240)); e != nil {
+			return nil, fmt.Errorf("chat migration: %w", e)
+		}
+		if e = chatintegration.Functions(ctx, tx, schema); e != nil {
+			return nil, e
+		}
+		if e = chatintegration.Partitions(ctx, tx, time.Now()); e != nil {
+			return nil, e
+		}
+	}
+
 	var galaxyExists bool
 	if err = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM galaxies WHERE name='Edem')`).Scan(&galaxyExists); err != nil {
 		return nil, err

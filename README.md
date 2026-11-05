@@ -4,7 +4,13 @@ Cosmosimulator — браузерная космическая экономич�
 
 Сервер написан на Go, данные хранятся в PostgreSQL. Интерфейс работает в браузере на HTML, CSS, JavaScript и SVG. Для запуска не нужны Node.js и npm.
 
-**Текущая версия: 0.23.0.** [Что изменилось в выпуске](release-notes/v0.23.0.md).
+**Текущая версия: 0.24.0.** [Что изменилось в выпуске](release-notes/v0.24.0.md).
+
+## Чат · 0.24.0
+
+Добавлена третья независимая Go-служба: избранное с папками, глобальный, планетарный, секторный и корпоративный чаты, личные диалоги/группы. Окно можно перемещать и закреплять на главной. Есть поиск, упоминания, подтверждение прочтения, жалобы и модерация.
+
+Для включения задать `CHAT_ENABLED=true` космической службе, затем запустить сборку Chat с общими `DB_SCHEMA`/БД и отдельными правами. Требуются внешний журнал модераторских удалений и ежедневное обслуживание секций сообщений. [Установка под Windows, права, SCM и восстановление](docs/chat-service/README.ru.md).
 
 ## Что уже работает
 
@@ -76,7 +82,7 @@ $env:PLANET_INTERNAL_URL = 'http://127.0.0.1:8081'
 $env:ADMIN_USERNAME = 'operator'
 $env:ADMIN_PASSWORD = 'REPLACE_WITH_A_UNIQUE_PASSWORD'
 
-.\downloads\cosmosimulator-v0.23.0-windows-amd64.exe
+.\downloads\cosmosimulator-v0.24.0-windows-amd64.exe
 ```
 
 После запуска откройте `http://127.0.0.1:8080`. Для остановки используйте Ctrl+C. После создания администратора уберите `ADMIN_USERNAME` и `ADMIN_PASSWORD` из окружения последующих запусков.
@@ -88,7 +94,7 @@ $env:DATABASE_URL = 'postgres://cosmos:URL_ENCODED_PASSWORD@127.0.0.1:5432/exist
 $env:DB_SCHEMA = 'cosmosimulator'
 $env:PLANET_HTTP_ADDR = '127.0.0.1:8081'
 
-.\downloads\cosmosimulator-planet-v0.23.0-windows-amd64.exe
+.\downloads\cosmosimulator-planet-v0.24.0-windows-amd64.exe
 ```
 
 Обе службы используют одну базу и одну схему. Миграции выполняет космическая служба; планетарная не должна запускаться первой при обновлении схемы. В браузере нужен только порт космической службы: запросы к планетарной проходят через её шлюз.
@@ -122,8 +128,8 @@ go test ./...
 Сборка для Windows x64 из корня репозитория:
 
 ```sh
-CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -buildvcs=false -trimpath -ldflags='-s -w' -o downloads/cosmosimulator-v0.23.0-windows-amd64.exe ./cmd/cosmosimulator
-CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -buildvcs=false -trimpath -ldflags='-s -w' -o downloads/cosmosimulator-planet-v0.23.0-windows-amd64.exe ./cmd/cosmosimulator-planet
+CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -buildvcs=false -trimpath -ldflags='-s -w' -o downloads/cosmosimulator-v0.24.0-windows-amd64.exe ./cmd/cosmosimulator
+CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -buildvcs=false -trimpath -ldflags='-s -w' -o downloads/cosmosimulator-planet-v0.24.0-windows-amd64.exe ./cmd/cosmosimulator-planet
 ```
 
 Управление космическим сервером находится в `internal/server` и профильных Go-пакетах; браузерные ресурсы — в `internal/server/web`. Node/Playwright применяются при разработке и тестировании интерфейса, но не нужны для работы Windows-сборок.

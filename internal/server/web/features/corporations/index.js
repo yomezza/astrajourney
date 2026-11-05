@@ -365,6 +365,7 @@ export function createCorporations({ roots, act, command }) {
         ["warehouse", "Выдача со склада"],
         ["colonize", "Планетарная колонизация"],
         ["planetary.enter", "Посещение планетарных территорий"],
+        ["chat.moderate", "Модерация чата корпорации"],
       ];
       side.append(
         UI.table(
@@ -628,6 +629,13 @@ export function createCorporations({ roots, act, command }) {
     createCorp = false;
   }
   window.addEventListener("actionaccepted", () => drafts.clear());
+  window.addEventListener("chatopenlink", ({ detail }) => {
+    if (detail.kind === "company") {
+      selectedCorp = Number(detail.id);
+      createCorp = false;
+      renderCompanies();
+    }
+  });
   return {
     flagPicker,
     renderCompanies,

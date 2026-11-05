@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"github.com/yomezza/cosmosimulator/internal/chatintegration"
 	"net/http"
 	"strconv"
 
@@ -283,6 +284,21 @@ func (a *Service) AdminPlanetSurface(w http.ResponseWriter, r *http.Request) {
 	if in.Action == "delete" && info.Surface == 0 {
 		reject("Генерация поверхности отсутствует")
 		return
+	}
+	if info.Surface > 0 {
+		ready, e := chatintegration.PrepareSurface(ctx, tx, info.Surface)
+		if e != nil {
+			httpkit.Internal(w, e)
+			return
+		}
+		if !ready {
+			if e = tx.Commit(ctx); e != nil {
+				httpkit.Internal(w, e)
+				return
+			}
+			httpkit.Fail(w, 409, "Подготовка поверхности: служба чата очищает пространственные каналы. Повторите операцию после очистки.")
+			return
+		}
 	}
 	if info.LocalLocations > 0 {
 		// Do not delete planetary-owned data from cosmic. Fence new loads first;

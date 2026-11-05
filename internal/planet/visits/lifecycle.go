@@ -17,7 +17,13 @@ func (a *Service) Check(ctx context.Context, id access.Identity, w Welcome, f sc
 		return err
 	}
 	defer tx.Rollback(context.Background())
-	return check(ctx, tx, id, w, f)
+	if err = check(ctx, tx, id, w, f); err != nil {
+		return err
+	}
+	if _, err = tx.Exec(ctx, `UPDATE planet_visits SET checked_at=clock_timestamp() WHERE user_id=$1 AND checked_at<clock_timestamp()-interval '500 milliseconds'`, id.User); err != nil {
+		return err
+	}
+	return tx.Commit(ctx)
 }
 func check(ctx context.Context, tx pgx.Tx, id access.Identity, w Welcome, f scenestore.Fence) error {
 	if _, err := access.Session(ctx, tx, id.Session); err != nil {

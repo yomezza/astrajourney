@@ -28,6 +28,8 @@ import { initExpedition } from "./features/workspace/index.js";
 import { initStudies } from "./features/research/index.js";
 import { initGalaxy } from "./features/maps/galaxy.js";
 
+import { initChat } from "./features/chat/index.js";
+
 initI18n();
 initTooltip();
 initControls();
@@ -51,6 +53,7 @@ initIdeas();
 initExpedition();
 initStudies();
 initGalaxy();
+initChat();
 
 export const application = {
   session: Session,

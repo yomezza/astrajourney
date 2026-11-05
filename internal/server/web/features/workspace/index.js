@@ -58,10 +58,14 @@ export function initExpedition() {
     const epoch = Session.epoch;
     busy = true;
     try {
-      await api(path, body);
+      const result = await api(path, body);
       if (epoch !== Session.epoch || !Session.signedIn) return false;
       window.dispatchEvent(new Event("actionaccepted"));
-      notify(message);
+      notify(
+        result?.status === "deleting"
+          ? "Корпорация удаляется. Ожидается очистка чата."
+          : message,
+      );
       await refresh(true);
       return true;
     } catch (error) {

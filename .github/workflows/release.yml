@@ -16,6 +16,7 @@ jobs:
           sha256sum -c downloads/SHA256SUMS
           test -f "release-notes/$RELEASE_TAG.md"
           test -f "downloads/cosmosimulator-planet-${RELEASE_TAG}-windows-amd64.exe"
+          test -f "downloads/cosmosimulator-chat-${RELEASE_TAG}-windows-amd64.exe"
         env:
           RELEASE_TAG: ${{ github.ref_name }}
       - name: Publish Windows executable and checksums
@@ -28,6 +29,7 @@ jobs:
           gh release create "$RELEASE_TAG" \
             "downloads/cosmosimulator-${RELEASE_TAG}-windows-amd64.exe" \
             "downloads/cosmosimulator-planet-${RELEASE_TAG}-windows-amd64.exe" \
+            "downloads/cosmosimulator-chat-${RELEASE_TAG}-windows-amd64.exe" \
             downloads/SHA256SUMS \
             --verify-tag \
             --title "Cosmosimulator $RELEASE_TAG" \

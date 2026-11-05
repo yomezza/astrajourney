@@ -19,6 +19,7 @@ var Assets embed.FS
 func (a *App) Handler() http.Handler {
 	m := http.NewServeMux()
 	m.HandleFunc("GET /api/admin/metrics", a.metricsView)
+	m.HandleFunc("POST /api/admin/chat/moderator", a.Administration.ChatModerator)
 	target, _ := planetEndpoint()
 	m.HandleFunc("GET /api/admin/services", a.Administration.Services(administration.ServicesOptions{Version: Version, Started: a.startedAt, PlanetURL: target, PlanetEnabled: func() bool { return a.Transfer.Enabled }, ExpectedSchema: planetruntime.SchemaVersion}))
 	m.HandleFunc("GET /api/health", func(w http.ResponseWriter, r *http.Request) {
@@ -49,6 +50,7 @@ func (a *App) Handler() http.Handler {
 	m.HandleFunc("GET /api/admin/planet/surface", a.Colonies.AdminPlanetSurface)
 	m.HandleFunc("POST /api/admin/planet/surface", a.Colonies.AdminPlanetSurface)
 	m.Handle("GET /planet/", a.planetProxy())
+	m.Handle("GET /chat/", a.chatProxy())
 	m.HandleFunc("POST /api/planet/handoff", a.Transfer.Handoff)
 	m.HandleFunc("GET /api/planet/visit", a.Transfer.State)
 	m.HandleFunc("POST /api/planet/return", a.Transfer.Return)

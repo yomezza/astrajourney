@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5"
 
 	"github.com/yomezza/cosmosimulator/internal/account"
+	"github.com/yomezza/cosmosimulator/internal/chatintegration"
 	"github.com/yomezza/cosmosimulator/internal/commands"
 	tradecatalog "github.com/yomezza/cosmosimulator/internal/commerce/catalog"
 	"github.com/yomezza/cosmosimulator/internal/events"
@@ -87,6 +88,11 @@ func (a *Service) CorporationCommand(ctx context.Context, tx pgx.Tx, u account.U
 			return true, err
 		}
 	}
+	if cid > 0 {
+		if e := chatintegration.CompanyWritable(ctx, tx, cid); e != nil {
+			return true, e
+		}
+	}
 	switch in.Action {
 	case "company_deposit", "company_withdraw":
 		if in.Amount < 1 || in.Amount > wallet.MaxCredits {
@@ -118,7 +124,7 @@ func (a *Service) CorporationCommand(ctx context.Context, tx pgx.Tx, u account.U
 			return true, errors.New("Некорректное название роли")
 		}
 		for _, p := range in.Permissions {
-			if p != "finance" && p != "manage" && p != "projects" && p != "warehouse" && p != "colonize" && p != "planetary.enter" {
+			if p != "finance" && p != "manage" && p != "projects" && p != "warehouse" && p != "colonize" && p != "planetary.enter" && p != "chat.moderate" {
 				return true, errors.New("Неизвестное полномочие")
 			}
 		}
@@ -186,6 +192,11 @@ func (a *Service) CorporationCommand(ctx context.Context, tx pgx.Tx, u account.U
 		_ = json.Unmarshal(raw, &stock)
 		if pending || fleet.CargoSize(stock) > 0 {
 			return true, errors.New("Завершите проекты и освободите корпоративный склад")
+		}
+		if installed, e := chatintegration.Installed(ctx, tx); e != nil {
+			return true, e
+		} else if installed {
+			return true, chatintegration.RequestCompany(ctx, tx, cid)
 		}
 		if err = wallet.Credit(ctx, tx, u.ID, balance); err != nil {
 			return true, err

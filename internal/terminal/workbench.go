@@ -8,6 +8,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
+	"github.com/yomezza/cosmosimulator/internal/chatintegration"
 	"github.com/yomezza/cosmosimulator/internal/commands"
 	tradecatalog "github.com/yomezza/cosmosimulator/internal/commerce/catalog"
 	"github.com/yomezza/cosmosimulator/internal/corporations"
@@ -221,6 +222,20 @@ func (a *Service) Command(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	pendingDeletion := false
+	if in.Action == "company_dissolve" {
+		installed, e := chatintegration.Installed(ctx, tx)
+		if e != nil {
+			httpkit.Internal(w, e)
+			return
+		}
+		if installed {
+			if e = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM companies WHERE owner_id=$1 AND chat_deleting)`, u.ID).Scan(&pendingDeletion); e != nil {
+				httpkit.Internal(w, e)
+				return
+			}
+		}
+	}
 	if err = events.RecordEvent(ctx, tx, u.ID, in.Action, map[string]any{"ship": s.ID, "star": s.Star, "resource": in.Resource, "quantity": in.Quantity, "amount": in.Amount}); err != nil {
 		httpkit.Internal(w, err)
 		return
@@ -232,6 +247,10 @@ func (a *Service) Command(w http.ResponseWriter, r *http.Request) {
 	}
 	if err != nil {
 		httpkit.Internal(w, err)
+		return
+	}
+	if pendingDeletion {
+		httpkit.Reply(w, 202, map[string]any{"ok": true, "status": "deleting"})
 		return
 	}
 	httpkit.Reply(w, 200, map[string]bool{"ok": true})

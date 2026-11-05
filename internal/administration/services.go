@@ -58,7 +58,7 @@ func (a *Service) Services(o ServicesOptions) http.HandlerFunc {
 		defer cancel()
 		cosmic := a.cosmicCard(ctx, o)
 		planet := a.planetCard(ctx, o)
-		httpkit.Reply(w, 200, map[string]any{"checked_at": time.Now().UTC(), "services": []ServiceCard{cosmic, planet}})
+		httpkit.Reply(w, 200, map[string]any{"checked_at": time.Now().UTC(), "services": []ServiceCard{cosmic, planet, a.chatCard(ctx)}})
 	}
 }
 func (a *Service) cosmicCard(ctx context.Context, o ServicesOptions) ServiceCard {

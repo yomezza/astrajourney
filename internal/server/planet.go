@@ -40,3 +40,23 @@ func (a *App) planetProxy() http.Handler {
 	})
 }
 func (a *App) runTransfers(ctx context.Context) { a.Transfer.Run(ctx) }
+
+func (a *App) chatProxy() http.Handler {
+	raw := os.Getenv("CHAT_INTERNAL_URL")
+	if raw == "" {
+		raw = "http://127.0.0.1:8082"
+	}
+	u, err := url.Parse(raw)
+	if err != nil || u.Host == "" || u.User != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Path != "" || u.RawQuery != "" || u.Fragment != "" {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { httpkit.Fail(w, 503, "chat_configuration_error") })
+	}
+	proxy := httputil.NewSingleHostReverseProxy(u)
+	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, e error) { httpkit.Fail(w, 503, "chat_unavailable") }
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if os.Getenv("CHAT_ENABLED") != "true" {
+			httpkit.Fail(w, 503, "chat_disabled")
+			return
+		}
+		proxy.ServeHTTP(w, r)
+	})
+}

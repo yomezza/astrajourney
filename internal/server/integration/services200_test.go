@@ -28,7 +28,7 @@ func TestAdminServices200(t *testing.T) {
 		if err := json.Unmarshal(r.Body.Bytes(), &data); err != nil {
 			t.Fatal(err)
 		}
-		if len(data.Services) != 2 || data.Services[0].Status != "ready" || data.Services[1].ID != "planet" || data.Services[1].Status != want {
+		if len(data.Services) != 3 || data.Services[2].ID != "chat" || data.Services[0].Status != "ready" || data.Services[1].ID != "planet" || data.Services[1].Status != want {
 			t.Fatalf("status report: %s", r.Body.String())
 		}
 		for _, secret := range []string{"password_hash", "token_hash", "DATABASE_URL"} {

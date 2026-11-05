@@ -7,6 +7,7 @@
     <title>Cosmosimulator · Edem</title>
     <link rel="stylesheet" href="styles/tokens.css" />
     <link rel="stylesheet" href="styles/terminal.css" />
+    <link rel="stylesheet" href="styles/chat.css" />
     <script type="module" src="bootstrap.js"></script>
   </head>
   <body>
@@ -40,7 +41,7 @@
     </div>
     <header>
       <a class="brand" href="/"
-        >◈ COSMOSIMULATOR <small>EDEM / 0.23.0</small></a
+        >◈ COSMOSIMULATOR <small>EDEM / 0.24.0</small></a
       >
       <div class="header-actions">
         <div
@@ -226,10 +227,13 @@
           >Планировщик задач</span
         ></button
       ><button
-        class="sidebar-bottom"
-        data-open="guide"
-        data-nav="Руководство пилота"
+        class="sidebar-bottom chat-bottom"
+        data-open="chat"
+        data-nav="Чат"
       >
+        <span class="nav-icon">▧</span
+        ><span class="nav-label" data-i18n="Чат">Чат</span></button
+      ><button data-open="guide" data-nav="Руководство пилота">
         <span class="nav-icon">▤</span
         ><span class="nav-label" data-i18n="Руководство пилота"
           >Руководство пилота</span
@@ -389,7 +393,7 @@
     <footer>
       <span id="server-status" class="signal"
         ><span data-i18n="● СЕРВЕР ОНЛАЙН">● СЕРВЕР ОНЛАЙН</span></span
-      ><span>COSMOSIMULATOR · v0.23.0</span>
+      ><span>COSMOSIMULATOR · v0.24.0</span>
     </footer>
     <div id="toast" role="status" hidden></div>
     <div id="tooltip" role="tooltip" hidden></div>

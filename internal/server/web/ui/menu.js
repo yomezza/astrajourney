@@ -60,7 +60,14 @@ export function initMenu() {
           menu
             .querySelectorAll("[aria-expanded]")
             .forEach((e) => e.setAttribute("aria-expanded", "false"));
-          const sub = node("div", undefined, "context-menu context-submenu");
+          const sub = node(
+            "div",
+            undefined,
+            "context-menu context-submenu" +
+              (context.classList.contains("chat-compact")
+                ? " chat-compact"
+                : ""),
+          );
           sub.opener = b;
           sub.setAttribute("role", "menu");
           sub.onkeydown = menuKeys;
@@ -127,6 +134,10 @@ export function initMenu() {
   UI.menu = function menu(items, x, y) {
     hideMenus();
     anchor = document.activeElement;
+    context.classList.toggle(
+      "chat-compact",
+      !!anchor?.closest(".chat-root,#window-chat-roster"),
+    );
     populateMenu(context, items);
     overlayHost(anchor).append(context);
     context.hidden = false;

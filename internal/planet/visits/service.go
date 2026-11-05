@@ -160,7 +160,7 @@ func (a *Service) Activate(ctx context.Context, id access.Identity, in Intent, s
 		w.X, w.Y = site.X, site.Y
 		_, err = tx.Exec(ctx, `INSERT INTO planet_characters(user_id,last_surface,last_sector,last_revision,x_q,y_q) VALUES($1,$2,$3,$4,$5,$6) ON CONFLICT(user_id) DO UPDATE SET last_surface=EXCLUDED.last_surface,last_sector=EXCLUDED.last_sector,last_revision=EXCLUDED.last_revision,x_q=EXCLUDED.x_q,y_q=EXCLUDED.y_q,position_version=planet_characters.position_version+1`, id.User, in.Key.Surface, in.Key.Sector, in.Key.Revision, w.X, w.Y)
 		if err == nil {
-			err = tx.QueryRow(ctx, `INSERT INTO planet_visits(user_id,colony,ship,visit_id,state,generation,runtime_fence,connection_epoch,current_surface,current_sector,revision,landing_site,session_hash) VALUES($1,$2,$3,$4,'active',$5,$6,1,$7,$8,$9,$10,$11) ON CONFLICT(user_id) DO UPDATE SET colony=EXCLUDED.colony,ship=EXCLUDED.ship,visit_id=EXCLUDED.visit_id,state='active',generation=EXCLUDED.generation,runtime_fence=EXCLUDED.runtime_fence,connection_epoch=planet_visits.connection_epoch+1,current_surface=EXCLUDED.current_surface,current_sector=EXCLUDED.current_sector,revision=EXCLUDED.revision,landing_site=EXCLUDED.landing_site,session_hash=EXCLUDED.session_hash,end_reason='',entered_at=now() RETURNING connection_epoch`, id.User, site.Colony, in.Ship, w.Visit, in.Generation, f.Number, in.Key.Surface, in.Key.Sector, in.Key.Revision, in.Site, id.Session).Scan(&w.Epoch)
+			err = tx.QueryRow(ctx, `INSERT INTO planet_visits(user_id,colony,ship,visit_id,state,generation,runtime_fence,connection_epoch,current_surface,current_sector,revision,landing_site,session_hash,checked_at) VALUES($1,$2,$3,$4,'active',$5,$6,1,$7,$8,$9,$10,$11,clock_timestamp()) ON CONFLICT(user_id) DO UPDATE SET colony=EXCLUDED.colony,ship=EXCLUDED.ship,visit_id=EXCLUDED.visit_id,state='active',generation=EXCLUDED.generation,runtime_fence=EXCLUDED.runtime_fence,connection_epoch=planet_visits.connection_epoch+1,current_surface=EXCLUDED.current_surface,current_sector=EXCLUDED.current_sector,revision=EXCLUDED.revision,landing_site=EXCLUDED.landing_site,session_hash=EXCLUDED.session_hash,end_reason='',entered_at=now(),checked_at=clock_timestamp() RETURNING connection_epoch`, id.User, site.Colony, in.Ship, w.Visit, in.Generation, f.Number, in.Key.Surface, in.Key.Sector, in.Key.Revision, in.Site, id.Session).Scan(&w.Epoch)
 		}
 		if err == nil {
 			_, err = tx.Exec(ctx, `INSERT INTO planet_handoff_uses(handoff_id,visit_id) VALUES($1,$2)`, in.Handoff, w.Visit)
@@ -174,7 +174,7 @@ func (a *Service) Activate(ctx context.Context, id access.Identity, in Intent, s
 		if !s.Walkable(w.X/1024, w.Y/1024) {
 			return w, scene.ErrSource
 		}
-		err = tx.QueryRow(ctx, `UPDATE planet_visits SET connection_epoch=connection_epoch+1,runtime_fence=$3,state='active',session_hash=$4 WHERE user_id=$1 AND visit_id=$2 AND generation=$5 AND state IN('active','disconnected') RETURNING connection_epoch`, id.User, in.Visit, f.Number, id.Session, in.Generation).Scan(&w.Epoch)
+		err = tx.QueryRow(ctx, `UPDATE planet_visits SET connection_epoch=connection_epoch+1,runtime_fence=$3,state='active',session_hash=$4,checked_at=clock_timestamp() WHERE user_id=$1 AND visit_id=$2 AND generation=$5 AND state IN('active','disconnected') RETURNING connection_epoch`, id.User, in.Visit, f.Number, id.Session, in.Generation).Scan(&w.Epoch)
 	}
 	if err != nil {
 		return w, err

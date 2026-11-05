@@ -60,10 +60,11 @@ jobs:
           go-version-file: go.mod
       - name: Terminal browser against real Go and PostgreSQL
         working-directory: .
-        run: go test ./internal/server/integration -run '^(TestTerminalBrowser|TestPlanetBrowser180|TestPlanetTransitionsBrowser210)$' -count=1 -timeout=5m -v
+        run: go test ./internal/server/integration -run '^(TestTerminalBrowser|TestPlanetBrowser180|TestPlanetTransitionsBrowser210|TestChat240FiftyConnections)$' -count=1 -timeout=5m -v
         env:
           RUN_TERMINAL_BROWSER: '1'
           RUN_PLANET_BROWSER: '1'
+          RUN_CHAT_BROWSER: '1'
   server-contracts:
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -89,5 +90,7 @@ jobs:
         with:
           go-version-file: go.mod
       - run: go test ./... -count=1 -timeout=15m
-      - run: go test -race ./... -count=1 -timeout=5m -run '^(TestConcurrentLogistics080|TestLastHullPurchase040|TestBatchLogistics100|TestOpenDoesNotInitializeGame|TestDatabaseConfig|TestColdCacheSaturatedPool|TestBenchmarkCompositionIsolation|TestPlanetFoundation150|TestPlanetSchema150|TestPlanetFencing150|TestPlanetRestrictedRole150|TestLandingBackfillAndConcurrentCompletion160|TestLocalScenes170|TestLocalSceneFencingAndSourceCAS170|TestLocalSceneRetirement170|TestRegistry.*|TestPlanetHandoff180|TestPlanetTicketRecovery180|TestPlanetCorporateAndAtomicActivation180|TestAdminServices200|TestPlanetTransitions210|TestPlanetTransitionRevocation210|TestPlanetTransitionCapacity210|TestPlanetPresence200|TestPlanetDatabaseRecovery200|TestSectorPresenceCoalesces|TestSlowStreamDeadline|TestPlanetMovement190|TestPlanetCheckpoints190|TestMovementDistanceAndLifecycle|TestLatestGoalAndPermit|TestBoundedPathsAndCorners|TestConcurrentBoundedObservations|TestServiceMetrics230|TestAuthoritativeFacing220)$'
+        env:
+          CHAT_BACKUP_DOCKER_CONTAINER: ${{ job.services.postgres.id }}
+      - run: go test -race ./... -count=1 -timeout=5m -run '^(TestConcurrentLogistics080|TestLastHullPurchase040|TestBatchLogistics100|TestOpenDoesNotInitializeGame|TestDatabaseConfig|TestColdCacheSaturatedPool|TestBenchmarkCompositionIsolation|TestPlanetFoundation150|TestPlanetSchema150|TestPlanetFencing150|TestPlanetRestrictedRole150|TestLandingBackfillAndConcurrentCompletion160|TestLocalScenes170|TestLocalSceneFencingAndSourceCAS170|TestLocalSceneRetirement170|TestRegistry.*|TestPlanetHandoff180|TestPlanetTicketRecovery180|TestPlanetCorporateAndAtomicActivation180|TestAdminServices200|TestPlanetTransitions210|TestPlanetTransitionRevocation210|TestPlanetTransitionCapacity210|TestPlanetPresence200|TestPlanetDatabaseRecovery200|TestSectorPresenceCoalesces|TestSlowStreamDeadline|TestPlanetMovement190|TestPlanetCheckpoints190|TestMovementDistanceAndLifecycle|TestLatestGoalAndPermit|TestBoundedPathsAndCorners|TestConcurrentBoundedObservations|TestServiceMetrics230|TestAuthoritativeFacing220|TestChat240Transactions|TestChat240CorporateFencesAndCleanup|TestChat240LateCommittedOutbox|TestChat240FiftyConnections|TestChat240SpatialPresence)$'
       - run: go vet ./...
