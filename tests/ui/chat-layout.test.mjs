@@ -31,18 +31,20 @@ async function chat(t) {
             presence: [],
             public_new: [],
           }
-        : path === "history"
-          ? [message]
-          : path === "favorites"
-            ? [
-                {
-                  ...message,
-                  kind: "copy",
-                  saved_at: message.sent_at,
-                  folder_id: "folder-1",
-                },
-              ]
-            : [];
+        : path === "roster"
+          ? [{ id: "72", name: "TestPilot", tag: "TEST", online: true }]
+          : path === "history"
+            ? [message]
+            : path === "favorites"
+              ? [
+                  {
+                    ...message,
+                    kind: "copy",
+                    saved_at: message.sent_at,
+                    folder_id: "folder-1",
+                  },
+                ]
+              : [];
     return route.fulfill({ json: body });
   });
   await g.page.routeWebSocket("**/chat/ws/v1", (ws) => {
@@ -72,6 +74,18 @@ test("chat follows v13 spacing, shared header and compact menus for click and ri
     root = g.page.locator(".chat-root"),
     dialog = g.page.locator("#window-chat");
   assert.equal(await dialog.locator(".module-titlebar").count(), 1);
+  const geometry = await dialog.evaluate((d) => {
+    const r = d.getBoundingClientRect(),
+      c = d.querySelector(".chat-root").getBoundingClientRect();
+    return { right: r.right - c.right, left: c.left - r.left };
+  });
+  assert.ok(geometry.right <= 2, JSON.stringify(geometry));
+  assert.ok(geometry.left <= 2);
+  assert.equal(
+    await g.page.locator('#sidebar [data-open="chat"] svg').count(),
+    1,
+  );
+
   assert.equal(await dialog.locator(":scope > .module-titlebar").count(), 0);
   assert.equal(await root.locator(".chat-reply-preview").isVisible(), false);
   assert.equal(await root.locator(".chat-search-panel").isVisible(), false);
@@ -90,6 +104,20 @@ test("chat follows v13 spacing, shared header and compact menus for click and ri
     await g.page.locator("#tooltip .chat-service-square").count(),
     2,
   );
+  await root.getByRole("button", { name: "Игроки", exact: true }).click();
+  const roster = g.page.locator("#window-chat-roster");
+  await roster.locator(".chat-player-name").waitFor();
+  assert.equal(
+    await roster.locator(".chat-player-name strong").textContent(),
+    "TestPilot",
+  );
+  assert.equal(
+    await roster.locator(".chat-player-name span").textContent(),
+    "[TEST]",
+  );
+  await roster.getByRole("searchbox").fill("missing");
+  assert.equal(await roster.locator(".chat-players-total").textContent(), "0");
+  await g.page.evaluate(() => window.__testApp.Modules.close("chat-roster"));
   const header = root.locator(".chat-titlebar");
   const old = await dialog.boundingBox(),
     hr = await header.boundingBox();

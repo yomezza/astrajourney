@@ -131,6 +131,28 @@ func (s *Service) Query(ctx context.Context, u Identity, route string, t Target,
 		default:
 			result, e = list(ctx, tx, `SELECT u.id::text,u.username AS name FROM chat_ws_leases l JOIN users u ON u.id=l.user_id WHERE l.expires_at>clock_timestamp() ORDER BY u.username LIMIT 200`)
 		}
+		if e == nil {
+			people := result.([]map[string]any)
+			ids := []int64{}
+			for _, person := range people {
+				id, _ := strconv.ParseInt(person["id"].(string), 10, 64)
+				ids = append(ids, id)
+			}
+			details, err := list(ctx, tx, `SELECT u.id::text,COALESCE(c.tag,'') AS tag,EXISTS(SELECT 1 FROM chat_ws_leases l WHERE l.user_id=u.id AND l.expires_at>clock_timestamp()) AS online FROM users u LEFT JOIN companies c ON c.id=u.company_id WHERE u.id=ANY($1::bigint[])`, ids)
+			if err != nil {
+				return nil, err
+			}
+			byID := map[string]map[string]any{}
+			for _, d := range details {
+				byID[d["id"].(string)] = d
+			}
+			for _, person := range people {
+				d := byID[person["id"].(string)]
+				person["tag"] = d["tag"]
+				person["online"] = d["online"]
+			}
+		}
+
 	case "private.search":
 		if len([]rune(search)) < 3 || len([]rune(search)) > 100 {
 			return nil, failure("search_too_short")

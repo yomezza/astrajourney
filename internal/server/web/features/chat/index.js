@@ -590,7 +590,7 @@ export function initChat() {
     }
     folderbar.hidden = tab !== "favorites";
     actions.replaceChildren();
-    if (tab !== "favorites") actions.append(button("Пилоты в чате", roster));
+    if (tab !== "favorites") actions.append(button("Игроки", roster));
     error.hidden = true;
     count();
     const oldScroll = area.scrollTop,
@@ -1067,7 +1067,28 @@ export function initChat() {
       panel = Modules.create("chat-roster", "Пилоты в чате", 420, 540, {
         private: true,
       });
-    panel.replaceChildren();
+    panel.classList.add("chat-players-content");
+    const summary = n("div", undefined, "chat-players-summary"),
+      filter = n("div", undefined, "chat-players-filter"),
+      search = n("input"),
+      list = n("div", undefined, "chat-players-list"),
+      count = n("span", String(rows.length), "chat-players-total");
+    summary.append(n("span", title()), count);
+    search.type = "search";
+    search.placeholder = tr("Поиск игроков");
+    search.setAttribute("aria-label", search.placeholder);
+    filter.append(search);
+    panel.replaceChildren(summary, filter, list);
+    search.oninput = () => {
+      let visible = 0;
+      for (const row of list.children) {
+        row.hidden = !row.dataset.search.includes(
+          search.value.trim().toLocaleLowerCase(),
+        );
+        if (!row.hidden) visible++;
+      }
+      count.textContent = String(visible);
+    };
     if (["private", "corporation"].includes(tab))
       panel.append(
         button("Упомянуть всех", () => {
@@ -1076,14 +1097,32 @@ export function initChat() {
         }),
       );
     for (const u of rows) {
-      const row = n(
-        "div",
-        undefined,
-        "chat-player-row chat-player-row-compact",
+      const row = n("div", undefined, "chat-player-row with-manage");
+      row.dataset.search = (u.name + " " + (u.tag || "")).toLocaleLowerCase();
+      const status = n(
+          "span",
+          undefined,
+          "chat-player-presence" + (u.online ? "" : " offline"),
+        ),
+        info = n("div", undefined, "chat-player-name"),
+        role = n(
+          "span",
+          u.owner ? tr("Владелец") : "",
+          "chat-player-role" + (u.owner ? " owner" : ""),
+        );
+      status.dataset.help = u.online ? "Онлайн" : "Недоступна";
+      info.append(
+        n("strong", u.name),
+        n("span", u.tag ? "[" + u.tag + "]" : ""),
       );
-      row.append(n("span", u.name.slice(0, 1).toUpperCase(), "chat-avatar"));
+      info.onclick = () => mentionUser(u);
       row.append(
-        button(u.name, () => mentionUser(u)),
+        status,
+        n("span", u.name.slice(0, 1).toUpperCase(), "chat-player-avatar"),
+        info,
+        role,
+      );
+      row.append(
         button("⋯", (event) => {
           const items = [
             { label: "Упомянуть", action: () => mentionUser(u) },
@@ -1169,7 +1208,7 @@ export function initChat() {
           });
         }),
       );
-      panel.append(row);
+      list.append(row);
     }
     Modules.open("chat-roster");
   }

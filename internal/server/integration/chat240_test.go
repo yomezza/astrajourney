@@ -218,6 +218,9 @@ func TestChat240RestrictedRole(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
+	if _, err := s.Query(f.ctx, u, "roster", chat.Target{Kind: "corporation"}, "", "", ""); err != nil {
+		t.Fatal("restricted roster", err)
+	}
 	payload := json.RawMessage(`{"kind":"corporation","body":"Scoped runtime access"}`)
 	if _, e = s.Execute(f.ctx, u, l, chat.Command{Type: "message.send", Request: chat.UUID(), Payload: payload}); e != nil {
 		t.Fatal("send via narrow functions", e)

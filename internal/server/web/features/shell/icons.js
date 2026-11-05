@@ -4,6 +4,7 @@ const n = (...args) => UI.node(...args),
   tr = (s) => I18n.t(s);
 export function initIcons() {
   const paths = {
+    chat: "M5 5h14v11H9l-4 3V5zM8 9h8M8 13h5",
     galaxy: "M12 3v18M3 12h18M5 5l14 14M5 19L19 5",
     ship: "M3 17L21 3l-6 18-4-8-8 4z",
     research: "M4 20l9-9m-6-7c5-2 10 1 13 6l-4 3c-1-4-3-6-7-6z",

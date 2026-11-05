@@ -1927,3 +1927,31 @@ body.chat-docked .workspace-intro {
   background: rgba(28, 41, 53, calc(var(--chat-alpha) * 0.98));
   border-bottom: 1px solid #40505b;
 }
+/* The window shell reserves a native scrollbar even when overflow is hidden.
+   Only the message feed scrolls: do not reserve a second gutter beside it. */
+#window-chat > .module-content {
+  scrollbar-gutter: auto;
+  overflow: hidden;
+  width: 100%;
+  padding: 0;
+}
+#window-chat-roster .chat-players-content {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+  scrollbar-gutter: auto;
+}
+#window-chat-roster .chat-players-filter input {
+  width: 100%;
+  margin: 0;
+}
+#window-chat-roster .chat-player-row.with-manage {
+  grid-template-columns: 8px 29px minmax(0, 1fr) auto 24px;
+}
+#window-chat-roster .chat-player-row > button {
+  min-height: 24px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
