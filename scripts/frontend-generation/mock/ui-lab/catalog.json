@@ -1,0 +1,6160 @@
+{
+  "schema_version": 1,
+  "origin": "Cosmosimulator original web v0.23.0 and approved frontend-generation v13; source paths verified in repository",
+  "updated_at": "2026-11-05",
+  "source_root": "internal/server/web/",
+  "catalog_status": "work-in-progress",
+  "categories": [
+    {
+      "id": "buttons",
+      "name_ru": "Кнопки",
+      "name_en": "Buttons",
+      "icon": "mouse-pointer-click",
+      "count": 17
+    },
+    {
+      "id": "menus",
+      "name_ru": "Контекстные меню",
+      "name_en": "Context menus",
+      "icon": "menu",
+      "count": 8
+    },
+    {
+      "id": "pickers",
+      "name_ru": "Выбор значения",
+      "name_en": "Pickers & dropdowns",
+      "icon": "list-filter",
+      "count": 9
+    },
+    {
+      "id": "fields",
+      "name_ru": "Поля и формы",
+      "name_en": "Fields & forms",
+      "icon": "text-cursor-input",
+      "count": 13
+    },
+    {
+      "id": "windows",
+      "name_ru": "Окна и диалоги",
+      "name_en": "Windows & dialogs",
+      "icon": "panels-top-left",
+      "count": 8
+    },
+    {
+      "id": "navigation",
+      "name_ru": "Вкладки и навигация",
+      "name_en": "Tabs & navigation",
+      "icon": "panel-left",
+      "count": 8
+    },
+    {
+      "id": "tables",
+      "name_ru": "Таблицы и деревья",
+      "name_en": "Tables & trees",
+      "icon": "table",
+      "count": 11
+    },
+    {
+      "id": "cards",
+      "name_ru": "Карточки и панели",
+      "name_en": "Cards & panels",
+      "icon": "layout-grid",
+      "count": 10
+    },
+    {
+      "id": "status",
+      "name_ru": "Прогресс и статусы",
+      "name_en": "Progress & status",
+      "icon": "gauge",
+      "count": 10
+    },
+    {
+      "id": "tooltips",
+      "name_ru": "Подсказки и уведомления",
+      "name_en": "Tooltips & notices",
+      "icon": "message-circle",
+      "count": 7
+    },
+    {
+      "id": "maps",
+      "name_ru": "Карты и HUD",
+      "name_en": "Maps & HUD",
+      "icon": "orbit",
+      "count": 13
+    },
+    {
+      "id": "chat",
+      "name_ru": "Чат v13",
+      "name_en": "Chat v13",
+      "icon": "messages-square",
+      "count": 10
+    },
+    {
+      "id": "studies",
+      "name_ru": "Исследования v13",
+      "name_en": "Research v13",
+      "icon": "scan-search",
+      "count": 7
+    },
+    {
+      "id": "graphics",
+      "name_ru": "Голограммы и SVG",
+      "name_en": "Holograms & SVG",
+      "icon": "sparkles",
+      "count": 7
+    },
+    {
+      "id": "drag",
+      "name_ru": "Перетаскивание",
+      "name_en": "Drag & drop",
+      "icon": "move",
+      "count": 4
+    },
+    {
+      "id": "corporation",
+      "name_ru": "Флаги и корпорации",
+      "name_en": "Flags & corporations",
+      "icon": "flag",
+      "count": 4
+    },
+    {
+      "id": "admin",
+      "name_ru": "Административные элементы",
+      "name_en": "Administration",
+      "icon": "shield",
+      "count": 5
+    },
+    {
+      "id": "shell",
+      "name_ru": "Системный интерфейс",
+      "name_en": "Application shell",
+      "icon": "monitor",
+      "count": 5
+    }
+  ],
+  "components": [
+    {
+      "id": "ui.button.standard",
+      "name_ru": "Стандартная кнопка",
+      "name_en": "Standard button",
+      "short_ru": "КН",
+      "short_en": "SB",
+      "category": "buttons",
+      "subcategory": "core",
+      "type": "button",
+      "variant": "core",
+      "renderer": "button",
+      "source": [
+        "internal/server/web/ui/actions.js",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "css": [
+        ".terminal-action"
+      ],
+      "uses": [
+        "Рынок",
+        "Корабль"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Стандартная кнопка — интерактивный пример с вымышленными данными.",
+      "description_en": "Standard button — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/actions.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.button.compact",
+      "name_ru": "Компактная кнопка",
+      "name_en": "Compact action",
+      "short_ru": "КК",
+      "short_en": "CA",
+      "category": "buttons",
+      "subcategory": "compact",
+      "type": "button",
+      "variant": "compact",
+      "renderer": "button",
+      "source": [
+        "internal/server/web/ui/actions.js",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "css": [
+        ".terminal-action"
+      ],
+      "uses": [
+        "Панели управления"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Компактная кнопка — интерактивный пример с вымышленными данными.",
+      "description_en": "Compact action — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/actions.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.button.primary",
+      "name_ru": "Основное действие",
+      "name_en": "Primary action",
+      "short_ru": "ОД",
+      "short_en": "PA",
+      "category": "buttons",
+      "subcategory": "primary",
+      "type": "button",
+      "variant": "primary",
+      "renderer": "button",
+      "source": [
+        "internal/server/web/ui/actions.js",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "css": [
+        ".terminal-action"
+      ],
+      "uses": [
+        "Рынок",
+        "Формы"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Основное действие — интерактивный пример с вымышленными данными.",
+      "description_en": "Primary action — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/actions.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.button.secondary",
+      "name_ru": "Второстепенное действие",
+      "name_en": "Secondary action",
+      "short_ru": "ВД",
+      "short_en": "SA",
+      "category": "buttons",
+      "subcategory": "secondary",
+      "type": "button",
+      "variant": "secondary",
+      "renderer": "button",
+      "source": [
+        "internal/server/web/ui/actions.js",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "css": [
+        ".terminal-action"
+      ],
+      "uses": [
+        "Все модули"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Второстепенное действие — интерактивный пример с вымышленными данными.",
+      "description_en": "Secondary action — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/actions.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.button.icon",
+      "name_ru": "Кнопка с иконкой",
+      "name_en": "Icon button",
+      "short_ru": "ИК",
+      "short_en": "IB",
+      "category": "buttons",
+      "subcategory": "icon",
+      "type": "button",
+      "variant": "icon",
+      "renderer": "button",
+      "source": [
+        "internal/server/web/ui/actions.js",
+        "internal/server/web/ui/windows.js"
+      ],
+      "css": [
+        ".terminal-action"
+      ],
+      "uses": [
+        "Заголовки окон"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Кнопка с иконкой — интерактивный пример с вымышленными данными.",
+      "description_en": "Icon button — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/actions.js",
+        "internal/server/web/ui/windows.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.button.icon-label",
+      "name_ru": "Иконка и текст",
+      "name_en": "Icon plus label",
+      "short_ru": "ИТ",
+      "short_en": "IPL",
+      "category": "buttons",
+      "subcategory": "icon-text",
+      "type": "button",
+      "variant": "icon-text",
+      "renderer": "button",
+      "source": [
+        "internal/server/web/ui/actions.js",
+        "internal/server/web/features/shell/navigation.js"
+      ],
+      "css": [
+        ".terminal-action"
+      ],
+      "uses": [
+        "Навигация"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Иконка и текст — интерактивный пример с вымышленными данными.",
+      "description_en": "Icon plus label — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/actions.js",
+        "internal/server/web/features/shell/navigation.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.button.danger",
+      "name_ru": "Опасное действие",
+      "name_en": "Destructive action",
+      "short_ru": "ОП",
+      "short_en": "DA",
+      "category": "buttons",
+      "subcategory": "danger",
+      "type": "button",
+      "variant": "danger",
+      "renderer": "button",
+      "source": [
+        "internal/server/web/ui/confirm.js",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "css": [
+        ".terminal-action"
+      ],
+      "uses": [
+        "Колонии",
+        "Администрирование"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Опасное действие — интерактивный пример с вымышленными данными.",
+      "description_en": "Destructive action — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/confirm.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.button.confirm",
+      "name_ru": "Подтверждение",
+      "name_en": "Confirm button",
+      "short_ru": "ПД",
+      "short_en": "CB",
+      "category": "buttons",
+      "subcategory": "confirm",
+      "type": "button",
+      "variant": "confirm",
+      "renderer": "button",
+      "source": [
+        "internal/server/web/ui/confirm.js",
+        "internal/server/web/ui/actions.js"
+      ],
+      "css": [
+        ".terminal-action"
+      ],
+      "uses": [
+        "Модальные диалоги"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Подтверждение — интерактивный пример с вымышленными данными.",
+      "description_en": "Confirm button — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/confirm.js",
+        "internal/server/web/ui/actions.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.button.cancel",
+      "name_ru": "Отмена действия",
+      "name_en": "Cancel action",
+      "short_ru": "ОТ",
+      "short_en": "CA",
+      "category": "buttons",
+      "subcategory": "cancel",
+      "type": "button",
+      "variant": "cancel",
+      "renderer": "button",
+      "source": [
+        "internal/server/web/ui/actions.js",
+        "internal/server/web/ui/confirm.js"
+      ],
+      "css": [
+        ".terminal-action"
+      ],
+      "uses": [
+        "Формы"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Отмена действия — интерактивный пример с вымышленными данными.",
+      "description_en": "Cancel action — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/actions.js",
+        "internal/server/web/ui/confirm.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.button.toggle",
+      "name_ru": "Кнопка-переключатель",
+      "name_en": "Toggle button",
+      "short_ru": "ПР",
+      "short_en": "TB",
+      "category": "buttons",
+      "subcategory": "toggle",
+      "type": "button",
+      "variant": "toggle",
+      "renderer": "button",
+      "source": [
+        "internal/server/web/ui/actions.js"
+      ],
+      "css": [
+        ".terminal-action"
+      ],
+      "uses": [
+        "Карты",
+        "Инспекторы"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Кнопка-переключатель — интерактивный пример с вымышленными данными.",
+      "description_en": "Toggle button — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/actions.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.button.busy",
+      "name_ru": "Занятое действие",
+      "name_en": "Pending action",
+      "short_ru": "ЗА",
+      "short_en": "PA",
+      "category": "buttons",
+      "subcategory": "busy",
+      "type": "button",
+      "variant": "busy",
+      "renderer": "button",
+      "source": [
+        "internal/server/web/ui/actions.js"
+      ],
+      "css": [
+        ".terminal-action"
+      ],
+      "uses": [
+        "Торговля"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Занятое действие — интерактивный пример с вымышленными данными.",
+      "description_en": "Pending action — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/actions.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.button.disabled",
+      "name_ru": "Недоступное действие",
+      "name_en": "Disabled action",
+      "short_ru": "НД",
+      "short_en": "DA",
+      "category": "buttons",
+      "subcategory": "disabled",
+      "type": "button",
+      "variant": "disabled",
+      "renderer": "button",
+      "source": [
+        "internal/server/web/ui/actions.js"
+      ],
+      "css": [
+        ".terminal-action"
+      ],
+      "uses": [
+        "Маршруты"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Недоступное действие — интерактивный пример с вымышленными данными.",
+      "description_en": "Disabled action — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/actions.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.button.window-controls",
+      "name_ru": "Кнопки окна",
+      "name_en": "Window controls",
+      "short_ru": "КО",
+      "short_en": "WC",
+      "category": "buttons",
+      "subcategory": "controls",
+      "type": "button",
+      "variant": "controls",
+      "renderer": "window",
+      "source": [
+        "internal/server/web/ui/windows.js"
+      ],
+      "css": [
+        ".module-window",
+        ".module-titlebar"
+      ],
+      "uses": [
+        "Все окна"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Кнопки окна — интерактивный пример с вымышленными данными.",
+      "description_en": "Window controls — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/windows.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.button.refresh",
+      "name_ru": "Обновление",
+      "name_en": "Refresh action",
+      "short_ru": "ОБ",
+      "short_en": "RA",
+      "category": "buttons",
+      "subcategory": "refresh",
+      "type": "button",
+      "variant": "refresh",
+      "renderer": "button",
+      "source": [
+        "internal/server/web/ui/actions.js"
+      ],
+      "css": [
+        ".terminal-action"
+      ],
+      "uses": [
+        "Сводки"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Обновление — интерактивный пример с вымышленными данными.",
+      "description_en": "Refresh action — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/actions.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.button.copy",
+      "name_ru": "Копирование",
+      "name_en": "Copy action",
+      "short_ru": "Copy",
+      "short_en": "CA",
+      "category": "buttons",
+      "subcategory": "copy",
+      "type": "button",
+      "variant": "copy",
+      "renderer": "button",
+      "source": [
+        "internal/server/web/ui/actions.js"
+      ],
+      "css": [
+        ".terminal-action"
+      ],
+      "uses": [
+        "UI/UX"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Копирование — интерактивный пример с вымышленными данными.",
+      "description_en": "Copy action — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/actions.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.button.counter",
+      "name_ru": "Кнопка со счётчиком",
+      "name_en": "Counted action",
+      "short_ru": "СЧ",
+      "short_en": "CA",
+      "category": "buttons",
+      "subcategory": "counter",
+      "type": "button",
+      "variant": "counter",
+      "renderer": "button",
+      "source": [
+        "internal/server/web/features/shell/navigation.js"
+      ],
+      "css": [
+        ".terminal-action"
+      ],
+      "uses": [
+        "Уведомления"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Кнопка со счётчиком — интерактивный пример с вымышленными данными.",
+      "description_en": "Counted action — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/shell/navigation.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.button.more",
+      "name_ru": "Дополнительная загрузка",
+      "name_en": "Load more",
+      "short_ru": "ЕЩ",
+      "short_en": "LM",
+      "category": "buttons",
+      "subcategory": "cursor",
+      "type": "button",
+      "variant": "cursor",
+      "renderer": "cursor",
+      "source": [
+        "internal/server/web/ui/pager.js"
+      ],
+      "css": [
+        ".pagination"
+      ],
+      "uses": [
+        "Журналы"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Дополнительная загрузка — интерактивный пример с вымышленными данными.",
+      "description_en": "Load more — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/pager.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.context-menu.standard",
+      "name_ru": "Стандартное контекстное меню",
+      "name_en": "Standard context menu",
+      "short_ru": "КМ",
+      "short_en": "SCM",
+      "category": "menus",
+      "subcategory": "original",
+      "type": "context-menu",
+      "variant": "original",
+      "renderer": "menu-original",
+      "source": [
+        "internal/server/web/ui/menu.js",
+        "internal/server/web/ui/floating.js",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "css": [
+        ".context-menu",
+        ".context-submenu"
+      ],
+      "uses": [
+        "Карта",
+        "Корабль",
+        "Объекты"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled",
+        "long"
+      ],
+      "description_ru": "UI.menu с исходным управлением стрелками и вложенными меню.",
+      "description_en": "Standard context menu — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/menu.js",
+        "internal/server/web/ui/floating.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.context-menu.long",
+      "name_ru": "Длинное контекстное меню",
+      "name_en": "Long context menu",
+      "short_ru": "ДКМ",
+      "short_en": "LCM",
+      "category": "menus",
+      "subcategory": "long",
+      "type": "context-menu",
+      "variant": "long",
+      "renderer": "menu-original",
+      "source": [
+        "internal/server/web/ui/menu.js",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "css": [
+        ".context-menu",
+        ".context-submenu"
+      ],
+      "uses": [
+        "Карта",
+        "Администрирование"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Длинное контекстное меню — интерактивный пример с вымышленными данными.",
+      "description_en": "Long context menu — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/menu.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.context-menu.nested",
+      "name_ru": "Стандартное подменю",
+      "name_en": "Standard nested submenu",
+      "short_ru": "ПМ",
+      "short_en": "SNS",
+      "category": "menus",
+      "subcategory": "nested",
+      "type": "context-menu",
+      "variant": "nested",
+      "renderer": "menu-original",
+      "source": [
+        "internal/server/web/ui/menu.js",
+        "internal/server/web/ui/floating.js"
+      ],
+      "css": [
+        ".context-menu",
+        ".context-submenu"
+      ],
+      "uses": [
+        "Карта"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Стандартное подменю — интерактивный пример с вымышленными данными.",
+      "description_en": "Standard nested submenu — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/menu.js",
+        "internal/server/web/ui/floating.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.context-menu.compact",
+      "name_ru": "Компактное меню чата",
+      "name_en": "Compact context menu",
+      "short_ru": "ККМ",
+      "short_en": "CCM",
+      "category": "menus",
+      "subcategory": "compact",
+      "type": "context-menu",
+      "variant": "compact",
+      "renderer": "menu-chat",
+      "source": [
+        "scripts/frontend-generation/mock/chat-native.js",
+        "scripts/frontend-generation/mock/chat-native.css"
+      ],
+      "css": [
+        ".chat-context-menu"
+      ],
+      "uses": [
+        "Чат v13",
+        "Избранное",
+        "Личные беседы"
+      ],
+      "status": "approved",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Компактное меню чата — интерактивный пример с вымышленными данными.",
+      "description_en": "Compact context menu — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "scripts/frontend-generation/mock/chat-native.js"
+      ],
+      "sourceCss": [
+        "scripts/frontend-generation/mock/chat-native.css",
+        "scripts/frontend-generation/mock/chat-native.css"
+      ],
+      "implementation": "approved-style-isolated-adapter"
+    },
+    {
+      "id": "ui.context-menu.compact.nested",
+      "name_ru": "Вложенное ККМ папок",
+      "name_en": "Nested compact folder menu",
+      "short_ru": "ВККМ",
+      "short_en": "NCFM",
+      "category": "menus",
+      "subcategory": "nested",
+      "type": "context-menu",
+      "variant": "nested",
+      "renderer": "menu-nested",
+      "source": [
+        "scripts/frontend-generation/mock/chat-native.js",
+        "scripts/frontend-generation/mock/chat-native.css"
+      ],
+      "css": [
+        ".chat-context-menu",
+        ".chat-context-submenu"
+      ],
+      "uses": [
+        "Чат v13 / Избранное"
+      ],
+      "status": "approved",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Вложенное ККМ папок — интерактивный пример с вымышленными данными.",
+      "description_en": "Nested compact folder menu — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "scripts/frontend-generation/mock/chat-native.js"
+      ],
+      "sourceCss": [
+        "scripts/frontend-generation/mock/chat-native.css",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "approved-style-isolated-adapter"
+    },
+    {
+      "id": "ui.context-menu.studies-source",
+      "name_ru": "Компактный список «Источник»",
+      "name_en": "Compact research source menu",
+      "short_ru": "КИ",
+      "short_en": "CRSM",
+      "category": "menus",
+      "subcategory": "source",
+      "type": "context-menu",
+      "variant": "source",
+      "renderer": "menu-studies",
+      "source": [
+        "scripts/frontend-generation/prototype/studies/app.js",
+        "scripts/frontend-generation/prototype/studies/styles.css"
+      ],
+      "css": [
+        ".studies-source-kkm"
+      ],
+      "uses": [
+        "Исследования v13"
+      ],
+      "status": "approved",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Компактный список «Источник» — интерактивный пример с вымышленными данными.",
+      "description_en": "Compact research source menu — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "scripts/frontend-generation/prototype/studies/app.js"
+      ],
+      "sourceCss": [
+        "scripts/frontend-generation/prototype/studies/styles.css",
+        "scripts/frontend-generation/prototype/studies/styles.css"
+      ],
+      "implementation": "approved-style-isolated-adapter"
+    },
+    {
+      "id": "ui.context-menu.ship",
+      "name_ru": "Меню действий корабля",
+      "name_en": "Ship action menu",
+      "short_ru": "МК",
+      "short_en": "SAM",
+      "category": "menus",
+      "subcategory": "ship",
+      "type": "context-menu",
+      "variant": "ship",
+      "renderer": "menu-original",
+      "source": [
+        "internal/server/web/features/fleet/index.js",
+        "internal/server/web/ui/menu.js"
+      ],
+      "css": [
+        ".context-menu",
+        ".context-submenu"
+      ],
+      "uses": [
+        "Корабль"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Меню действий корабля — интерактивный пример с вымышленными данными.",
+      "description_en": "Ship action menu — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/fleet/index.js",
+        "internal/server/web/ui/menu.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.context-menu.map",
+      "name_ru": "Контекстное меню звезды",
+      "name_en": "Map star context menu",
+      "short_ru": "МКЗ",
+      "short_en": "MSCM",
+      "category": "menus",
+      "subcategory": "map",
+      "type": "context-menu",
+      "variant": "map",
+      "renderer": "menu-original",
+      "source": [
+        "internal/server/web/features/maps/galaxy.js",
+        "internal/server/web/ui/menu.js"
+      ],
+      "css": [
+        ".context-menu",
+        ".context-submenu"
+      ],
+      "uses": [
+        "Галактическая карта"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Контекстное меню звезды — интерактивный пример с вымышленными данными.",
+      "description_en": "Map star context menu — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/maps/galaxy.js",
+        "internal/server/web/ui/menu.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.select.native",
+      "name_ru": "Нативный select",
+      "name_en": "Native select",
+      "short_ru": "НС",
+      "short_en": "NS",
+      "category": "pickers",
+      "subcategory": "native",
+      "type": "select",
+      "variant": "native",
+      "renderer": "select",
+      "source": [
+        "internal/server/web/ui/fields.js",
+        "internal/server/web/index.html"
+      ],
+      "css": [
+        "select"
+      ],
+      "uses": [
+        "Системные формы"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Нативный select — интерактивный пример с вымышленными данными.",
+      "description_en": "Native select — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/fields.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.dropdown.header",
+      "name_ru": "Выпадающее меню заголовка",
+      "name_en": "Header dropdown",
+      "short_ru": "ВМ",
+      "short_en": "HD",
+      "category": "pickers",
+      "subcategory": "header",
+      "type": "dropdown",
+      "variant": "header",
+      "renderer": "dropdown",
+      "source": [
+        "internal/server/web/index.html",
+        "internal/server/web/features/shell/navigation.js"
+      ],
+      "css": [
+        ".dropdown"
+      ],
+      "uses": [
+        "Профиль",
+        "Администрирование"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Выпадающее меню заголовка — интерактивный пример с вымышленными данными.",
+      "description_en": "Header dropdown — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/shell/navigation.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.picker.standard",
+      "name_ru": "Поисковый UI.picker",
+      "name_en": "Searchable picker",
+      "short_ru": "ПИК",
+      "short_en": "SP",
+      "category": "pickers",
+      "subcategory": "standard",
+      "type": "picker",
+      "variant": "standard",
+      "renderer": "picker",
+      "source": [
+        "internal/server/web/ui/combobox.js",
+        "internal/server/web/ui/floating.js"
+      ],
+      "css": [
+        ".picker-button",
+        ".picker-popover"
+      ],
+      "uses": [
+        "Маркет",
+        "Редактор станций"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Поисковый UI.picker — интерактивный пример с вымышленными данными.",
+      "description_en": "Searchable picker — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/combobox.js",
+        "internal/server/web/ui/floating.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.picker.long",
+      "name_ru": "Список из 80 вариантов",
+      "name_en": "Large picker list",
+      "short_ru": "ДП",
+      "short_en": "LPL",
+      "category": "pickers",
+      "subcategory": "long",
+      "type": "picker",
+      "variant": "long",
+      "renderer": "picker",
+      "source": [
+        "internal/server/web/ui/combobox.js"
+      ],
+      "css": [
+        ".picker-button",
+        ".picker-popover"
+      ],
+      "uses": [
+        "Системы"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Список из 80 вариантов — интерактивный пример с вымышленными данными.",
+      "description_en": "Large picker list — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/combobox.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.picker.favorites",
+      "name_ru": "Выбор с избранным",
+      "name_en": "Favorite-aware picker",
+      "short_ru": "ИП",
+      "short_en": "FP",
+      "category": "pickers",
+      "subcategory": "favorite",
+      "type": "picker",
+      "variant": "favorite",
+      "renderer": "picker",
+      "source": [
+        "internal/server/web/ui/combobox.js",
+        "internal/server/web/features/navigation/pickers.js"
+      ],
+      "css": [
+        ".picker-button",
+        ".picker-popover"
+      ],
+      "uses": [
+        "Системы",
+        "Станции"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Выбор с избранным — интерактивный пример с вымышленными данными.",
+      "description_en": "Favorite-aware picker — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/combobox.js",
+        "internal/server/web/features/navigation/pickers.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.picker.system",
+      "name_ru": "Выбор системы",
+      "name_en": "System picker",
+      "short_ru": "ВС",
+      "short_en": "SP",
+      "category": "pickers",
+      "subcategory": "system",
+      "type": "picker",
+      "variant": "system",
+      "renderer": "picker",
+      "source": [
+        "internal/server/web/features/navigation/pickers.js",
+        "internal/server/web/ui/combobox.js"
+      ],
+      "css": [
+        ".picker-button",
+        ".picker-popover"
+      ],
+      "uses": [
+        "Галактика"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Выбор системы — интерактивный пример с вымышленными данными.",
+      "description_en": "System picker — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/navigation/pickers.js",
+        "internal/server/web/ui/combobox.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.picker.station",
+      "name_ru": "Выбор станции",
+      "name_en": "Station picker",
+      "short_ru": "ВСТ",
+      "short_en": "SP",
+      "category": "pickers",
+      "subcategory": "station",
+      "type": "picker",
+      "variant": "station",
+      "renderer": "picker",
+      "source": [
+        "internal/server/web/features/navigation/pickers.js",
+        "internal/server/web/ui/combobox.js"
+      ],
+      "css": [
+        ".picker-button",
+        ".picker-popover"
+      ],
+      "uses": [
+        "Глобальный рынок"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Выбор станции — интерактивный пример с вымышленными данными.",
+      "description_en": "Station picker — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/navigation/pickers.js",
+        "internal/server/web/ui/combobox.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.choice.standard",
+      "name_ru": "UI.choice",
+      "name_en": "Choice selector",
+      "short_ru": "ВЫБ",
+      "short_en": "CS",
+      "category": "pickers",
+      "subcategory": "choice",
+      "type": "choice",
+      "variant": "choice",
+      "renderer": "choice",
+      "source": [
+        "internal/server/web/ui/combobox.js"
+      ],
+      "css": [
+        ".picker-button",
+        ".picker-popover"
+      ],
+      "uses": [
+        "Пакеты разведданных"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "UI.choice — интерактивный пример с вымышленными данными.",
+      "description_en": "Choice selector — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/combobox.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.dropdown.compact",
+      "name_ru": "Компактный список",
+      "name_en": "Compact dropdown",
+      "short_ru": "КС",
+      "short_en": "CD",
+      "category": "pickers",
+      "subcategory": "compact",
+      "type": "dropdown",
+      "variant": "compact",
+      "renderer": "menu-studies",
+      "source": [
+        "scripts/frontend-generation/prototype/studies/app.js",
+        "scripts/frontend-generation/prototype/studies/styles.css"
+      ],
+      "css": [
+        ".studies-source-kkm"
+      ],
+      "uses": [
+        "Исследования v13"
+      ],
+      "status": "approved",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Компактный список — интерактивный пример с вымышленными данными.",
+      "description_en": "Compact dropdown — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "scripts/frontend-generation/prototype/studies/app.js"
+      ],
+      "sourceCss": [
+        "scripts/frontend-generation/prototype/studies/styles.css",
+        "scripts/frontend-generation/prototype/studies/styles.css"
+      ],
+      "implementation": "approved-style-isolated-adapter"
+    },
+    {
+      "id": "ui.field.text",
+      "name_ru": "Текстовое поле",
+      "name_en": "Text field",
+      "short_ru": "ТП",
+      "short_en": "TF",
+      "category": "fields",
+      "subcategory": "text",
+      "type": "field",
+      "variant": "text",
+      "renderer": "field",
+      "source": [
+        "internal/server/web/ui/fields.js"
+      ],
+      "css": [
+        "input"
+      ],
+      "uses": [
+        "Формы"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Текстовое поле — интерактивный пример с вымышленными данными.",
+      "description_en": "Text field — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/fields.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.field.number",
+      "name_ru": "Числовое поле",
+      "name_en": "Number field",
+      "short_ru": "ЧП",
+      "short_en": "NF",
+      "category": "fields",
+      "subcategory": "number",
+      "type": "field",
+      "variant": "number",
+      "renderer": "field",
+      "source": [
+        "internal/server/web/ui/fields.js"
+      ],
+      "css": [
+        "input"
+      ],
+      "uses": [
+        "Рынок",
+        "Исследования"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Числовое поле — интерактивный пример с вымышленными данными.",
+      "description_en": "Number field — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/fields.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.field.search",
+      "name_ru": "Поиск систем",
+      "name_en": "System search field",
+      "short_ru": "ПС",
+      "short_en": "SSF",
+      "category": "fields",
+      "subcategory": "search",
+      "type": "field",
+      "variant": "search",
+      "renderer": "field",
+      "source": [
+        "internal/server/web/ui/fields.js",
+        "scripts/frontend-generation/prototype/studies/app.js"
+      ],
+      "css": [
+        "input"
+      ],
+      "uses": [
+        "Исследования v13"
+      ],
+      "status": "approved",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Поиск систем — интерактивный пример с вымышленными данными.",
+      "description_en": "System search field — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/fields.js",
+        "scripts/frontend-generation/prototype/studies/app.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "approved-style-isolated-adapter"
+    },
+    {
+      "id": "ui.field.password",
+      "name_ru": "Пароль",
+      "name_en": "Password field",
+      "short_ru": "ПРЛ",
+      "short_en": "PF",
+      "category": "fields",
+      "subcategory": "password",
+      "type": "field",
+      "variant": "password",
+      "renderer": "field",
+      "source": [
+        "internal/server/web/index.html"
+      ],
+      "css": [
+        "input"
+      ],
+      "uses": [
+        "Авторизация"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Пароль — интерактивный пример с вымышленными данными.",
+      "description_en": "Password field — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.field.textarea",
+      "name_ru": "Многострочный ввод",
+      "name_en": "Text area",
+      "short_ru": "МВ",
+      "short_en": "TA",
+      "category": "fields",
+      "subcategory": "textarea",
+      "type": "field",
+      "variant": "textarea",
+      "renderer": "textarea",
+      "source": [
+        "internal/server/web/ui/fields.js",
+        "scripts/frontend-generation/mock/chat-native.js"
+      ],
+      "css": [
+        "textarea"
+      ],
+      "uses": [
+        "Чат",
+        "Заметки"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Многострочный ввод — интерактивный пример с вымышленными данными.",
+      "description_en": "Text area — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/fields.js",
+        "scripts/frontend-generation/mock/chat-native.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.field.checkbox",
+      "name_ru": "Флажок",
+      "name_en": "Checkbox",
+      "short_ru": "ФЛ",
+      "short_en": "C",
+      "category": "fields",
+      "subcategory": "checkbox",
+      "type": "field",
+      "variant": "checkbox",
+      "renderer": "checkbox",
+      "source": [
+        "internal/server/web/index.html",
+        "internal/server/web/features/maps/galaxy.js"
+      ],
+      "css": [
+        "input[type=\"checkbox\"]"
+      ],
+      "uses": [
+        "Карта"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Флажок — интерактивный пример с вымышленными данными.",
+      "description_en": "Checkbox — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/maps/galaxy.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.field.radio",
+      "name_ru": "Радиовыбор",
+      "name_en": "Radio input",
+      "short_ru": "РВ",
+      "short_en": "RI",
+      "category": "fields",
+      "subcategory": "radio",
+      "type": "field",
+      "variant": "radio",
+      "renderer": "radio",
+      "source": [
+        "internal/server/web/index.html"
+      ],
+      "css": [
+        "input[type=\"radio\"]"
+      ],
+      "uses": [
+        "Тестовые настройки"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Радиовыбор — интерактивный пример с вымышленными данными.",
+      "description_en": "Radio input — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.field.range",
+      "name_ru": "Ползунок",
+      "name_en": "Range slider",
+      "short_ru": "ПЗ",
+      "short_en": "RS",
+      "category": "fields",
+      "subcategory": "range",
+      "type": "field",
+      "variant": "range",
+      "renderer": "range",
+      "source": [
+        "scripts/frontend-generation/mock/chat-native.js",
+        "internal/server/web/features/maps/galaxy.js"
+      ],
+      "css": [
+        "input[type=\"range\"]"
+      ],
+      "uses": [
+        "Настройки чата"
+      ],
+      "status": "approved",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Ползунок — интерактивный пример с вымышленными данными.",
+      "description_en": "Range slider — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "scripts/frontend-generation/mock/chat-native.js",
+        "internal/server/web/features/maps/galaxy.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "approved-style-isolated-adapter"
+    },
+    {
+      "id": "ui.field.color",
+      "name_ru": "Выбор цвета",
+      "name_en": "Color picker",
+      "short_ru": "ЦВ",
+      "short_en": "CP",
+      "category": "fields",
+      "subcategory": "color",
+      "type": "field",
+      "variant": "color",
+      "renderer": "color",
+      "source": [
+        "internal/server/web/features/corporations/index.js",
+        "internal/server/web/features/corporations/flag.js"
+      ],
+      "css": [
+        "input[type=\"color\"]"
+      ],
+      "uses": [
+        "Корпорация"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Выбор цвета — интерактивный пример с вымышленными данными.",
+      "description_en": "Color picker — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/corporations/index.js",
+        "internal/server/web/features/corporations/flag.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.field.validation",
+      "name_ru": "Проверка ввода",
+      "name_en": "Form validation",
+      "short_ru": "ВАЛ",
+      "short_en": "FV",
+      "category": "fields",
+      "subcategory": "validation",
+      "type": "field",
+      "variant": "validation",
+      "renderer": "validation",
+      "source": [
+        "internal/server/web/ui/fields.js"
+      ],
+      "css": [
+        "input:invalid"
+      ],
+      "uses": [
+        "Формы"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Проверка ввода — интерактивный пример с вымышленными данными.",
+      "description_en": "Form validation — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/fields.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.field.dirty",
+      "name_ru": "Несохранённые изменения",
+      "name_en": "Dirty form",
+      "short_ru": "НСИ",
+      "short_en": "DF",
+      "category": "fields",
+      "subcategory": "dirty",
+      "type": "field",
+      "variant": "dirty",
+      "renderer": "dirty",
+      "source": [
+        "internal/server/web/ui/fields.js"
+      ],
+      "css": [
+        ".save-bar"
+      ],
+      "uses": [
+        "Настройки"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Несохранённые изменения — интерактивный пример с вымышленными данными.",
+      "description_en": "Dirty form — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/fields.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.field.quantity",
+      "name_ru": "Количество и предел",
+      "name_en": "Quantity input",
+      "short_ru": "КОЛ",
+      "short_en": "QI",
+      "category": "fields",
+      "subcategory": "quantity",
+      "type": "field",
+      "variant": "quantity",
+      "renderer": "field",
+      "source": [
+        "internal/server/web/ui/quantity.js"
+      ],
+      "css": [
+        "input"
+      ],
+      "uses": [
+        "Торговля"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Количество и предел — интерактивный пример с вымышленными данными.",
+      "description_en": "Quantity input — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/quantity.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.window.module",
+      "name_ru": "Рабочее окно Modules",
+      "name_en": "Module window",
+      "short_ru": "ОК",
+      "short_en": "MW",
+      "category": "windows",
+      "subcategory": "module",
+      "type": "window",
+      "variant": "module",
+      "renderer": "window",
+      "source": [
+        "internal/server/web/ui/windows.js"
+      ],
+      "css": [
+        ".module-window",
+        ".module-titlebar"
+      ],
+      "uses": [
+        "Все модули"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Рабочее окно Modules — интерактивный пример с вымышленными данными.",
+      "description_en": "Module window — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/windows.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.window.titlebar",
+      "name_ru": "Заголовок и управление",
+      "name_en": "Window titlebar",
+      "short_ru": "ЗО",
+      "short_en": "WT",
+      "category": "windows",
+      "subcategory": "titlebar",
+      "type": "window",
+      "variant": "titlebar",
+      "renderer": "window",
+      "source": [
+        "internal/server/web/ui/windows.js"
+      ],
+      "css": [
+        ".module-window",
+        ".module-titlebar"
+      ],
+      "uses": [
+        "Все модули"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Заголовок и управление — интерактивный пример с вымышленными данными.",
+      "description_en": "Window titlebar — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/windows.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.window.confirm",
+      "name_ru": "UI.confirm",
+      "name_en": "Confirm dialog",
+      "short_ru": "ПК",
+      "short_en": "CD",
+      "category": "windows",
+      "subcategory": "confirm",
+      "type": "window",
+      "variant": "confirm",
+      "renderer": "confirm",
+      "source": [
+        "internal/server/web/ui/confirm.js",
+        "internal/server/web/ui/windows.js"
+      ],
+      "css": [
+        ".module-window"
+      ],
+      "uses": [
+        "Опасные операции"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "UI.confirm — интерактивный пример с вымышленными данными.",
+      "description_en": "Confirm dialog — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/confirm.js",
+        "internal/server/web/ui/windows.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.window.quantity",
+      "name_ru": "Диалог количества",
+      "name_en": "Quantity dialog",
+      "short_ru": "ОКЛ",
+      "short_en": "QD",
+      "category": "windows",
+      "subcategory": "quantity",
+      "type": "window",
+      "variant": "quantity",
+      "renderer": "quantity",
+      "source": [
+        "internal/server/web/ui/quantity.js",
+        "internal/server/web/ui/windows.js"
+      ],
+      "css": [
+        ".module-window"
+      ],
+      "uses": [
+        "Добыча"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Диалог количества — интерактивный пример с вымышленными данными.",
+      "description_en": "Quantity dialog — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/quantity.js",
+        "internal/server/web/ui/windows.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.window.scrollable",
+      "name_ru": "Окно с прокруткой",
+      "name_en": "Scrollable window",
+      "short_ru": "ОПР",
+      "short_en": "SW",
+      "category": "windows",
+      "subcategory": "scroll",
+      "type": "window",
+      "variant": "scroll",
+      "renderer": "window",
+      "source": [
+        "internal/server/web/ui/windows.js",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "css": [
+        ".module-window",
+        ".module-titlebar"
+      ],
+      "uses": [
+        "Каталоги"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Окно с прокруткой — интерактивный пример с вымышленными данными.",
+      "description_en": "Scrollable window — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/windows.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.window.chat",
+      "name_ru": "Панель чата",
+      "name_en": "Chat floating panel",
+      "short_ru": "ОЧ",
+      "short_en": "CFP",
+      "category": "windows",
+      "subcategory": "chat",
+      "type": "window",
+      "variant": "chat",
+      "renderer": "chat-window",
+      "source": [
+        "scripts/frontend-generation/mock/chat-native.js",
+        "scripts/frontend-generation/mock/chat-native.css"
+      ],
+      "css": [
+        ".chat-floating"
+      ],
+      "uses": [
+        "Чат v13"
+      ],
+      "status": "approved",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Панель чата — интерактивный пример с вымышленными данными.",
+      "description_en": "Chat floating panel — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "scripts/frontend-generation/mock/chat-native.js"
+      ],
+      "sourceCss": [
+        "scripts/frontend-generation/mock/chat-native.css",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "approved-style-isolated-adapter"
+    },
+    {
+      "id": "ui.window.transient",
+      "name_ru": "Временное окно",
+      "name_en": "Transient window",
+      "short_ru": "ВО",
+      "short_en": "TW",
+      "category": "windows",
+      "subcategory": "transient",
+      "type": "window",
+      "variant": "transient",
+      "renderer": "window",
+      "source": [
+        "internal/server/web/ui/windows.js"
+      ],
+      "css": [
+        ".module-window",
+        ".module-titlebar"
+      ],
+      "uses": [
+        "Подтверждения"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Временное окно — интерактивный пример с вымышленными данными.",
+      "description_en": "Transient window — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/windows.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.tabs.standard",
+      "name_ru": "Штатные вкладки",
+      "name_en": "Original tabs",
+      "short_ru": "ВК",
+      "short_en": "OT",
+      "category": "navigation",
+      "subcategory": "standard",
+      "type": "tabs",
+      "variant": "standard",
+      "renderer": "tabs",
+      "source": [
+        "internal/server/web/ui/tabs.js"
+      ],
+      "css": [
+        ".tabs"
+      ],
+      "uses": [
+        "Рынок",
+        "Исследования"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Штатные вкладки — интерактивный пример с вымышленными данными.",
+      "description_en": "Original tabs — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/tabs.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.tabs.compact",
+      "name_ru": "Компактные вкладки чата",
+      "name_en": "Compact chat tabs",
+      "short_ru": "КВ",
+      "short_en": "CCT",
+      "category": "navigation",
+      "subcategory": "compact",
+      "type": "tabs",
+      "variant": "compact",
+      "renderer": "chat-tabs",
+      "source": [
+        "scripts/frontend-generation/mock/chat-native.js",
+        "scripts/frontend-generation/mock/chat-native.css"
+      ],
+      "css": [
+        ".chat-tabs",
+        ".chat-tab"
+      ],
+      "uses": [
+        "Чат v13"
+      ],
+      "status": "approved",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Компактные вкладки чата — интерактивный пример с вымышленными данными.",
+      "description_en": "Compact chat tabs — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "scripts/frontend-generation/mock/chat-native.js"
+      ],
+      "sourceCss": [
+        "scripts/frontend-generation/mock/chat-native.css",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "approved-style-isolated-adapter"
+    },
+    {
+      "id": "ui.tabs.overflow",
+      "name_ru": "Много вкладок",
+      "name_en": "Overflow tabs",
+      "short_ru": "МВК",
+      "short_en": "OT",
+      "category": "navigation",
+      "subcategory": "overflow",
+      "type": "tabs",
+      "variant": "overflow",
+      "renderer": "tabs",
+      "source": [
+        "internal/server/web/ui/tabs.js"
+      ],
+      "css": [
+        ".tabs"
+      ],
+      "uses": [
+        "Рынок"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Много вкладок — интерактивный пример с вымышленными данными.",
+      "description_en": "Overflow tabs — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/tabs.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.sidebar.groups",
+      "name_ru": "Боковая навигация",
+      "name_en": "Sidebar groups",
+      "short_ru": "БН",
+      "short_en": "SG",
+      "category": "navigation",
+      "subcategory": "sidebar",
+      "type": "sidebar",
+      "variant": "sidebar",
+      "renderer": "sidebar",
+      "source": [
+        "internal/server/web/features/shell/navigation.js",
+        "internal/server/web/index.html"
+      ],
+      "css": [
+        "#sidebar"
+      ],
+      "uses": [
+        "Главная"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Боковая навигация — интерактивный пример с вымышленными данными.",
+      "description_en": "Sidebar groups — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/shell/navigation.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.window.switcher",
+      "name_ru": "Переключатель окон",
+      "name_en": "Window switcher",
+      "short_ru": "ПО",
+      "short_en": "WS",
+      "category": "navigation",
+      "subcategory": "switcher",
+      "type": "window",
+      "variant": "switcher",
+      "renderer": "window",
+      "source": [
+        "internal/server/web/ui/windows.js"
+      ],
+      "css": [
+        ".module-window",
+        ".module-titlebar"
+      ],
+      "uses": [
+        "Верхняя панель"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Переключатель окон — интерактивный пример с вымышленными данными.",
+      "description_en": "Window switcher — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/windows.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.disclosure.fold",
+      "name_ru": "Раскрывающаяся секция",
+      "name_en": "Disclosure fold",
+      "short_ru": "РС",
+      "short_en": "DF",
+      "category": "navigation",
+      "subcategory": "fold",
+      "type": "disclosure",
+      "variant": "fold",
+      "renderer": "fold",
+      "source": [
+        "internal/server/web/ui/disclosure.js"
+      ],
+      "css": [
+        "details"
+      ],
+      "uses": [
+        "Руководство",
+        "Маршруты"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Раскрывающаяся секция — интерактивный пример с вымышленными данными.",
+      "description_en": "Disclosure fold — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/disclosure.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.breadcrumb.map",
+      "name_ru": "Маршрут навигации карты",
+      "name_en": "Map breadcrumb",
+      "short_ru": "НК",
+      "short_en": "MB",
+      "category": "navigation",
+      "subcategory": "breadcrumb",
+      "type": "breadcrumb",
+      "variant": "breadcrumb",
+      "renderer": "map",
+      "source": [
+        "internal/server/web/features/maps/galaxy.js"
+      ],
+      "css": [
+        ".map-canvas-wrap",
+        ".map-toolbar"
+      ],
+      "uses": [
+        "Карта"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Маршрут навигации карты — интерактивный пример с вымышленными данными.",
+      "description_en": "Map breadcrumb — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/maps/galaxy.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.table.standard",
+      "name_ru": "UI.table",
+      "name_en": "Standard table",
+      "short_ru": "ТБ",
+      "short_en": "ST",
+      "category": "tables",
+      "subcategory": "standard",
+      "type": "table",
+      "variant": "standard",
+      "renderer": "table",
+      "source": [
+        "internal/server/web/ui/table.js"
+      ],
+      "css": [
+        ".table-wrap"
+      ],
+      "uses": [
+        "Рынок",
+        "Администрирование"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "UI.table — интерактивный пример с вымышленными данными.",
+      "description_en": "Standard table — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/table.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.table.actions",
+      "name_ru": "Таблица с действиями",
+      "name_en": "Table with actions",
+      "short_ru": "ТД",
+      "short_en": "TA",
+      "category": "tables",
+      "subcategory": "actions",
+      "type": "table",
+      "variant": "actions",
+      "renderer": "table",
+      "source": [
+        "internal/server/web/ui/table.js",
+        "internal/server/web/features/markets/local.js"
+      ],
+      "css": [
+        ".table-wrap"
+      ],
+      "uses": [
+        "Рынок"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Таблица с действиями — интерактивный пример с вымышленными данными.",
+      "description_en": "Table with actions — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/table.js",
+        "internal/server/web/features/markets/local.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.table.long",
+      "name_ru": "Таблица длинных названий",
+      "name_en": "Long-text table",
+      "short_ru": "ДТ",
+      "short_en": "LT",
+      "category": "tables",
+      "subcategory": "long",
+      "type": "table",
+      "variant": "long",
+      "renderer": "table",
+      "source": [
+        "internal/server/web/ui/table.js"
+      ],
+      "css": [
+        ".table-wrap"
+      ],
+      "uses": [
+        "Журналы"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Таблица длинных названий — интерактивный пример с вымышленными данными.",
+      "description_en": "Long-text table — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/table.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.table.empty",
+      "name_ru": "Пустая таблица",
+      "name_en": "Empty data table",
+      "short_ru": "ПТ",
+      "short_en": "EDT",
+      "category": "tables",
+      "subcategory": "empty",
+      "type": "table",
+      "variant": "empty",
+      "renderer": "table",
+      "source": [
+        "internal/server/web/ui/table.js"
+      ],
+      "css": [
+        ".table-wrap"
+      ],
+      "uses": [
+        "Каталоги"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Пустая таблица — интерактивный пример с вымышленными данными.",
+      "description_en": "Empty data table — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/table.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.pager.numbered",
+      "name_ru": "Нумерованная пагинация",
+      "name_en": "Numbered pagination",
+      "short_ru": "ПАГ",
+      "short_en": "NP",
+      "category": "tables",
+      "subcategory": "numbered",
+      "type": "pager",
+      "variant": "numbered",
+      "renderer": "pager",
+      "source": [
+        "internal/server/web/ui/pager.js"
+      ],
+      "css": [
+        ".pagination"
+      ],
+      "uses": [
+        "Исследования"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Нумерованная пагинация — интерактивный пример с вымышленными данными.",
+      "description_en": "Numbered pagination — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/pager.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.pager.cursor",
+      "name_ru": "Загрузка более ранних записей",
+      "name_en": "Cursor-based more",
+      "short_ru": "КУР",
+      "short_en": "CM",
+      "category": "tables",
+      "subcategory": "cursor",
+      "type": "pager",
+      "variant": "cursor",
+      "renderer": "cursor",
+      "source": [
+        "internal/server/web/ui/pager.js"
+      ],
+      "css": [
+        ".pagination"
+      ],
+      "uses": [
+        "Журнал колоний"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Загрузка более ранних записей — интерактивный пример с вымышленными данными.",
+      "description_en": "Cursor-based more — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/pager.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.tree.fold",
+      "name_ru": "Иерархическое дерево",
+      "name_en": "Hierarchical disclosure",
+      "short_ru": "ИД",
+      "short_en": "HD",
+      "category": "tables",
+      "subcategory": "tree",
+      "type": "tree",
+      "variant": "tree",
+      "renderer": "tree",
+      "source": [
+        "internal/server/web/ui/disclosure.js",
+        "internal/server/web/features/guide/index.js"
+      ],
+      "css": [
+        "details"
+      ],
+      "uses": [
+        "Руководство"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Иерархическое дерево — интерактивный пример с вымышленными данными.",
+      "description_en": "Hierarchical disclosure — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/disclosure.js",
+        "internal/server/web/features/guide/index.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.list.ships",
+      "name_ru": "Список кораблей",
+      "name_en": "Ship list",
+      "short_ru": "СК",
+      "short_en": "SL",
+      "category": "tables",
+      "subcategory": "ships",
+      "type": "list",
+      "variant": "ships",
+      "renderer": "cards",
+      "source": [
+        "internal/server/web/features/fleet/index.js"
+      ],
+      "css": [
+        ".fleet-card"
+      ],
+      "uses": [
+        "Флот"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Список кораблей — интерактивный пример с вымышленными данными.",
+      "description_en": "Ship list — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/fleet/index.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.list.route",
+      "name_ru": "Список точек маршрута",
+      "name_en": "Route waypoint list",
+      "short_ru": "МАР",
+      "short_en": "RWL",
+      "category": "tables",
+      "subcategory": "waypoints",
+      "type": "list",
+      "variant": "waypoints",
+      "renderer": "map",
+      "source": [
+        "internal/server/web/features/maps/galaxy.js"
+      ],
+      "css": [
+        ".map-canvas-wrap",
+        ".map-toolbar"
+      ],
+      "uses": [
+        "Галактическая карта"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Список точек маршрута — интерактивный пример с вымышленными данными.",
+      "description_en": "Route waypoint list — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/maps/galaxy.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.list.stations",
+      "name_ru": "Дерево станций",
+      "name_en": "Station list",
+      "short_ru": "СТ",
+      "short_en": "SL",
+      "category": "tables",
+      "subcategory": "stations",
+      "type": "list",
+      "variant": "stations",
+      "renderer": "cards",
+      "source": [
+        "internal/server/web/features/markets/global.js"
+      ],
+      "css": [
+        ".fleet-card"
+      ],
+      "uses": [
+        "Глобальный рынок"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Дерево станций — интерактивный пример с вымышленными данными.",
+      "description_en": "Station list — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/markets/global.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.card.info",
+      "name_ru": "Информационная карточка",
+      "name_en": "Information card",
+      "short_ru": "ИКР",
+      "short_en": "IC",
+      "category": "cards",
+      "subcategory": "info",
+      "type": "card",
+      "variant": "info",
+      "renderer": "card",
+      "source": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "css": [
+        ".object-row"
+      ],
+      "uses": [
+        "Карты"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Информационная карточка — интерактивный пример с вымышленными данными.",
+      "description_en": "Information card — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.card.ship",
+      "name_ru": "Карточка корабля",
+      "name_en": "Ship card",
+      "short_ru": "ККР",
+      "short_en": "SC",
+      "category": "cards",
+      "subcategory": "ship",
+      "type": "card",
+      "variant": "ship",
+      "renderer": "card",
+      "source": [
+        "internal/server/web/features/fleet/index.js"
+      ],
+      "css": [
+        ".object-row"
+      ],
+      "uses": [
+        "Флот"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Карточка корабля — интерактивный пример с вымышленными данными.",
+      "description_en": "Ship card — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/fleet/index.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.card.resource",
+      "name_ru": "Плитка ресурса",
+      "name_en": "Resource tile",
+      "short_ru": "ПР",
+      "short_en": "RT",
+      "category": "cards",
+      "subcategory": "resource",
+      "type": "card",
+      "variant": "resource",
+      "renderer": "card",
+      "source": [
+        "internal/server/web/features/inventory/resource-tile.js"
+      ],
+      "css": [
+        ".object-row"
+      ],
+      "uses": [
+        "Трюм"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Плитка ресурса — интерактивный пример с вымышленными данными.",
+      "description_en": "Resource tile — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/inventory/resource-tile.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.card.station",
+      "name_ru": "Карточка станции",
+      "name_en": "Station card",
+      "short_ru": "СТК",
+      "short_en": "SC",
+      "category": "cards",
+      "subcategory": "station",
+      "type": "card",
+      "variant": "station",
+      "renderer": "card",
+      "source": [
+        "internal/server/web/features/markets/global.js"
+      ],
+      "css": [
+        ".object-row"
+      ],
+      "uses": [
+        "Рынок"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Карточка станции — интерактивный пример с вымышленными данными.",
+      "description_en": "Station card — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/markets/global.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.card.corporation",
+      "name_ru": "Карточка корпорации",
+      "name_en": "Corporation card",
+      "short_ru": "КОР",
+      "short_en": "CC",
+      "category": "cards",
+      "subcategory": "corp",
+      "type": "card",
+      "variant": "corp",
+      "renderer": "card",
+      "source": [
+        "internal/server/web/features/corporations/index.js"
+      ],
+      "css": [
+        ".object-row"
+      ],
+      "uses": [
+        "Корпорации"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Карточка корпорации — интерактивный пример с вымышленными данными.",
+      "description_en": "Corporation card — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/corporations/index.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.card.object",
+      "name_ru": "Карточка объекта",
+      "name_en": "Object card",
+      "short_ru": "ОБК",
+      "short_en": "OC",
+      "category": "cards",
+      "subcategory": "object",
+      "type": "card",
+      "variant": "object",
+      "renderer": "card",
+      "source": [
+        "internal/server/web/features/maps/galaxy.js"
+      ],
+      "css": [
+        ".object-row"
+      ],
+      "uses": [
+        "Система"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Карточка объекта — интерактивный пример с вымышленными данными.",
+      "description_en": "Object card — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/maps/galaxy.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.card.task",
+      "name_ru": "Карточка задания",
+      "name_en": "Task card",
+      "short_ru": "ЗД",
+      "short_en": "TC",
+      "category": "cards",
+      "subcategory": "task",
+      "type": "card",
+      "variant": "task",
+      "renderer": "card",
+      "source": [
+        "internal/server/web/features/research/index.js"
+      ],
+      "css": [
+        ".object-row"
+      ],
+      "uses": [
+        "Исследования"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Карточка задания — интерактивный пример с вымышленными данными.",
+      "description_en": "Task card — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/research/index.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.panel.stats",
+      "name_ru": "Панель статистики",
+      "name_en": "Statistical panel",
+      "short_ru": "ПСТ",
+      "short_en": "SP",
+      "category": "cards",
+      "subcategory": "stats",
+      "type": "panel",
+      "variant": "stats",
+      "renderer": "stats",
+      "source": [
+        "internal/server/web/index.html"
+      ],
+      "css": [
+        ".overview-stats"
+      ],
+      "uses": [
+        "Главная"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Панель статистики — интерактивный пример с вымышленными данными.",
+      "description_en": "Statistical panel — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.panel.empty",
+      "name_ru": "Пустое состояние",
+      "name_en": "Empty panel",
+      "short_ru": "ПУСТ",
+      "short_en": "EP",
+      "category": "cards",
+      "subcategory": "empty",
+      "type": "panel",
+      "variant": "empty",
+      "renderer": "empty",
+      "source": [
+        "internal/server/web/ui/fields.js"
+      ],
+      "css": [
+        ".empty-state"
+      ],
+      "uses": [
+        "Списки"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Пустое состояние — интерактивный пример с вымышленными данными.",
+      "description_en": "Empty panel — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/fields.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.progress.original",
+      "name_ru": "UI.bar",
+      "name_en": "Game progress bar",
+      "short_ru": "ПРГ",
+      "short_en": "GPB",
+      "category": "status",
+      "subcategory": "progress",
+      "type": "progress",
+      "variant": "progress",
+      "renderer": "progress",
+      "source": [
+        "internal/server/web/ui/fields.js",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "css": [
+        ".meter",
+        "progress"
+      ],
+      "uses": [
+        "Исследования"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "UI.bar — интерактивный пример с вымышленными данными.",
+      "description_en": "Game progress bar — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/fields.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.progress.native",
+      "name_ru": "Нативный progress",
+      "name_en": "Native progress",
+      "short_ru": "НП",
+      "short_en": "NP",
+      "category": "status",
+      "subcategory": "native",
+      "type": "progress",
+      "variant": "native",
+      "renderer": "progress",
+      "source": [
+        "internal/server/web/ui/fields.js",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "css": [
+        ".meter",
+        "progress"
+      ],
+      "uses": [
+        "Исследования"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Нативный progress — интерактивный пример с вымышленными данными.",
+      "description_en": "Native progress — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/fields.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.progress.busy",
+      "name_ru": "Загрузка",
+      "name_en": "Loading indicator",
+      "short_ru": "ЗГ",
+      "short_en": "LI",
+      "category": "status",
+      "subcategory": "loading",
+      "type": "progress",
+      "variant": "loading",
+      "renderer": "button",
+      "source": [
+        "internal/server/web/ui/actions.js",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "css": [
+        ".terminal-action"
+      ],
+      "uses": [
+        "Все модули"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Загрузка — интерактивный пример с вымышленными данными.",
+      "description_en": "Loading indicator — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/actions.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.status.connection",
+      "name_ru": "Статус соединения",
+      "name_en": "Connection status",
+      "short_ru": "СС",
+      "short_en": "CS",
+      "category": "status",
+      "subcategory": "connection",
+      "type": "status",
+      "variant": "connection",
+      "renderer": "status",
+      "source": [
+        "internal/server/web/features/shell/navigation.js"
+      ],
+      "css": [
+        ".service-status-tag"
+      ],
+      "uses": [
+        "Шапка"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Статус соединения — интерактивный пример с вымышленными данными.",
+      "description_en": "Connection status — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/shell/navigation.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.status.success",
+      "name_ru": "Успешное состояние",
+      "name_en": "Success state",
+      "short_ru": "УСП",
+      "short_en": "SS",
+      "category": "status",
+      "subcategory": "success",
+      "type": "status",
+      "variant": "success",
+      "renderer": "status",
+      "source": [
+        "internal/server/web/ui/feedback.js"
+      ],
+      "css": [
+        ".service-status-tag"
+      ],
+      "uses": [
+        "Уведомления"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Успешное состояние — интерактивный пример с вымышленными данными.",
+      "description_en": "Success state — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/feedback.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.status.warning",
+      "name_ru": "Предупреждение",
+      "name_en": "Warning state",
+      "short_ru": "ПРД",
+      "short_en": "WS",
+      "category": "status",
+      "subcategory": "warning",
+      "type": "status",
+      "variant": "warning",
+      "renderer": "status",
+      "source": [
+        "internal/server/web/ui/feedback.js"
+      ],
+      "css": [
+        ".service-status-tag"
+      ],
+      "uses": [
+        "Системные события"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Предупреждение — интерактивный пример с вымышленными данными.",
+      "description_en": "Warning state — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/feedback.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.status.error",
+      "name_ru": "Ошибка",
+      "name_en": "Error state",
+      "short_ru": "ОШ",
+      "short_en": "ES",
+      "category": "status",
+      "subcategory": "error",
+      "type": "status",
+      "variant": "error",
+      "renderer": "status",
+      "source": [
+        "internal/server/web/ui/feedback.js"
+      ],
+      "css": [
+        ".service-status-tag"
+      ],
+      "uses": [
+        "Ошибки"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Ошибка — интерактивный пример с вымышленными данными.",
+      "description_en": "Error state — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/feedback.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.status.badge",
+      "name_ru": "Счётчик и бейдж",
+      "name_en": "Badge and counter",
+      "short_ru": "БД",
+      "short_en": "BC",
+      "category": "status",
+      "subcategory": "badge",
+      "type": "status",
+      "variant": "badge",
+      "renderer": "status",
+      "source": [
+        "internal/server/web/features/shell/navigation.js"
+      ],
+      "css": [
+        ".service-status-tag"
+      ],
+      "uses": [
+        "Уведомления"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Счётчик и бейдж — интерактивный пример с вымышленными данными.",
+      "description_en": "Badge and counter — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/shell/navigation.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.status.job",
+      "name_ru": "Статус задания",
+      "name_en": "Job status",
+      "short_ru": "СЗ",
+      "short_en": "JS",
+      "category": "status",
+      "subcategory": "job",
+      "type": "status",
+      "variant": "job",
+      "renderer": "status",
+      "source": [
+        "internal/server/web/features/research/index.js"
+      ],
+      "css": [
+        ".service-status-tag"
+      ],
+      "uses": [
+        "Исследования"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Статус задания — интерактивный пример с вымышленными данными.",
+      "description_en": "Job status — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/research/index.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.tooltip.help",
+      "name_ru": "data-help tooltip",
+      "name_en": "Help tooltip",
+      "short_ru": "ТП",
+      "short_en": "HT",
+      "category": "tooltips",
+      "subcategory": "help",
+      "type": "tooltip",
+      "variant": "help",
+      "renderer": "tooltip",
+      "source": [
+        "internal/server/web/ui/tooltip.js"
+      ],
+      "css": [
+        "#tooltip"
+      ],
+      "uses": [
+        "Общие элементы"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "data-help tooltip — интерактивный пример с вымышленными данными.",
+      "description_en": "Help tooltip — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/tooltip.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.tooltip.rich",
+      "name_ru": "Расширенная подсказка",
+      "name_en": "Rich tooltip",
+      "short_ru": "РТП",
+      "short_en": "RT",
+      "category": "tooltips",
+      "subcategory": "rich",
+      "type": "tooltip",
+      "variant": "rich",
+      "renderer": "tooltip",
+      "source": [
+        "internal/server/web/ui/tooltip.js"
+      ],
+      "css": [
+        "#tooltip"
+      ],
+      "uses": [
+        "Ресурсы"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Расширенная подсказка — интерактивный пример с вымышленными данными.",
+      "description_en": "Rich tooltip — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/tooltip.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.tooltip.map",
+      "name_ru": "Подсказка звезды",
+      "name_en": "Star map summary",
+      "short_ru": "КТП",
+      "short_en": "SMS",
+      "category": "tooltips",
+      "subcategory": "map",
+      "type": "tooltip",
+      "variant": "map",
+      "renderer": "map",
+      "source": [
+        "internal/server/web/features/maps/galaxy.js"
+      ],
+      "css": [
+        ".map-canvas-wrap",
+        ".map-toolbar"
+      ],
+      "uses": [
+        "Карта"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Подсказка звезды — интерактивный пример с вымышленными данными.",
+      "description_en": "Star map summary — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/maps/galaxy.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.toast.standard",
+      "name_ru": "Всплывающее сообщение",
+      "name_en": "Toast notification",
+      "short_ru": "УВ",
+      "short_en": "TN",
+      "category": "tooltips",
+      "subcategory": "toast",
+      "type": "toast",
+      "variant": "toast",
+      "renderer": "toast",
+      "source": [
+        "internal/server/web/ui/feedback.js"
+      ],
+      "css": [
+        "#toast"
+      ],
+      "uses": [
+        "Все модули"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Всплывающее сообщение — интерактивный пример с вымышленными данными.",
+      "description_en": "Toast notification — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/feedback.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.tooltip.validation",
+      "name_ru": "Ошибка валидации",
+      "name_en": "Inline error",
+      "short_ru": "ОВ",
+      "short_en": "IE",
+      "category": "tooltips",
+      "subcategory": "error",
+      "type": "tooltip",
+      "variant": "error",
+      "renderer": "validation",
+      "source": [
+        "internal/server/web/ui/fields.js"
+      ],
+      "css": [
+        "input:invalid"
+      ],
+      "uses": [
+        "Формы"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Ошибка валидации — интерактивный пример с вымышленными данными.",
+      "description_en": "Inline error — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/fields.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.tooltip.chat-status",
+      "name_ru": "Статус служб чата",
+      "name_en": "Chat connection tooltip",
+      "short_ru": "СЧ",
+      "short_en": "CCT",
+      "category": "tooltips",
+      "subcategory": "chat",
+      "type": "tooltip",
+      "variant": "chat",
+      "renderer": "status",
+      "source": [
+        "scripts/frontend-generation/mock/chat-native.js",
+        "scripts/frontend-generation/mock/chat-native.css"
+      ],
+      "css": [
+        ".service-status-tag"
+      ],
+      "uses": [
+        "Чат v13"
+      ],
+      "status": "approved",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Статус служб чата — интерактивный пример с вымышленными данными.",
+      "description_en": "Chat connection tooltip — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "scripts/frontend-generation/mock/chat-native.js"
+      ],
+      "sourceCss": [
+        "scripts/frontend-generation/mock/chat-native.css",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "approved-style-isolated-adapter"
+    },
+    {
+      "id": "ui.map.galaxy",
+      "name_ru": "Галактическая карта",
+      "name_en": "Galaxy map",
+      "short_ru": "ГК",
+      "short_en": "GM",
+      "category": "maps",
+      "subcategory": "galaxy",
+      "type": "map",
+      "variant": "galaxy",
+      "renderer": "map",
+      "source": [
+        "internal/server/web/features/maps/galaxy.js"
+      ],
+      "css": [
+        ".map-canvas-wrap",
+        ".map-toolbar"
+      ],
+      "uses": [
+        "Карта"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Галактическая карта — интерактивный пример с вымышленными данными.",
+      "description_en": "Galaxy map — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/maps/galaxy.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.map.system",
+      "name_ru": "Системная карта",
+      "name_en": "Star system map",
+      "short_ru": "СК",
+      "short_en": "SSM",
+      "category": "maps",
+      "subcategory": "system",
+      "type": "map",
+      "variant": "system",
+      "renderer": "map",
+      "source": [
+        "internal/server/web/features/maps/galaxy.js"
+      ],
+      "css": [
+        ".map-canvas-wrap",
+        ".map-toolbar"
+      ],
+      "uses": [
+        "Звёздная система"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Системная карта — интерактивный пример с вымышленными данными.",
+      "description_en": "Star system map — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/maps/galaxy.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.map.star-marker",
+      "name_ru": "Маркер звезды",
+      "name_en": "Star marker",
+      "short_ru": "МЗ",
+      "short_en": "SM",
+      "category": "maps",
+      "subcategory": "star",
+      "type": "map",
+      "variant": "star",
+      "renderer": "map",
+      "source": [
+        "internal/server/web/features/maps/galaxy.js"
+      ],
+      "css": [
+        ".map-canvas-wrap",
+        ".map-toolbar"
+      ],
+      "uses": [
+        "Карта"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Маркер звезды — интерактивный пример с вымышленными данными.",
+      "description_en": "Star marker — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/maps/galaxy.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.map.route",
+      "name_ru": "Гиперкоридор и маршрут",
+      "name_en": "Lane and route",
+      "short_ru": "ГМ",
+      "short_en": "LR",
+      "category": "maps",
+      "subcategory": "route",
+      "type": "map",
+      "variant": "route",
+      "renderer": "map",
+      "source": [
+        "internal/server/web/features/maps/galaxy.js"
+      ],
+      "css": [
+        ".map-canvas-wrap",
+        ".map-toolbar"
+      ],
+      "uses": [
+        "Карта"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Гиперкоридор и маршрут — интерактивный пример с вымышленными данными.",
+      "description_en": "Lane and route — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/maps/galaxy.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.map.ship-marker",
+      "name_ru": "Маркер корабля",
+      "name_en": "Ship marker",
+      "short_ru": "МК",
+      "short_en": "SM",
+      "category": "maps",
+      "subcategory": "ship",
+      "type": "map",
+      "variant": "ship",
+      "renderer": "map",
+      "source": [
+        "internal/server/web/features/maps/galaxy.js"
+      ],
+      "css": [
+        ".map-canvas-wrap",
+        ".map-toolbar"
+      ],
+      "uses": [
+        "Карта"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Маркер корабля — интерактивный пример с вымышленными данными.",
+      "description_en": "Ship marker — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/maps/galaxy.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.map.filters",
+      "name_ru": "Фильтры карты",
+      "name_en": "Map filters",
+      "short_ru": "ФК",
+      "short_en": "MF",
+      "category": "maps",
+      "subcategory": "filters",
+      "type": "map",
+      "variant": "filters",
+      "renderer": "map-filter",
+      "source": [
+        "internal/server/web/features/maps/galaxy.js"
+      ],
+      "css": [
+        ".map-filters"
+      ],
+      "uses": [
+        "Карта"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Фильтры карты — интерактивный пример с вымышленными данными.",
+      "description_en": "Map filters — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/maps/galaxy.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.map.zoom",
+      "name_ru": "Масштабирование карты",
+      "name_en": "Map zoom",
+      "short_ru": "МК",
+      "short_en": "MZ",
+      "category": "maps",
+      "subcategory": "zoom",
+      "type": "map",
+      "variant": "zoom",
+      "renderer": "map",
+      "source": [
+        "internal/server/web/features/maps/galaxy.js"
+      ],
+      "css": [
+        ".map-canvas-wrap",
+        ".map-toolbar"
+      ],
+      "uses": [
+        "Карта"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Масштабирование карты — интерактивный пример с вымышленными данными.",
+      "description_en": "Map zoom — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/maps/galaxy.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.map.planet.scene",
+      "name_ru": "Планетарный Canvas HUD",
+      "name_en": "Planetary canvas HUD",
+      "short_ru": "ПК",
+      "short_en": "PCH",
+      "category": "maps",
+      "subcategory": "canvas",
+      "type": "map",
+      "variant": "canvas",
+      "renderer": "pending",
+      "source": [
+        "internal/server/web/features/planet/index.js",
+        "internal/server/web/features/planet/scene-actors.js"
+      ],
+      "css": [],
+      "uses": [
+        "Планетарная сцена"
+      ],
+      "status": "pending",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "В оригинале сцена использует сложный runtime, изолированный renderer пока не подключён.",
+      "description_en": "Planetary canvas HUD — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/planet/index.js",
+        "internal/server/web/features/planet/scene-actors.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "unimplemented"
+    },
+    {
+      "id": "ui.chat.tabs",
+      "name_ru": "Вкладки чата",
+      "name_en": "Chat tabs",
+      "short_ru": "ВЧ",
+      "short_en": "CT",
+      "category": "chat",
+      "subcategory": "tabs",
+      "type": "chat",
+      "variant": "tabs",
+      "renderer": "chat-tabs",
+      "source": [
+        "scripts/frontend-generation/mock/chat-native.js",
+        "scripts/frontend-generation/mock/chat-native.css"
+      ],
+      "css": [
+        ".chat-tabs",
+        ".chat-tab"
+      ],
+      "uses": [
+        "Чат v13"
+      ],
+      "status": "approved",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Вкладки чата — интерактивный пример с вымышленными данными.",
+      "description_en": "Chat tabs — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "scripts/frontend-generation/mock/chat-native.js"
+      ],
+      "sourceCss": [
+        "scripts/frontend-generation/mock/chat-native.css",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "approved-style-isolated-adapter"
+    },
+    {
+      "id": "ui.chat.message",
+      "name_ru": "Сообщение",
+      "name_en": "Chat message",
+      "short_ru": "СОО",
+      "short_en": "CM",
+      "category": "chat",
+      "subcategory": "message",
+      "type": "chat",
+      "variant": "message",
+      "renderer": "chat-message",
+      "source": [
+        "scripts/frontend-generation/mock/chat-native.js",
+        "scripts/frontend-generation/mock/chat-native.css"
+      ],
+      "css": [
+        ".chat-message"
+      ],
+      "uses": [
+        "Чат v13"
+      ],
+      "status": "approved",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Сообщение — интерактивный пример с вымышленными данными.",
+      "description_en": "Chat message — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "scripts/frontend-generation/mock/chat-native.js"
+      ],
+      "sourceCss": [
+        "scripts/frontend-generation/mock/chat-native.css",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "approved-style-isolated-adapter"
+    },
+    {
+      "id": "ui.chat.reply",
+      "name_ru": "Ответ на сообщение",
+      "name_en": "Chat reply",
+      "short_ru": "ОТЧ",
+      "short_en": "CR",
+      "category": "chat",
+      "subcategory": "reply",
+      "type": "chat",
+      "variant": "reply",
+      "renderer": "chat-message",
+      "source": [
+        "scripts/frontend-generation/mock/chat-native.js",
+        "scripts/frontend-generation/mock/chat-native.css"
+      ],
+      "css": [
+        ".chat-message"
+      ],
+      "uses": [
+        "Чат v13"
+      ],
+      "status": "approved",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Ответ на сообщение — интерактивный пример с вымышленными данными.",
+      "description_en": "Chat reply — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "scripts/frontend-generation/mock/chat-native.js"
+      ],
+      "sourceCss": [
+        "scripts/frontend-generation/mock/chat-native.css",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "approved-style-isolated-adapter"
+    },
+    {
+      "id": "ui.chat.favorite",
+      "name_ru": "Избранное и папки",
+      "name_en": "Favorites and folders",
+      "short_ru": "ИЗБ",
+      "short_en": "FF",
+      "category": "chat",
+      "subcategory": "favorite",
+      "type": "chat",
+      "variant": "favorite",
+      "renderer": "chat-favorite",
+      "source": [
+        "scripts/frontend-generation/mock/chat-native.js",
+        "scripts/frontend-generation/mock/chat-native.css"
+      ],
+      "css": [
+        ".chat-folder-bar"
+      ],
+      "uses": [
+        "Чат v13"
+      ],
+      "status": "approved",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Избранное и папки — интерактивный пример с вымышленными данными.",
+      "description_en": "Favorites and folders — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "scripts/frontend-generation/mock/chat-native.js"
+      ],
+      "sourceCss": [
+        "scripts/frontend-generation/mock/chat-native.css",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "approved-style-isolated-adapter"
+    },
+    {
+      "id": "ui.chat.emoji",
+      "name_ru": "Панель эмодзи",
+      "name_en": "Emoji palette",
+      "short_ru": "ЭМ",
+      "short_en": "EP",
+      "category": "chat",
+      "subcategory": "emoji",
+      "type": "chat",
+      "variant": "emoji",
+      "renderer": "emoji",
+      "source": [
+        "scripts/frontend-generation/mock/chat-native.js",
+        "scripts/frontend-generation/mock/chat-native.css"
+      ],
+      "css": [
+        ".chat-emoji-panel"
+      ],
+      "uses": [
+        "Чат v13"
+      ],
+      "status": "approved",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Панель эмодзи — интерактивный пример с вымышленными данными.",
+      "description_en": "Emoji palette — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "scripts/frontend-generation/mock/chat-native.js"
+      ],
+      "sourceCss": [
+        "scripts/frontend-generation/mock/chat-native.css",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "approved-style-isolated-adapter"
+    },
+    {
+      "id": "ui.chat.composer",
+      "name_ru": "Поле сообщения",
+      "name_en": "Message composer",
+      "short_ru": "ПСЧ",
+      "short_en": "MC",
+      "category": "chat",
+      "subcategory": "composer",
+      "type": "chat",
+      "variant": "composer",
+      "renderer": "textarea",
+      "source": [
+        "scripts/frontend-generation/mock/chat-native.js",
+        "scripts/frontend-generation/mock/chat-native.css"
+      ],
+      "css": [
+        "textarea"
+      ],
+      "uses": [
+        "Чат v13"
+      ],
+      "status": "approved",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Поле сообщения — интерактивный пример с вымышленными данными.",
+      "description_en": "Message composer — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "scripts/frontend-generation/mock/chat-native.js"
+      ],
+      "sourceCss": [
+        "scripts/frontend-generation/mock/chat-native.css",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "approved-style-isolated-adapter"
+    },
+    {
+      "id": "ui.chat.members",
+      "name_ru": "Список игроков",
+      "name_en": "Player list",
+      "short_ru": "СИ",
+      "short_en": "PL",
+      "category": "chat",
+      "subcategory": "members",
+      "type": "chat",
+      "variant": "members",
+      "renderer": "cards",
+      "source": [
+        "scripts/frontend-generation/mock/chat-native.js",
+        "scripts/frontend-generation/mock/chat-native.css"
+      ],
+      "css": [
+        ".fleet-card"
+      ],
+      "uses": [
+        "Чат v13"
+      ],
+      "status": "approved",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Список игроков — интерактивный пример с вымышленными данными.",
+      "description_en": "Player list — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "scripts/frontend-generation/mock/chat-native.js"
+      ],
+      "sourceCss": [
+        "scripts/frontend-generation/mock/chat-native.css",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "approved-style-isolated-adapter"
+    },
+    {
+      "id": "ui.chat.moderation",
+      "name_ru": "Панель модерации",
+      "name_en": "Moderation panel",
+      "short_ru": "ПМ",
+      "short_en": "MP",
+      "category": "chat",
+      "subcategory": "moderation",
+      "type": "chat",
+      "variant": "moderation",
+      "renderer": "cards",
+      "source": [
+        "scripts/frontend-generation/mock/chat-native.js",
+        "scripts/frontend-generation/mock/chat-native.css"
+      ],
+      "css": [
+        ".fleet-card"
+      ],
+      "uses": [
+        "Чат v13"
+      ],
+      "status": "approved",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Панель модерации — интерактивный пример с вымышленными данными.",
+      "description_en": "Moderation panel — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "scripts/frontend-generation/mock/chat-native.js"
+      ],
+      "sourceCss": [
+        "scripts/frontend-generation/mock/chat-native.css",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "approved-style-isolated-adapter"
+    },
+    {
+      "id": "ui.chat.settings",
+      "name_ru": "Настройки чата",
+      "name_en": "Chat settings",
+      "short_ru": "НЧ",
+      "short_en": "CS",
+      "category": "chat",
+      "subcategory": "settings",
+      "type": "chat",
+      "variant": "settings",
+      "renderer": "range",
+      "source": [
+        "scripts/frontend-generation/mock/chat-native.js",
+        "scripts/frontend-generation/mock/chat-native.css"
+      ],
+      "css": [
+        "input[type=\"range\"]"
+      ],
+      "uses": [
+        "Чат v13"
+      ],
+      "status": "approved",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Настройки чата — интерактивный пример с вымышленными данными.",
+      "description_en": "Chat settings — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "scripts/frontend-generation/mock/chat-native.js"
+      ],
+      "sourceCss": [
+        "scripts/frontend-generation/mock/chat-native.css",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "approved-style-isolated-adapter"
+    },
+    {
+      "id": "ui.chat.context-menu",
+      "name_ru": "ККМ сообщения",
+      "name_en": "Message compact menu",
+      "short_ru": "ККМ",
+      "short_en": "MCM",
+      "category": "chat",
+      "subcategory": "message",
+      "type": "chat",
+      "variant": "message",
+      "renderer": "menu-chat",
+      "source": [
+        "scripts/frontend-generation/mock/chat-native.js",
+        "scripts/frontend-generation/mock/chat-native.css"
+      ],
+      "css": [
+        ".chat-context-menu"
+      ],
+      "uses": [
+        "Чат v13"
+      ],
+      "status": "approved",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "ККМ сообщения — интерактивный пример с вымышленными данными.",
+      "description_en": "Message compact menu — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "scripts/frontend-generation/mock/chat-native.js"
+      ],
+      "sourceCss": [
+        "scripts/frontend-generation/mock/chat-native.css",
+        "scripts/frontend-generation/mock/chat-native.css"
+      ],
+      "implementation": "approved-style-isolated-adapter"
+    },
+    {
+      "id": "ui.studies.source-menu",
+      "name_ru": "Фильтр «Источник»",
+      "name_en": "Research source selector",
+      "short_ru": "ИС",
+      "short_en": "RSS",
+      "category": "studies",
+      "subcategory": "source",
+      "type": "studies",
+      "variant": "source",
+      "renderer": "menu-studies",
+      "source": [
+        "scripts/frontend-generation/prototype/studies/app.js",
+        "scripts/frontend-generation/prototype/studies/styles.css"
+      ],
+      "css": [
+        ".studies-source-kkm"
+      ],
+      "uses": [
+        "Исследования v13"
+      ],
+      "status": "approved",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Фильтр «Источник» — интерактивный пример с вымышленными данными.",
+      "description_en": "Research source selector — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "scripts/frontend-generation/prototype/studies/app.js"
+      ],
+      "sourceCss": [
+        "scripts/frontend-generation/prototype/studies/styles.css",
+        "scripts/frontend-generation/prototype/studies/styles.css"
+      ],
+      "implementation": "approved-style-isolated-adapter"
+    },
+    {
+      "id": "ui.studies.search",
+      "name_ru": "Прямоугольный поиск",
+      "name_en": "Rectangular search",
+      "short_ru": "ПИ",
+      "short_en": "RS",
+      "category": "studies",
+      "subcategory": "search",
+      "type": "studies",
+      "variant": "search",
+      "renderer": "field",
+      "source": [
+        "scripts/frontend-generation/prototype/studies/app.js",
+        "scripts/frontend-generation/prototype/studies/styles.css"
+      ],
+      "css": [
+        "input"
+      ],
+      "uses": [
+        "Исследования v13"
+      ],
+      "status": "approved",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Прямоугольный поиск — интерактивный пример с вымышленными данными.",
+      "description_en": "Rectangular search — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "scripts/frontend-generation/prototype/studies/app.js"
+      ],
+      "sourceCss": [
+        "scripts/frontend-generation/prototype/studies/styles.css",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "approved-style-isolated-adapter"
+    },
+    {
+      "id": "ui.studies.system-row",
+      "name_ru": "Строка системы",
+      "name_en": "Star system entry",
+      "short_ru": "ССИ",
+      "short_en": "SSE",
+      "category": "studies",
+      "subcategory": "row",
+      "type": "studies",
+      "variant": "row",
+      "renderer": "studies-row",
+      "source": [
+        "scripts/frontend-generation/prototype/studies/app.js",
+        "scripts/frontend-generation/prototype/studies/styles.css"
+      ],
+      "css": [
+        ".study-entry"
+      ],
+      "uses": [
+        "Исследования v13"
+      ],
+      "status": "approved",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Строка системы — интерактивный пример с вымышленными данными.",
+      "description_en": "Star system entry — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "scripts/frontend-generation/prototype/studies/app.js"
+      ],
+      "sourceCss": [
+        "scripts/frontend-generation/prototype/studies/styles.css",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "approved-style-isolated-adapter"
+    },
+    {
+      "id": "ui.studies.current",
+      "name_ru": "Активная система корабля",
+      "name_en": "Current ship star",
+      "short_ru": "АКС",
+      "short_en": "CSS",
+      "category": "studies",
+      "subcategory": "current",
+      "type": "studies",
+      "variant": "current",
+      "renderer": "studies-row",
+      "source": [
+        "scripts/frontend-generation/prototype/studies/app.js",
+        "scripts/frontend-generation/prototype/studies/styles.css"
+      ],
+      "css": [
+        ".study-entry"
+      ],
+      "uses": [
+        "Исследования v13"
+      ],
+      "status": "approved",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Активная система корабля — интерактивный пример с вымышленными данными.",
+      "description_en": "Current ship star — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "scripts/frontend-generation/prototype/studies/app.js"
+      ],
+      "sourceCss": [
+        "scripts/frontend-generation/prototype/studies/styles.css",
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "approved-style-isolated-adapter"
+    },
+    {
+      "id": "ui.studies.hologram",
+      "name_ru": "Голограмма звезды",
+      "name_en": "Star hologram",
+      "short_ru": "ГЗ",
+      "short_en": "SH",
+      "category": "studies",
+      "subcategory": "star",
+      "type": "studies",
+      "variant": "star",
+      "renderer": "hologram",
+      "source": [
+        "internal/server/web/ui/holograms.js",
+        "scripts/frontend-generation/prototype/studies/app.js"
+      ],
+      "css": [
+        ".hologram-surface"
+      ],
+      "uses": [
+        "Исследования v13"
+      ],
+      "status": "approved",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Голограмма звезды — интерактивный пример с вымышленными данными.",
+      "description_en": "Star hologram — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/holograms.js",
+        "scripts/frontend-generation/prototype/studies/app.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "approved-style-isolated-adapter"
+    },
+    {
+      "id": "ui.studies.scan-progress",
+      "name_ru": "Сканирование объектов",
+      "name_en": "Scanning objects",
+      "short_ru": "СО",
+      "short_en": "SO",
+      "category": "studies",
+      "subcategory": "scan",
+      "type": "studies",
+      "variant": "scan",
+      "renderer": "progress",
+      "source": [
+        "internal/server/web/ui/fields.js",
+        "scripts/frontend-generation/prototype/studies/app.js"
+      ],
+      "css": [
+        ".meter",
+        "progress"
+      ],
+      "uses": [
+        "Исследования v13"
+      ],
+      "status": "approved",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Сканирование объектов — интерактивный пример с вымышленными данными.",
+      "description_en": "Scanning objects — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/fields.js",
+        "scripts/frontend-generation/prototype/studies/app.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "approved-style-isolated-adapter"
+    },
+    {
+      "id": "ui.studies.go-map",
+      "name_ru": "Переход к системе",
+      "name_en": "Open system map",
+      "short_ru": "ПС",
+      "short_en": "OSM",
+      "category": "studies",
+      "subcategory": "link",
+      "type": "studies",
+      "variant": "link",
+      "renderer": "map",
+      "source": [
+        "scripts/frontend-generation/prototype/studies/app.js",
+        "internal/server/web/features/maps/galaxy.js"
+      ],
+      "css": [
+        ".map-canvas-wrap",
+        ".map-toolbar"
+      ],
+      "uses": [
+        "Исследования v13"
+      ],
+      "status": "approved",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Переход к системе — интерактивный пример с вымышленными данными.",
+      "description_en": "Open system map — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "scripts/frontend-generation/prototype/studies/app.js",
+        "internal/server/web/features/maps/galaxy.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "approved-style-isolated-adapter"
+    },
+    {
+      "id": "ui.hologram.star",
+      "name_ru": "Оригинальная SVG-звезда",
+      "name_en": "Original star SVG",
+      "short_ru": "ЗВ",
+      "short_en": "OSS",
+      "category": "graphics",
+      "subcategory": "star",
+      "type": "hologram",
+      "variant": "star",
+      "renderer": "hologram",
+      "source": [
+        "internal/server/web/ui/holograms.js"
+      ],
+      "css": [
+        ".hologram-surface"
+      ],
+      "uses": [
+        "Система"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Оригинальная SVG-звезда — интерактивный пример с вымышленными данными.",
+      "description_en": "Original star SVG — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/holograms.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.hologram.ship",
+      "name_ru": "Оригинальная SVG-модель корабля",
+      "name_en": "Original ship SVG",
+      "short_ru": "КШ",
+      "short_en": "OSS",
+      "category": "graphics",
+      "subcategory": "ship",
+      "type": "hologram",
+      "variant": "ship",
+      "renderer": "ship",
+      "source": [
+        "internal/server/web/ui/holograms.js",
+        "internal/server/web/features/fleet/presentation.js"
+      ],
+      "css": [
+        ".hologram-surface"
+      ],
+      "uses": [
+        "Флот"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Оригинальная SVG-модель корабля — интерактивный пример с вымышленными данными.",
+      "description_en": "Original ship SVG — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/holograms.js",
+        "internal/server/web/features/fleet/presentation.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.hologram.planet",
+      "name_ru": "Голограмма планеты",
+      "name_en": "Planet hologram",
+      "short_ru": "ПЛ",
+      "short_en": "PH",
+      "category": "graphics",
+      "subcategory": "planet",
+      "type": "hologram",
+      "variant": "planet",
+      "renderer": "hologram",
+      "source": [
+        "internal/server/web/ui/holograms.js"
+      ],
+      "css": [
+        ".hologram-surface"
+      ],
+      "uses": [
+        "Карта"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Голограмма планеты — интерактивный пример с вымышленными данными.",
+      "description_en": "Planet hologram — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/holograms.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.hologram.station",
+      "name_ru": "Голограмма станции",
+      "name_en": "Station hologram",
+      "short_ru": "СТ",
+      "short_en": "SH",
+      "category": "graphics",
+      "subcategory": "station",
+      "type": "hologram",
+      "variant": "station",
+      "renderer": "hologram",
+      "source": [
+        "internal/server/web/ui/holograms.js"
+      ],
+      "css": [
+        ".hologram-surface"
+      ],
+      "uses": [
+        "Объекты"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Голограмма станции — интерактивный пример с вымышленными данными.",
+      "description_en": "Station hologram — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/holograms.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.hologram.asteroids",
+      "name_ru": "Голограмма астероидов",
+      "name_en": "Asteroid hologram",
+      "short_ru": "АС",
+      "short_en": "AH",
+      "category": "graphics",
+      "subcategory": "asteroids",
+      "type": "hologram",
+      "variant": "asteroids",
+      "renderer": "hologram",
+      "source": [
+        "internal/server/web/ui/holograms.js"
+      ],
+      "css": [
+        ".hologram-surface"
+      ],
+      "uses": [
+        "Добыча"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Голограмма астероидов — интерактивный пример с вымышленными данными.",
+      "description_en": "Asteroid hologram — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/holograms.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.svg.animation",
+      "name_ru": "Вращение и анимация SVG",
+      "name_en": "SVG animation",
+      "short_ru": "АСВ",
+      "short_en": "SA",
+      "category": "graphics",
+      "subcategory": "animation",
+      "type": "svg",
+      "variant": "animation",
+      "renderer": "hologram",
+      "source": [
+        "internal/server/web/ui/holograms.js"
+      ],
+      "css": [
+        ".hologram-surface"
+      ],
+      "uses": [
+        "Голограммы"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Вращение и анимация SVG — интерактивный пример с вымышленными данными.",
+      "description_en": "SVG animation — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/holograms.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.drag.resource",
+      "name_ru": "Перетаскивание ресурсов",
+      "name_en": "Resource tile drag",
+      "short_ru": "ПРС",
+      "short_en": "RTD",
+      "category": "drag",
+      "subcategory": "resource",
+      "type": "drag",
+      "variant": "resource",
+      "renderer": "drag",
+      "source": [
+        "internal/server/web/features/inventory/resource-tile.js",
+        "internal/server/web/features/inventory/logistics.js"
+      ],
+      "css": [
+        ".resource-grid"
+      ],
+      "uses": [
+        "Трюм",
+        "Логистика"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Перетаскивание ресурсов — интерактивный пример с вымышленными данными.",
+      "description_en": "Resource tile drag — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/inventory/resource-tile.js",
+        "internal/server/web/features/inventory/logistics.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.drag.window",
+      "name_ru": "Перемещение окна",
+      "name_en": "Window drag",
+      "short_ru": "ПО",
+      "short_en": "WD",
+      "category": "drag",
+      "subcategory": "window",
+      "type": "drag",
+      "variant": "window",
+      "renderer": "window",
+      "source": [
+        "internal/server/web/ui/windows.js"
+      ],
+      "css": [
+        ".module-window",
+        ".module-titlebar"
+      ],
+      "uses": [
+        "Окна"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Перемещение окна — интерактивный пример с вымышленными данными.",
+      "description_en": "Window drag — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/windows.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.drag.selection",
+      "name_ru": "Выделение объектов",
+      "name_en": "Selection state",
+      "short_ru": "ВО",
+      "short_en": "SS",
+      "category": "drag",
+      "subcategory": "selection",
+      "type": "drag",
+      "variant": "selection",
+      "renderer": "cards",
+      "source": [
+        "internal/server/web/features/maps/galaxy.js"
+      ],
+      "css": [
+        ".fleet-card"
+      ],
+      "uses": [
+        "Карта"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Выделение объектов — интерактивный пример с вымышленными данными.",
+      "description_en": "Selection state — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/maps/galaxy.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.drag.multi",
+      "name_ru": "Массовый выбор",
+      "name_en": "Bulk selection",
+      "short_ru": "МВ",
+      "short_en": "BS",
+      "category": "drag",
+      "subcategory": "bulk",
+      "type": "drag",
+      "variant": "bulk",
+      "renderer": "checkbox",
+      "source": [
+        "internal/server/web/features/administration/users/index.js"
+      ],
+      "css": [
+        "input[type=\"checkbox\"]"
+      ],
+      "uses": [
+        "Администрирование"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Массовый выбор — интерактивный пример с вымышленными данными.",
+      "description_en": "Bulk selection — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/administration/users/index.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.corporation.flag",
+      "name_ru": "Корпоративный флаг",
+      "name_en": "Corporation flag",
+      "short_ru": "ФК",
+      "short_en": "CF",
+      "category": "corporation",
+      "subcategory": "flag",
+      "type": "corporation",
+      "variant": "flag",
+      "renderer": "flag",
+      "source": [
+        "internal/server/web/features/corporations/flag.js",
+        "internal/server/web/features/corporations/index.js"
+      ],
+      "css": [
+        ".flag-mark"
+      ],
+      "uses": [
+        "Корпорации"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Корпоративный флаг — интерактивный пример с вымышленными данными.",
+      "description_en": "Corporation flag — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/corporations/flag.js",
+        "internal/server/web/features/corporations/index.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.corporation.flag-colors",
+      "name_ru": "Палитра цветов",
+      "name_en": "Flag palette",
+      "short_ru": "ПЦ",
+      "short_en": "FP",
+      "category": "corporation",
+      "subcategory": "palette",
+      "type": "corporation",
+      "variant": "palette",
+      "renderer": "flag",
+      "source": [
+        "internal/server/web/features/corporations/flag.js",
+        "internal/server/web/features/corporations/index.js"
+      ],
+      "css": [
+        ".flag-mark"
+      ],
+      "uses": [
+        "Корпорации"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Палитра цветов — интерактивный пример с вымышленными данными.",
+      "description_en": "Flag palette — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/corporations/flag.js",
+        "internal/server/web/features/corporations/index.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.corporation.members",
+      "name_ru": "Список участников",
+      "name_en": "Corporation members",
+      "short_ru": "УК",
+      "short_en": "CM",
+      "category": "corporation",
+      "subcategory": "members",
+      "type": "corporation",
+      "variant": "members",
+      "renderer": "cards",
+      "source": [
+        "internal/server/web/features/corporations/index.js"
+      ],
+      "css": [
+        ".fleet-card"
+      ],
+      "uses": [
+        "Корпорации"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Список участников — интерактивный пример с вымышленными данными.",
+      "description_en": "Corporation members — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/corporations/index.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.admin.table",
+      "name_ru": "Административная таблица",
+      "name_en": "Administrative table",
+      "short_ru": "ТА",
+      "short_en": "AT",
+      "category": "admin",
+      "subcategory": "admin",
+      "type": "admin",
+      "variant": "admin",
+      "renderer": "table",
+      "source": [
+        "internal/server/web/features/administration/users/index.js",
+        "internal/server/web/ui/table.js"
+      ],
+      "css": [
+        ".table-wrap"
+      ],
+      "uses": [
+        "Пользователи"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Административная таблица — интерактивный пример с вымышленными данными.",
+      "description_en": "Administrative table — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/administration/users/index.js",
+        "internal/server/web/ui/table.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.admin.bulk",
+      "name_ru": "Массовое действие",
+      "name_en": "Bulk action",
+      "short_ru": "МА",
+      "short_en": "BA",
+      "category": "admin",
+      "subcategory": "bulk",
+      "type": "admin",
+      "variant": "bulk",
+      "renderer": "checkbox",
+      "source": [
+        "internal/server/web/features/administration/users/index.js"
+      ],
+      "css": [
+        "input[type=\"checkbox\"]"
+      ],
+      "uses": [
+        "Пользователи"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Массовое действие — интерактивный пример с вымышленными данными.",
+      "description_en": "Bulk action — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/administration/users/index.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.admin.audit-log",
+      "name_ru": "Журнал событий",
+      "name_en": "Audit log",
+      "short_ru": "ЖУ",
+      "short_en": "AL",
+      "category": "admin",
+      "subcategory": "audit",
+      "type": "admin",
+      "variant": "audit",
+      "renderer": "table",
+      "source": [
+        "internal/server/web/features/administration/users/index.js"
+      ],
+      "css": [
+        ".table-wrap"
+      ],
+      "uses": [
+        "Администрирование"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Журнал событий — интерактивный пример с вымышленными данными.",
+      "description_en": "Audit log — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/administration/users/index.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.admin.danger-confirm",
+      "name_ru": "Опасное подтверждение",
+      "name_en": "Destructive confirmation",
+      "short_ru": "ПОД",
+      "short_en": "DC",
+      "category": "admin",
+      "subcategory": "danger",
+      "type": "admin",
+      "variant": "danger",
+      "renderer": "confirm",
+      "source": [
+        "internal/server/web/ui/confirm.js",
+        "internal/server/web/features/administration/users/index.js"
+      ],
+      "css": [
+        ".module-window"
+      ],
+      "uses": [
+        "Администрирование"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Опасное подтверждение — интерактивный пример с вымышленными данными.",
+      "description_en": "Destructive confirmation — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/confirm.js",
+        "internal/server/web/features/administration/users/index.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.shell.navigation",
+      "name_ru": "Левое меню",
+      "name_en": "Sidebar navigation",
+      "short_ru": "ЛМ",
+      "short_en": "SN",
+      "category": "shell",
+      "subcategory": "sidebar",
+      "type": "shell",
+      "variant": "sidebar",
+      "renderer": "sidebar",
+      "source": [
+        "internal/server/web/index.html",
+        "internal/server/web/features/shell/navigation.js"
+      ],
+      "css": [
+        "#sidebar"
+      ],
+      "uses": [
+        "Главная"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Левое меню — интерактивный пример с вымышленными данными.",
+      "description_en": "Sidebar navigation — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/shell/navigation.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.shell.window-switcher",
+      "name_ru": "Переключатель окон",
+      "name_en": "Window switcher",
+      "short_ru": "ПОО",
+      "short_en": "WS",
+      "category": "shell",
+      "subcategory": "switcher",
+      "type": "shell",
+      "variant": "switcher",
+      "renderer": "window",
+      "source": [
+        "internal/server/web/ui/windows.js"
+      ],
+      "css": [
+        ".module-window",
+        ".module-titlebar"
+      ],
+      "uses": [
+        "Шапка"
+      ],
+      "status": "original",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Переключатель окон — интерактивный пример с вымышленными данными.",
+      "description_en": "Window switcher — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/ui/windows.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "original-ui-api"
+    },
+    {
+      "id": "ui.shell.login",
+      "name_ru": "Форма входа",
+      "name_en": "Sign in form",
+      "short_ru": "ФВ",
+      "short_en": "SF",
+      "category": "shell",
+      "subcategory": "login",
+      "type": "shell",
+      "variant": "login",
+      "renderer": "validation",
+      "source": [
+        "internal/server/web/index.html"
+      ],
+      "css": [
+        "input:invalid"
+      ],
+      "uses": [
+        "Авторизация"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Форма входа — интерактивный пример с вымышленными данными.",
+      "description_en": "Sign in form — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.shell.server-status",
+      "name_ru": "Статус игрового сервера",
+      "name_en": "Game service status",
+      "short_ru": "ССС",
+      "short_en": "GSS",
+      "category": "shell",
+      "subcategory": "server",
+      "type": "shell",
+      "variant": "server",
+      "renderer": "status",
+      "source": [
+        "internal/server/web/features/shell/navigation.js"
+      ],
+      "css": [
+        ".service-status-tag"
+      ],
+      "uses": [
+        "Подвал"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Статус игрового сервера — интерактивный пример с вымышленными данными.",
+      "description_en": "Game service status — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [
+        "internal/server/web/features/shell/navigation.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.shell.loading",
+      "name_ru": "Подключение к серверу",
+      "name_en": "Connecting screen",
+      "short_ru": "ПДС",
+      "short_en": "CS",
+      "category": "shell",
+      "subcategory": "loading",
+      "type": "shell",
+      "variant": "loading",
+      "renderer": "status",
+      "source": [
+        "internal/server/web/index.html"
+      ],
+      "css": [
+        ".service-status-tag"
+      ],
+      "uses": [
+        "Загрузка"
+      ],
+      "status": "adapter",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "description_ru": "Подключение к серверу — интерактивный пример с вымышленными данными.",
+      "description_en": "Connecting screen — interactive fixture using fictitious data.",
+      "duplicates": [],
+      "sourceJs": [],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "implementation": "isolated-adapter"
+    },
+    {
+      "id": "ui.map.planet.tree",
+      "name_ru": "Дерево планетарной сцены",
+      "name_en": "Planet scene tree",
+      "short_ru": "ДПС",
+      "short_en": "PST",
+      "category": "maps",
+      "subcategory": "needs-runtime",
+      "type": "map",
+      "variant": "complex",
+      "renderer": "pending",
+      "source": [
+        "internal/server/web/features/planet/scene-actors.js"
+      ],
+      "sourceJs": [
+        "internal/server/web/features/planet/scene-actors.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "css": [],
+      "uses": [
+        "maps"
+      ],
+      "status": "pending",
+      "states": [
+        "default"
+      ],
+      "description_ru": "Требует hit-testing настоящей планетарной сцены.",
+      "description_en": "Discovered in original source; a fully interactive isolated renderer has not yet been built.",
+      "duplicates": [],
+      "implementation": "unimplemented"
+    },
+    {
+      "id": "ui.map.planet.rock",
+      "name_ru": "Камень планетарной сцены",
+      "name_en": "Planet scene rock",
+      "short_ru": "КПС",
+      "short_en": "PSR",
+      "category": "maps",
+      "subcategory": "needs-runtime",
+      "type": "map",
+      "variant": "complex",
+      "renderer": "pending",
+      "source": [
+        "internal/server/web/features/planet/scene-actors.js"
+      ],
+      "sourceJs": [
+        "internal/server/web/features/planet/scene-actors.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "css": [],
+      "uses": [
+        "maps"
+      ],
+      "status": "pending",
+      "states": [
+        "default"
+      ],
+      "description_ru": "Нельзя подменять пиктограммой: необходим runtime объекта.",
+      "description_en": "Discovered in original source; a fully interactive isolated renderer has not yet been built.",
+      "duplicates": [],
+      "implementation": "unimplemented"
+    },
+    {
+      "id": "ui.map.planet.actor",
+      "name_ru": "Игрок на планетарной карте",
+      "name_en": "Planet actor",
+      "short_ru": "ПС",
+      "short_en": "PA",
+      "category": "maps",
+      "subcategory": "needs-runtime",
+      "type": "map",
+      "variant": "complex",
+      "renderer": "pending",
+      "source": [
+        "internal/server/web/features/planet/scene-actors.js"
+      ],
+      "sourceJs": [
+        "internal/server/web/features/planet/scene-actors.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "css": [],
+      "uses": [
+        "maps"
+      ],
+      "status": "pending",
+      "states": [
+        "default"
+      ],
+      "description_ru": "Проверка движущегося персонажа требует изолированного акторного renderer.",
+      "description_en": "Discovered in original source; a fully interactive isolated renderer has not yet been built.",
+      "duplicates": [],
+      "implementation": "unimplemented"
+    },
+    {
+      "id": "ui.map.planet.terrain",
+      "name_ru": "Слой местности планеты",
+      "name_en": "Planet terrain layer",
+      "short_ru": "СМ",
+      "short_en": "PTL",
+      "category": "maps",
+      "subcategory": "needs-runtime",
+      "type": "map",
+      "variant": "complex",
+      "renderer": "pending",
+      "source": [
+        "internal/server/web/features/planet/scene-ground.js"
+      ],
+      "sourceJs": [
+        "internal/server/web/features/planet/scene-ground.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "css": [],
+      "uses": [
+        "maps"
+      ],
+      "status": "pending",
+      "states": [
+        "default"
+      ],
+      "description_ru": "Полный canvas-слой требует модели поверхности и текстур.",
+      "description_en": "Discovered in original source; a fully interactive isolated renderer has not yet been built.",
+      "duplicates": [],
+      "implementation": "unimplemented"
+    },
+    {
+      "id": "ui.map.route.hit-testing",
+      "name_ru": "Попадание по маршруту",
+      "name_en": "Route hit-testing",
+      "short_ru": "ПМ",
+      "short_en": "RHT",
+      "category": "maps",
+      "subcategory": "needs-runtime",
+      "type": "map",
+      "variant": "complex",
+      "renderer": "pending",
+      "source": [
+        "internal/server/web/features/maps/galaxy.js"
+      ],
+      "sourceJs": [
+        "internal/server/web/features/maps/galaxy.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "css": [],
+      "uses": [
+        "maps"
+      ],
+      "status": "pending",
+      "states": [
+        "default"
+      ],
+      "description_ru": "Рисунок маршрута реализован, но семантический hit-testing не изолирован.",
+      "description_en": "Discovered in original source; a fully interactive isolated renderer has not yet been built.",
+      "duplicates": [],
+      "implementation": "unimplemented"
+    },
+    {
+      "id": "ui.table.cursor.history",
+      "name_ru": "История вкладов колонии",
+      "name_en": "Colony contribution cursor",
+      "short_ru": "ИВК",
+      "short_en": "CCC",
+      "category": "tables",
+      "subcategory": "needs-runtime",
+      "type": "table",
+      "variant": "complex",
+      "renderer": "pending",
+      "source": [
+        "internal/server/web/features/planet/index.js"
+      ],
+      "sourceJs": [
+        "internal/server/web/features/planet/index.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "css": [],
+      "uses": [
+        "tables"
+      ],
+      "status": "pending",
+      "states": [
+        "default"
+      ],
+      "description_ru": "Требует cursor-based ответов Go и прав участника.",
+      "description_en": "Discovered in original source; a fully interactive isolated renderer has not yet been built.",
+      "duplicates": [],
+      "implementation": "unimplemented"
+    },
+    {
+      "id": "ui.card.cargo-transfer",
+      "name_ru": "Трансфер между складами",
+      "name_en": "Cargo transfer tile",
+      "short_ru": "ТС",
+      "short_en": "CTT",
+      "category": "cards",
+      "subcategory": "needs-runtime",
+      "type": "card",
+      "variant": "complex",
+      "renderer": "pending",
+      "source": [
+        "internal/server/web/features/inventory/logistics.js"
+      ],
+      "sourceJs": [
+        "internal/server/web/features/inventory/logistics.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "css": [],
+      "uses": [
+        "cards"
+      ],
+      "status": "pending",
+      "states": [
+        "default"
+      ],
+      "description_ru": "Реальная цепочка drag+drop+quantity зависит от DTO складов.",
+      "description_en": "Discovered in original source; a fully interactive isolated renderer has not yet been built.",
+      "duplicates": [],
+      "implementation": "unimplemented"
+    },
+    {
+      "id": "ui.window.danger-typed",
+      "name_ru": "Подтверждение с вводом названия",
+      "name_en": "Typed destructive confirmation",
+      "short_ru": "ПОИ",
+      "short_en": "TDC",
+      "category": "windows",
+      "subcategory": "needs-runtime",
+      "type": "window",
+      "variant": "complex",
+      "renderer": "pending",
+      "source": [
+        "internal/server/web/features/administration/galaxies/index.js"
+      ],
+      "sourceJs": [
+        "internal/server/web/features/administration/galaxies/index.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "css": [],
+      "uses": [
+        "windows"
+      ],
+      "status": "pending",
+      "states": [
+        "default"
+      ],
+      "description_ru": "Нет изолированной воспроизводимой версии многоэтапного опасного диалога.",
+      "description_en": "Discovered in original source; a fully interactive isolated renderer has not yet been built.",
+      "duplicates": [],
+      "implementation": "unimplemented"
+    },
+    {
+      "id": "ui.chart.benchmark",
+      "name_ru": "График бенчмарков сервиса",
+      "name_en": "Benchmark chart",
+      "short_ru": "ГБ",
+      "short_en": "BC",
+      "category": "status",
+      "subcategory": "needs-runtime",
+      "type": "chart",
+      "variant": "complex",
+      "renderer": "pending",
+      "source": [
+        "internal/server/web/features/administration/benchmark/index.js"
+      ],
+      "sourceJs": [
+        "internal/server/web/features/administration/benchmark/index.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "css": [],
+      "uses": [
+        "status"
+      ],
+      "status": "pending",
+      "states": [
+        "default"
+      ],
+      "description_ru": "Требует оригинальных данных для визуального графика.",
+      "description_en": "Discovered in original source; a fully interactive isolated renderer has not yet been built.",
+      "duplicates": [],
+      "implementation": "unimplemented"
+    },
+    {
+      "id": "ui.corporation.flag-editor",
+      "name_ru": "Полный редактор флага",
+      "name_en": "Flag editor",
+      "short_ru": "РФ",
+      "short_en": "FE",
+      "category": "corporation",
+      "subcategory": "needs-runtime",
+      "type": "corporation",
+      "variant": "complex",
+      "renderer": "pending",
+      "source": [
+        "internal/server/web/features/corporations/index.js"
+      ],
+      "sourceJs": [
+        "internal/server/web/features/corporations/index.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "css": [],
+      "uses": [
+        "corporation"
+      ],
+      "status": "pending",
+      "states": [
+        "default"
+      ],
+      "description_ru": "Эскиз и палитра показаны; полный редактор не клонирован.",
+      "description_en": "Discovered in original source; a fully interactive isolated renderer has not yet been built.",
+      "duplicates": [],
+      "implementation": "unimplemented"
+    },
+    {
+      "id": "ui.admin.service-log",
+      "name_ru": "Лог служб",
+      "name_en": "Services log",
+      "short_ru": "ЖС",
+      "short_en": "SL",
+      "category": "admin",
+      "subcategory": "needs-runtime",
+      "type": "admin",
+      "variant": "complex",
+      "renderer": "pending",
+      "source": [
+        "internal/server/web/features/administration/services/index.js"
+      ],
+      "sourceJs": [
+        "internal/server/web/features/administration/services/index.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "css": [],
+      "uses": [
+        "admin"
+      ],
+      "status": "pending",
+      "states": [
+        "default"
+      ],
+      "description_ru": "Бизнес-фильтры журнала связаны с API.",
+      "description_en": "Discovered in original source; a fully interactive isolated renderer has not yet been built.",
+      "duplicates": [],
+      "implementation": "unimplemented"
+    },
+    {
+      "id": "ui.form.two-phase",
+      "name_ru": "Многоэтапная форма изменений",
+      "name_en": "Two-stage edit form",
+      "short_ru": "ДФ",
+      "short_en": "TEF",
+      "category": "fields",
+      "subcategory": "needs-runtime",
+      "type": "form",
+      "variant": "complex",
+      "renderer": "pending",
+      "source": [
+        "internal/server/web/features/administration/gameplay/index.js"
+      ],
+      "sourceJs": [
+        "internal/server/web/features/administration/gameplay/index.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "css": [],
+      "uses": [
+        "fields"
+      ],
+      "status": "pending",
+      "states": [
+        "default"
+      ],
+      "description_ru": "Нужно безопасно имитировать весь цикл предпросмотра и сохранения.",
+      "description_en": "Discovered in original source; a fully interactive isolated renderer has not yet been built.",
+      "duplicates": [],
+      "implementation": "unimplemented"
+    },
+    {
+      "id": "ui.tooltip.resource-rich",
+      "name_ru": "Rich tooltip ресурсов",
+      "name_en": "Rich resource tooltip",
+      "short_ru": "РПР",
+      "short_en": "RRT",
+      "category": "tooltips",
+      "subcategory": "needs-runtime",
+      "type": "tooltip",
+      "variant": "complex",
+      "renderer": "pending",
+      "source": [
+        "internal/server/web/features/inventory/resource-label.js"
+      ],
+      "sourceJs": [
+        "internal/server/web/features/inventory/resource-label.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "css": [],
+      "uses": [
+        "tooltips"
+      ],
+      "status": "pending",
+      "states": [
+        "default"
+      ],
+      "description_ru": "Требует провайдера rich tooltip с корректной мета-информацией ресурса.",
+      "description_en": "Discovered in original source; a fully interactive isolated renderer has not yet been built.",
+      "duplicates": [],
+      "implementation": "unimplemented"
+    },
+    {
+      "id": "ui.nav.window-groups",
+      "name_ru": "Группировка связанных окон",
+      "name_en": "Linked windows navigation",
+      "short_ru": "СО",
+      "short_en": "LWN",
+      "category": "navigation",
+      "subcategory": "needs-runtime",
+      "type": "nav",
+      "variant": "complex",
+      "renderer": "pending",
+      "source": [
+        "internal/server/web/features/fleet/layout.js"
+      ],
+      "sourceJs": [
+        "internal/server/web/features/fleet/layout.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "css": [],
+      "uses": [
+        "navigation"
+      ],
+      "status": "pending",
+      "states": [
+        "default"
+      ],
+      "description_ru": "Связанные окна зависят от конкретного рабочего состояния.",
+      "description_en": "Discovered in original source; a fully interactive isolated renderer has not yet been built.",
+      "duplicates": [],
+      "implementation": "unimplemented"
+    },
+    {
+      "id": "ui.graphics.planet-textures",
+      "name_ru": "Планетарные PNG-текстуры",
+      "name_en": "Planetary PNG textures",
+      "short_ru": "ТК",
+      "short_en": "PT",
+      "category": "graphics",
+      "subcategory": "needs-runtime",
+      "type": "graphics",
+      "variant": "complex",
+      "renderer": "pending",
+      "source": [
+        "internal/server/web/features/planet/terrain.js"
+      ],
+      "sourceJs": [
+        "internal/server/web/features/planet/terrain.js"
+      ],
+      "sourceCss": [
+        "internal/server/web/styles/terminal.css"
+      ],
+      "css": [],
+      "uses": [
+        "graphics"
+      ],
+      "status": "pending",
+      "states": [
+        "default"
+      ],
+      "description_ru": "Визуальная галерея ресурсов есть отдельно; canvas-рендер с ней не воспроизведён.",
+      "description_en": "Discovered in original source; a fully interactive isolated renderer has not yet been built.",
+      "duplicates": [],
+      "implementation": "unimplemented"
+    }
+  ]
+}
