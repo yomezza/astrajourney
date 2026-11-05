@@ -3,7 +3,7 @@
   "origin": "Cosmosimulator original web v0.23.0 and approved frontend-generation v13; source paths verified in repository",
   "updated_at": "2026-11-05",
   "source_root": "internal/server/web/",
-  "catalog_status": "work-in-progress",
+  "catalog_status": "interactive-lab-with-adapters; full production parity not certified",
   "categories": [
     {
       "id": "buttons",
@@ -4102,33 +4102,37 @@
       "subcategory": "canvas",
       "type": "map",
       "variant": "canvas",
-      "renderer": "pending",
+      "renderer": "advanced",
       "source": [
         "internal/server/web/features/planet/index.js",
-        "internal/server/web/features/planet/scene-actors.js"
+        "internal/server/web/features/planet/scene-actors.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.css"
       ],
-      "css": [],
+      "css": [
+        ".uiux-advanced-group",
+        ".uiux-advanced-canvas"
+      ],
       "uses": [
         "Планетарная сцена"
       ],
-      "status": "pending",
+      "status": "adapter",
       "states": [
-        "default",
-        "hover",
-        "focus",
-        "disabled"
+        "default"
       ],
-      "description_ru": "В оригинале сцена использует сложный runtime, изолированный renderer пока не подключён.",
-      "description_en": "Planetary canvas HUD — interactive fixture using fictitious data.",
+      "description_ru": "Интерактивный Canvas: оригинальные PNG-спрайты и createSceneSprites, рельеф через terrain(), выбор объектов, перемещение актёра.",
+      "description_en": "Interactive isolated test bench using original frontend helpers when available. Fictitious data only; no gameplay API mutations.",
       "duplicates": [],
       "sourceJs": [
         "internal/server/web/features/planet/index.js",
-        "internal/server/web/features/planet/scene-actors.js"
+        "internal/server/web/features/planet/scene-actors.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.js"
       ],
       "sourceCss": [
-        "internal/server/web/styles/terminal.css"
+        "scripts/frontend-generation/mock/ui-lab/advanced.css"
       ],
-      "implementation": "unimplemented"
+      "implementation": "interactive-isolated-adapter-with-original-helpers",
+      "verified": "static-source-checked;browser-e2e-not-yet-verified"
     },
     {
       "id": "ui.chat.tabs",
@@ -5671,28 +5675,35 @@
       "subcategory": "needs-runtime",
       "type": "map",
       "variant": "complex",
-      "renderer": "pending",
+      "renderer": "advanced",
       "source": [
-        "internal/server/web/features/planet/scene-actors.js"
+        "internal/server/web/features/planet/scene-actors.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.css"
       ],
       "sourceJs": [
-        "internal/server/web/features/planet/scene-actors.js"
+        "internal/server/web/features/planet/scene-actors.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.js"
       ],
       "sourceCss": [
-        "internal/server/web/styles/terminal.css"
+        "scripts/frontend-generation/mock/ui-lab/advanced.css"
       ],
-      "css": [],
+      "css": [
+        ".uiux-advanced-group",
+        ".uiux-advanced-canvas"
+      ],
       "uses": [
         "maps"
       ],
-      "status": "pending",
+      "status": "adapter",
       "states": [
         "default"
       ],
-      "description_ru": "Требует hit-testing настоящей планетарной сцены.",
-      "description_en": "Discovered in original source; a fully interactive isolated renderer has not yet been built.",
+      "description_ru": "Деревья через исходный createSceneSprites и PNG. Наведение и нажатие проверяют оригинальный hit-test на контакте с поверхностью.",
+      "description_en": "Interactive isolated test bench using original frontend helpers when available. Fictitious data only; no gameplay API mutations.",
       "duplicates": [],
-      "implementation": "unimplemented"
+      "implementation": "interactive-isolated-adapter-with-original-helpers",
+      "verified": "static-source-checked;browser-e2e-not-yet-verified"
     },
     {
       "id": "ui.map.planet.rock",
@@ -5704,28 +5715,35 @@
       "subcategory": "needs-runtime",
       "type": "map",
       "variant": "complex",
-      "renderer": "pending",
+      "renderer": "advanced",
       "source": [
-        "internal/server/web/features/planet/scene-actors.js"
+        "internal/server/web/features/planet/scene-actors.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.css"
       ],
       "sourceJs": [
-        "internal/server/web/features/planet/scene-actors.js"
+        "internal/server/web/features/planet/scene-actors.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.js"
       ],
       "sourceCss": [
-        "internal/server/web/styles/terminal.css"
+        "scripts/frontend-generation/mock/ui-lab/advanced.css"
       ],
-      "css": [],
+      "css": [
+        ".uiux-advanced-group",
+        ".uiux-advanced-canvas"
+      ],
       "uses": [
         "maps"
       ],
-      "status": "pending",
+      "status": "adapter",
       "states": [
         "default"
       ],
-      "description_ru": "Нельзя подменять пиктограммой: необходим runtime объекта.",
-      "description_en": "Discovered in original source; a fully interactive isolated renderer has not yet been built.",
+      "description_ru": "Камни через createSceneSprites и исходные PNG; можно выбирать объект, проверять координаты и зону попадания.",
+      "description_en": "Interactive isolated test bench using original frontend helpers when available. Fictitious data only; no gameplay API mutations.",
       "duplicates": [],
-      "implementation": "unimplemented"
+      "implementation": "interactive-isolated-adapter-with-original-helpers",
+      "verified": "static-source-checked;browser-e2e-not-yet-verified"
     },
     {
       "id": "ui.map.planet.actor",
@@ -5737,28 +5755,35 @@
       "subcategory": "needs-runtime",
       "type": "map",
       "variant": "complex",
-      "renderer": "pending",
+      "renderer": "advanced",
       "source": [
-        "internal/server/web/features/planet/scene-actors.js"
+        "internal/server/web/features/planet/scene-actors.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.css"
       ],
       "sourceJs": [
-        "internal/server/web/features/planet/scene-actors.js"
+        "internal/server/web/features/planet/scene-actors.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.js"
       ],
       "sourceCss": [
-        "internal/server/web/styles/terminal.css"
+        "scripts/frontend-generation/mock/ui-lab/advanced.css"
       ],
-      "css": [],
+      "css": [
+        ".uiux-advanced-group",
+        ".uiux-advanced-canvas"
+      ],
       "uses": [
         "maps"
       ],
-      "status": "pending",
+      "status": "adapter",
       "states": [
         "default"
       ],
-      "description_ru": "Проверка движущегося персонажа требует изолированного акторного renderer.",
-      "description_en": "Discovered in original source; a fully interactive isolated renderer has not yet been built.",
+      "description_ru": "Персонаж со спрайтовым атласом, кнопками направления и управлением WASD/стрелками. Серверное перемещение не выполняется.",
+      "description_en": "Interactive isolated test bench using original frontend helpers when available. Fictitious data only; no gameplay API mutations.",
       "duplicates": [],
-      "implementation": "unimplemented"
+      "implementation": "interactive-isolated-adapter-with-original-helpers",
+      "verified": "static-source-checked;browser-e2e-not-yet-verified"
     },
     {
       "id": "ui.map.planet.terrain",
@@ -5770,28 +5795,35 @@
       "subcategory": "needs-runtime",
       "type": "map",
       "variant": "complex",
-      "renderer": "pending",
+      "renderer": "advanced",
       "source": [
-        "internal/server/web/features/planet/scene-ground.js"
+        "internal/server/web/features/planet/scene-ground.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.css"
       ],
       "sourceJs": [
-        "internal/server/web/features/planet/scene-ground.js"
+        "internal/server/web/features/planet/scene-ground.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.js"
       ],
       "sourceCss": [
-        "internal/server/web/styles/terminal.css"
+        "scripts/frontend-generation/mock/ui-lab/advanced.css"
       ],
-      "css": [],
+      "css": [
+        ".uiux-advanced-group",
+        ".uiux-advanced-canvas"
+      ],
       "uses": [
         "maps"
       ],
-      "status": "pending",
+      "status": "adapter",
       "states": [
         "default"
       ],
-      "description_ru": "Полный canvas-слой требует модели поверхности и текстур.",
-      "description_en": "Discovered in original source; a fully interactive isolated renderer has not yet been built.",
+      "description_ru": "Рельеф строится штатным terrain() из вымышленной географической сетки; биом выбирается вручную, PNG-текстуры загружаются из original-web.",
+      "description_en": "Interactive isolated test bench using original frontend helpers when available. Fictitious data only; no gameplay API mutations.",
       "duplicates": [],
-      "implementation": "unimplemented"
+      "implementation": "interactive-isolated-adapter-with-original-helpers",
+      "verified": "static-source-checked;browser-e2e-not-yet-verified"
     },
     {
       "id": "ui.map.route.hit-testing",
@@ -5803,28 +5835,35 @@
       "subcategory": "needs-runtime",
       "type": "map",
       "variant": "complex",
-      "renderer": "pending",
+      "renderer": "advanced",
       "source": [
-        "internal/server/web/features/maps/galaxy.js"
+        "internal/server/web/features/maps/galaxy.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.css"
       ],
       "sourceJs": [
-        "internal/server/web/features/maps/galaxy.js"
+        "internal/server/web/features/maps/galaxy.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.js"
       ],
       "sourceCss": [
-        "internal/server/web/styles/terminal.css"
+        "scripts/frontend-generation/mock/ui-lab/advanced.css"
       ],
-      "css": [],
+      "css": [
+        ".uiux-advanced-group",
+        ".uiux-advanced-canvas"
+      ],
       "uses": [
         "maps"
       ],
-      "status": "pending",
+      "status": "adapter",
       "states": [
         "default"
       ],
-      "description_ru": "Рисунок маршрута реализован, но семантический hit-testing не изолирован.",
-      "description_en": "Discovered in original source; a fully interactive isolated renderer has not yet been built.",
+      "description_ru": "Canvas c тестовым реестром /api/galaxy: точное определение нажатия на звезду или ребро, масштабирование и выделение.",
+      "description_en": "Interactive isolated test bench using original frontend helpers when available. Fictitious data only; no gameplay API mutations.",
       "duplicates": [],
-      "implementation": "unimplemented"
+      "implementation": "interactive-isolated-adapter-with-original-helpers",
+      "verified": "static-source-checked;browser-e2e-not-yet-verified"
     },
     {
       "id": "ui.table.cursor.history",
@@ -5836,28 +5875,35 @@
       "subcategory": "needs-runtime",
       "type": "table",
       "variant": "complex",
-      "renderer": "pending",
+      "renderer": "advanced",
       "source": [
-        "internal/server/web/features/planet/index.js"
+        "internal/server/web/features/planet/index.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.css"
       ],
       "sourceJs": [
-        "internal/server/web/features/planet/index.js"
+        "internal/server/web/features/planet/index.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.js"
       ],
       "sourceCss": [
-        "internal/server/web/styles/terminal.css"
+        "scripts/frontend-generation/mock/ui-lab/advanced.css"
       ],
-      "css": [],
+      "css": [
+        ".uiux-advanced-group",
+        ".uiux-advanced-canvas"
+      ],
       "uses": [
         "tables"
       ],
-      "status": "pending",
+      "status": "adapter",
       "states": [
         "default"
       ],
-      "description_ru": "Требует cursor-based ответов Go и прав участника.",
-      "description_en": "Discovered in original source; a fully interactive isolated renderer has not yet been built.",
+      "description_ru": "История вкладов с настоящим UI.table и cursorMore; загружает следующие восемь вымышленных записей по локальному курсору.",
+      "description_en": "Interactive isolated test bench using original frontend helpers when available. Fictitious data only; no gameplay API mutations.",
       "duplicates": [],
-      "implementation": "unimplemented"
+      "implementation": "interactive-isolated-adapter-with-original-helpers",
+      "verified": "static-source-checked;browser-e2e-not-yet-verified"
     },
     {
       "id": "ui.card.cargo-transfer",
@@ -5869,28 +5915,35 @@
       "subcategory": "needs-runtime",
       "type": "card",
       "variant": "complex",
-      "renderer": "pending",
+      "renderer": "advanced",
       "source": [
-        "internal/server/web/features/inventory/logistics.js"
+        "internal/server/web/features/inventory/logistics.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.css"
       ],
       "sourceJs": [
-        "internal/server/web/features/inventory/logistics.js"
+        "internal/server/web/features/inventory/logistics.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.js"
       ],
       "sourceCss": [
-        "internal/server/web/styles/terminal.css"
+        "scripts/frontend-generation/mock/ui-lab/advanced.css"
       ],
-      "css": [],
+      "css": [
+        ".uiux-advanced-group",
+        ".uiux-advanced-canvas"
+      ],
       "uses": [
         "cards"
       ],
-      "status": "pending",
+      "status": "adapter",
       "states": [
         "default"
       ],
-      "description_ru": "Реальная цепочка drag+drop+quantity зависит от DTO складов.",
-      "description_en": "Discovered in original source; a fully interactive isolated renderer has not yet been built.",
+      "description_ru": "Реальные resourceTile, два склада, нативный drag/drop, проверка токена и количества, изменение локальных остатков.",
+      "description_en": "Interactive isolated test bench using original frontend helpers when available. Fictitious data only; no gameplay API mutations.",
       "duplicates": [],
-      "implementation": "unimplemented"
+      "implementation": "interactive-isolated-adapter-with-original-helpers",
+      "verified": "static-source-checked;browser-e2e-not-yet-verified"
     },
     {
       "id": "ui.window.danger-typed",
@@ -5902,28 +5955,35 @@
       "subcategory": "needs-runtime",
       "type": "window",
       "variant": "complex",
-      "renderer": "pending",
+      "renderer": "advanced",
       "source": [
-        "internal/server/web/features/administration/galaxies/index.js"
+        "internal/server/web/features/administration/galaxies/index.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.css"
       ],
       "sourceJs": [
-        "internal/server/web/features/administration/galaxies/index.js"
+        "internal/server/web/features/administration/galaxies/index.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.js"
       ],
       "sourceCss": [
-        "internal/server/web/styles/terminal.css"
+        "scripts/frontend-generation/mock/ui-lab/advanced.css"
       ],
-      "css": [],
+      "css": [
+        ".uiux-advanced-group",
+        ".uiux-advanced-canvas"
+      ],
       "uses": [
         "windows"
       ],
-      "status": "pending",
+      "status": "adapter",
       "states": [
         "default"
       ],
-      "description_ru": "Нет изолированной воспроизводимой версии многоэтапного опасного диалога.",
-      "description_en": "Discovered in original source; a fully interactive isolated renderer has not yet been built.",
+      "description_ru": "Двухэтапный демонстрационный сценарий: предпросмотр, блокировки, ввод точного названия и UI.confirm; не является буквальной копией оригинального подтверждения.",
+      "description_en": "Interactive isolated test bench using original frontend helpers when available. Fictitious data only; no gameplay API mutations.",
       "duplicates": [],
-      "implementation": "unimplemented"
+      "implementation": "interactive-isolated-adapter-with-original-helpers",
+      "verified": "static-source-checked;browser-e2e-not-yet-verified"
     },
     {
       "id": "ui.chart.benchmark",
@@ -5935,28 +5995,35 @@
       "subcategory": "needs-runtime",
       "type": "chart",
       "variant": "complex",
-      "renderer": "pending",
+      "renderer": "advanced",
       "source": [
-        "internal/server/web/features/administration/benchmark/index.js"
+        "internal/server/web/features/administration/benchmark/index.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.css"
       ],
       "sourceJs": [
-        "internal/server/web/features/administration/benchmark/index.js"
+        "internal/server/web/features/administration/benchmark/index.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.js"
       ],
       "sourceCss": [
-        "internal/server/web/styles/terminal.css"
+        "scripts/frontend-generation/mock/ui-lab/advanced.css"
       ],
-      "css": [],
+      "css": [
+        ".uiux-advanced-group",
+        ".uiux-advanced-canvas"
+      ],
       "uses": [
         "status"
       ],
-      "status": "pending",
+      "status": "adapter",
       "states": [
         "default"
       ],
-      "description_ru": "Требует оригинальных данных для визуального графика.",
-      "description_en": "Discovered in original source; a fully interactive isolated renderer has not yet been built.",
+      "description_ru": "Тестовые запуски, сценарии и диаграммы в стиле benchmark-chart-row из оригинального админ-модуля; запуск выполняется локально.",
+      "description_en": "Interactive isolated test bench using original frontend helpers when available. Fictitious data only; no gameplay API mutations.",
       "duplicates": [],
-      "implementation": "unimplemented"
+      "implementation": "interactive-isolated-adapter-with-original-helpers",
+      "verified": "static-source-checked;browser-e2e-not-yet-verified"
     },
     {
       "id": "ui.corporation.flag-editor",
@@ -5968,28 +6035,35 @@
       "subcategory": "needs-runtime",
       "type": "corporation",
       "variant": "complex",
-      "renderer": "pending",
+      "renderer": "advanced",
       "source": [
-        "internal/server/web/features/corporations/index.js"
+        "internal/server/web/features/corporations/index.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.css"
       ],
       "sourceJs": [
-        "internal/server/web/features/corporations/index.js"
+        "internal/server/web/features/corporations/index.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.js"
       ],
       "sourceCss": [
-        "internal/server/web/styles/terminal.css"
+        "scripts/frontend-generation/mock/ui-lab/advanced.css"
       ],
-      "css": [],
+      "css": [
+        ".uiux-advanced-group",
+        ".uiux-advanced-canvas"
+      ],
       "uses": [
         "corporation"
       ],
-      "status": "pending",
+      "status": "adapter",
       "states": [
         "default"
       ],
-      "description_ru": "Эскиз и палитра показаны; полный редактор не клонирован.",
-      "description_en": "Discovered in original source; a fully interactive isolated renderer has not yet been built.",
+      "description_ru": "Интерактивный конструктор: символы оригинала, палитра трех цветов, paintFlag и локальное сохранение.",
+      "description_en": "Interactive isolated test bench using original frontend helpers when available. Fictitious data only; no gameplay API mutations.",
       "duplicates": [],
-      "implementation": "unimplemented"
+      "implementation": "interactive-isolated-adapter-with-original-helpers",
+      "verified": "static-source-checked;browser-e2e-not-yet-verified"
     },
     {
       "id": "ui.admin.service-log",
@@ -6001,28 +6075,35 @@
       "subcategory": "needs-runtime",
       "type": "admin",
       "variant": "complex",
-      "renderer": "pending",
+      "renderer": "advanced",
       "source": [
-        "internal/server/web/features/administration/services/index.js"
+        "internal/server/web/features/administration/services/index.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.css"
       ],
       "sourceJs": [
-        "internal/server/web/features/administration/services/index.js"
+        "internal/server/web/features/administration/services/index.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.js"
       ],
       "sourceCss": [
-        "internal/server/web/styles/terminal.css"
+        "scripts/frontend-generation/mock/ui-lab/advanced.css"
       ],
-      "css": [],
+      "css": [
+        ".uiux-advanced-group",
+        ".uiux-advanced-canvas"
+      ],
       "uses": [
         "admin"
       ],
-      "status": "pending",
+      "status": "adapter",
       "states": [
         "default"
       ],
-      "description_ru": "Бизнес-фильтры журнала связаны с API.",
-      "description_en": "Discovered in original source; a fully interactive isolated renderer has not yet been built.",
+      "description_ru": "Статусы сервисов в исходных service-card + фильтруемый вымышленный журнал проверок без фоновых сетевых запросов.",
+      "description_en": "Interactive isolated test bench using original frontend helpers when available. Fictitious data only; no gameplay API mutations.",
       "duplicates": [],
-      "implementation": "unimplemented"
+      "implementation": "interactive-isolated-adapter-with-original-helpers",
+      "verified": "static-source-checked;browser-e2e-not-yet-verified"
     },
     {
       "id": "ui.form.two-phase",
@@ -6034,28 +6115,35 @@
       "subcategory": "needs-runtime",
       "type": "form",
       "variant": "complex",
-      "renderer": "pending",
+      "renderer": "advanced",
       "source": [
-        "internal/server/web/features/administration/gameplay/index.js"
+        "internal/server/web/features/administration/gameplay/index.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.css"
       ],
       "sourceJs": [
-        "internal/server/web/features/administration/gameplay/index.js"
+        "internal/server/web/features/administration/gameplay/index.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.js"
       ],
       "sourceCss": [
-        "internal/server/web/styles/terminal.css"
+        "scripts/frontend-generation/mock/ui-lab/advanced.css"
       ],
-      "css": [],
+      "css": [
+        ".uiux-advanced-group",
+        ".uiux-advanced-canvas"
+      ],
       "uses": [
         "fields"
       ],
-      "status": "pending",
+      "status": "adapter",
       "states": [
         "default"
       ],
-      "description_ru": "Нужно безопасно имитировать весь цикл предпросмотра и сохранения.",
-      "description_en": "Discovered in original source; a fully interactive isolated renderer has not yet been built.",
+      "description_ru": "Двухэтапная форма игровых настроек с оригинальными UI.field и UI.confirm: черновик, предпросмотр diff, проверка и локальное применение.",
+      "description_en": "Interactive isolated test bench using original frontend helpers when available. Fictitious data only; no gameplay API mutations.",
       "duplicates": [],
-      "implementation": "unimplemented"
+      "implementation": "interactive-isolated-adapter-with-original-helpers",
+      "verified": "static-source-checked;browser-e2e-not-yet-verified"
     },
     {
       "id": "ui.tooltip.resource-rich",
@@ -6067,28 +6155,35 @@
       "subcategory": "needs-runtime",
       "type": "tooltip",
       "variant": "complex",
-      "renderer": "pending",
+      "renderer": "advanced",
       "source": [
-        "internal/server/web/features/inventory/resource-label.js"
+        "internal/server/web/features/inventory/resource-label.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.css"
       ],
       "sourceJs": [
-        "internal/server/web/features/inventory/resource-label.js"
+        "internal/server/web/features/inventory/resource-label.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.js"
       ],
       "sourceCss": [
-        "internal/server/web/styles/terminal.css"
+        "scripts/frontend-generation/mock/ui-lab/advanced.css"
       ],
-      "css": [],
+      "css": [
+        ".uiux-advanced-group",
+        ".uiux-advanced-canvas"
+      ],
       "uses": [
         "tooltips"
       ],
-      "status": "pending",
+      "status": "adapter",
       "states": [
         "default"
       ],
-      "description_ru": "Требует провайдера rich tooltip с корректной мета-информацией ресурса.",
-      "description_en": "Discovered in original source; a fully interactive isolated renderer has not yet been built.",
+      "description_ru": "Настоящий registerTooltip/tooltip host: богатая подсказка ресурса с описанием, редкостью и ценой на вымышленных данных.",
+      "description_en": "Interactive isolated test bench using original frontend helpers when available. Fictitious data only; no gameplay API mutations.",
       "duplicates": [],
-      "implementation": "unimplemented"
+      "implementation": "interactive-isolated-adapter-with-original-helpers",
+      "verified": "static-source-checked;browser-e2e-not-yet-verified"
     },
     {
       "id": "ui.nav.window-groups",
@@ -6100,28 +6195,35 @@
       "subcategory": "needs-runtime",
       "type": "nav",
       "variant": "complex",
-      "renderer": "pending",
+      "renderer": "advanced",
       "source": [
-        "internal/server/web/features/fleet/layout.js"
+        "internal/server/web/features/fleet/layout.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.css"
       ],
       "sourceJs": [
-        "internal/server/web/features/fleet/layout.js"
+        "internal/server/web/features/fleet/layout.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.js"
       ],
       "sourceCss": [
-        "internal/server/web/styles/terminal.css"
+        "scripts/frontend-generation/mock/ui-lab/advanced.css"
       ],
-      "css": [],
+      "css": [
+        ".uiux-advanced-group",
+        ".uiux-advanced-canvas"
+      ],
       "uses": [
         "navigation"
       ],
-      "status": "pending",
+      "status": "adapter",
       "states": [
         "default"
       ],
-      "description_ru": "Связанные окна зависят от конкретного рабочего состояния.",
-      "description_en": "Discovered in original source; a fully interactive isolated renderer has not yet been built.",
+      "description_ru": "Открывает два настоящих окна, связывает их через Modules.link и располагает рядом через Modules.adjacent. Связь переключается.",
+      "description_en": "Interactive isolated test bench using original frontend helpers when available. Fictitious data only; no gameplay API mutations.",
       "duplicates": [],
-      "implementation": "unimplemented"
+      "implementation": "interactive-isolated-adapter-with-original-helpers",
+      "verified": "static-source-checked;browser-e2e-not-yet-verified"
     },
     {
       "id": "ui.graphics.planet-textures",
@@ -6133,28 +6235,35 @@
       "subcategory": "needs-runtime",
       "type": "graphics",
       "variant": "complex",
-      "renderer": "pending",
+      "renderer": "advanced",
       "source": [
-        "internal/server/web/features/planet/terrain.js"
+        "internal/server/web/features/planet/terrain.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.css"
       ],
       "sourceJs": [
-        "internal/server/web/features/planet/terrain.js"
+        "internal/server/web/features/planet/terrain.js",
+        "scripts/frontend-generation/mock/ui-lab/advanced.js"
       ],
       "sourceCss": [
-        "internal/server/web/styles/terminal.css"
+        "scripts/frontend-generation/mock/ui-lab/advanced.css"
       ],
-      "css": [],
+      "css": [
+        ".uiux-advanced-group",
+        ".uiux-advanced-canvas"
+      ],
       "uses": [
         "graphics"
       ],
-      "status": "pending",
+      "status": "adapter",
       "states": [
         "default"
       ],
-      "description_ru": "Визуальная галерея ресурсов есть отдельно; canvas-рендер с ней не воспроизведён.",
-      "description_en": "Discovered in original source; a fully interactive isolated renderer has not yet been built.",
+      "description_ru": "Интерактивный предпросмотр оригинальных PNG поверхностей через штатные texture(), materials() и terrain().",
+      "description_en": "Interactive isolated test bench using original frontend helpers when available. Fictitious data only; no gameplay API mutations.",
       "duplicates": [],
-      "implementation": "unimplemented"
+      "implementation": "interactive-isolated-adapter-with-original-helpers",
+      "verified": "static-source-checked;browser-e2e-not-yet-verified"
     }
   ]
 }

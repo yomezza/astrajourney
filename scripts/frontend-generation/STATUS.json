@@ -48,18 +48,33 @@
   },
   "original_assets_repository_location": "internal/server/web/; copied by prepare.py; not duplicated as static images in scripts/frontend-generation/",
   "uiux_lab": {
-    "state": "interactive-catalog-incomplete-coverage",
+    "state": "interactive-adapters-for-all-listed-components; not-production-equivalent",
     "directory": "mock/ui-lab/",
     "categories": 18,
     "entries": 156,
     "original_api": 56,
     "approved_v13": 26,
-    "isolated_adapters": 58,
-    "pending": 16,
+    "isolated_adapters": 74,
+    "pending": 0,
     "original_game_changed": false,
     "chat_v13_changed": false,
     "studies_v13_changed": false,
     "full_browser_e2e_verified": false,
-    "notice": "All demo interactions are local. Some complex original renderers remain pending; see mock/ui-lab/AUDIT.ru.md."
+    "notice": "16 previously pending components now have interactive isolated demonstrations, not a replacement for server-driven production behavior.",
+    "advanced_renderer": "mock/ui-lab/advanced.js",
+    "advanced_categories": [
+      "planet_sprite_hit",
+      "terrain_textures",
+      "galaxy_route_hit",
+      "colony_cursor",
+      "cargo_transfer",
+      "danger_preview",
+      "benchmark_chart",
+      "flag_editor",
+      "service_history",
+      "two_phase_form",
+      "rich_resource_tooltip",
+      "linked_windows"
+    ]
   }
 }
