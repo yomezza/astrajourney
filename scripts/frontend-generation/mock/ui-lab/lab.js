@@ -897,14 +897,23 @@ export function initUiLab() {
   if(!sidebar||!reference)return;
   const nav=$('button');
   nav.type='button';nav.className='';nav.dataset.uiuxOpen='true';nav.dataset.nav='UI/UX';
-  const icon=$('span','⌗','nav-icon');const text=$('span','UI/UX','nav-label');
+  const icon=$('span',null,'nav-icon');
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('viewBox','0 0 24 24');
+  svg.setAttribute('aria-hidden','true');
+  const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+  path.setAttribute('d','M4 5h7v7H4zM13 5h7v7h-7zM4 14h7v6H4zM13 14h7v6h-7z');
+  svg.append(path);icon.append(svg);
+  const text=$('span','UI/UX','nav-label');
   nav.append(icon,text);reference.before(nav);
   nav.onclick=()=>openUiLab().catch(error=>{console.error('[UI/UX]',error);notify('Не удалось открыть UI/UX: '+error.message,'error');});
   window.addEventListener('moduleclose',event=>{
     if(event.detail===LAB_ID){
       menuCleanup();
-      // The native UI.menu uses its own dismissal and owner tracking; do not mutate its internals.
-
+      // Original UI.menu / UI.picker own their popups. A synthetic outside
+      // pointerdown invokes the original dismissal controller and releases tracking.
+      if(document.querySelector('.context-menu:not([hidden]), .picker-popover'))
+        document.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true}));
       for(const id of activeWindows) Modules.close(id);
       activeWindows.clear();
     }
