@@ -235,14 +235,121 @@
   gap: 4px;
   color: #93b3bf;
   font-size: 10px;
+  padding-top: 6px;
+}
+.chat-status-credit-flame {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  isolation: isolate;
+  animation: mirana-fire-glow 1.7s ease-in-out infinite alternate;
 }
 .chat-status-credit-brand,
 .chat-status-credit-heart {
+  position: relative;
+  z-index: 1;
   color: #bd95f5;
 }
 .chat-status-credit-heart {
   font-size: 12px;
   line-height: 1;
+}
+.chat-status-flames {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  filter: drop-shadow(0 0 3px #a347f8);
+}
+.chat-status-flame {
+  position: absolute;
+  left: var(--flame-x);
+  bottom: -1px;
+  width: 10px;
+  height: var(--flame-height);
+  background: linear-gradient(
+    0deg,
+    #e6b4ffb3,
+    #b850f5a6 40%,
+    #7428db70 72%,
+    #7428db00
+  );
+  clip-path: polygon(
+    0 100%,
+    8% 74%,
+    27% 60%,
+    23% 26%,
+    53% 0,
+    62% 32%,
+    88% 48%,
+    100% 77%,
+    93% 100%
+  );
+  transform-origin: 50% 100%;
+  animation: mirana-fire-rise 1.1s ease-in-out var(--flame-delay) infinite
+    alternate;
+}
+.chat-status-flame:nth-child(1) {
+  --flame-x: -3%;
+  --flame-height: 19px;
+  --flame-delay: -0.4s;
+}
+.chat-status-flame:nth-child(2) {
+  --flame-x: 15%;
+  --flame-height: 24px;
+  --flame-delay: -0.9s;
+}
+.chat-status-flame:nth-child(3) {
+  --flame-x: 33%;
+  --flame-height: 18px;
+  --flame-delay: -0.2s;
+}
+.chat-status-flame:nth-child(4) {
+  --flame-x: 50%;
+  --flame-height: 22px;
+  --flame-delay: -0.7s;
+}
+.chat-status-flame:nth-child(5) {
+  --flame-x: 68%;
+  --flame-height: 20px;
+  --flame-delay: -0.1s;
+}
+.chat-status-flame:nth-child(6) {
+  --flame-x: 86%;
+  --flame-height: 24px;
+  --flame-delay: -0.6s;
+}
+@keyframes mirana-fire-rise {
+  0% {
+    transform: translateY(1px) scale(0.8, 0.65) skewX(-10deg);
+    opacity: 0.45;
+  }
+  45% {
+    transform: translateY(-1px) scale(1, 1) skewX(8deg);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(-2px) scale(0.7, 0.85) skewX(-5deg);
+    opacity: 0.65;
+  }
+}
+@keyframes mirana-fire-glow {
+  from {
+    text-shadow:
+      0 0 3px #a347f8,
+      0 0 8px #9636e880;
+  }
+  to {
+    text-shadow:
+      0 0 5px #cf7dff,
+      0 0 12px #9636e8;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chat-status-credit-flame,
+  .chat-status-flame {
+    animation: none;
+  }
 }
 .chat-status-tooltip-row {
   display: grid;

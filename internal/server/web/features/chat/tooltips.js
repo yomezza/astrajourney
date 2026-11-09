@@ -32,13 +32,19 @@ export function initChatTooltips(health) {
       list.append(row);
     }
     const credit = n("div", undefined, "chat-status-credit"),
+      brand = n("span", undefined, "chat-status-credit-flame"),
+      flames = n("span", undefined, "chat-status-flames"),
       heart = n("span", "♥︎", "chat-status-credit-heart");
+    flames.setAttribute("aria-hidden", "true");
+    for (let i = 0; i < 6; i++)
+      flames.append(n("span", undefined, "chat-status-flame"));
     heart.setAttribute("aria-hidden", "true");
-    credit.append(
-      n("span", "Powered by"),
+    brand.append(
+      flames,
       n("span", "Mirana", "chat-status-credit-brand"),
       heart,
     );
+    credit.append(n("span", "Powered by"), brand);
     panel.append(list, n("hr", undefined, "chat-status-divider"), credit);
     return panel;
   });

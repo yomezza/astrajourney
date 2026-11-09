@@ -4,7 +4,7 @@ Cosmosimulator — браузерная космическая экономич�
 
 Сервер написан на Go, данные хранятся в PostgreSQL. Интерфейс работает в браузере на HTML, CSS, JavaScript и SVG. Для запуска не нужны Node.js и npm.
 
-**Текущая версия Cosmic: 0.24.5.** Planet и Chat — 0.24.4. [Что изменилось в выпуске](release-notes/v0.24.5.md).
+**Текущая версия Cosmic: 0.24.6.** Planet и Chat — 0.24.4. [Что изменилось в выпуске](release-notes/v0.24.6.md).
 
 ## Чат · 0.24.0
 
@@ -82,7 +82,7 @@ $env:PLANET_INTERNAL_URL = 'http://127.0.0.1:8081'
 $env:ADMIN_USERNAME = 'operator'
 $env:ADMIN_PASSWORD = 'REPLACE_WITH_A_UNIQUE_PASSWORD'
 
-.\downloads\cosmosimulator-v0.24.5-windows-amd64.exe
+.\downloads\cosmosimulator-v0.24.6-windows-amd64.exe
 ```
 
 После запуска откройте `http://127.0.0.1:8080`. Для остановки используйте Ctrl+C. После создания администратора уберите `ADMIN_USERNAME` и `ADMIN_PASSWORD` из окружения последующих запусков.
@@ -109,7 +109,7 @@ $env:PLANET_HTTP_ADDR = '127.0.0.1:8081'
 
 ```powershell
 $env:CONFIG_FILE = 'D:\cosmosimulator\configs\cosmos.toml'
-.\downloads\cosmosimulator-v0.24.5-windows-amd64.exe
+.\downloads\cosmosimulator-v0.24.6-windows-amd64.exe
 ```
 
 Для Planet и Chat используется та же переменная, но путь к их файлу.
@@ -146,7 +146,7 @@ go test ./...
 Сборка для Windows x64 из корня репозитория:
 
 ```sh
-CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -buildvcs=false -trimpath -ldflags='-s -w' -o downloads/cosmosimulator-v0.24.5-windows-amd64.exe ./cmd/cosmosimulator
+CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -buildvcs=false -trimpath -ldflags='-s -w' -o downloads/cosmosimulator-v0.24.6-windows-amd64.exe ./cmd/cosmosimulator
 CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -buildvcs=false -trimpath -ldflags='-s -w' -o downloads/cosmosimulator-planet-v0.24.4-windows-amd64.exe ./cmd/cosmosimulator-planet
 ```
 
