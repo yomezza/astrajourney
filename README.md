@@ -4,7 +4,7 @@ Cosmosimulator — браузерная космическая экономич�
 
 Сервер написан на Go, данные хранятся в PostgreSQL. Интерфейс работает в браузере на HTML, CSS, JavaScript и SVG. Для запуска не нужны Node.js и npm.
 
-**Текущая версия Cosmic: 0.24.6.** Planet и Chat — 0.24.4. [Что изменилось в выпуске](release-notes/v0.24.6.md).
+**Версии служб:** Cosmic 0.24.6, Planet 0.24.4, Chat 0.24.7. [Обновление Chat N1](release-notes/v0.24.7.md).
 
 ## Чат · 0.24.0
 

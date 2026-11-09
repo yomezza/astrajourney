@@ -136,6 +136,10 @@ TOML**, а не EXE. Каталоги создаются заранее. Для 
 | `chat.maintenance_database_url` | `CHAT_MAINTENANCE_DATABASE_URL` |
 | `chat.runtime_role` | `CHAT_RUNTIME_ROLE` |
 | `chat.definer_role` | `CHAT_DEFINER_ROLE` |
+| `chat.dispatcher_mode` | `CHAT_DISPATCHER_MODE` (Chat 0.24.7+, `legacy`/`a1`) |
+| `chat.fallback_poll_interval` | `CHAT_FALLBACK_POLL_INTERVAL` (default `10s`) |
+| `chat.degraded_poll_interval` | `CHAT_DEGRADED_POLL_INTERVAL` (default `2s`) |
+| `chat.outbox_overlap` | `CHAT_OUTBOX_OVERLAP` (default `60s`) |
 
 В Chat непустой `chat.database_url` имеет приоритет над `database.url` внутри
 того же файла. Если `allowed_origins` не задан, Planet и Chat используют
@@ -148,3 +152,21 @@ TOML**, а не EXE. Каталоги создаются заранее. Для 
 конфигурацию с реквизитами владельца секций. Не добавляйте DBA-реквизиты в
 обычный runtime-файл. Протокол выдачи прав и сохранения журнала остаётся прежним:
 [инструкция Chat](chat-service/README.ru.md).
+
+## Chat Dispatcher N1, начиная с Chat 0.24.7
+
+Режим по умолчанию — `legacy`. Для экспериментального A1 укажите
+`chat.dispatcher_mode = 'a1'` в отдельном TOML Chat либо `CHAT_DISPATCHER_MODE=a1`
+в режиме ENV. После изменения нужен перезапуск только Chat. A1 использует
+локальные уведомления и PostgreSQL fallback; NATS не подключается, секция
+`[nats]` по-прежнему не поддерживается. A2/B1 отвергаются валидатором.
+
+Нормальный poll: 1–30s; degraded: 500ms–10s, не больше normal; overlap: 60s–10m.
+На N1 остаются отдельные security/scope проверки каждые 2s. Значения 10s/2s/60s
+экспериментальные. Откат — `legacy` и перезапуск, без удаления данных.
+
+**Старые EXE Cosmic/Planet не знают этих новых полей.** Если прежде использовался
+общий файл трёх служб, для включения A1 сделайте отдельную копию для Chat;
+в старом общем файле новые параметры не добавляйте. Режим CONFIG_FILE не
+подмешивает ENV, поэтому переключение через ENV при выбранном TOML не сработает.
+Миграций/повторной выдачи SQL-прав нет. [Полный отчёт N1](operations/nats-n1/README.ru.md).

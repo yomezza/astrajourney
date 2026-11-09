@@ -11,6 +11,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/platform/identifiers"
 	"io"
 	"strings"
+	"sync/atomic"
 	"time"
 	"unicode/utf8"
 )
@@ -32,6 +33,9 @@ type Service struct {
 	DB              *pgxpool.Pool
 	Journal         *ErasureJournal
 	PlanetAvailable func() bool
+	commitWake      atomic.Pointer[func(string)]
+	changesCalls    atomic.Uint64
+	scopeChecks     atomic.Uint64
 }
 type Identity struct {
 	ID            int64  `json:"id,string"`
@@ -231,6 +235,7 @@ func (s *Service) execute(ctx context.Context, u Identity, l Lease, cmd Command,
 	if e = tx.Commit(ctx); e != nil {
 		return nil, failure("operation_unknown")
 	}
+	s.committed("mutation")
 	return raw, nil
 }
 

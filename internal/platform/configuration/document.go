@@ -48,6 +48,10 @@ type document struct {
 		MaintenanceDatabaseURL string   `toml:"maintenance_database_url"`
 		RuntimeRole            string   `toml:"runtime_role"`
 		DefinerRole            string   `toml:"definer_role"`
+		DispatcherMode         string   `toml:"dispatcher_mode"`
+		FallbackPollInterval   string   `toml:"fallback_poll_interval"`
+		DegradedPollInterval   string   `toml:"degraded_poll_interval"`
+		OutboxOverlap          string   `toml:"outbox_overlap"`
 	} `toml:"chat"`
 }
 
@@ -100,6 +104,10 @@ func (d document) values(service Service) map[string]string {
 		"CHAT_MAINTENANCE_DATABASE_URL": d.Chat.MaintenanceDatabaseURL,
 		"CHAT_RUNTIME_ROLE":             d.Chat.RuntimeRole,
 		"CHAT_DEFINER_ROLE":             d.Chat.DefinerRole,
+		"CHAT_DISPATCHER_MODE":          d.Chat.DispatcherMode,
+		"CHAT_FALLBACK_POLL_INTERVAL":   d.Chat.FallbackPollInterval,
+		"CHAT_DEGRADED_POLL_INTERVAL":   d.Chat.DegradedPollInterval,
+		"CHAT_OUTBOX_OVERLAP":           d.Chat.OutboxOverlap,
 	}
 	if service == Chat {
 		values["PLANET_INTERNAL_URL"] = d.Chat.PlanetInternalURL

@@ -156,3 +156,26 @@ func TestExamples(t *testing.T) {
 		}
 	}
 }
+
+func TestChatDispatcherTOMLRemainsExclusive(t *testing.T) {
+	p := file(t, `[database]
+url='postgres://test:password@127.0.0.1/game'
+[chat]
+erasure_journal='erasure.log'
+dispatcher_mode='a1'
+fallback_poll_interval='10s'
+degraded_poll_interval='2s'
+outbox_overlap='60s'
+`)
+	source, e := configuration.Load(lookup(map[string]string{configuration.FileVariable: p, "CHAT_DISPATCHER_MODE": "legacy", "CHAT_OUTBOX_OVERLAP": "bad"}), configuration.Chat)
+	if e != nil {
+		t.Fatal(e)
+	}
+	c, e := chatserver.LoadConfig(source.Getenv)
+	if e != nil || c.Dispatcher.Mode != "a1" {
+		t.Fatal("dispatcher mapping or environment merge", e)
+	}
+	if _, e = configuration.Load(lookup(map[string]string{configuration.FileVariable: file(t, "[nats]\nenabled=false")}), configuration.Chat); e == nil {
+		t.Fatal("N1 unexpectedly accepts NATS settings")
+	}
+}

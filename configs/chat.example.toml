@@ -11,6 +11,13 @@ allowed_origins = ['http://192.168.111.44:8080']
 # Путь относительно TOML; заранее создайте каталог и сохраните старый журнал.
 erasure_journal = '../data/chat-erasure.log'
 
+# Chat 0.24.7+: legacy remains the default; a1 is an opt-in N1 experiment.
+# Use a separate Chat config: older Cosmic/Planet EXEs reject these new keys.
+dispatcher_mode = 'legacy'
+fallback_poll_interval = '10s'
+degraded_poll_interval = '2s'
+outbox_overlap = '60s'
+
 # Необязательное переопределение database.url для процесса Chat:
 # database_url = 'postgres://chat_runtime:CHANGE_ME@127.0.0.1:5432/existing_database?sslmode=disable'
 # Для отдельной задачи --maintain или настроенного обслуживания секций:

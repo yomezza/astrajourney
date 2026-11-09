@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/coder/websocket"
@@ -25,16 +26,22 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/platform/postgres"
 )
 
-const Version = "0.24.4"
+const Version = "0.24.7"
 
 type Config struct {
 	DatabaseURL, Schema, Addr, CosmicURL, PlanetURL, Journal string
 	Origins                                                  []string
 	MaintenanceURL                                           string
+	Dispatcher                                               DispatcherConfig
 }
 
 func LoadConfig(getenv func(string) string) (Config, error) {
 	c := Config{DatabaseURL: getenv("CHAT_DATABASE_URL"), MaintenanceURL: getenv("CHAT_MAINTENANCE_DATABASE_URL"), Schema: getenv("DB_SCHEMA"), Addr: getenv("CHAT_HTTP_ADDR"), CosmicURL: getenv("COSMIC_INTERNAL_URL"), PlanetURL: getenv("PLANET_INTERNAL_URL"), Journal: getenv("CHAT_ERASURE_JOURNAL")}
+	var err error
+	c.Dispatcher, err = dispatcherConfig(getenv)
+	if err != nil {
+		return c, err
+	}
 	if c.DatabaseURL == "" {
 		c.DatabaseURL = getenv("DATABASE_URL")
 	}
@@ -60,6 +67,9 @@ func LoadConfig(getenv func(string) string) (Config, error) {
 	return c, c.Validate()
 }
 func (c Config) Validate() error {
+	if err := c.Dispatcher.Validate(); err != nil {
+		return err
+	}
 	if c.DatabaseURL == "" || c.Journal == "" {
 		return errors.New("configure database.url (or chat.database_url) and chat.erasure_journal in TOML, or CHAT_DATABASE_URL/DATABASE_URL and CHAT_ERASURE_JOURNAL in environment")
 	}
@@ -96,13 +106,38 @@ type App struct {
 	checkedAt                      time.Time
 	cosmicFailures, planetFailures int
 	maintenanceState               string
+	registry                       *WSRegistry
+	dispatcher                     *EventDispatcher
+	source                         WakeSource
+	socketWG                       sync.WaitGroup
+	syncWrites                     atomic.Uint64
+	serving                        atomic.Bool
 }
 
 func New(s *chat.Service, c Config) (*App, error) {
+	// Existing Go embeddings omit dispatcher settings, just like old TOML/ENV.
+	defaults := DefaultDispatcherConfig()
+	if c.Dispatcher.Mode == "" {
+		c.Dispatcher.Mode = defaults.Mode
+	}
+	if c.Dispatcher.PollInterval == 0 {
+		c.Dispatcher.PollInterval = defaults.PollInterval
+	}
+	if c.Dispatcher.DegradedInterval == 0 {
+		c.Dispatcher.DegradedInterval = defaults.DegradedInterval
+	}
+	if c.Dispatcher.Overlap == 0 {
+		c.Dispatcher.Overlap = defaults.Overlap
+	}
 	if e := c.Validate(); e != nil {
 		return nil, e
 	}
 	a := &App{Service: s, config: c, instance: chat.UUID(), connections: map[*websocket.Conn]bool{}}
+	a.registry = NewWSRegistry()
+	if c.Dispatcher.Mode == "a1" {
+		a.source = NewLocalWakeSource()
+		a.dispatcher = NewEventDispatcher(s, a.registry, a.source, c.Dispatcher)
+	}
 	s.PlanetAvailable = func() bool { h := a.Health(); return h.Ready && h.Planet }
 	return a, nil
 }
@@ -268,11 +303,24 @@ func (a *App) socket(w http.ResponseWriter, r *http.Request) {
 		httpkit.Fail(w, 409, code(e))
 		return
 	}
+	trackedSocket := false
 	defer func() {
 		c, done := context.WithTimeout(context.Background(), time.Second)
 		defer done()
 		a.Service.Release(c, lease)
+		if trackedSocket {
+			a.socketWG.Done()
+		}
 	}()
+	a.mu.Lock()
+	if a.stopping {
+		a.mu.Unlock()
+		httpkit.Fail(w, 503, "chat_unavailable")
+		return
+	}
+	a.socketWG.Add(1)
+	trackedSocket = true
+	a.mu.Unlock()
 	conn, e := websocket.Accept(w, r, &websocket.AcceptOptions{InsecureSkipVerify: true, CompressionMode: websocket.CompressionDisabled})
 	if e != nil {
 		return
@@ -289,6 +337,15 @@ func (a *App) socket(w http.ResponseWriter, r *http.Request) {
 	defer func() { a.mu.Lock(); delete(a.connections, conn); a.mu.Unlock(); conn.CloseNow() }()
 	run, stop := context.WithCancel(r.Context())
 	defer stop()
+	handle, ok := a.registry.Register(u, lease, stop)
+	if !ok {
+		return
+	}
+	defer a.registry.Unregister(handle)
+	var pendingSync <-chan struct{}
+	if a.dispatcher != nil {
+		pendingSync = handle.Sync
+	}
 	commands := make(chan chat.Command, 16)
 	readDone := make(chan struct{})
 	go func() {
@@ -319,26 +376,52 @@ func (a *App) socket(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}()
+	defer func() { stop(); conn.CloseNow(); <-readDone }()
 	write := func(v any) bool {
 		ctx, cancel := context.WithTimeout(run, 3*time.Second)
 		defer cancel()
 		b, e := json.Marshal(v)
 		return e == nil && conn.Write(ctx, websocket.MessageText, b) == nil
 	}
+	var scopeStamp string
+	if a.dispatcher != nil {
+		check, cancel := context.WithTimeout(run, 3*time.Second)
+		scopeStamp, e = a.Service.ScopeStamp(check, lease)
+		cancel()
+		if e != nil {
+			return
+		}
+	}
 	if !write(map[string]any{"type": "hello", "user": u, "health": a.Health()}) {
+		return
+	}
+	writeSync := func() bool {
+		if !a.registry.Current(handle) {
+			return false
+		}
+		if !write(map[string]any{"type": "sync"}) {
+			return false
+		}
+		a.syncWrites.Add(1)
+		return true
+	}
+	if a.dispatcher != nil && !writeSync() {
 		return
 	}
 	ticker := time.NewTicker(2 * time.Second)
 	defer ticker.Stop()
 	lastRenew := time.Now()
 	var cursor int64
-	var scopeStamp string
 	for {
 		select {
 		case <-run.Done():
 			return
 		case <-readDone:
 			return
+		case <-pendingSync:
+			if !writeSync() {
+				return
+			}
 		case cmd := <-commands:
 			h := a.Health()
 			var in chat.Input
@@ -375,7 +458,11 @@ func (a *App) socket(w http.ResponseWriter, r *http.Request) {
 			var changed bool
 			var stamp string
 			if e == nil {
-				next, changed, stamp, e = a.Service.Changes(c, u, cursor)
+				if a.dispatcher == nil {
+					next, changed, stamp, e = a.Service.Changes(c, u, cursor)
+				} else {
+					stamp, e = a.Service.ScopeStamp(c, lease)
+				}
 			}
 			done()
 			if e != nil {
@@ -388,7 +475,7 @@ func (a *App) socket(w http.ResponseWriter, r *http.Request) {
 			if changed || stamp != scopeStamp {
 				scopeStamp = stamp
 				cursor = next
-				if !write(map[string]any{"type": "sync"}) {
+				if !writeSync() {
 					return
 				}
 			}
@@ -397,21 +484,35 @@ func (a *App) socket(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func (a *App) Serve(ctx context.Context, listener net.Listener, started func()) error {
+	if !a.serving.CompareAndSwap(false, true) {
+		return errors.New("Chat App already served")
+	}
 	a.probe(ctx)
 	run, cancel := context.WithCancel(ctx)
 	defer cancel()
 	workers := sync.WaitGroup{}
+	if a.dispatcher != nil {
+		unsubscribe := a.Service.ObserveCommits(func(string) { a.source.AfterCommit() })
+		defer unsubscribe()
+		workers.Add(1)
+		go func() { defer workers.Done(); a.dispatcher.Run(run) }()
+	}
 	workers.Add(2)
 	go func() {
 		defer workers.Done()
 		tick := time.NewTicker(2 * time.Second)
 		defer tick.Stop()
+		count := 0
 		for {
 			select {
 			case <-run.Done():
 				return
 			case <-tick.C:
 				a.probe(run)
+				count++
+				if count%15 == 0 {
+					slog.Info("chat dispatcher diagnostics", "metrics", a.Diagnostics())
+				}
 			}
 		}
 	}()
@@ -459,9 +560,11 @@ func (a *App) Serve(ctx context.Context, listener net.Listener, started func()) 
 		conn.CloseNow()
 	}
 	a.mu.Unlock()
+	a.registry.Close()
 	stop, done := context.WithTimeout(context.Background(), 8*time.Second)
 	defer done()
 	server.Shutdown(stop)
+	a.socketWG.Wait()
 	if errors.Is(err, http.ErrServerClosed) {
 		err = nil
 	}

@@ -9,6 +9,7 @@ import (
 // A 15-second overlap covers the bounded transaction deadline: sequence IDs
 // are allocated before commit, so a plain high-water cursor can skip late commits.
 func (s *Service) Changes(ctx context.Context, u Identity, after int64) (int64, bool, string, error) {
+	s.changesCalls.Add(1)
 	tx, e := s.DB.Begin(ctx)
 	if e != nil {
 		return 0, false, "", e

@@ -135,6 +135,7 @@ func (j *ErasureJournal) Replay(ctx context.Context, s *Service) error {
 		if e != nil {
 			return e
 		}
+		s.committed("replay")
 	}
 	return nil
 }

@@ -30,7 +30,9 @@ func (s *Service) Maintain(ctx context.Context) error {
 			break
 		}
 	}
-	if _, e = tx.Exec(ctx, `UPDATE chat_invites SET status='expired',decided_at=clock_timestamp() WHERE status='pending' AND expires_at<=clock_timestamp(); UPDATE chat_invite_attempts a SET status='expired' FROM chat_invites i WHERE i.id=a.id AND i.status='expired' AND a.status='pending'; INSERT INTO chat_cleanup_jobs(id,kind,scope_id,operation_id) SELECT gen_random_uuid(),'group',c.id::text,gen_random_uuid() FROM chat_conversations c WHERE c.state='pending' AND NOT EXISTS(SELECT 1 FROM chat_invites i WHERE i.conversation_id=c.id AND i.status='pending') AND EXISTS(SELECT 1 FROM chat_invites i WHERE i.conversation_id=c.id) ON CONFLICT DO NOTHING; UPDATE chat_conversations c SET state='deleting' WHERE c.state='pending' AND EXISTS(SELECT 1 FROM chat_cleanup_jobs j WHERE j.kind='group' AND j.scope_id=c.id::text AND j.phase<>'completed')`); e != nil {
+	// Expiry changes an invitation view without a user command. Emit durable
+	// targeted invalidations so the shared dedupe never hides that transition.
+	if _, e = tx.Exec(ctx, `WITH expired AS(UPDATE chat_invites SET status='expired',decided_at=clock_timestamp() WHERE status='pending' AND expires_at<=clock_timestamp() RETURNING sender_id,recipient_id) INSERT INTO chat_outbox(event_kind,target_user_id) SELECT 'invite.changed',recipient FROM expired CROSS JOIN LATERAL(VALUES(sender_id),(recipient_id)) audience(recipient) GROUP BY recipient; UPDATE chat_invite_attempts a SET status='expired' FROM chat_invites i WHERE i.id=a.id AND i.status='expired' AND a.status='pending'; INSERT INTO chat_cleanup_jobs(id,kind,scope_id,operation_id) SELECT gen_random_uuid(),'group',c.id::text,gen_random_uuid() FROM chat_conversations c WHERE c.state='pending' AND NOT EXISTS(SELECT 1 FROM chat_invites i WHERE i.conversation_id=c.id AND i.status='pending') AND EXISTS(SELECT 1 FROM chat_invites i WHERE i.conversation_id=c.id) ON CONFLICT DO NOTHING; UPDATE chat_conversations c SET state='deleting' WHERE c.state='pending' AND EXISTS(SELECT 1 FROM chat_cleanup_jobs j WHERE j.kind='group' AND j.scope_id=c.id::text AND j.phase<>'completed')`); e != nil {
 		return e
 	}
 	// Cosmic owns requests; Chat writes only its data and acknowledgements.
@@ -113,7 +115,11 @@ func (s *Service) Maintain(ctx context.Context) error {
 	if e = s.unreadAll(ctx, tx); e != nil {
 		return e
 	}
-	return tx.Commit(ctx)
+	if e = tx.Commit(ctx); e != nil {
+		return e
+	}
+	s.committed("maintenance")
+	return nil
 }
 func (s *Service) unreadAll(ctx context.Context, tx pgx.Tx) error {
 	rows, e := tx.Query(ctx, `SELECT id::text FROM chat_conversations WHERE state='active' ORDER BY id LIMIT 1000`)
