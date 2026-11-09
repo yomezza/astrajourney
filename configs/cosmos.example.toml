@@ -1,0 +1,20 @@
+# Скопируйте в cosmos.toml, заполните url и задайте CONFIG_FILE полным путём.
+# Этот пример для HTTP в LAN, все три процесса работают на одном компьютере.
+[database]
+url = 'postgres://cosmos:CHANGE_ME@127.0.0.1:5432/existing_database?sslmode=disable'
+schema = 'cosmosimulator'
+
+[cosmos]
+http_addr = '0.0.0.0:8080'
+public_origin = 'http://192.168.111.44:8080' # Адрес, который игрок открывает в браузере.
+cookie_secure = false # Для HTTPS установите true.
+trusted_proxies = []
+planet_enabled = true
+planet_internal_url = 'http://127.0.0.1:8081'
+chat_enabled = true
+chat_internal_url = 'http://127.0.0.1:8082'
+
+# Только для первоначального создания администратора; затем уберите реквизиты.
+[admin]
+username = ''
+password = ''

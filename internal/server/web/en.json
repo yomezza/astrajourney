@@ -1847,5 +1847,5 @@
   "Поиск игроков": "Search players",
   "chat_disabled": "Chat is disabled in the running Cosmic process",
   "Включение в Cosmic": "Enable in Cosmic",
-  "CHAT_ENABLED=true; перезапустите процесс Cosmic": "CHAT_ENABLED=true; restart the Cosmic process"
+  "В TOML: cosmos.chat_enabled=true; в окружении: CHAT_ENABLED=true. Затем перезапустите Cosmic": "TOML: cosmos.chat_enabled=true; environment: CHAT_ENABLED=true. Then restart Cosmic"
 }

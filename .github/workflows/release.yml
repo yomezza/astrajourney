@@ -30,6 +30,9 @@ jobs:
             "downloads/cosmosimulator-${RELEASE_TAG}-windows-amd64.exe" \
             "downloads/cosmosimulator-planet-${RELEASE_TAG}-windows-amd64.exe" \
             "downloads/cosmosimulator-chat-${RELEASE_TAG}-windows-amd64.exe" \
+            configs/cosmos.example.toml \
+            configs/planet.example.toml \
+            configs/chat.example.toml \
             downloads/SHA256SUMS \
             --verify-tag \
             --title "Cosmosimulator $RELEASE_TAG" \

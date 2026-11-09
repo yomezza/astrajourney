@@ -3,10 +3,8 @@ package server
 
 import (
 	"context"
-	"github.com/yomezza/cosmosimulator/internal/planet/transfer"
 	"net/http"
 	"net/netip"
-	"os"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -22,13 +20,15 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/logistics"
 	"github.com/yomezza/cosmosimulator/internal/navigation"
 	"github.com/yomezza/cosmosimulator/internal/notifications"
+	"github.com/yomezza/cosmosimulator/internal/planet/transfer"
 	"github.com/yomezza/cosmosimulator/internal/planner"
+	"github.com/yomezza/cosmosimulator/internal/platform/configuration"
 	"github.com/yomezza/cosmosimulator/internal/simulation"
 	"github.com/yomezza/cosmosimulator/internal/terminal"
 	"github.com/yomezza/cosmosimulator/internal/worldstore"
 )
 
-const Version = "0.24.3"
+const Version = "0.24.4"
 
 type Config struct {
 	Secure         bool
@@ -61,7 +61,7 @@ type App struct {
 
 func New(db *pgxpool.Pool, config Config) *App {
 	a := &App{DB: db, origin: config.Origin, startedAt: time.Now()}
-	a.Transfer = &transfer.Service{DB: db, Enabled: os.Getenv("PLANET_ENABLED") == "true"}
+	a.Transfer = &transfer.Service{DB: db, Enabled: configuration.Getenv("PLANET_ENABLED") == "true"}
 	a.Auth = &account.Service{DB: db, Secure: config.Secure, TrustedProxies: config.TrustedProxies}
 	a.World = &worldstore.Service{DB: db, Auth: a.Auth}
 	a.Commerce = &commerce.Service{DB: db, Auth: a.Auth, World: a.World}

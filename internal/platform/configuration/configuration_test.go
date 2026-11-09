@@ -1,0 +1,158 @@
+package configuration_test
+
+import (
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+
+	"github.com/yomezza/cosmosimulator/internal/chatserver"
+	"github.com/yomezza/cosmosimulator/internal/planetserver"
+	"github.com/yomezza/cosmosimulator/internal/platform/configuration"
+)
+
+func file(t *testing.T, text string) string {
+	t.Helper()
+	p := filepath.Join(t.TempDir(), "config.toml")
+	if err := os.WriteFile(p, []byte(text), 0600); err != nil {
+		t.Fatal(err)
+	}
+	return p
+}
+
+func lookup(values map[string]string) func(string) string {
+	return func(name string) string { return values[name] }
+}
+
+func TestSourceSelection(t *testing.T) {
+	env := map[string]string{"DATABASE_URL": "environment-db", "CHAT_ENABLED": "true"}
+	source, err := configuration.Load(lookup(env), configuration.Cosmos)
+	if err != nil || source.Getenv("DATABASE_URL") != "environment-db" {
+		t.Fatal("environment mode", err)
+	}
+	env[configuration.FileVariable] = file(t, "\ufeff"+`[database]
+url = 'file-db'
+[cosmos]
+chat_enabled = false
+`)
+	source, err = configuration.Load(lookup(env), configuration.Cosmos)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if source.Getenv("DATABASE_URL") != "file-db" || source.Getenv("CHAT_ENABLED") != "false" || source.Getenv("HTTP_ADDR") != "" {
+		t.Fatal("file must be the exclusive source")
+	}
+	// An omitted secret must not be inherited from the service account environment.
+	env["ADMIN_PASSWORD"] = "stale-secret"
+	if source.Getenv("ADMIN_PASSWORD") != "" {
+		t.Fatal("environment secret leaked into file mode")
+	}
+	if err := os.WriteFile(env[configuration.FileVariable], []byte("not valid TOML"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if source.Getenv("DATABASE_URL") != "file-db" {
+		t.Fatal("configuration changed without restart")
+	}
+}
+
+func TestInvalidFilesNeverFallBackOrLeakSecrets(t *testing.T) {
+	for _, contents := range []string{
+		"[database\nurl = 'secret-password'",
+		"[database]\nurl = 123 # secret-password",
+		"[database]\nurl = 'secret-password'\n[cosmos]\nchat_enabld = true",
+		"[cosmos]\nchat_enabled = 'secret-password'",
+		"[planet]\nallowed_origins = ['http://one,http://two']",
+	} {
+		source, err := configuration.Load(lookup(map[string]string{configuration.FileVariable: file(t, contents), "DATABASE_URL": "valid-environment-db"}), configuration.Cosmos)
+		if err == nil || source != nil {
+			t.Fatal("bad config silently accepted")
+		}
+		if strings.Contains(err.Error(), "secret-password") {
+			t.Fatal("configuration error leaks source contents")
+		}
+	}
+	if _, err := configuration.Load(lookup(map[string]string{configuration.FileVariable: filepath.Join(t.TempDir(), "missing.toml"), "DATABASE_URL": "valid-environment-db"}), configuration.Chat); err == nil {
+		t.Fatal("missing file selected environment")
+	}
+}
+
+func TestServiceSectionsAndExistingValidators(t *testing.T) {
+	p := file(t, `[database]
+url = 'postgres://test:password@127.0.0.1/game'
+schema = 'cosmosimulator'
+[cosmos]
+planet_internal_url = 'http://cosmic-to-planet:8081'
+trusted_proxies = ['127.0.0.1/32', '::1/128']
+[planet]
+allowed_origins = ['http://game:8080', 'http://other:8080']
+move_speed = 5.5
+path_budget = 12000
+db_timeout = '1s'
+log_file = 'logs/planet.log'
+[chat]
+database_url = 'postgres://chat:password@127.0.0.1/game'
+cosmic_internal_url = 'http://game:8080'
+planet_internal_url = 'http://chat-to-planet:8081'
+allowed_origins = ['http://game:8080']
+erasure_journal = 'data/erasure.log'
+`)
+	env := lookup(map[string]string{configuration.FileVariable: p})
+	cosmic, err := configuration.Load(env, configuration.Cosmos)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cosmic.Getenv("PLANET_INTERNAL_URL") != "http://cosmic-to-planet:8081" || cosmic.Getenv("TRUSTED_PROXIES") != "127.0.0.1/32,::1/128" {
+		t.Fatal("cosmic section")
+	}
+	planet, err := configuration.Load(env, configuration.Planet)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pc, err := planetserver.LoadConfig(planet.Getenv)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if pc.MoveSpeed != 5.5 || pc.PathBudget != 12000 || len(pc.AllowedOrigins) != 2 || pc.LogFile != filepath.Join(filepath.Dir(p), "logs", "planet.log") {
+		t.Fatal("planet config or relative path")
+	}
+	chat, err := configuration.Load(env, configuration.Chat)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cc, err := chatserver.LoadConfig(chat.Getenv)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cc.DatabaseURL != "postgres://chat:password@127.0.0.1/game" || cc.PlanetURL != "http://chat-to-planet:8081" || cc.Journal != filepath.Join(filepath.Dir(p), "data", "erasure.log") {
+		t.Fatal("chat section or relative path")
+	}
+	zero, err := configuration.Load(lookup(map[string]string{configuration.FileVariable: file(t, "[database]\nurl = 'postgres://test/db'\n[planet]\nscene_capacity = 0")}), configuration.Planet)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = planetserver.LoadConfig(zero.Getenv); err == nil {
+		t.Fatal("explicit invalid zero replaced by a default")
+	}
+}
+
+func TestExamples(t *testing.T) {
+	for _, service := range []configuration.Service{configuration.Cosmos, configuration.Planet, configuration.Chat} {
+		source, err := configuration.Load(lookup(map[string]string{configuration.FileVariable: filepath.Join("..", "..", "..", "configs", string(service)+".example.toml")}), service)
+		if err != nil {
+			t.Fatal(service, err)
+		}
+		if source.Getenv("DB_SCHEMA") != "cosmosimulator" {
+			t.Fatal("example missing shared schema")
+		}
+		switch service {
+		case configuration.Planet:
+			if _, err = planetserver.LoadConfig(source.Getenv); err != nil {
+				t.Fatal(err)
+			}
+		case configuration.Chat:
+			if _, err = chatserver.LoadConfig(source.Getenv); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+}

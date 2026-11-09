@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/fs"
-	"os"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -13,6 +12,7 @@ import (
 
 	"github.com/yomezza/cosmosimulator/internal/chatintegration"
 	"github.com/yomezza/cosmosimulator/internal/fleet"
+	"github.com/yomezza/cosmosimulator/internal/platform/configuration"
 	"github.com/yomezza/cosmosimulator/internal/platform/postgres"
 	"github.com/yomezza/cosmosimulator/internal/universe"
 	"github.com/yomezza/cosmosimulator/internal/worldstore"
@@ -191,7 +191,7 @@ func OpenDatabase(ctx context.Context, dsn, schema string, schemas fs.ReadFileFS
 	if e = tx.QueryRow(ctx, `SELECT to_regclass('chat_schema_state') IS NOT NULL`).Scan(&chatInstalled); e != nil {
 		return nil, e
 	}
-	if os.Getenv("CHAT_ENABLED") == "true" || chatInstalled {
+	if configuration.Getenv("CHAT_ENABLED") == "true" || chatInstalled {
 		upgrade240, e := schemas.ReadFile("schema240.sql")
 		if e != nil {
 			return nil, e

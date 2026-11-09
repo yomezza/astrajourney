@@ -10,6 +10,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/yomezza/cosmosimulator/internal/platform/configuration"
 	"github.com/yomezza/cosmosimulator/internal/platform/postgres"
 )
 
@@ -17,7 +18,10 @@ func Run(ctx context.Context) error { return RunStarted(ctx, nil) }
 
 // RunStarted notifies SCM only after the HTTP listener has been bound.
 func RunStarted(ctx context.Context, onListening func()) error {
-	config, err := LoadConfig(os.Getenv)
+	if err := configuration.Initialize(configuration.Planet); err != nil {
+		return err
+	}
+	config, err := LoadConfig(configuration.Getenv)
 	if err != nil {
 		return err
 	}
@@ -29,7 +33,7 @@ func RunConfig(ctx context.Context, config Config, onListening func()) error {
 		return nil
 	}
 	if config.DatabaseURL == "" {
-		return errors.New("set DATABASE_URL for the planetary service")
+		return errors.New("configure database.url in TOML or DATABASE_URL for the planetary service")
 	}
 	if err := config.Validate(); err != nil {
 		return err

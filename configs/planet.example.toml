@@ -1,0 +1,18 @@
+# Скопируйте в planet.toml. База и схема те же, что в Cosmic.
+[database]
+url = 'postgres://cosmos:CHANGE_ME@127.0.0.1:5432/existing_database?sslmode=disable'
+schema = 'cosmosimulator'
+
+[planet]
+http_addr = '127.0.0.1:8081'
+allowed_origins = ['http://192.168.111.44:8080']
+log_file = '' # Например 'logs/planet.log', относительно каталога этого TOML.
+move_speed = 4.0
+path_budget = 24000
+db_timeout = '2s'
+lease_ttl = '15s'
+lease_renew = '5s'
+shutdown_timeout = '10s'
+scene_capacity = 32
+scene_idle_ttl = '2m'
+scene_load_timeout = '20s'

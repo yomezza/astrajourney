@@ -7,13 +7,13 @@ import (
 	"encoding/hex"
 	"errors"
 	"net/http"
-	"os"
 	"time"
 	"unicode/utf8"
 
 	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/yomezza/cosmosimulator/internal/platform/configuration"
 	"github.com/yomezza/cosmosimulator/internal/platform/httpkit"
 )
 
@@ -32,7 +32,7 @@ type User struct {
 }
 
 func (a *Service) Bootstrap(ctx context.Context) error {
-	name, pass := os.Getenv("ADMIN_USERNAME"), os.Getenv("ADMIN_PASSWORD")
+	name, pass := configuration.Getenv("ADMIN_USERNAME"), configuration.Getenv("ADMIN_PASSWORD")
 	if name == "" && pass == "" {
 		return nil
 	}

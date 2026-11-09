@@ -1,0 +1,20 @@
+# Скопируйте в chat.toml. Используйте отдельный ограниченный логин Chat.
+[database]
+url = 'postgres://chat_runtime:CHANGE_ME@127.0.0.1:5432/existing_database?sslmode=disable'
+schema = 'cosmosimulator'
+
+[chat]
+http_addr = '127.0.0.1:8082'
+cosmic_internal_url = 'http://127.0.0.1:8080'
+planet_internal_url = 'http://127.0.0.1:8081'
+allowed_origins = ['http://192.168.111.44:8080']
+# Путь относительно TOML; заранее создайте каталог и сохраните старый журнал.
+erasure_journal = '../data/chat-erasure.log'
+
+# Необязательное переопределение database.url для процесса Chat:
+# database_url = 'postgres://chat_runtime:CHANGE_ME@127.0.0.1:5432/existing_database?sslmode=disable'
+# Для отдельной задачи --maintain или настроенного обслуживания секций:
+# maintenance_database_url = 'postgres://PARTITION_OWNER:CHANGE_ME@127.0.0.1:5432/existing_database?sslmode=disable'
+# Только в отдельном DBA-конфиге для однократной команды --grant-runtime:
+# runtime_role = 'chat_runtime'
+# definer_role = 'chat_definer'

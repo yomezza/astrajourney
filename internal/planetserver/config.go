@@ -53,7 +53,7 @@ func LoadConfig(getenv func(string) string) (Config, error) {
 		c.PathBudget = n
 	}
 	if c.DatabaseURL == "" {
-		return c, errors.New("set DATABASE_URL for the planetary service")
+		return c, errors.New("configure database.url in TOML or DATABASE_URL for the planetary service")
 	}
 	if v := getenv("PLANET_HTTP_ADDR"); v != "" {
 		c.Addr = v

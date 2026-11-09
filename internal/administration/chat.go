@@ -3,11 +3,12 @@ package administration
 import (
 	"context"
 	"encoding/json"
-	"github.com/yomezza/cosmosimulator/internal/platform/httpkit"
 	"io"
 	"net/http"
-	"os"
 	"time"
+
+	"github.com/yomezza/cosmosimulator/internal/platform/configuration"
+	"github.com/yomezza/cosmosimulator/internal/platform/httpkit"
 )
 
 func (a *Service) ChatModerator(w http.ResponseWriter, r *http.Request) {
@@ -54,12 +55,12 @@ func (a *Service) ChatModerator(w http.ResponseWriter, r *http.Request) {
 }
 func (a *Service) chatCard(ctx context.Context) ServiceCard {
 	card := ServiceCard{ID: "chat", Name: "Служба чата", Status: "disabled", Info: []ServiceMetric{}}
-	if os.Getenv("CHAT_ENABLED") != "true" {
+	if configuration.Getenv("CHAT_ENABLED") != "true" {
 		card.Reason = "chat_disabled"
-		card.Info = append(card.Info, ServiceMetric{"Включение в Cosmic", "CHAT_ENABLED=true; перезапустите процесс Cosmic"})
+		card.Info = append(card.Info, ServiceMetric{"Включение в Cosmic", "В TOML: cosmos.chat_enabled=true; в окружении: CHAT_ENABLED=true. Затем перезапустите Cosmic"})
 		return card
 	}
-	raw := os.Getenv("CHAT_INTERNAL_URL")
+	raw := configuration.Getenv("CHAT_INTERNAL_URL")
 	if raw == "" {
 		raw = "http://127.0.0.1:8082"
 	}

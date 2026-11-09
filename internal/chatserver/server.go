@@ -5,25 +5,27 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/coder/websocket"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/yomezza/cosmosimulator/internal/account"
-	"github.com/yomezza/cosmosimulator/internal/chat"
-	"github.com/yomezza/cosmosimulator/internal/chatintegration"
-	"github.com/yomezza/cosmosimulator/internal/platform/httpkit"
-	"github.com/yomezza/cosmosimulator/internal/platform/postgres"
 	"io"
 	"log/slog"
 	"net"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/coder/websocket"
+	"github.com/jackc/pgx/v5/pgxpool"
+
+	"github.com/yomezza/cosmosimulator/internal/account"
+	"github.com/yomezza/cosmosimulator/internal/chat"
+	"github.com/yomezza/cosmosimulator/internal/chatintegration"
+	"github.com/yomezza/cosmosimulator/internal/platform/configuration"
+	"github.com/yomezza/cosmosimulator/internal/platform/httpkit"
+	"github.com/yomezza/cosmosimulator/internal/platform/postgres"
 )
 
-const Version = "0.24.3"
+const Version = "0.24.4"
 
 type Config struct {
 	DatabaseURL, Schema, Addr, CosmicURL, PlanetURL, Journal string
@@ -59,7 +61,7 @@ func LoadConfig(getenv func(string) string) (Config, error) {
 }
 func (c Config) Validate() error {
 	if c.DatabaseURL == "" || c.Journal == "" {
-		return errors.New("CHAT_DATABASE_URL/DATABASE_URL and CHAT_ERASURE_JOURNAL are required")
+		return errors.New("configure database.url (or chat.database_url) and chat.erasure_journal in TOML, or CHAT_DATABASE_URL/DATABASE_URL and CHAT_ERASURE_JOURNAL in environment")
 	}
 	if _, _, e := net.SplitHostPort(c.Addr); e != nil {
 		return errors.New("CHAT_HTTP_ADDR must be host:port")
@@ -466,7 +468,10 @@ func (a *App) Serve(ctx context.Context, listener net.Listener, started func()) 
 	return err
 }
 func RunStarted(ctx context.Context, started func()) error {
-	c, e := LoadConfig(os.Getenv)
+	if err := configuration.Initialize(configuration.Chat); err != nil {
+		return err
+	}
+	c, e := LoadConfig(configuration.Getenv)
 	if e != nil {
 		return e
 	}
