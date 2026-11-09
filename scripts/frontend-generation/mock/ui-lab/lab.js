@@ -4,6 +4,7 @@ import { pager, cursorMore } from '/ui/pager.js';
 import { actionAmount } from '/ui/quantity.js';
 import { notify } from '/ui/feedback.js';
 import { paintFlag } from '/features/corporations/flag.js';
+import { renderAdvanced, disposeAdvanced, disposeAdvancedFor, disposeAdvancedUnder } from '/mock/ui-lab/advanced.js';
 
 const LAB_ID = 'uiux-lab';
 const $ = (tag, text, className) => {
@@ -625,6 +626,11 @@ function specimenPending(item,host){
   host.append(p);
 }
 function renderDemo(item,host,options={}) {
+  // Complex demos retain original rendering helpers where possible; each owns cleanup.
+  if(renderAdvanced(item,host)){
+    if(options.narrow)host.classList.add('uiux-narrow');
+    return;
+  }
   const state=stateById.get(item.id)||'default';
   const render=item.renderer;
   if(render==='button')specimenButton(item,host,state);
@@ -726,7 +732,7 @@ function card(item,comparison=false) {
   };
   toggle.append(check,$('span',en()?'Compare':'Сравнить'));
   foot.append(copyID,toggle);
-  if(item.states.length) {
+  if(item.states.length>1) {
     const selector=$('select');selector.setAttribute('aria-label','Тестовое состояние '+item.id);
     for(const state of item.states){
       const option=$('option',state);option.value=state;selector.append(option);
@@ -734,6 +740,7 @@ function card(item,comparison=false) {
     selector.value=stateById.get(item.id)||item.states[0];
     selector.onchange=()=>{
       stateById.set(item.id,selector.value);
+      disposeAdvancedFor(preview);
       preview.replaceChildren();renderDemo(item,preview,{narrow});
     };
     foot.append(selector);
@@ -758,6 +765,7 @@ function metricsFor(item){
   return result;
 }
 function showCompare() {
+  disposeAdvancedUnder(comparePanel);
   comparePanel.replaceChildren();
   const selected=[...activeCompare].map(id=>registry.components.find(v=>v.id===id)).filter(Boolean);
   if(!selected.length){comparePanel.hidden=true;return;}
@@ -815,6 +823,7 @@ function categoryListRender() {
 }
 function refreshItems(){
   menuCleanup();
+  disposeAdvancedUnder(results);
   results.replaceChildren();
   const matching=registry.components.filter(item=>
     (currentCategory==='all'||item.category===currentCategory) &&
@@ -910,13 +919,18 @@ export function initUiLab() {
   window.addEventListener('moduleclose',event=>{
     if(event.detail===LAB_ID){
       menuCleanup();
+      disposeAdvanced();
       // Original UI.menu / UI.picker own their popups. A synthetic outside
       // pointerdown invokes the original dismissal controller and releases tracking.
       if(document.querySelector('.context-menu:not([hidden]), .picker-popover'))
         document.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true}));
       for(const id of activeWindows) Modules.close(id);
       activeWindows.clear();
+      // Closing releases the advanced canvases, image leases and listeners.
+      // Rebuild on next open so every specimen becomes interactive again.
+      root=null;
+      labWindow=null;
     }
   });
-  window.addEventListener('signedout',()=>{menuCleanup();activeCompare.clear();stateById.clear();});
+  window.addEventListener('signedout',()=>{menuCleanup();disposeAdvanced();activeCompare.clear();stateById.clear();});
 }

@@ -1,0 +1,219 @@
+{
+  "schema": 1,
+  "fictional": true,
+  "source": "Cosmosimulator frontend-generation mock/registry.py, fixed IDs",
+  "generated_for_demo": "2026-11-05",
+  "items": [
+    {
+      "id": "mock-news-001",
+      "category": "research",
+      "icon": "star",
+      "star_id": 3,
+      "published_at": "2026-11-05T10:30:00Z",
+      "ru": {
+        "category": "Исследования",
+        "title": "Исследователи уточнили спектр Альтаира",
+        "summary": "Зонд передал результаты нового сканирования системы Альтаир."
+      },
+      "en": {
+        "category": "Research",
+        "title": "Researchers refine the spectrum of Altair",
+        "summary": "A survey probe transmitted new measurements from the Altair system."
+      }
+    },
+    {
+      "id": "mock-news-002",
+      "category": "trade",
+      "icon": "market",
+      "star_id": 1,
+      "published_at": "2026-11-05T09:55:00Z",
+      "object_id": 104,
+      "ru": {
+        "category": "Торговля",
+        "title": "Торговый маяк Эдема пополнил запасы кремния",
+        "summary": "Поставки на станцию #104 расширили доступный рынок ресурсов."
+      },
+      "en": {
+        "category": "Trade",
+        "title": "Eden Trading Beacon replenishes silicon reserves",
+        "summary": "Incoming cargo increased the supply of silicon at station #104."
+      }
+    },
+    {
+      "id": "mock-news-003",
+      "category": "galaxy",
+      "icon": "star",
+      "star_id": 2,
+      "published_at": "2026-11-05T09:05:00Z",
+      "ru": {
+        "category": "Галактика",
+        "title": "Вега-9 появилась в сводке исследовательских маршрутов",
+        "summary": "Навигаторы сопоставили координаты системы с известными гиперкоридорами."
+      },
+      "en": {
+        "category": "Galaxy",
+        "title": "Vega-9 appears on the navigation survey map",
+        "summary": "Navigators matched its coordinates to existing hyperspace lanes."
+      }
+    },
+    {
+      "id": "mock-news-004",
+      "category": "colonies",
+      "icon": "planet",
+      "star_id": 1,
+      "published_at": "2026-11-05T08:40:00Z",
+      "object_id": 102,
+      "ru": {
+        "category": "Колонии",
+        "title": "На Эдеме II продолжается подготовка колониальной площадки",
+        "summary": "Строители доставили материалы в сектор 12; испытания инфраструктуры продолжаются."
+      },
+      "en": {
+        "category": "Colonies",
+        "title": "Colony site preparation continues on Eden II",
+        "summary": "Construction crews delivered supplies to sector 12 and are testing infrastructure."
+      }
+    },
+    {
+      "id": "mock-news-005",
+      "category": "economy",
+      "icon": "market",
+      "star_id": 3,
+      "published_at": "2026-11-05T07:15:00Z",
+      "object_id": 3004,
+      "ru": {
+        "category": "Экономика",
+        "title": "Логистические компании пересматривают тарифы маршрута Эдем — Альтаир",
+        "summary": "Изменение грузопотоков затронуло предложения нескольких орбитальных портов."
+      },
+      "en": {
+        "category": "Economy",
+        "title": "Freight operators review tariffs between Eden and Altair",
+        "summary": "Changing cargo volumes are affecting offers at several orbital ports."
+      }
+    },
+    {
+      "id": "mock-news-006",
+      "category": "corporations",
+      "icon": "market",
+      "star_id": 1,
+      "published_at": "2026-11-04T21:50:00Z",
+      "object_id": 104,
+      "ru": {
+        "category": "Корпорации",
+        "title": "Союз Ориона объявил о расширении складских мощностей",
+        "summary": "На торговом маяке Эдема запланирована дополнительная приёмка ресурсов."
+      },
+      "en": {
+        "category": "Corporations",
+        "title": "Orion Alliance announces expanded storage capacity",
+        "summary": "Additional cargo handling is planned at the Eden Trading Beacon."
+      }
+    },
+    {
+      "id": "mock-news-007",
+      "category": "events",
+      "icon": "planet",
+      "star_id": 6,
+      "published_at": "2026-11-04T19:05:00Z",
+      "ru": {
+        "category": "Космические события",
+        "title": "В системе Денеб зарегистрировано кратковременное свечение",
+        "summary": "Наблюдатели изучают необычную динамику излучения у орбитальных объектов."
+      },
+      "en": {
+        "category": "Space events",
+        "title": "A transient glow is recorded near Deneb",
+        "summary": "Observers are investigating unusual light variations near orbital objects."
+      }
+    },
+    {
+      "id": "mock-news-008",
+      "category": "research",
+      "icon": "star",
+      "star_id": 19,
+      "published_at": "2026-11-04T15:25:00Z",
+      "ru": {
+        "category": "Исследования",
+        "title": "Исследовательская группа завершила долгосрочную проверку гиперкоридоров и спектральных характеристик звёзд дальнего сектора Лиры",
+        "summary": "Результаты будут включены в навигационные материалы после дополнительного анализа."
+      },
+      "en": {
+        "category": "Research",
+        "title": "A research group completes an extensive survey of hyperspace lanes and stellar spectra in the remote Lyra sector",
+        "summary": "Results will be incorporated into navigation records after additional analysis."
+      }
+    },
+    {
+      "id": "mock-news-009",
+      "category": "economy",
+      "icon": "market",
+      "star_id": 5,
+      "published_at": "2026-11-04T11:15:00Z",
+      "object_id": 5004,
+      "ru": {
+        "category": "Экономика",
+        "title": "На маяке Антареса изменился график приёма грузов",
+        "summary": ""
+      },
+      "en": {
+        "category": "Economy",
+        "title": "Cargo acceptance schedules change at Antares Beacon",
+        "summary": ""
+      }
+    },
+    {
+      "id": "mock-news-010",
+      "category": "colonies",
+      "icon": "planet",
+      "star_id": 3,
+      "published_at": "2026-11-03T17:40:00Z",
+      "object_id": 3002,
+      "ru": {
+        "category": "Колонии",
+        "title": "Картографы изучают биомы планеты Альтаир II",
+        "summary": "Новая группа обследования готовит данные о местных водных ресурсах."
+      },
+      "en": {
+        "category": "Colonies",
+        "title": "Surveyors study the biomes of Altair II",
+        "summary": "A new survey team is gathering data about local water resources."
+      }
+    },
+    {
+      "id": "mock-news-011",
+      "category": "trade",
+      "icon": "market",
+      "star_id": 11,
+      "published_at": "2026-11-03T12:25:00Z",
+      "object_id": 11004,
+      "ru": {
+        "category": "Торговля",
+        "title": "Торговые порты Канопуса опубликовали свежие предложения по металлам",
+        "summary": "В тестовом каталоге появились дополнительные объёмы железа и меди."
+      },
+      "en": {
+        "category": "Trade",
+        "title": "Canopus trading ports publish updated metal offers",
+        "summary": "Additional iron and copper volumes are available in the demo catalog."
+      }
+    },
+    {
+      "id": "mock-news-012",
+      "category": "galaxy",
+      "icon": "star",
+      "star_id": 1,
+      "published_at": "2026-11-03T09:00:00Z",
+      "ru": {
+        "category": "Галактика",
+        "title": "Экспедиция Эдема обновила каталог известных систем",
+        "summary": "Навигационные сведения сверены с данными исследовательских станций."
+      },
+      "en": {
+        "category": "Galaxy",
+        "title": "Eden expedition updates the known systems catalog",
+        "summary": "Navigation records have been reconciled with research station reports."
+      }
+    }
+  ]
+}

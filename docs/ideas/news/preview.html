@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmosimulator — News Hologram Lab</title>
+<style>
+:root{color-scheme:dark;--bg:#10151b;--panel:#171e26;--border:#2d3945;--text:#dce5ed;--muted:#8a9aab;--accent:#efad58;--focus:#78c7d9}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 49% 15%,#142b36 0%,#10151b 52%);color:var(--text);font:13px/1.45 "Segoe UI",system-ui,sans-serif;min-height:100vh}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:15px clamp(16px,4vw,48px);border-bottom:1px solid var(--border);background:#121b24}
+.brand{font-size:15px;font-weight:700;letter-spacing:1.8px}.tag{display:block;font:10px monospace;color:var(--accent);letter-spacing:1.8px;margin-top:4px}
+.controls{display:flex;align-items:center;gap:9px}button{font:inherit;cursor:pointer;color:#dce5ed;border:1px solid #456473;background:#192a35;padding:7px 12px}
+button:hover,button:focus-visible{border-color:var(--focus);color:white;outline-offset:2px}
+button:focus-visible{outline:2px solid var(--focus)}
+main{max-width:1500px;margin:auto;padding:22px clamp(14px,3vw,44px) 44px}h1{font-size:clamp(18px,2.5vw,29px);font-weight:600;margin:5px 0 7px}.hint{color:#9caebb;max-width:750px;margin:0 0 22px}
+.live-shell{border:1px solid #31505b;background:radial-gradient(circle at 50% 62%,#143541aa,#0a141bd9 64%,#0b1219 100%);box-shadow:0 15px 85px #0009,inset 0 0 80px #0f45501a;min-width:0}
+.live-bar{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #31505b;padding:12px 16px;font:11px monospace;letter-spacing:1.2px;color:#9dc7cb}
+.live-bar strong{color:#e6bc7e;font-weight:500}.live-stage{position:relative;container-type:inline-size;aspect-ratio:900/560;width:100%;isolation:isolate;overflow:hidden}
+.layer{position:absolute;inset:0;display:block;width:100%;height:100%;pointer-events:none;user-select:none}
+.layer-beam{z-index:1}.layer-left,.layer-right{z-index:2}.layer-button{z-index:3;transition:filter .2s}.layer-base{z-index:5}
+@keyframes appear{from{opacity:0;filter:blur(5px)}to{opacity:1;filter:blur(0)}}
+.layer-left,.layer-right{animation:appear 1.25s ease-out both}.layer-right{animation-delay:.23s}
+.news-copy{position:absolute;z-index:4;width:24%;height:30%;pointer-events:none;overflow:hidden;color:#d6f6f0;display:flex;flex-direction:column;gap:.65cqw;text-shadow:0 0 7px #367d8988}
+.news-copy.left{left:11.1%;top:39.5%;transform:rotate(-5.6deg);transform-origin:left top}
+.news-copy.right{left:65.8%;top:39.5%;transform:rotate(5.5deg);transform-origin:right top}
+.news-copy .kind{font:600 clamp(7px,1.2cqw,11px)/1.2 "Segoe UI",sans-serif;letter-spacing:.13em;color:#a5e5d5}
+.news-copy.right .kind{color:#e9c48e}
+.news-copy h2{font-size:clamp(10px,1.85cqw,17px);line-height:1.2;margin:0;font-weight:650}
+.news-copy .summary{font-size:clamp(8px,1.35cqw,12px);line-height:1.35;margin:0;opacity:.78}
+.news-copy time{font:clamp(7px,1.08cqw,10px) monospace;color:#9bcbcf;margin-top:auto}
+.news-action{position:absolute;z-index:6;left:43.3%;top:40.4%;width:13.4%;height:12.6%;display:grid;place-items:center;text-align:center;background:transparent;border:1px solid transparent;color:#ddfff4;font-weight:700;font-size:clamp(8px,1.62cqw,15px);text-shadow:0 0 11px #77eadb;line-height:1.1;padding:0;border-radius:8px;transition:filter .15s,transform .15s,background .15s}
+.news-action:hover,.news-action:focus-visible{background:radial-gradient(ellipse,#3bb7bb32,transparent 72%);color:#fff;filter:drop-shadow(0 0 13px #69fff6);transform:scale(1.045)}
+.news-action:active,.news-action.pressed{transform:scale(.94);background:radial-gradient(ellipse,#e2be7555,transparent 70%)}
+.news-stage:has(.news-action:hover) .layer-button,.news-stage:has(.news-action:focus-visible) .layer-button{filter:brightness(1.6) drop-shadow(0 0 8px #4bf6e4)}
+.status{margin:14px 0 0;color:#8ab5c0;min-height:18px;font-size:12px}
+.demo-grid{margin-top:25px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.demo-grid h2{font-size:13px;color:#aac4ce;font-weight:500;margin:0 0 12px}
+.slot{border:1px solid #30414e;background:#131c24;min-height:290px;display:flex;align-items:stretch;min-width:0}
+.chat-slot{padding:16px;gap:9px;flex-direction:column}.chat-slot .skel{height:12px;background:#243544;border-radius:2px;width:74%}.chat-slot .skel:nth-child(2){width:85%}.chat-slot .skel:nth-child(3){width:58%}
+.mini-stage{position:relative;aspect-ratio:900/560;width:100%;align-self:center;background:#0b1821;overflow:hidden}
+.mini-stage img{width:100%;height:100%;display:block}
+code{color:#aedddf;font-family:Consolas,monospace}
+@container(max-width:570px){.news-copy{height:25%;top:40.2%!important}.news-copy .summary{display:none}.news-copy time{margin-top:1.2cqw}}
+@media(max-width:760px){.demo-grid{grid-template-columns:1fr}.slot{min-height:0}.chat-slot{min-height:145px}.live-bar{font-size:9px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header><div class="brand">COSMOSIMULATOR <span class="tag">NEWS / HOLOGRAM PROJECTION LAB</span></div><div class="controls"><button id="lang" type="button" aria-label="Switch language">EN</button></div></header>
+<main>
+<h1 id="heading">Голографический проектор новостей</h1>
+<p id="hint" class="hint">Два независимых новостных потока, центральный управляющий элемент и физическая проекционная установка. Тексты наложены HTML-слоем; в исходных SVG новостей нет.</p>
+<section class="live-shell" aria-label="Демонстрация голографического проектора">
+<div class="live-bar"><span>HOLOGRAPHIC NEWS UPLINK <strong>●</strong></span><span>EDEN / 02 — PROTOTYPE</span></div>
+<div class="live-stage news-stage" id="demo">
+<img class="layer layer-beam" src="news-projection-beams.svg" alt="" draggable="false">
+<img class="layer layer-left" src="news-panel-left.svg" alt="" draggable="false">
+<img class="layer layer-right" src="news-panel-right.svg" alt="" draggable="false">
+<img class="layer layer-button" src="news-all-button.svg" alt="" draggable="false">
+<img class="layer layer-base" src="news-projector-base.svg" alt="" draggable="false">
+<article class="news-copy left"><div class="kind" id="left-kind">ИССЛЕДОВАНИЯ</div><h2 id="left-title">Открыта новая звёздная система</h2><p class="summary" id="left-summary">Академия Эдема сообщает об успешном сканировании.</p><time id="left-time">15 минут назад</time></article>
+<article class="news-copy right"><div class="kind" id="right-kind">ЭКОНОМИКА</div><h2 id="right-title">Рынок реагирует на новые поставки</h2><p class="summary" id="right-summary">Изменились объёмы ресурсов на станциях.</p><time id="right-time">42 минуты назад</time></article>
+<button class="news-action" id="all-news" type="button">Все новости</button>
+</div>
+</section>
+<p class="status" id="status" role="status" aria-live="polite">Кнопка демонстрационная: открытие настоящего окна новостей не реализовано.</p>
+<section class="demo-grid" aria-label="Место в двухколоночной компоновке">
+<div><h2 id="chat-head">ЛЕВЫЙ СЛОТ / закреплённый чат (схема)</h2><div class="slot chat-slot"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div></div>
+<div><h2 id="news-head">ПРАВЫЙ СЛОТ / новостной проектор</h2><div class="slot"><div class="mini-stage"><img src="news-hologram-preview.svg" alt="Общий вид проектора в правом слоте"></div></div></div>
+</section>
+</main>
+<script>
+const translations={
+ru:{heading:"Голографический проектор новостей",hint:"Два независимых новостных потока, центральный управляющий элемент и физическая проекционная установка. Тексты наложены HTML-слоем; в исходных SVG новостей нет.",leftKind:"ИССЛЕДОВАНИЯ",leftTitle:"Открыта новая звёздная система",leftSummary:"Академия Эдема сообщает об успешном сканировании.",leftTime:"15 минут назад",rightKind:"ЭКОНОМИКА",rightTitle:"Рынок реагирует на новые поставки",rightSummary:"Изменились объёмы ресурсов на станциях.",rightTime:"42 минуты назад",all:"Все новости",chat:"ЛЕВЫЙ СЛОТ / закреплённый чат (схема)",news:"ПРАВЫЙ СЛОТ / новостной проектор",status:"Кнопка демонстрационная: открытие настоящего окна новостей не реализовано.",clicked:"Нажатие зарегистрировано. Интеграция с модулем новостей ещё не реализована."},
+en:{heading:"Holographic news projector",hint:"Two independent news streams, a central controller and a physical projection unit. News copy is an HTML overlay; reusable SVG assets contain no article content.",leftKind:"EXPLORATION",leftTitle:"New star system discovered",leftSummary:"The Eden Academy reports successful scanning.",leftTime:"15 minutes ago",rightKind:"ECONOMY",rightTitle:"Markets react to new cargo",rightSummary:"Resource availability has shifted at stations.",rightTime:"42 minutes ago",all:"All news",chat:"LEFT SLOT / pinned chat (schematic)",news:"RIGHT SLOT / news projector",status:"Demo only: the real news window is not implemented.",clicked:"Click registered. The news module is not connected."}
+};
+let lang="ru";
+function update(){
+const t=translations[lang]; document.documentElement.lang=lang;
+for(const [id,key] of Object.entries({"heading":"heading","hint":"hint","left-kind":"leftKind","left-title":"leftTitle","left-summary":"leftSummary","left-time":"leftTime","right-kind":"rightKind","right-title":"rightTitle","right-summary":"rightSummary","right-time":"rightTime","all-news":"all","chat-head":"chat","news-head":"news","status":"status"}))document.getElementById(id).textContent=t[key];
+document.getElementById("lang").textContent=lang==="ru"?"EN":"RU";
+}
+document.getElementById("lang").addEventListener("click",()=>{lang=lang==="ru"?"en":"ru";update()});
+const action=document.getElementById("all-news");
+action.addEventListener("click",()=>{document.getElementById("status").textContent=translations[lang].clicked;action.classList.remove("pressed");void action.offsetWidth;action.classList.add("pressed");setTimeout(()=>action.classList.remove("pressed"),170)});
+update();
+</script>
+</body></html>

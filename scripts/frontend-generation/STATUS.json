@@ -13,14 +13,14 @@
     "25 оригинальных PNG не вложены; установщик переносит их из репозитория и проверяет, что получен полный комплект.",
     "Многие оригинальные модули и программная графика не прошли интеграционную браузерную проверку с оригинальным web в этой среде.",
     "Для части Go-операций mock DTO/логика ещё неполные; нельзя утверждать полноценную работу всех кнопок.",
-    "Чат v13 подключён в original Modules нативным DOM без iframe. Исследования v13 по-прежнему показываются во вспомогательном iframe; исходные версии обоих модулей сохранены."
+    "Новости используют точные пять SVG, но полноценная браузерная проверка с original-web на целевых размерах пока не проведена; доступен tests/browser_news_smoke.py."
   ],
   "coverage": {
     "index_sidebar_windows": "source_files_unmodified_not_browser_verified",
     "spaceship_svg": "source_download_validation + gallery",
     "planet_graphics": "source_download_validation + gallery",
     "source_svg_animation": "retained_svg_files",
-    "chat_v13": "snapshot + native DOM integration with Modules, tested Chromium 1440 and 390 using simulated Modules; full original-web E2E awaits preparation",
+    "chat_v13": "approved DOM integration with one native draggable chat surface; independent home news layout; original-web E2E not rerun",
     "studies_v13": "snapshot_copy + split source, offline standalone previously verified",
     "mock_back_end": "HTTP + Python unit tests"
   },
@@ -29,8 +29,8 @@
   "source_web_modules_installed_in_archive": false,
   "all_visual_modules_verified_in_browser": false,
   "source_rel_v": "v0.23.0",
-  "tests": "20 Python unit tests + Chromium 1440/390 inline integration harness (no original web files in build environment)",
-  "integration": "v3 native chat root inside original Modules window + inline home dock",
+  "tests": "Python: existing suite plus tests/test_news_home.py (10 cases); the whole updated suite has not been executed in this environment. Optional Chromium smoke: tests/browser_news_smoke.py (not run here).",
+  "integration": "Chat v13: native self-contained panel, no Modules wrapper or iframe; news widget: persistent home lower grid, local SVG + JSON and original Modules all-news window.",
   "chat_v13_mode": "native_dom_without_iframe",
   "chat_duplicate_home": "removed",
   "download_progress": "console download bytes and extraction file counts",
@@ -48,18 +48,66 @@
   },
   "original_assets_repository_location": "internal/server/web/; copied by prepare.py; not duplicated as static images in scripts/frontend-generation/",
   "uiux_lab": {
-    "state": "interactive-catalog-incomplete-coverage",
+    "state": "interactive-adapters-for-all-listed-components; not-production-equivalent",
     "directory": "mock/ui-lab/",
     "categories": 18,
     "entries": 156,
     "original_api": 56,
     "approved_v13": 26,
-    "isolated_adapters": 58,
-    "pending": 16,
+    "isolated_adapters": 74,
+    "pending": 0,
     "original_game_changed": false,
     "chat_v13_changed": false,
     "studies_v13_changed": false,
     "full_browser_e2e_verified": false,
-    "notice": "All demo interactions are local. Some complex original renderers remain pending; see mock/ui-lab/AUDIT.ru.md."
+    "notice": "16 previously pending components now have interactive isolated demonstrations, not a replacement for server-driven production behavior.",
+    "advanced_renderer": "mock/ui-lab/advanced.js",
+    "advanced_categories": [
+      "planet_sprite_hit",
+      "terrain_textures",
+      "galaxy_route_hit",
+      "colony_cursor",
+      "cargo_transfer",
+      "danger_preview",
+      "benchmark_chart",
+      "flag_editor",
+      "service_history",
+      "two_phase_form",
+      "rich_resource_tooltip",
+      "linked_windows"
+    ]
+  },
+  "news_hologram": {
+    "state": "implemented-source-review-and-unit-tests; browser-full-original-web-not-yet-run",
+    "directory": "mock/news/",
+    "placement": "home-lower-grid / news-home-slot",
+    "variant_selector": "news-variant-select",
+    "variants": [
+      "a",
+      "b",
+      "c"
+    ],
+    "default_variant": "b",
+    "preference_key": "cosmosim-demo-news-variant-v1",
+    "svg_count": 5,
+    "svg_source": "docs/ideas/news/ (exact Git blobs copied inside scripts/frontend-generation)",
+    "fixture": "mock/news/news.json",
+    "fixture_items": 12,
+    "news_ids_consistent_with_registry": true,
+    "language_support": [
+      "ru",
+      "en"
+    ],
+    "window_id": "news-all-demo",
+    "chat_v13_semantics_unchanged": true,
+    "studies_v13_unchanged": true,
+    "uiux_lab_unchanged": true,
+    "production_web_changed": false,
+    "browser_full_original_web_verified": false,
+    "tests": [
+      "tests/test_news_home.py",
+      "tests/browser_news_smoke.py"
+    ],
+    "notes": "Offline after first update. No news Go API, no real news. Exact Chromium viewport smoke requires original-web installation."
   }
 }

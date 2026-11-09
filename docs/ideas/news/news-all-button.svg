@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="560" viewBox="0 0 900 560" fill="none" role="img" aria-labelledby="np-ctrl-title np-ctrl-desc"><title id="np-ctrl-title">Все новости — управляющая проекция</title><desc id="np-ctrl-desc">Голографический шестиугольный элемент без фиксированной надписи, доступный для RU/EN.</desc>
+<!-- news-component:begin -->
+
+<defs>
+<radialGradient id="np-ctrl-well"><stop stop-color="#53cfdb" stop-opacity=".14"/><stop offset=".7" stop-color="#39718f" stop-opacity=".06"/><stop offset="1" stop-color="#53cfd8" stop-opacity="0"/></radialGradient>
+<filter id="np-ctrl-glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="3"/></filter>
+</defs>
+<style>
+@keyframes np-ctrl-breathe{0%,100%{opacity:.45}50%{opacity:.8}}
+@keyframes np-ctrl-trace{to{stroke-dashoffset:-220}}
+@keyframes np-ctrl-hover{0%,100%{opacity:.45}50%{opacity:.75}}
+.np-ctrl-signal{animation:np-ctrl-breathe 4.4s ease-in-out infinite}
+.np-ctrl-trace{animation:np-ctrl-trace 6s linear infinite}
+svg:hover .np-ctrl-hot{opacity:.95}
+@media(prefers-reduced-motion:reduce){.np-ctrl-signal,.np-ctrl-trace{animation:none!important;transform:none!important}}
+</style>
+<g stroke-linejoin="round" stroke-linecap="round">
+<ellipse cx="450" cy="260" rx="83" ry="96" fill="url(#np-ctrl-well)"/>
+<path d="M450 170 522 213 522 300 450 343 378 300 378 213Z" stroke="#86e0df" opacity=".20" stroke-width="4" filter="url(#np-ctrl-glow)"/>
+<path d="M450 170 522 213 522 300 450 343 378 300 378 213Z" stroke="#76cbda" stroke-width="1.9" opacity=".62"/>
+<path d="M450 184 509 219 509 294 450 328 391 294 391 219Z" stroke="#aedce2" stroke-width="1.1" opacity=".62"/>
+<path d="M450 200 496 227 496 286 450 312 404 286 404 227Z" stroke="#7dccdc" stroke-width="1" opacity=".33" stroke-dasharray="2 8"/>
+<ellipse class="np-ctrl-signal" cx="450" cy="257" rx="58" ry="68" stroke="#4bd0d1" stroke-width="1.3" opacity=".52" transform="rotate(-17 450 257)"/>
+<ellipse cx="450" cy="257" rx="68" ry="43" stroke="#84c6cf" opacity=".2" transform="rotate(25 450 257)"/>
+<!-- central horizontal label-free readout slot -->
+<path d="M407 247 417 234H483L493 247V276L483 289H417L407 276Z" fill="#1a4852" fill-opacity=".13" stroke="#6ddacb" stroke-width=".75" opacity=".65"/>
+<path d="M413 263H487" stroke="#bdfff2" stroke-width=".7" opacity=".24"/>
+<path d="M450 170V154M450 343V358M378 256H361M522 256H539" stroke="#9fd8dc" opacity=".5" stroke-width="1.5"/>
+<path d="M444 154H456M444 358H456M354 250V262M546 250V262" stroke="#dfb778" opacity=".55" stroke-width="1.2"/>
+<circle cx="450" cy="177" r="3" fill="#cefdf5" stroke="none" opacity=".85"/>
+<path class="np-ctrl-trace" d="M450 170 522 213 522 300 450 343 378 300 378 213Z" stroke="#d6fff7" stroke-width="2.6" stroke-dasharray="13 207" opacity=".76"/>
+<path class="np-ctrl-hot" d="M450 170 522 213 522 300 450 343 378 300 378 213Z" stroke="#c1fff9" stroke-width="3.4" opacity=".08" filter="url(#np-ctrl-glow)"/>
+</g>
+
+<!-- news-component:end -->
+</svg>

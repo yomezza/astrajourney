@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="560" viewBox="0 0 900 560" fill="none" role="img" aria-labelledby="np-left-title np-left-desc"><title id="np-left-title">Левая новостная голограмма</title><desc id="np-left-desc">Каркасная объёмная проекция без встроенных новостей.</desc>
+<!-- news-component:begin -->
+
+<defs>
+<linearGradient id="np-left-mist" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#73e7d2" stop-opacity=".12"/><stop offset="1" stop-color="#174554" stop-opacity=".035"/></linearGradient>
+<filter id="np-left-glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.2"/></filter>
+</defs>
+<style>
+@keyframes np-left-float{0%,100%{transform:translateY(0px)}50%{transform:translateY(-5px)}}
+@keyframes np-left-chase{to{stroke-dashoffset:-190}}
+@keyframes np-left-materialize{from{opacity:0}to{opacity:1}}
+.np-left-float{animation:np-left-float 6.8s ease-in-out infinite}
+.np-left-dash{animation:np-left-chase 5.7s linear infinite}
+.np-left-fade{animation:np-left-materialize 1.8s ease-out both}
+@media(prefers-reduced-motion:reduce){.np-left-float,.np-left-dash,.np-left-fade{animation:none!important;transform:none!important}}
+</style>
+<g><g class="np-left-float np-left-fade" stroke-linejoin="round" stroke-linecap="round">
+<!-- rear extrusion reinforces the volumetric perspective -->
+<path d="M75 158 329 128 351 151 351 325 336 341 78 370 55 351 51 180Z" stroke="#73e7d2" stroke-width="1" opacity=".38"/>
+<path d="M75 158 65 178M329 128 320 148M351 151 339 169M351 325 339 341M55 351 78 370" stroke="#73e7d2" stroke-width="1.2" opacity=".57"/>
+<path d="M65 178 320 148 339 169 339 341 78 370 60 351Z" fill="url(#np-left-mist)" stroke="#73e7d2" stroke-width="1.8"/>
+<path d="M65 178 320 148 339 169 339 341 78 370 60 351Z" stroke="#73e7d2" stroke-width="4" opacity=".22" filter="url(#np-left-glow)"/>
+<!-- circuitry panel edges, angular clamps -->
+<path d="M78 190 305 164 324 181 324 323 92 350 77 336Z" stroke="#73e7d2" stroke-width=".85" opacity=".55"/>
+<path d="M65 213 83 211 89 200M339 187 325 186 321 175M78 336 94 334M321 310 339 307" stroke="#b6fff0" stroke-width="1.5" opacity=".76"/>
+<path d="M87 234 318 207M91 321 326 297" stroke="#73e7d2" stroke-width=".7" opacity=".27"/>
+<path d="M97 271 316 245M100 304 316 279" stroke="#73e7d2" stroke-width=".55" opacity=".13" stroke-dasharray="2 7"/>
+<path d="M85 250 94 246 99 268 105 265M319 222 323 218 328 233" stroke="#73e7d2" stroke-width="1" opacity=".65"/>
+<!-- header ornaments -->
+<path d="M99 199 207 186M102 204 178 195" stroke="#b6fff0" stroke-width="1" opacity=".74"/>
+<circle cx="97" cy="220" r="2.2" fill="#b6fff0" stroke="none"/>
+<path d="M111 339 175 332M252 322 302 316" stroke="#73e7d2" stroke-width="1" opacity=".65"/>
+<circle cx="288" cy="199" r="13" stroke="#b6fff0" stroke-width="1.1"/><circle cx="288" cy="199" r="5" stroke="#b6fff0" stroke-width="1.1"/><path d="M288 184V214M273 199H303" stroke="#b6fff0" stroke-width=".7"/>
+<!-- perimeter energy tracing -->
+<path class="np-left-dash" d="M65 178 320 148 339 169 339 341 78 370 60 351Z" stroke="#ccfff7" stroke-width="1.9" stroke-dasharray="16 174" opacity=".65"/>
+<!-- floating telemetry stencil -->
+<path d="M75 379 97 376M304 355 329 352" stroke="#73e7d2" stroke-width="1.1" opacity=".48"/>
+<circle cx="54" cy="178" r="1.6" fill="#b6fff0" stroke="none" opacity=".8"/>
+</g></g>
+
+<!-- news-component:end -->
+</svg>

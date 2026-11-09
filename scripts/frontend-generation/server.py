@@ -208,7 +208,7 @@ python server.py</pre><p>Если GitHub недоступен: <code>python prep
             marker='<script type="module" src="bootstrap.js"></script>'
             if marker not in index:
                 return self.respond({'error':'Original bootstrap marker not found'},500)
-            index=index.replace(marker,marker+'\n    <link rel="stylesheet" href="/mock/ui-overlay.css">\n    <link rel="stylesheet" href="/mock/chat-native.css">\n    <script type="module" src="/mock/ui-overlay.js"></script>')
+            index=index.replace(marker,marker+'\n    <link rel="stylesheet" href="/mock/ui-overlay.css">\n    <link rel="stylesheet" href="/mock/chat-native.css">\n    <link rel="stylesheet" href="/mock/news/news.css">\n    <script type="module" src="/mock/ui-overlay.js"></script>')
             encoded=index.encode('utf-8')
             self.send_response(200); self.send_header('Content-Type','text/html; charset=utf-8')
             self.send_header('Content-Length',str(len(encoded)));self.send_header('Cache-Control','no-store');

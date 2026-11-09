@@ -121,7 +121,8 @@ function setDock(dock){closeEmojiPicker();
  const oldScroll=$('chat-area').scrollTop;
  chat.docked=dock;pref('dock',dock);
  $('chat-floating').hidden=dock;
- $('home-lower-grid').hidden=!dock;
+ $('home-lower-grid').hidden=false;
+ $('chat-home-slot').hidden=!dock;
  $('chat-root').hidden=false;
  (dock?$('chat-home-slot'):$('chat-floating')).append($('chat-root'));
  // Move the same chat root: no extra application window is created.
@@ -635,7 +636,7 @@ function init(){
   closeEmojiPicker();closeModerationWindow();closePlayersWindow();hideMenu();
   $('chat-root').hidden=true;
   $('chat-floating').append($('chat-root'));$('chat-floating').hidden=true;
-  $('home-lower-grid').hidden=true;document.body.classList.remove('chat-docked');
+  $('chat-home-slot').hidden=true;$('home-lower-grid').hidden=false;document.body.classList.remove('chat-docked');
   updateActiveNav();
  });
  renderAll();
