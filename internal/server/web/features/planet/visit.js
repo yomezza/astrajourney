@@ -1,3 +1,4 @@
+import { uuid } from "../../core/uuid.js";
 import { createController } from "./controller.js";
 import { api } from "../../core/api.js";
 import { Session, RequestScope } from "../../core/session.js";
@@ -119,7 +120,7 @@ export async function openVisit(site) {
             clearTimeout(timer);
             resolve();
           };
-          if (!send("leave", { operation: crypto.randomUUID() })) {
+          if (!send("leave", { operation: uuid() })) {
             clearTimeout(timer);
             resolve();
           }
@@ -127,7 +128,7 @@ export async function openVisit(site) {
       }
       const state = await api(
         "planet/return",
-        { operation: crypto.randomUUID(), visit: welcome?.visit || "" },
+        { operation: uuid(), visit: welcome?.visit || "" },
         task.signal,
       );
       if (!task.current()) return;
@@ -183,7 +184,7 @@ export async function openVisit(site) {
       "Перейти в соседний сектор",
       () => {
         confirm.disabled = true;
-        if (!activeOffer.operation) activeOffer.operation = crypto.randomUUID();
+        if (!activeOffer.operation) activeOffer.operation = uuid();
         send("transition.confirm", {
           offer: offer.offer,
           operation: activeOffer.operation,
@@ -276,7 +277,7 @@ export async function openVisit(site) {
         const ticket = await api(
           "planet/handoff",
           {
-            operation: state.operation || crypto.randomUUID(),
+            operation: state.operation || uuid(),
             landing_site: String(state.landing_site || site),
             ship: String(state.ship || Session.data.expedition.ship.id),
           },

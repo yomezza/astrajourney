@@ -55,6 +55,8 @@ func (a *Service) ChatModerator(w http.ResponseWriter, r *http.Request) {
 func (a *Service) chatCard(ctx context.Context) ServiceCard {
 	card := ServiceCard{ID: "chat", Name: "Служба чата", Status: "disabled", Info: []ServiceMetric{}}
 	if os.Getenv("CHAT_ENABLED") != "true" {
+		card.Reason = "chat_disabled"
+		card.Info = append(card.Info, ServiceMetric{"Включение в Cosmic", "CHAT_ENABLED=true; перезапустите процесс Cosmic"})
 		return card
 	}
 	raw := os.Getenv("CHAT_INTERNAL_URL")
@@ -66,7 +68,7 @@ func (a *Service) chatCard(ctx context.Context) ServiceCard {
 		card.Status = "configuration_error"
 		return card
 	}
-	client := http.Client{Timeout: time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
+	client := http.Client{Transport: httpkit.InternalTransport(), Timeout: time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
 	response, e := client.Do(request)
 	if e != nil {
 		card.Status = "unreachable"

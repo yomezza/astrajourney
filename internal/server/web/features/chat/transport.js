@@ -1,3 +1,4 @@
+import { uuid } from "../../core/uuid.js";
 // A single transport per signed-in account. Mutations use WS only; uncertain
 // outcomes are looked up by the original UUID and never automatically re-sent.
 export class ChatClient {
@@ -96,7 +97,7 @@ export class ChatClient {
       p.reject(Object.assign(Error("operation_unknown"), { request: id }));
     }
   }
-  command(type, payload, request = crypto.randomUUID()) {
+  command(type, payload, request = uuid()) {
     if (this.closed || this.socket?.readyState !== WebSocket.OPEN)
       return Promise.reject(Error("chat_unavailable"));
     return new Promise((resolve, reject) => {

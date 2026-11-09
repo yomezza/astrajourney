@@ -1,3 +1,4 @@
+import { uuid } from "../../core/uuid.js";
 import { Session } from "../../core/session.js";
 import { Preferences } from "../../core/preferences.js";
 import { I18n } from "../../core/i18n.js";
@@ -362,7 +363,7 @@ export function initChat() {
     const body = textarea.value,
       scope = target(),
       oldkey = key(),
-      id = crypto.randomUUID();
+      id = uuid();
     try {
       await client.command(
         tab === "favorites" ? "favorite.note" : "message.send",

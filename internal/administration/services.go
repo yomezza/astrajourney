@@ -98,7 +98,7 @@ func (a *Service) planetCard(ctx context.Context, o ServicesOptions) ServiceCard
 		return card
 	}
 	// Never forward the browser's cookie or follow an endpoint redirect.
-	client := http.Client{Timeout: 2 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
+	client := http.Client{Transport: httpkit.InternalTransport(), Timeout: 2 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
 	began := time.Now()
 	response, err := client.Do(request)
 	if err != nil {

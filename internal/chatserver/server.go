@@ -23,7 +23,7 @@ import (
 	"time"
 )
 
-const Version = "0.24.2"
+const Version = "0.24.3"
 
 type Config struct {
 	DatabaseURL, Schema, Addr, CosmicURL, PlanetURL, Journal string
@@ -118,7 +118,7 @@ func (a *App) Health() Health {
 	return h
 }
 func (a *App) probe(ctx context.Context) {
-	client := http.Client{Timeout: 900 * time.Millisecond, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
+	client := http.Client{Transport: httpkit.InternalTransport(), Timeout: 900 * time.Millisecond, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
 	probe := func(endpoint, path string) bool {
 		req, e := http.NewRequestWithContext(ctx, "GET", endpoint+path, nil)
 		if e != nil {

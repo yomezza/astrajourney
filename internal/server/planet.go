@@ -30,6 +30,7 @@ func (a *App) planetProxy() http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { httpkit.Fail(w, 503, "planetary_configuration_error") })
 	}
 	proxy := httputil.NewSingleHostReverseProxy(u)
+	proxy.Transport = httpkit.InternalTransport()
 	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, e error) { httpkit.Fail(w, 503, "runtime_unavailable") }
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !a.Transfer.Enabled {
@@ -51,6 +52,7 @@ func (a *App) chatProxy() http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { httpkit.Fail(w, 503, "chat_configuration_error") })
 	}
 	proxy := httputil.NewSingleHostReverseProxy(u)
+	proxy.Transport = httpkit.InternalTransport()
 	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, e error) { httpkit.Fail(w, 503, "chat_unavailable") }
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if os.Getenv("CHAT_ENABLED") != "true" {

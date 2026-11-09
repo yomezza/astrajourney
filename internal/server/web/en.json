@@ -1844,5 +1844,8 @@
   "Новая заметка": "New note",
   "Переместить в папку": "Move to folder",
   "Без папки (Все)": "No folder (All)",
-  "Поиск игроков": "Search players"
+  "Поиск игроков": "Search players",
+  "chat_disabled": "Chat is disabled in the running Cosmic process",
+  "Включение в Cosmic": "Enable in Cosmic",
+  "CHAT_ENABLED=true; перезапустите процесс Cosmic": "CHAT_ENABLED=true; restart the Cosmic process"
 }
