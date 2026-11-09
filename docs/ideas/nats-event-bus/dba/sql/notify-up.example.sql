@@ -15,7 +15,7 @@ BEGIN
      OR to_regclass('chat_schema_state') IS NULL THEN
     RAISE EXCEPTION 'Wrong DB_SCHEMA or Chat migration 0.24 not installed';
   END IF;
-  IF (SELECT version FROM chat_schema_state WHERE id=1) <> 1 THEN
+  IF COALESCE((SELECT version FROM chat_schema_state WHERE id=1),-1) <> 1 THEN
     RAISE EXCEPTION 'Chat schema version differs; review A2 migration';
   END IF;
 END
@@ -48,8 +48,9 @@ REVOKE ALL ON FUNCTION chat_outbox_notify_statement_v1() FROM PUBLIC;
 DO $install$
 DECLARE expected oid := 'chat_outbox_notify_statement_v1()'::regprocedure;
 DECLARE actual oid;
+DECLARE actual_type integer;
 BEGIN
-  SELECT t.tgfoid INTO actual
+  SELECT t.tgfoid, t.tgtype INTO actual, actual_type
   FROM pg_catalog.pg_trigger t
   WHERE t.tgrelid = 'chat_outbox'::regclass
     AND t.tgname = 'chat_outbox_wakeup_a2';
@@ -57,8 +58,8 @@ BEGIN
     CREATE TRIGGER chat_outbox_wakeup_a2
       AFTER INSERT ON chat_outbox FOR EACH STATEMENT
       EXECUTE FUNCTION chat_outbox_notify_statement_v1();
-  ELSIF actual <> expected THEN
-    RAISE EXCEPTION 'Existing chat_outbox_wakeup_a2 calls another function';
+  ELSIF actual <> expected OR actual_type <> 4 THEN
+    RAISE EXCEPTION 'Existing chat_outbox_wakeup_a2 has incompatible definition';
   ELSIF EXISTS (
     SELECT 1 FROM pg_catalog.pg_trigger
     WHERE tgrelid='chat_outbox'::regclass
