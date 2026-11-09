@@ -1,0 +1,19 @@
+# DRAFT for existing cosmoNATS: review before applying; not an installation script.
+server_name: "cosmoNATS"
+listen: "192.168.111.44:4222"
+http: "127.0.0.1:8222"
+tls {
+  cert_file: "D:/cosmosimulator/nats/certs/server-cert.pem"
+  key_file: "D:/cosmosimulator/nats/certs/server-key.pem"
+  min_version: "1.2"
+  timeout: 5
+}
+jetstream {
+  store_dir: "D:/cosmosimulator/nats/data"
+  max_memory_store: 512MB
+  max_file_store: 10GB
+}
+log_file: "D:/cosmosimulator/nats/logs/server.log"
+logfile_size_limit: 50MB
+logfile_max_num: 5
+include ./auth.config

@@ -1,0 +1,47 @@
+{
+  "cosmos": {
+    "publish": [
+      "cosmos.v1.signal.cosmic.company.membership.changed",
+      "cosmos.v1.signal.cosmic.company.role.changed",
+      "cosmos.v1.signal.cosmic.company.permissions.changed",
+      "cosmos.v1.signal.cosmic.moderator.changed",
+      "cosmos.v1.signal.cosmic.company.deletion.requested",
+      "cosmos.v1.signal.cosmic.transfer.return.completed"
+    ],
+    "subscribe": [
+      "cosmos.v1.signal.chat.company.cleanup.completed"
+    ]
+  },
+  "planet": {
+    "publish": [
+      "cosmos.v1.signal.planet.visit.started",
+      "cosmos.v1.signal.planet.visit.resumed",
+      "cosmos.v1.signal.planet.sector.changed",
+      "cosmos.v1.signal.planet.visit.disconnected",
+      "cosmos.v1.signal.planet.visit.ended",
+      "cosmos.v1.signal.planet.presence.stale"
+    ],
+    "subscribe": []
+  },
+  "chat": {
+    "publish": [
+      "cosmos.v1.signal.chat.outbox.changed",
+      "cosmos.v1.signal.chat.company.cleanup.completed"
+    ],
+    "subscribe": [
+      "cosmos.v1.signal.cosmic.company.membership.changed",
+      "cosmos.v1.signal.cosmic.company.role.changed",
+      "cosmos.v1.signal.cosmic.company.permissions.changed",
+      "cosmos.v1.signal.cosmic.moderator.changed",
+      "cosmos.v1.signal.cosmic.company.deletion.requested",
+      "cosmos.v1.signal.cosmic.transfer.return.completed",
+      "cosmos.v1.signal.planet.visit.started",
+      "cosmos.v1.signal.planet.visit.resumed",
+      "cosmos.v1.signal.planet.sector.changed",
+      "cosmos.v1.signal.planet.visit.disconnected",
+      "cosmos.v1.signal.planet.visit.ended",
+      "cosmos.v1.signal.planet.presence.stale",
+      "cosmos.v1.signal.chat.outbox.changed"
+    ]
+  }
+}

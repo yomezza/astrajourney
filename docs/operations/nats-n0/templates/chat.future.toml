@@ -1,0 +1,13 @@
+# FUTURE FRAGMENT ONLY. Current 0.24.6 EXEs reject [nats], even with enabled=false.
+# Do not use as CONFIG_FILE or merge into a live game TOML during N0.
+# Existing database/http/ws/origin settings remain untouched.
+[nats]
+enabled = false
+service_identity = 'chat'
+username = 'chat'
+# Requires TLS actually enabled on cosmoNATS; current plaintext address is nats://...
+servers = ['tls://192.168.111.44:4222']
+password_file = 'D:/cosmosimulator/nats/secrets/chat.password'
+ca_file = 'D:/cosmosimulator/nats/certs/ca.pem'
+connect_timeout = '2s'
+reconnect_wait = '1s'

@@ -1,0 +1,77 @@
+# DRAFT ONLY. Replace all bcrypt placeholders locally. Never deploy placeholders.
+authorization {
+  "timeout": 5,
+  "users": [
+    {
+      "user": "cosmos",
+      "password": "<BCRYPT_HASH_COSMOS>",
+      "permissions": {
+        "publish": {
+          "allow": [
+            "cosmos.v1.signal.cosmic.company.membership.changed",
+            "cosmos.v1.signal.cosmic.company.role.changed",
+            "cosmos.v1.signal.cosmic.company.permissions.changed",
+            "cosmos.v1.signal.cosmic.moderator.changed",
+            "cosmos.v1.signal.cosmic.company.deletion.requested",
+            "cosmos.v1.signal.cosmic.transfer.return.completed"
+          ]
+        },
+        "subscribe": {
+          "allow": [
+            "cosmos.v1.signal.chat.company.cleanup.completed"
+          ]
+        }
+      }
+    },
+    {
+      "user": "planet",
+      "password": "<BCRYPT_HASH_PLANET>",
+      "permissions": {
+        "publish": {
+          "allow": [
+            "cosmos.v1.signal.planet.visit.started",
+            "cosmos.v1.signal.planet.visit.resumed",
+            "cosmos.v1.signal.planet.sector.changed",
+            "cosmos.v1.signal.planet.visit.disconnected",
+            "cosmos.v1.signal.planet.visit.ended",
+            "cosmos.v1.signal.planet.presence.stale"
+          ]
+        },
+        "subscribe": {
+          "deny": [
+            ">"
+          ]
+        }
+      }
+    },
+    {
+      "user": "chat",
+      "password": "<BCRYPT_HASH_CHAT>",
+      "permissions": {
+        "publish": {
+          "allow": [
+            "cosmos.v1.signal.chat.outbox.changed",
+            "cosmos.v1.signal.chat.company.cleanup.completed"
+          ]
+        },
+        "subscribe": {
+          "allow": [
+            "cosmos.v1.signal.cosmic.company.membership.changed",
+            "cosmos.v1.signal.cosmic.company.role.changed",
+            "cosmos.v1.signal.cosmic.company.permissions.changed",
+            "cosmos.v1.signal.cosmic.moderator.changed",
+            "cosmos.v1.signal.cosmic.company.deletion.requested",
+            "cosmos.v1.signal.cosmic.transfer.return.completed",
+            "cosmos.v1.signal.planet.visit.started",
+            "cosmos.v1.signal.planet.visit.resumed",
+            "cosmos.v1.signal.planet.sector.changed",
+            "cosmos.v1.signal.planet.visit.disconnected",
+            "cosmos.v1.signal.planet.visit.ended",
+            "cosmos.v1.signal.planet.presence.stale",
+            "cosmos.v1.signal.chat.outbox.changed"
+          ]
+        }
+      }
+    }
+  ]
+}
