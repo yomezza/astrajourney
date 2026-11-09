@@ -223,6 +223,27 @@
   display: grid;
   gap: 3px;
 }
+.chat-status-divider {
+  border: 0;
+  border-top: 1px solid #46616c;
+  margin: 7px 0;
+}
+.chat-status-credit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: #93b3bf;
+  font-size: 10px;
+}
+.chat-status-credit-brand,
+.chat-status-credit-heart {
+  color: #bd95f5;
+}
+.chat-status-credit-heart {
+  font-size: 12px;
+  line-height: 1;
+}
 .chat-status-tooltip-row {
   display: grid;
   grid-template-columns: 8px minmax(0, 1fr) auto;

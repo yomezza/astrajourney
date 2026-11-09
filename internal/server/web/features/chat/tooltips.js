@@ -31,7 +31,15 @@ export function initChatTooltips(health) {
       );
       list.append(row);
     }
-    panel.append(list);
+    const credit = n("div", undefined, "chat-status-credit"),
+      heart = n("span", "♥︎", "chat-status-credit-heart");
+    heart.setAttribute("aria-hidden", "true");
+    credit.append(
+      n("span", "Powered by"),
+      n("span", "Mirana", "chat-status-credit-brand"),
+      heart,
+    );
+    panel.append(list, n("hr", undefined, "chat-status-divider"), credit);
     return panel;
   });
   registerTooltip(".chat-read-dot", (target) => {

@@ -15,8 +15,7 @@ jobs:
           set -euo pipefail
           sha256sum -c downloads/SHA256SUMS
           test -f "release-notes/$RELEASE_TAG.md"
-          test -f "downloads/cosmosimulator-planet-${RELEASE_TAG}-windows-amd64.exe"
-          test -f "downloads/cosmosimulator-chat-${RELEASE_TAG}-windows-amd64.exe"
+          test -f "downloads/cosmosimulator-${RELEASE_TAG}-windows-amd64.exe"
         env:
           RELEASE_TAG: ${{ github.ref_name }}
       - name: Publish Windows executable and checksums
@@ -26,10 +25,16 @@ jobs:
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
           set -euo pipefail
+          optional_assets=()
+          for service in planet chat; do
+            asset="downloads/cosmosimulator-${service}-${RELEASE_TAG}-windows-amd64.exe"
+            if test -f "$asset"; then
+              optional_assets+=("$asset")
+            fi
+          done
           gh release create "$RELEASE_TAG" \
             "downloads/cosmosimulator-${RELEASE_TAG}-windows-amd64.exe" \
-            "downloads/cosmosimulator-planet-${RELEASE_TAG}-windows-amd64.exe" \
-            "downloads/cosmosimulator-chat-${RELEASE_TAG}-windows-amd64.exe" \
+            "${optional_assets[@]}" \
             configs/cosmos.example.toml \
             configs/planet.example.toml \
             configs/chat.example.toml \
