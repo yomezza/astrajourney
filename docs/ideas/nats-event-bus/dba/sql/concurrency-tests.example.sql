@@ -1,0 +1,76 @@
+-- PROJECT DRAFT. ТОЛЬКО изолированная TEST_DATABASE_URL и отдельная
+-- nats_dba_test-схема с chat_outbox; НЕ запускать на рабочей PostgreSQL.
+-- Это сценарии для 2–3 ОДНОВРЕМЕННЫХ psql соединений, а НЕ линейный скрипт.
+-- Все соединения: SET search_path TO nats_dba_test, pg_catalog;
+-- Используйте event_kind LIKE 'dba.test.%' и после теста удалите свои строки.
+-- LISTEN не проверяет ACL: payload должен быть пустым.
+
+-- SESSION L / listener 1 (psql, отдельное соединение, не держать tx):
+-- SELECT format('LISTEN %I;', 'cosmos_chat_'||md5(current_schema())) \gexec
+-- SELECT * FROM pg_listening_channels();
+-- SESSION L2: повторить в другом psql (оба увидят COMMIT).
+--
+-- COMMIT: session A
+-- BEGIN;
+-- INSERT INTO chat_outbox(event_kind,target_user_id)
+-- VALUES ('dba.test.commit',NULL) RETURNING id,created_at;
+-- -- L и L2 пока не должны получить уведомление
+-- COMMIT;
+-- -- L и L2 получают уведомление только после COMMIT (иногда нужен SELECT 1;)
+--
+-- ROLLBACK: session A
+-- BEGIN;
+-- INSERT INTO chat_outbox(event_kind,target_user_id)
+-- VALUES ('dba.test.rollback',NULL) RETURNING id;
+-- ROLLBACK;
+-- -- Ни строки, ни NOTIFY у L/L2 не появляется.
+--
+-- MULTIPLE INSERT STATEMENTS / single transaction: session A
+-- BEGIN;
+-- INSERT INTO chat_outbox(event_kind) VALUES ('dba.test.multi.1');
+-- INSERT INTO chat_outbox(event_kind) VALUES ('dba.test.multi.2');
+-- INSERT INTO chat_outbox(event_kind)
+-- SELECT 'dba.test.multi.bulk' FROM generate_series(1,100);
+-- COMMIT;
+-- -- Ожидается ОДНА доставка идентичных channel+empty payload на listener,
+-- -- несмотря на три срабатывания statement-trigger (свёртка PostgreSQL).
+--
+-- LATE LOWER ID: A удерживает открытую транзакцию после INSERT.
+-- SESSION A:
+-- BEGIN;
+-- INSERT INTO chat_outbox(event_kind,target_user_id)
+-- VALUES ('dba.test.low',NULL) RETURNING id,created_at;
+-- -- записать low_id. Не COMMIT до шага C.
+--
+-- SESSION B (параллельно):
+-- BEGIN;
+-- INSERT INTO chat_outbox(event_kind,target_user_id)
+-- VALUES ('dba.test.high',NULL) RETURNING id,created_at;
+-- COMMIT;
+-- -- записать high_id > low_id.
+--
+-- SESSION C после COMMIT B, до COMMIT A:
+-- SELECT max(id) AS highwater FROM chat_outbox;
+-- -- highwater == high_id. SELECT по id>highwater не увидит low_id.
+-- -- A: COMMIT в течение 60s от своего INSERT. 
+-- -- C: SELECT id,event_kind FROM chat_outbox
+-- --    WHERE id>highwater OR created_at >= clock_timestamp()-interval '60s';
+-- -- low_id ДОЛЖЕН присутствовать (при неизменном recorded highwater).
+--
+-- Повторите тест: A не коммитит минимум 70 секунд после своего INSERT,
+-- затем COMMIT. С сразу после этого выполняет ту же WHERE с recorded
+-- highwater. low_id НЕ попадёт в 60s overlap. Это доказывает, что 60s
+-- НЕ является гарантией без верхней границы длительности транзакции.
+-- Важно: если тестовый transaction_timeout < 70s, эта транзакция будет
+-- прервана сервером -- временно изменять timeout можно ТОЛЬКО на test DB.
+--
+-- RECONNECT: SESSION L закрыть, в A выполнить COMMIT при отсутствии
+-- слушателя; снова открыть L, сначала LISTEN+COMMIT, затем SELECT outbox
+-- и только потом ждать NOTIFY. Пропущенный сигнал восстанавливается scan.
+--
+-- CANCEL/MISS: отписать L через UNLISTEN, выполнить COMMIT в A, убедиться,
+-- что poll обнаружил новую строку, затем заново LISTEN+initial scan.
+--
+-- CLEANUP В ТЕСТОВОЙ БД, только после фиксации чисел и окончания транзакций:
+-- DELETE FROM chat_outbox WHERE event_kind LIKE 'dba.test.%';
+-- Это создаст обычные dead tuples; стоимость cleanup оценить отдельно.
