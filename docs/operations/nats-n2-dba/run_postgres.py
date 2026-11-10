@@ -429,13 +429,20 @@ def d22():
               "WHERE id<=%s AND created_at>=%s) e ORDER BY id LIMIT 1000")
         p1 = explain(c,q1,(hw,cutoff),"explain-or.json")
         p2 = explain(c,q2,(hw,hw,cutoff),"explain-union.json")
+        # Exact SQL predicate and column list of Chat 0.24.7
+        # internal/chat/dispatch_reader.go:OutboxPage.
+        q3 = ("SELECT id,event_kind,channel_id::text,target_user_id,reference_id::text,created_at "
+              "FROM chat_outbox WHERE id>%s AND id<=%s "
+              "AND (id>%s OR created_at>=%s) ORDER BY id LIMIT 1000")
+        p3 = explain(c,q3,(0,hw+50000,hw,cutoff),"explain-n1-outboxpage.json")
         ids1 = [r[0] for r in c.execute(q1,(hw,cutoff)).fetchall()]
         ids2 = [r[0] for r in c.execute(q2,(hw,hw,cutoff)).fetchall()]
-        assert ids1==ids2 and len(ids1)==1000, "OR and UNION results differ"
+        ids3 = [r[0] for r in c.execute(q3,(0,hw+50000,hw,cutoff)).fetchall()]
+        assert ids1==ids2==ids3 and len(ids1)==1000, "OR/UNION/N1 exact page differ"
         inds = c.execute("SELECT indexname,indexdef FROM pg_indexes "
                          "WHERE schemaname=current_schema() AND tablename='chat_outbox' "
                          "ORDER BY indexname").fetchall()
-        result={"rows":cnt,"highwater":hw,"or":p1,"union":p2,
+        result={"rows":cnt,"highwater":hw,"or":p1,"union":p2,"n1_outboxpage":p3,
                 "indexes": [{"name":n,"definition":d} for n,d in inds]}
         EXTRAS["explain"] = result
         return result
