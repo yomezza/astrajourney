@@ -1,4 +1,6 @@
 import { openVisit } from "./visit.js";
+import { mountColonyCatalog, clearColonyCatalog } from "./colony-catalog.js";
+import { world, loadWorld } from "../../core/world-store.js";
 
 import { terrain, texture, materials } from "./terrain.js";
 
@@ -1216,45 +1218,35 @@ export function initPlanet() {
       root.append(more);
     }
   }
+  let colonyRefresh = 0;
   async function manager(background = false) {
-    const session = Session.epoch;
-    const data = await api("planet/projects");
-    if (
-      !Session.signedIn ||
-      session !== Session.epoch ||
-      (background && !Modules.isOpen("colonies"))
-    )
+    const session = Session.epoch, ticket = ++colonyRefresh;
+    let data;
+    try {
+      data = await api("planet/projects");
+      if (!world.data) await loadWorld().catch(() => null);
+    } catch (error) {
+      if (Session.signedIn && session === Session.epoch && (!background || Modules.isOpen("colonies")))
+        notify(error.message, "error");
       return;
-    const root = Modules.create("colonies", "Колонии", 850, 650);
-    root.replaceChildren(
-      n("h3", tr("Колонии и проекты")),
-      btn("Продолжить высадку", () => openVisit()),
-    );
-    for (const p of data.projects) {
-      const card = n("section", undefined, "colony-list-item");
-      card.append(
-        n("b", p.name + " · " + tr("Сектор") + " " + p.sector),
-        n("p", p.owner + " · " + tr(statusName(p.status))),
-        btn("Открыть проект", () => project(p.id)),
-        btn("Поверхность планеты", () => open(p.star, p.planet)),
-      );
-      root.append(card);
     }
-    if (!data.projects.length) UI.empty(root, "Планетарных проектов пока нет");
-    for (const refund of data.refunds)
-      root.append(
-        btn(
-          tr("Получить возврат") +
-            " · " +
-            asset(refund.resource) +
-            " × " +
-            refund.amount,
-          () =>
-            send({ action: "claim_refund", id: refund.id }).then(() =>
-              manager(),
-            ),
-        ),
-      );
+    if (!Session.signedIn || session !== Session.epoch || ticket !== colonyRefresh ||
+        (background && !Modules.isOpen("colonies"))) return;
+    const root = Modules.create("colonies", "Колонии", 950, 700);
+    mountColonyCatalog(root, data, {
+      language: () => I18n.language,
+      assetBase: "",
+      starName: id => world.stars.get(Number(id))?.name || "",
+      translateKind: kind => tr(kind),
+      loadSystem: id => api("system?id=" + encodeURIComponent(id)),
+      resourceName: id => asset(id),
+      onProject: id => project(id),
+      onSurface: (star, planet) => open(star, planet),
+      onVisit: () => openVisit(),
+      onRefund: refund => send({action:"claim_refund",id:refund.id}).then(result => {
+        if (result) manager();
+      })
+    });
     if (!background) Modules.open("colonies");
   }
   async function settings(root) {
@@ -1350,6 +1342,7 @@ export function initPlanet() {
     }
   });
   window.addEventListener("languagechange", () => {
+    if (Modules.isOpen("colonies")) manager(true).catch(() => {});
     if (current) {
       const { data } = current;
       open(data.star, data.planet);
@@ -1360,6 +1353,9 @@ export function initPlanet() {
     }
   });
   window.addEventListener("signedout", () => {
+    colonyRefresh++;
+    const colonyRoot = document.querySelector("#window-colonies .module-content");
+    if (colonyRoot) clearColonyCatalog(colonyRoot);
     epoch++;
     close(false);
     actions.clear();
