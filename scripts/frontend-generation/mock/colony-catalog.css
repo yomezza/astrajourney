@@ -1,5 +1,5 @@
 /* Cosmosimulator colony catalogue; scoped to avoid changing planet controls. */
-.colony-catalog-root{display:flex;flex-direction:column;gap:12px;min-width:0;min-height:0;overflow:auto}
+.colony-catalog-root{display:flex;flex-direction:column;gap:12px;min-width:0;min-height:0;overflow:auto;container-type:inline-size}
 .colony-catalog-root *{box-sizing:border-box}
 .colony-catalog-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid #395666;padding:4px 0 12px}
 .colony-catalog-heading h3,.colony-catalog-library h3{margin:0 0 4px;font-size:17px;color:#e2edf2}
@@ -34,4 +34,4 @@
 .colony-catalog-entry small{font-size:11px;color:#a5c0cc}
 .colony-catalog-refunds{border:1px solid #38505c;padding:10px;display:flex;align-items:center;flex-wrap:wrap;gap:8px}
 .colony-catalog-refunds h3{font-size:12px;margin:0 8px 0 0;color:#9cd1d7}
-@media(max-width:670px){.colony-catalog-layout{grid-template-columns:minmax(0,1fr)}.colony-catalog-library{min-height:260px}.colony-catalog-entries{max-height:320px}.colony-catalog-planet{height:180px}.colony-catalog-visual{min-height:185px}}
+@container(max-width:670px){.colony-catalog-layout{grid-template-columns:minmax(0,1fr)}.colony-catalog-library{min-height:260px}.colony-catalog-entries{max-height:320px}.colony-catalog-planet{height:180px}.colony-catalog-visual{min-height:185px}}
