@@ -9,7 +9,7 @@
 - Две полностью инициализированные **игровые** схемы nats_dba_test и nats_dba_test_b в одной тестовой БД. Использован настоящий initialization.OpenDatabase, все существующие schema*.sql, Chat schema marker 1, chatintegration.Functions, Partitions и GrantRuntime. Не создавали облегчённую подделку chat_outbox.
 - Роли chat_runtime / chat_definer созданы как NOLOGIN NOINHERIT для CI. Испытания под chat_runtime выполняются через SET ROLE; это действительно ограниченные PostgreSQL-права, но не отдельный тест TCP LOGIN.
 - Исходные данные с действующей игры **не использовались**. PostgreSQL производственного сервера, Cosmic/Planet/Chat службы, TOML, NATS и цепочка internal/server/schema*.sql **не изменялись**.
-- Исходники тестов: [run_postgres.py](run_postgres.py), [seed.go](seed.go), [legacy.go](legacy.go) и [CI-workflow](../../.github/workflows/nats-n2-dba.yml). Workflow фактически расположен в корне репозитория .github/workflows/nats-n2-dba.yml.
+- Исходники тестов: [run_postgres.py](run_postgres.py), [seed.go](seed.go), [legacy.go](legacy.go) и [CI-workflow](../../../.github/workflows/nats-n2-dba.yml). Workflow фактически расположен в корне репозитория .github/workflows/nats-n2-dba.yml.
 - В артефакте **nats-n2-dba-results** запуска 42756857729: summary.json, три полных EXPLAIN JSON и insert-commit-bench.json. Хеш артефакта sha256:d0d329d38453a1630ec89f3e078f4c941ad7c51504fcb32dceb6014c29237847.
 
 ## Итог по матрице
@@ -59,7 +59,7 @@
 
 ## Производительность
 
-См. [EXPLAIN.ru.md](EXPLAIN.ru.md). На 1 002 416 строках реальный запрос текущего OutboxPage дал **0,295 ms**; упрощённый OR — **0,339 ms**; экспериментальный UNION ALL — **13,835 ms**. Использованы существующие PK(id) и (created_at,id), новых индексов **не предлагается**. Это единичный EXPLAIN на тестовом распределении, не прогноз на заполненной рабочей БД.
+См. [EXPLAIN.ru.md](EXPLAIN.ru.md) и [SQL rollback/допуск](SQL-ROLLBACK.ru.md). На 1 002 416 строках реальный запрос текущего OutboxPage дал **0,295 ms**; упрощённый OR — **0,339 ms**; экспериментальный UNION ALL — **13,835 ms**. Использованы существующие PK(id) и (created_at,id), новых индексов **не предлагается**. Это единичный EXPLAIN на тестовом распределении, не прогноз на заполненной рабочей БД.
 
 В тесте по 250 последовательных транзакций на каждый режим (одна строка INSERT + COMMIT, малая нагрузка):
 
