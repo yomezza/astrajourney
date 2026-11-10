@@ -13,7 +13,8 @@
     "25 оригинальных PNG не вложены; установщик переносит их из репозитория и проверяет, что получен полный комплект.",
     "Многие оригинальные модули и программная графика не прошли интеграционную браузерную проверку с оригинальным web в этой среде.",
     "Для части Go-операций mock DTO/логика ещё неполные; нельзя утверждать полноценную работу всех кнопок.",
-    "Новости используют точные пять SVG, но полноценная браузерная проверка с original-web на целевых размерах пока не проведена; доступен tests/browser_news_smoke.py."
+    "Новости используют точные пять SVG, но полноценная браузерная проверка с original-web на целевых размерах пока не проведена; доступен tests/browser_news_smoke.py.",
+    "Новый просмотр состава системы: Chromium smoke на оригинальном frontend и всех SVG-классах ещё не выполнен; сценарий tests/browser_studies_system_smoke.py доступен для локальной проверки."
   ],
   "coverage": {
     "index_sidebar_windows": "source_files_unmodified_not_browser_verified",
@@ -21,7 +22,7 @@
     "planet_graphics": "source_download_validation + gallery",
     "source_svg_animation": "retained_svg_files",
     "chat_v13": "approved DOM integration with one native draggable chat surface; independent home news layout; original-web E2E not rerun",
-    "studies_v13": "snapshot_copy + split source, offline standalone previously verified",
+    "studies_v13": "approved v13 catalogue retained, new in-window SVG lineup with original system API; browser smoke not verified",
     "mock_back_end": "HTTP + Python unit tests"
   },
   "original_svg_in_archive": 33,
@@ -109,5 +110,43 @@
       "tests/browser_news_smoke.py"
     ],
     "notes": "Offline after first update. No news Go API, no real news. Exact Chromium viewport smoke requires original-web installation."
+  },
+  "studies_system_view": {
+    "state": "implemented-code-static-checked; full-chromium-not-run",
+    "component": "prototype/studies/system-view.js",
+    "original_component": "internal/server/web/features/research/system-view.js",
+    "model_source": "existing /api/system?id=ID, no independent fake system composition",
+    "assets": "existing internal/server/web/object-*.svg + neutral object-unknown.svg",
+    "class_mapping": [
+      "O",
+      "B",
+      "A",
+      "F",
+      "G",
+      "K",
+      "M"
+    ],
+    "site_types": [
+      "Ледяная",
+      "Каменистая",
+      "Садовый мир",
+      "Газовый гигант",
+      "Пустынная",
+      "Лавовая",
+      "Вулканическая",
+      "Орбитальная станция",
+      "Пояс астероидов",
+      "Ледяное поле",
+      "Чёрная дыра"
+    ],
+    "interface": "in-place navigation, horizontal scroll, attached fixed tooltip, Back restores archive",
+    "prototype_studies_visual_v13_preserved": true,
+    "frontend_gameplay_backend_changed": false,
+    "original_frontend_updated": true,
+    "tests_added": [
+      "tests/test_studies_system_view.py",
+      "tests/browser_studies_system_smoke.py"
+    ],
+    "full_chromium_smoke_verified": false
   }
 }

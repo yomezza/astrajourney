@@ -1,4 +1,5 @@
 import { pager } from "../../ui/pager.js";
+import { mountSystemLineup } from "./system-view.js";
 import { objectHologram } from "../objects/presentation.js";
 import { shipName } from "../fleet/presentation.js";
 import { Format } from "../../core/format.js";
@@ -20,7 +21,8 @@ export function initStudies() {
   let query = "",
     scope = "all",
     page = 1,
-    epoch = 0;
+    epoch = 0,
+    viewHandle = null;
   const ship = () => Session.data.expedition?.ship,
     known = () => Session.data.workbench?.known || [];
   const personal = (item) => item.source === "survey";
@@ -90,6 +92,21 @@ export function initStudies() {
     layout.append(side, library);
     root.append(heading, stats, layout);
   }
+  function showSystem(starId) {
+    if (viewHandle) viewHandle.close();
+    viewHandle = mountSystemLineup({
+      host: root,
+      starId,
+      assetBase: "",
+      fallbackAsset: "object-unknown.svg",
+      language: () => I18n.language,
+      resolveResource: (id) =>
+        Session.data.expedition?.resources?.find((r) => r.id === id)?.name || id,
+      loadSystem: (id, signal) => api("system?id=" + encodeURIComponent(id), undefined, signal),
+      onBack: () => { viewHandle = null; }
+    });
+  }
+
   function entries() {
     const list = root.querySelector(".studies-entries"),
       pagination = root.querySelector(".pagination");
@@ -125,16 +142,17 @@ export function initStudies() {
       area.title = tr("Регион") + ": " + region(s);
       heading.append(n("strong", s?.name || String(item.star)), area);
       body.append(heading, tag, n("small", Format.timestamp(item.received_at)));
-      card.append(
-        n("span", s?.class || "✦", "study-star"),
-        body,
+      const actions = n("div", undefined, "study-entry-actions");
+      actions.append(
         b("На карте", () => {
           Modules.open("galaxy");
           window.dispatchEvent(
             new CustomEvent("showstar", { detail: item.star }),
           );
         }),
+        b("Подробнее", () => showSystem(item.star)),
       );
+      card.append(n("span", s?.class || "✦", "study-star"), body, actions);
       list.append(card);
     }
     if (!items.length)
@@ -227,6 +245,7 @@ export function initStudies() {
               : "Сканирование объектов текущей системы",
         ),
       );
+    side.append(b("Подробнее", () => showSystem(s.star)));
     const active = n("section", undefined, "studies-active");
     active.append(n("h3", tr("Текущие экспедиции")));
     for (const j of jobs) {
@@ -261,10 +280,12 @@ export function initStudies() {
   });
   window.addEventListener("gamedata", render);
   window.addEventListener("languagechange", () => {
+    if (viewHandle) { viewHandle.close(); viewHandle = null; }
     root.replaceChildren();
     render();
   });
   window.addEventListener("signedout", () => {
+    if (viewHandle) { viewHandle.close(); viewHandle = null; }
     epoch++;
     query = "";
     scope = "all";

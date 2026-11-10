@@ -1,0 +1,131 @@
+/* In-window stellar system composition, deliberately limited to the Studies module. */
+.studies-content>.research-system-view{
+  display:flex;flex:1 1 auto;flex-direction:column;min-width:0;min-height:0;gap:12px;
+  width:100%;height:100%;overflow:hidden;box-sizing:border-box;
+}
+.studies-content>[hidden]{display:none!important}
+.research-system-view *,.research-system-view *::before,.research-system-view *::after{box-sizing:border-box}
+.research-system-view .research-system-top{
+  display:flex;flex:0 0 auto;align-items:flex-start;gap:12px;
+  border-bottom:1px solid #3c5562;padding:4px 2px 13px;
+  background:transparent;
+}
+.research-system-view .research-system-back{
+  flex:0 0 auto;min-height:30px;margin-top:2px;
+  background:#1a2b36;color:#dce5ed;border:1px solid #567283;
+  padding:4px 12px;cursor:pointer;border-radius:1px;font:11px/1.5 "Segoe UI",sans-serif;
+}
+.research-system-view .research-system-back:hover{background:#2a4350;border-color:#87bac5}
+.research-system-view .research-system-top-heading{min-width:0;flex:1}
+.research-system-view .research-system-top h3{
+  color:#e4edf1;font-size:17px;font-weight:650;line-height:1.3;
+  margin:0 0 5px;overflow-wrap:anywhere;
+}
+.research-system-view .research-system-caption{
+  font-size:11px;color:#8eb8c3;margin:0;letter-spacing:.02em;
+}
+.research-system-view .research-system-hint{
+  color:#8daebc;font:11px/1.5 "Segoe UI",sans-serif;
+  margin:0 2px;flex:0 0 auto;
+}
+.research-system-view .research-system-scroll{
+  flex:1 1 auto;min-height:165px;min-width:0;width:100%;
+  overflow-x:auto;overflow-y:auto;overscroll-behavior-x:contain;
+  scrollbar-color:#516c7e #14222d;scrollbar-width:thin;
+  background:radial-gradient(ellipse at 46% 45%,#193342 0,#101e2b 55%,#101820 95%);
+  border-top:1px solid #345367;border-bottom:1px solid #345367;
+  outline-offset:-3px;
+}
+.research-system-view .research-system-scroll:focus-visible{outline:2px solid #78c7d9}
+.research-system-view .research-system-lineup{
+  display:flex;gap:9px;align-items:center;
+  width:max-content;min-width:100%;min-height:100%;
+  padding:20px 22px 28px;position:relative;
+}
+.research-system-view .research-system-object{
+  width:148px;min-width:148px;flex:0 0 148px;
+  display:flex;flex-direction:column;align-items:center;
+}
+.research-system-view .research-system-object-trigger{
+  display:flex;align-items:center;flex-direction:column;justify-content:flex-start;
+  min-width:0;width:100%;gap:7px;padding:8px 5px;
+  border:1px solid transparent;border-radius:2px;
+  background:transparent;box-shadow:none;
+  color:#dce5ed;cursor:pointer;
+}
+.research-system-view .research-system-object-trigger:hover,
+.research-system-view .research-system-object-trigger:focus-visible{
+  border-color:#406474;background:linear-gradient(180deg,#17334266,transparent 85%);
+}
+.research-system-view .research-system-object-trigger:focus-visible{
+  outline:2px solid #78c7d9;outline-offset:0;
+}
+.research-system-view .research-system-art{
+  width:140px;height:150px;display:flex;align-items:center;justify-content:center;
+  overflow:hidden;contain:layout paint;
+  transition:transform .18s ease,filter .18s ease;
+}
+.research-system-view .research-system-art img{
+  display:block;width:140px;height:140px;object-fit:contain;
+  background:transparent;border:0;pointer-events:none;user-select:none;
+}
+.research-system-view .research-system-object-trigger:hover .research-system-art,
+.research-system-view .research-system-object-trigger:focus-visible .research-system-art{
+  transform:scale(1.055);filter:drop-shadow(0 0 8px #72d6e655);
+}
+.research-system-view .research-system-object-name{
+  display:block;max-width:100%;min-height:2em;
+  font:600 12px/1.3 "Segoe UI",sans-serif;color:#dceaf0;
+  text-align:center;white-space:normal;overflow-wrap:anywhere;
+}
+.research-system-view .research-system-object-kind{
+  display:block;min-height:12px;color:#89a9b8;
+  font:10px/1.3 "Segoe UI",sans-serif;text-align:center;
+}
+.research-system-view .research-system-status{
+  flex:0 0 auto;color:#9ab7c6;min-height:18px;margin:0 2px;
+  font:11px/1.4 "Segoe UI",sans-serif;
+}
+.research-system-tooltip{
+  position:fixed;z-index:15000;width:max-content;min-width:190px;
+  max-width:min(320px,calc(100vw - 16px));
+  max-height:calc(100dvh - 16px);overflow:auto;
+  padding:10px 12px;background:#1b2b37;border:1px solid #6591a0;
+  color:#dce5ed;box-shadow:0 16px 50px #000c;
+  border-radius:3px;pointer-events:none;box-sizing:border-box;
+  font:11px/1.45 "Segoe UI",sans-serif;
+}
+.research-system-tooltip[hidden]{display:none!important}
+.research-system-tooltip-title{
+  display:block;font-size:13px;color:#e8f8f7;margin:0 0 4px;overflow-wrap:anywhere;
+}
+.research-system-tooltip-kind{
+  display:block;font:10px/1.4 Consolas,monospace;color:#7bd7d2;margin-bottom:9px;
+}
+.research-system-tooltip-row{
+  display:flex;align-items:flex-start;justify-content:space-between;
+  gap:10px;margin:4px 0;border-bottom:1px solid #37505e66;padding-bottom:3px;
+}
+.research-system-tooltip-row span{color:#9aafbb}
+.research-system-tooltip-row b{color:#dbe8ed;font-weight:600;text-align:right;overflow-wrap:anywhere;max-width:60%}
+.study-entry-actions{display:flex;flex-wrap:wrap;align-items:center;gap:5px;justify-content:flex-end}
+.study-detail-actions{display:flex;flex-wrap:wrap;gap:6px}
+.study-entry .study-entry-actions>button{white-space:nowrap}
+@media(max-width:760px){
+  .research-system-view .research-system-object{width:124px;min-width:124px;flex-basis:124px}
+  .research-system-view .research-system-art{width:118px;height:128px}
+  .research-system-view .research-system-art img{width:118px;height:118px}
+  .research-system-view .research-system-lineup{padding:12px 12px 22px;gap:7px}
+  .research-system-view .research-system-top{gap:8px}
+  .research-system-view .research-system-top h3{font-size:15px}
+}
+@media(max-width:420px){
+  .research-system-view .research-system-object{width:111px;min-width:111px;flex-basis:111px}
+  .research-system-view .research-system-art{width:106px;height:116px}
+  .research-system-view .research-system-art img{width:104px;height:104px}
+  .research-system-view .research-system-object-name{font-size:11px}
+  .study-entry-actions{justify-content:start}
+}
+@media(prefers-reduced-motion:reduce){
+  .research-system-view .research-system-art{transition:none!important}
+}

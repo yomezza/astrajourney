@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Неизвестный небесный объект">
+<defs>
+ <radialGradient id="light" cx="50%" cy="45%" r="62%"><stop stop-color="#2a596b" stop-opacity=".55"/><stop offset="1" stop-color="#101c2a" stop-opacity=".08"/></radialGradient>
+ <linearGradient id="trace" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#77c8da"/><stop offset=".5" stop-color="#3e859f"/><stop offset="1" stop-color="#edaf62"/></linearGradient>
+</defs>
+<circle cx="100" cy="100" r="64" fill="url(#light)" stroke="#3d6b81" stroke-width="1" stroke-dasharray="5 7" opacity=".9"/>
+<path d="M100 22V42M100 158V178M22 100H42M158 100H178" stroke="#83d3db" opacity=".65" stroke-width="1.7"/>
+<path d="M100 62 138 85 138 124 100 147 62 124 62 85Z" fill="#132a3b" fill-opacity=".55" stroke="url(#trace)" stroke-width="2.4"/>
+<path d="M100 62V105L138 124M100 105 62 124" fill="none" stroke="#6eafb7" stroke-width="1.1" opacity=".8"/>
+<path d="M90 88c2-13 21-15 22 0 1 11-12 15-12 24" fill="none" stroke="#d7e8dd" stroke-width="4" stroke-linecap="round"/>
+<circle cx="100" cy="124" r="2.4" fill="#efad58"/>
+</svg>

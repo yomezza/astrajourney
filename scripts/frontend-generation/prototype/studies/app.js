@@ -2,12 +2,12 @@ document.documentElement.classList.toggle('embedded', new URLSearchParams(locati
 
 (()=>{'use strict';const $=id=>document.getElementById(id);const names=['Эдем','Альтаир','Веспер','Тау-Кита','Кассиопея','Нимбус','Ариадна','Фомальгаут','Зенит','Арктур','Сириус','Орион','Полярис','Лира','Дельта-7','Прометей','Кеплер','Эридан','Антарес','Кронос','Гелиос','Аврора','Атлас','Персей'];const regions=['Центральное скопление','Внешний рукав','Туманность Ориона','Пояс Эдема','Пограничные миры'];let entries=names.slice(1).map((name,i)=>({star:i+2,name,region:regions[i%regions.length],galaxy:i%7===0?'Пилигрим':'Эдем',class:['O','B','A','F','G','K','M'][i%7],source:i%4===0?'purchased':i%4===1?'received':'survey',received_at:new Date(Date.UTC(2026,9,31-i,12,20)).toISOString()}));let jobs=[{ship:'Атлас-01',star:'Эдем',scanned:7,total:12,seconds:18,paused:false},{ship:'Орион-3',star:'Гелиос',scanned:4,total:16,seconds:29,paused:true}];let page=1,scenario='scanning',maximized=false,pinned=false,callback=null;const sourceName=i=>i.source==='survey'?'Личное исследование':i.source==='purchased'?'Купленные разведданные':'Получено ранее';const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const fmt=t=>new Date(t).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});const bar=(v,t,label)=>`<div class="meter"><span>${label}</span><b>${v} / ${t}</b><progress max="${t}" value="${v}" aria-label="${label}"></progress></div>`;const STAR_HOLOGRAMS = Object.create(null);
 const svgReady = Promise.all(['O','B','A','F','G','K','M'].map(async code => {
-  const response = await fetch('./svg/object-star-' + code.toLowerCase() + '.svg');
+  const response = await fetch('/object-star-' + code.toLowerCase() + '.svg');
   if (!response.ok) throw Error('Не удалось загрузить игровую голограмму: ' + code);
   STAR_HOLOGRAMS[code] = await response.text();
 })).then(() => { if(document.getElementById('studies-current')) update(); });;
 const CURRENT_SYSTEM={star:1,name:'Эдем',region:'Центральное скопление',galaxy:'Эдем',class:'G',source:'survey',received_at:'2026-10-31T12:00:00.000Z'};
-let selectedStar=1;
+let selectedStar=1;let systemView=null;let systemViewSerial=0;const resourcesById=new Map();
 const findSystem=(star)=>star===CURRENT_SYSTEM.star?CURRENT_SYSTEM:entries.find(x=>x.star===star);
 const hologramFor=(letter)=>`<div class="hologram-surface object-hologram" role="img" aria-label="Голограмма звезды класса ${letter}">${STAR_HOLOGRAMS[letter]||STAR_HOLOGRAMS.G}</div>`;
 
@@ -38,11 +38,11 @@ function renderDetail(){
     const active=jobs.find(j=>j.star===CURRENT_SYSTEM.name)||{scanned:0,total:6,seconds:2};
     view+=bar(active.scanned,active.total,'Объекты');
     view+=`<p class="muted">${scenario==='paused'?'Приостановлено':'Сканирование'} · ${active.seconds} s / Объект</p>`;
-    view+=`<button class="terminal-action" id="study-action">${scenario==='paused'?'Продолжить':'Приостановить'}</button>`;
+    view+=`<div class="study-detail-actions"><button class="terminal-action" id="study-action">${scenario==='paused'?'Продолжить':'Приостановить'}</button><button class="terminal-action" id="detail-more">Подробнее</button></div>`;
   }else if(shipHere){
-    view+=`<div class="study-detail-actions"><button class="terminal-action" id="study-action" ${isKnown?'disabled title="Система уже исследована"':scenario==='travel'?'disabled title="Корабль в пути"':''}>Исследовать систему · 10 CR</button></div>`;
+    view+=`<div class="study-detail-actions"><button class="terminal-action" id="study-action" ${isKnown?'disabled title="Система уже исследована"':scenario==='travel'?'disabled title="Корабль в пути"':''}>Исследовать систему · 10 CR</button><button class="terminal-action" id="detail-more">Подробнее</button></div>`;
   }else{
-    view+=`<button class="terminal-action" id="detail-map">На карте</button>`;
+    view+=`<div class="study-detail-actions"><button class="terminal-action" id="detail-map">На карте</button><button class="terminal-action" id="detail-more">Подробнее</button></div>`;
   }
   let allJobs=jobs.filter(j=>j.star!==CURRENT_SYSTEM.name);
   if(scenario==='scanning'||scenario==='paused')allJobs.unshift({...jobs[0],paused:scenario==='paused'});
@@ -60,6 +60,7 @@ function renderDetail(){
     else if(ongoing){scenario=scenario==='paused'?'scanning':'paused';$('scenario').value=scenario;update();toast(scenario==='paused'?'Исследование приостановлено':'Исследование возобновлено');}
   };
   if($('detail-map'))$('detail-map').onclick=()=>openOnMap(system);
+   if($('detail-more'))$('detail-more').onclick=()=>showSystemView(system);
 }
 function markSelection(){
   for(const row of document.querySelectorAll('.study-entry[data-star]')){
@@ -75,6 +76,34 @@ function openOnMap(system){
   }
   modal('Галактическая карта',`<div class="fake-map"><div class="starline"><b>✦ ${escape(system.name)}</b><p>${escape(system.galaxy)} · ${escape(system.region)} · Звезда класса ${escape(system.class)}</p></div><p>В настоящей игре «На карте» открывает модуль галактики с выбранной звездой.</p></div>`,()=>{},true);
 }
+function showSystemView(system){
+  if(!system)return;
+  const serial=++systemViewSerial;
+  if(systemView){systemView.close();systemView=null;}
+  selectedStar=system.star;
+  markSelection();
+  import('./system-view.js').then(({mountSystemLineup})=>{
+    if(serial!==systemViewSerial)return;
+    const host=document.querySelector('.studies-content');
+    if(!host)return;
+    systemView=mountSystemLineup({
+      host,
+      starId:system.star,
+      assetBase:'/',
+      fallbackAsset:'/prototype/studies/object-unknown.svg',
+      language:()=>document.documentElement.lang,
+      resolveResource:(id)=>resourcesById.get(id)||id,
+      loadSystem:async(id,signal)=>{
+        const response=await fetch('/api/system?id='+encodeURIComponent(id),{signal,cache:'no-store'});
+        if(!response.ok)throw Error('HTTP '+response.status);
+        const data=await response.json();
+        if(!data?.star||data.star.id!==id)throw Error('Неверный ответ реестра');
+        return data;
+      },
+      onBack:()=>{systemView=null;markSelection();}
+    });
+  }).catch(error=>{if(serial===systemViewSerial)toast('Состав системы недоступен: '+error.message);});
+}
 function rowHTML(item,isCurrent=false){
   const chosen=item.star===selectedStar;
   const status=isCurrent?currentStateLabel():'Система исследована';
@@ -83,16 +112,17 @@ function rowHTML(item,isCurrent=false){
   return `<article class="study-entry ${isCurrent?'study-entry-current':''} ${chosen?'study-entry-selected':''}" data-star="${item.star}" role="button" tabindex="0" aria-pressed="${chosen}" aria-label="${escape(item.name)}${isCurrent?' — система активного корабля':''}. Выбрать для просмотра">
     <span class="study-star">${escape(item.class)}</span>
     <div><div class="study-entry-heading"><strong>${escape(item.name)}</strong><span class="study-region" title="Регион: ${escape(item.region)}">${escape(item.region)}</span>${isCurrent?'<span class="study-ship-badge">⌖ КОРАБЛЬ ЗДЕСЬ</span>':''}</div>${tag}${note}</div>
-    <button class="map-btn terminal-action" type="button" data-star="${item.star}" aria-label="На карте: ${escape(item.name)}">На карте</button>
+    <div class="study-entry-actions"><button class="map-btn terminal-action" type="button" data-star="${item.star}" aria-label="На карте: ${escape(item.name)}">На карте</button><button class="detail-more-btn terminal-action" type="button" data-star="${item.star}" aria-label="Подробнее: ${escape(item.name)}">Подробнее</button></div>
   </article>`;
 }
 function attachRowHandlers(){
   for(const row of document.querySelectorAll('.study-entry[data-star]')){
     const choose=()=>{const next=Number(row.dataset.star);if(!findSystem(next))return;selectedStar=next;markSelection();renderDetail();};
-    row.onclick=e=>{if(e.target.closest('.map-btn'))return;choose()};
+    row.onclick=e=>{if(e.target.closest('button'))return;choose()};
     row.onkeydown=e=>{if(e.target!==row)return;if(e.key==='Enter'||e.key===' '){e.preventDefault();choose()}};
   }
   for(const btn of document.querySelectorAll('.map-btn[data-star]'))btn.onclick=e=>{e.stopPropagation();const system=findSystem(Number(btn.dataset.star));if(system)openOnMap(system)};
+  for(const btn of document.querySelectorAll('.detail-more-btn[data-star]'))btn.onclick=e=>{e.stopPropagation();const system=findSystem(Number(btn.dataset.star));if(system)showSystemView(system)};
 }
 function update(){renderStatistics();renderDetail();list();}
 function list(){
@@ -224,6 +254,9 @@ if(new URLSearchParams(location.search).has('embed')){
   }).then(registry=>{
     if(!Array.isArray(registry.stars)||!Array.isArray(registry.known)||
        !Array.isArray(registry.regions)||!registry.ship_star)throw Error('Некорректный реестр');
+    resourcesById.clear();
+    if(Array.isArray(registry.resources))
+      for(const resource of registry.resources)resourcesById.set(resource.id,resource.name);
     const regionById=new Map(registry.regions.map(region=>[region.id,region.name]));
     const byId=new Map(registry.stars.map(star=>[star.id,star]));
     const shipStar=byId.get(registry.ship_star);
