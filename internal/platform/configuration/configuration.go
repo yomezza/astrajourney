@@ -75,8 +75,11 @@ func Load(getenv func(string) string, service Service) (*Source, error) {
 	if err != nil {
 		return nil, errors.New("cannot resolve CONFIG_FILE directory")
 	}
+	if document.NATS != nil && service != Chat {
+		return nil, errors.New("N3 [nats] is supported only by Chat; use a separate Chat TOML")
+	}
 	values := document.values(service)
-	for _, name := range []string{"PLANET_LOG_FILE", "CHAT_ERASURE_JOURNAL"} {
+	for _, name := range []string{"PLANET_LOG_FILE", "CHAT_ERASURE_JOURNAL", "NATS_PASSWORD_FILE", "NATS_CA_FILE"} {
 		if value := values[name]; value != "" && !filepath.IsAbs(value) {
 			values[name] = filepath.Join(base, value)
 		}
@@ -87,6 +90,13 @@ func Load(getenv func(string) string, service Service) (*Source, error) {
 		for _, item := range list {
 			if strings.Contains(item, ",") {
 				return nil, errors.New("TOML origin/proxy array entries must not contain commas")
+			}
+		}
+	}
+	if document.NATS != nil {
+		for _, item := range document.NATS.Servers {
+			if strings.Contains(item, ",") {
+				return nil, errors.New("TOML NATS server entries must not contain commas")
 			}
 		}
 	}

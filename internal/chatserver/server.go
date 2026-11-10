@@ -26,13 +26,14 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/platform/postgres"
 )
 
-const Version = "0.24.8"
+const Version = "0.24.9"
 
 type Config struct {
 	DatabaseURL, Schema, Addr, CosmicURL, PlanetURL, Journal string
 	Origins                                                  []string
 	MaintenanceURL                                           string
 	Dispatcher                                               DispatcherConfig
+	NATS                                                     NATSConfig
 }
 
 func LoadConfig(getenv func(string) string) (Config, error) {
@@ -41,6 +42,18 @@ func LoadConfig(getenv func(string) string) (Config, error) {
 	c.Dispatcher, err = dispatcherConfig(getenv)
 	if err != nil {
 		return c, err
+	}
+	c.NATS, err = loadNATSConfig(getenv)
+	if err != nil {
+		return c, err
+	}
+	if c.Dispatcher.Mode == "b1" {
+		if err = c.NATS.Validate("b1"); err != nil {
+			return c, err
+		}
+		if _, _, err = c.NATS.credentials(); err != nil {
+			return c, err
+		}
 	}
 	if c.DatabaseURL == "" {
 		c.DatabaseURL = getenv("DATABASE_URL")
@@ -68,6 +81,9 @@ func LoadConfig(getenv func(string) string) (Config, error) {
 }
 func (c Config) Validate() error {
 	if err := c.Dispatcher.Validate(); err != nil {
+		return err
+	}
+	if err := c.NATS.Validate(c.Dispatcher.Mode); err != nil {
 		return err
 	}
 	if c.DatabaseURL == "" || c.Journal == "" {
@@ -135,7 +151,13 @@ func New(s *chat.Service, c Config) (*App, error) {
 	a := &App{Service: s, config: c, instance: chat.UUID(), connections: map[*websocket.Conn]bool{}}
 	a.registry = NewWSRegistry()
 	if c.Dispatcher.Mode != "legacy" {
-		if c.Dispatcher.Mode == "a2" {
+		if c.Dispatcher.Mode == "b1" {
+			var err error
+			a.source, err = NewNATSWakeSource(c.NATS)
+			if err != nil {
+				return nil, err
+			}
+		} else if c.Dispatcher.Mode == "a2" {
 			a.source = NewPostgresWakeSource(s.DB)
 		} else {
 			a.source = NewLocalWakeSource()

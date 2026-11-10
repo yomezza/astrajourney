@@ -1,0 +1,24 @@
+# Separate disposable game world, NOT the owner's working PostgreSQL/services.
+# Initialize this full game schema with isolated Cosmic and existing grants first.
+[database]
+url = 'postgres://chat_runtime:CHANGE_ME@127.0.0.1:55439/cosmos_n3_test?sslmode=disable'
+schema = 'n3_chat_test'
+[chat]
+http_addr = '127.0.0.1:18082'
+cosmic_internal_url = 'http://127.0.0.1:18080'
+planet_internal_url = 'http://127.0.0.1:18081'
+allowed_origins = ['http://127.0.0.1:18080']
+erasure_journal = '../data/chat-erasure.log'
+dispatcher_mode = 'b1'
+fallback_poll_interval = '10s'
+degraded_poll_interval = '2s'
+outbox_overlap = '60s'
+[nats]
+enabled = true
+service_identity = 'chat'
+servers = ['tls://127.0.0.1:14222']
+username = 'chat'
+password_file = '../secrets/chat.password'
+ca_file = '../certs/ca.pem'
+connect_timeout = '2s'
+reconnect_wait = '1s'

@@ -312,13 +312,18 @@ func TestChatN2MissingTriggerFallback(t *testing.T) {
 }
 
 func TestChatN2PrivateCorporationAndCleanup(t *testing.T) {
+	testChatPrivateCorporationAndCleanup(t, "a2")
+}
+func testChatPrivateCorporationAndCleanup(t *testing.T, mode string) {
 	t.Setenv("CHAT_ENABLED", "true")
 	f := newFixture033(t)
-	n2SQL(t, f, "up")
+	if mode == "a2" {
+		n2SQL(t, f, "up")
+	}
 	pool, _, _ := n1RuntimePool(t, f)
 	restricted := *f
 	restricted.db = pool
-	a, svc, url, origin := n1App(t, &restricted, "a2", nil)
+	a, svc, url, origin := n1App(t, &restricted, mode, nil)
 	ca, aid := f.signup("n2alice")
 	cb, bid := f.signup("n2bob")
 	cc, cid := f.signup("n2carl")
@@ -419,10 +424,13 @@ func TestChatN2PrivateCorporationAndCleanup(t *testing.T) {
 	}
 }
 
-func TestChatN2SpatialTransition(t *testing.T) {
+func TestChatN2SpatialTransition(t *testing.T) { testChatSpatialTransition(t, "a2") }
+func testChatSpatialTransition(t *testing.T, mode string) {
 	t.Setenv("CHAT_ENABLED", "true")
 	f, c, uid, surface, site, ship := prepare180(t)
-	n2SQL(t, f, "up")
+	if mode == "a2" {
+		n2SQL(t, f, "up")
+	}
 	addColony160(f, uid, surface, 2, nil, false)
 	reconcile160(f)
 	base, stopPlanet := startPlanet150(t, f.db)
@@ -433,7 +441,7 @@ func TestChatN2SpatialTransition(t *testing.T) {
 	pool, _, _ := n1RuntimePool(t, f)
 	restricted := *f
 	restricted.db = pool
-	a, svc, url, origin := n1App(t, &restricted, "a2", nil)
+	a, svc, url, origin := n1App(t, &restricted, mode, nil)
 	pilot := n1Dial(t, url, origin, c.Value)
 	outside, _ := f.signup("n2spatialoutsider")
 	outsider := n1Dial(t, url, origin, outside.Value)
@@ -479,98 +487,102 @@ func TestChatN2SpatialTransition(t *testing.T) {
 
 func TestChatN2LateCommitBeyondOverlap(t *testing.T) {
 	for _, mode := range []string{"a1", "a2"} {
-		t.Run(mode, func(t *testing.T) {
-			t.Setenv("CHAT_ENABLED", "true")
-			f := newFixture033(t)
-			if mode == "a2" {
-				n2SQL(t, f, "up")
-			}
-			pool, _, _ := n1RuntimePool(t, f)
-			restricted := *f
-			restricted.db = pool
-			a, svc, url, origin := n1App(t, &restricted, mode, nil)
-			cookie, uid := f.signup("n2late")
-			client := n1Dial(t, url, origin, cookie.Value)
-			eventuallyN1(t, func() bool { return client.syncs.Load() > 0 })
-			channel := n2Command(t, client, "message.send", map[string]any{"kind": "global", "body": "Before delayed transaction"})["channel_id"].(string)
-			tx, e := pool.Begin(f.ctx)
-			if e != nil {
-				t.Fatal(e)
-			}
-			defer tx.Rollback(f.ctx)
-			var seq int64
-			if e = tx.QueryRow(f.ctx, `UPDATE chat_channels SET next_seq=next_seq+1 WHERE id=$1 RETURNING next_seq`, channel).Scan(&seq); e != nil {
-				t.Fatal(e)
-			}
-			mid := chat.UUID()
-			at := time.Now()
-			if _, e = tx.Exec(f.ctx, `INSERT INTO chat_message_locator(id,kind,sent_at,channel_id,seq,author_id,expires_at) VALUES($1,'global',$2,$3,$4,$5,$6)`, mid, at, channel, seq, uid, at.Add(24*time.Hour)); e != nil {
-				t.Fatal(e)
-			}
-			if _, e = tx.Exec(f.ctx, `INSERT INTO chat_messages(kind,sent_at,id,expires_at,channel_id,seq,author_id,body) VALUES('global',$1,$2,$3,$4,$5,$6,'Delayed committed state')`, at, mid, at.Add(24*time.Hour), channel, seq, uid); e != nil {
-				t.Fatal(e)
-			}
-			var low, high int64
-			created := at
-			if mode == "a1" {
-				created = at.Add(-90 * time.Second)
-			} // Same predicate boundary, without a second 65s wall-clock hold.
-			if e = tx.QueryRow(f.ctx, `INSERT INTO chat_outbox(event_kind,channel_id,reference_id,created_at) VALUES('channel.changed',$1,$2,$3) RETURNING id`, channel, mid, created).Scan(&low); e != nil {
-				t.Fatal(e)
-			}
-			if e = f.db.QueryRow(f.ctx, `INSERT INTO chat_outbox(event_kind) VALUES('n2_higher_id') RETURNING id`).Scan(&high); e != nil {
-				t.Fatal(e)
-			}
-			eventuallyN1(t, func() bool { return a.Diagnostics()["dispatcher"].(map[string]any)["highwater"].(int64) >= high })
-			if low >= high {
-				t.Fatal("test IDs are not ordered")
-			}
-			if mode == "a2" {
-				t.Log("Holding a real lower-ID transaction for 65 seconds; no performance workload")
-				timer := time.NewTimer(max(time.Millisecond, time.Until(at.Add(65*time.Second))))
-				<-timer.C
-			}
-			before := client.syncs.Load()
-			reconciles := a.Diagnostics()["dispatcher"].(map[string]any)["state_reconciliations"].(uint64)
-			if e = tx.Commit(f.ctx); e != nil {
-				t.Fatal(e)
-			}
-			window, e := svc.OutboxWindow(f.ctx, time.Minute)
-			if e != nil {
-				t.Fatal(e)
-			}
-			rows, e := svc.OutboxPage(f.ctx, window, high, 0, 1000)
-			if e != nil {
-				t.Fatal(e)
-			}
-			for _, row := range rows {
-				if row.ID == low {
-					t.Fatal("test did not place delayed event outside overlap")
-				}
-			}
-			deadline := time.Now().Add(35 * time.Second)
-			for client.syncs.Load() <= before || a.Diagnostics()["dispatcher"].(map[string]any)["state_reconciliations"].(uint64) <= reconciles {
-				if time.Now().After(deadline) {
-					t.Fatal("independent reconciliation failed outside overlap")
-				}
-				time.Sleep(25 * time.Millisecond)
-			}
-			u, e := svc.Authenticate(f.ctx, account.TokenHash(cookie.Value))
-			if e != nil {
-				t.Fatal(e)
-			}
-			history, e := svc.History(f.ctx, u, chat.Target{Kind: "global"}, 0, "")
-			if e != nil {
-				t.Fatal(e)
-			}
-			found := false
-			for _, message := range history {
-				found = found || message.ID == mid
-			}
-			if !found {
-				t.Fatal("delayed committed message lost")
-			}
-		})
+		t.Run(mode, func(t *testing.T) { testChatLateCommitBeyondOverlap(t, mode) })
+	}
+}
+func testChatLateCommitBeyondOverlap(t *testing.T, mode string) {
+	t.Setenv("CHAT_ENABLED", "true")
+	f := newFixture033(t)
+	if mode == "a2" {
+		n2SQL(t, f, "up")
+	}
+	pool, _, _ := n1RuntimePool(t, f)
+	restricted := *f
+	restricted.db = pool
+	a, svc, url, origin := n1App(t, &restricted, mode, nil)
+	cookie, uid := f.signup("n2late")
+	client := n1Dial(t, url, origin, cookie.Value)
+	eventuallyN1(t, func() bool { return client.syncs.Load() > 0 })
+	channel := n2Command(t, client, "message.send", map[string]any{"kind": "global", "body": "Before delayed transaction"})["channel_id"].(string)
+	tx, e := pool.Begin(f.ctx)
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer tx.Rollback(f.ctx)
+	var seq int64
+	if e = tx.QueryRow(f.ctx, `UPDATE chat_channels SET next_seq=next_seq+1 WHERE id=$1 RETURNING next_seq`, channel).Scan(&seq); e != nil {
+		t.Fatal(e)
+	}
+	mid := chat.UUID()
+	at := time.Now()
+	if _, e = tx.Exec(f.ctx, `INSERT INTO chat_message_locator(id,kind,sent_at,channel_id,seq,author_id,expires_at) VALUES($1,'global',$2,$3,$4,$5,$6)`, mid, at, channel, seq, uid, at.Add(24*time.Hour)); e != nil {
+		t.Fatal(e)
+	}
+	if _, e = tx.Exec(f.ctx, `INSERT INTO chat_messages(kind,sent_at,id,expires_at,channel_id,seq,author_id,body) VALUES('global',$1,$2,$3,$4,$5,$6,'Delayed committed state')`, at, mid, at.Add(24*time.Hour), channel, seq, uid); e != nil {
+		t.Fatal(e)
+	}
+	var low, high int64
+	created := at
+	if mode != "a2" {
+		created = at.Add(-90 * time.Second)
+	} // Same predicate boundary, without a second 65s wall-clock hold.
+	if e = tx.QueryRow(f.ctx, `INSERT INTO chat_outbox(event_kind,channel_id,reference_id,created_at) VALUES('channel.changed',$1,$2,$3) RETURNING id`, channel, mid, created).Scan(&low); e != nil {
+		t.Fatal(e)
+	}
+	if e = f.db.QueryRow(f.ctx, `INSERT INTO chat_outbox(event_kind) VALUES('n2_higher_id') RETURNING id`).Scan(&high); e != nil {
+		t.Fatal(e)
+	}
+	eventuallyN1(t, func() bool { return a.Diagnostics()["dispatcher"].(map[string]any)["highwater"].(int64) >= high })
+	if low >= high {
+		t.Fatal("test IDs are not ordered")
+	}
+	if mode == "a2" {
+		t.Log("Holding a real lower-ID transaction for 65 seconds; no performance workload")
+		timer := time.NewTimer(max(time.Millisecond, time.Until(at.Add(65*time.Second))))
+		<-timer.C
+	}
+	before := client.syncs.Load()
+	reconciles := a.Diagnostics()["dispatcher"].(map[string]any)["state_reconciliations"].(uint64)
+	if e = tx.Commit(f.ctx); e != nil {
+		t.Fatal(e)
+	}
+	if mode == "b1" {
+		n2Command(t, client, "favorite.note", map[string]any{"body": "Committed Core probe"})
+	}
+	window, e := svc.OutboxWindow(f.ctx, time.Minute)
+	if e != nil {
+		t.Fatal(e)
+	}
+	rows, e := svc.OutboxPage(f.ctx, window, high, 0, 1000)
+	if e != nil {
+		t.Fatal(e)
+	}
+	for _, row := range rows {
+		if row.ID == low {
+			t.Fatal("test did not place delayed event outside overlap")
+		}
+	}
+	deadline := time.Now().Add(35 * time.Second)
+	for client.syncs.Load() <= before || a.Diagnostics()["dispatcher"].(map[string]any)["state_reconciliations"].(uint64) <= reconciles {
+		if time.Now().After(deadline) {
+			t.Fatal("independent reconciliation failed outside overlap")
+		}
+		time.Sleep(25 * time.Millisecond)
+	}
+	u, e := svc.Authenticate(f.ctx, account.TokenHash(cookie.Value))
+	if e != nil {
+		t.Fatal(e)
+	}
+	history, e := svc.History(f.ctx, u, chat.Target{Kind: "global"}, 0, "")
+	if e != nil {
+		t.Fatal(e)
+	}
+	found := false
+	for _, message := range history {
+		found = found || message.ID == mid
+	}
+	if !found {
+		t.Fatal("delayed committed message lost")
 	}
 }
 

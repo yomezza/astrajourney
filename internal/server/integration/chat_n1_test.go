@@ -306,7 +306,15 @@ func eventuallyN1(t *testing.T, f func() bool) {
 	}
 }
 func n1App(t *testing.T, f *fixture033, mode string, listener net.Listener) (*chatserver.App, *chat.Service, string, string) {
-	a, s, url, origin, _ := chatTestApp(t, f, mode, listener)
+	var settings []func(*chatserver.Config)
+	if mode == "b1" {
+		setting, _ := n3TransportSettings(t)
+		settings = append(settings, setting)
+	}
+	a, s, url, origin, _ := chatTestApp(t, f, mode, listener, settings...)
+	if mode == "b1" {
+		eventuallyN1(t, func() bool { return a.Diagnostics()["wake_source"].(map[string]any)["healthy"].(bool) })
+	}
 	return a, s, url, origin
 }
 func chatTestApp(t *testing.T, f *fixture033, mode string, listener net.Listener, settings ...func(*chatserver.Config)) (*chatserver.App, *chat.Service, string, string, func()) {
@@ -401,7 +409,7 @@ func testChatN1SocketFallbackScopeAndReconnect(t *testing.T, mode string) {
 	})
 	fresh := n1Dial(t, url, origin, cookie.Value)
 	eventuallyN1(t, func() bool { return fresh.syncs.Load() > 0 })
-	if mode == "a2" {
+	if mode == "a2" || mode == "b1" {
 		// A stale socket must not release the replacement generation's lease.
 		f.exec(`UPDATE chat_ws_leases SET generation=generation+1 WHERE user_id=$1`, id)
 		select {

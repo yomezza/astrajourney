@@ -1,0 +1,14 @@
+# TEST TEMPLATE ONLY: replace the placeholder locally using an interactive
+# password utility. Protect the real file; never commit passwords or hashes.
+authorization {
+  users: [
+    {
+      user: "chat"
+      password: "<BCRYPT_HASH_CHAT_TEST>"
+      permissions: {
+        publish: { allow: ["cosmos.v1.signal.chat.outbox.changed"] }
+        subscribe: { allow: ["cosmos.v1.signal.chat.outbox.changed"] }
+      }
+    }
+  ]
+}

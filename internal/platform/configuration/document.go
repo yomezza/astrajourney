@@ -53,6 +53,16 @@ type document struct {
 		DegradedPollInterval   string   `toml:"degraded_poll_interval"`
 		OutboxOverlap          string   `toml:"outbox_overlap"`
 	} `toml:"chat"`
+	NATS *struct {
+		Enabled         *bool    `toml:"enabled"`
+		ServiceIdentity string   `toml:"service_identity"`
+		Servers         []string `toml:"servers"`
+		Username        string   `toml:"username"`
+		PasswordFile    string   `toml:"password_file"`
+		CAFile          string   `toml:"ca_file"`
+		ConnectTimeout  string   `toml:"connect_timeout"`
+		ReconnectWait   string   `toml:"reconnect_wait"`
+	} `toml:"nats"`
 }
 
 func value[T bool | int | float64](v *T) string {
@@ -111,6 +121,16 @@ func (d document) values(service Service) map[string]string {
 	}
 	if service == Chat {
 		values["PLANET_INTERNAL_URL"] = d.Chat.PlanetInternalURL
+		if n := d.NATS; n != nil {
+			values["NATS_ENABLED"] = value(n.Enabled)
+			values["NATS_SERVICE_IDENTITY"] = n.ServiceIdentity
+			values["NATS_SERVERS"] = strings.Join(n.Servers, ",")
+			values["NATS_USERNAME"] = n.Username
+			values["NATS_PASSWORD_FILE"] = n.PasswordFile
+			values["NATS_CA_FILE"] = n.CAFile
+			values["NATS_CONNECT_TIMEOUT"] = n.ConnectTimeout
+			values["NATS_RECONNECT_WAIT"] = n.ReconnectWait
+		}
 	}
 	return values
 }

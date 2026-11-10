@@ -1,0 +1,66 @@
+name: Chat N3 Core NATS functional checks
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'internal/chat/**'
+      - 'internal/chatserver/**'
+      - 'internal/platform/configuration/**'
+      - 'internal/server/integration/chat_n*.go'
+      - 'internal/testkit/natsfixture/**'
+      - 'go.mod'
+      - 'go.sum'
+      - '.github/workflows/chat-n3.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  functional:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: cosmos
+          POSTGRES_PASSWORD: test-only
+          POSTGRES_DB: cosmos_n3_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U cosmos -d cosmos_n3_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgres://cosmos:test-only@127.0.0.1:5432/cosmos_n3_test?sslmode=disable
+      TEST_NATS_SERVER_BINARY: ${{ runner.temp }}/nats-n3/nats-server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Install pinned NATS test binary (no live broker)
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/nats-n3"
+          curl -fLsS https://github.com/nats-io/nats-server/releases/download/v2.15.2/nats-server-v2.15.2-linux-amd64.tar.gz -o "$RUNNER_TEMP/nats-n3/server.tar.gz"
+          python3 - <<'PY'
+          import hashlib, os
+          from pathlib import Path
+          archive = Path(os.environ['RUNNER_TEMP']) / 'nats-n3/server.tar.gz'
+          assert hashlib.sha256(archive.read_bytes()).hexdigest() == '67cb8e10bc6f0c4b47f75a728529a20953dbae2a4f9a4a52ae8517d65ae303ff'
+          PY
+          tar -xzf "$RUNNER_TEMP/nats-n3/server.tar.gz" --strip-components=1 -C "$RUNNER_TEMP/nats-n3"
+          "$TEST_NATS_SERVER_BINARY" --version
+      - name: Config, TLS, Core ACL and source race tests
+        run: go test -race ./internal/chatserver ./internal/platform/configuration -count=1 -timeout=2m
+      - name: B1 and existing modes, functional only
+        run: |
+          set -o pipefail
+          go test -race ./internal/server/integration \
+            -run '^(TestChatN3.*|TestChatN2(SocketFallbackScopeAndReconnect|PrivateCorporationAndCleanup)|TestChatN1SocketFallbackScopeAndReconnect|TestChat240(Transactions|RestrictedRole))$' \
+            -count=1 -timeout=8m -v | tee chat-n3-functional.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: chat-n3-functional
+          path: chat-n3-functional.log

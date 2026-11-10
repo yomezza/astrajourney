@@ -5,7 +5,7 @@ import (
 	"sync/atomic"
 )
 
-// WakeSource hosts A1/A2 and can host B1 later. Neither audience nor game state belongs
+// WakeSource hosts A1/A2/B1. Neither audience nor game state belongs
 // here. Start must establish the source before the initial database reconcile.
 type WakeSource interface {
 	Start(context.Context) error

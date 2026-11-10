@@ -136,7 +136,7 @@ TOML**, а не EXE. Каталоги создаются заранее. Для 
 | `chat.maintenance_database_url` | `CHAT_MAINTENANCE_DATABASE_URL` |
 | `chat.runtime_role` | `CHAT_RUNTIME_ROLE` |
 | `chat.definer_role` | `CHAT_DEFINER_ROLE` |
-| `chat.dispatcher_mode` | `CHAT_DISPATCHER_MODE` (Chat 0.24.7+, `legacy`/`a1`, с Chat 0.24.8 также `a2`) |
+| `chat.dispatcher_mode` | `CHAT_DISPATCHER_MODE` (Chat 0.24.7+, `legacy`/`a1`, с Chat 0.24.8 также `a2`, с 0.24.9 `b1`) |
 | `chat.fallback_poll_interval` | `CHAT_FALLBACK_POLL_INTERVAL` (default `10s`) |
 | `chat.degraded_poll_interval` | `CHAT_DEGRADED_POLL_INTERVAL` (default `2s`) |
 | `chat.outbox_overlap` | `CHAT_OUTBOX_OVERLAP` (default `60s`) |
@@ -158,8 +158,8 @@ TOML**, а не EXE. Каталоги создаются заранее. Для 
 Режим по умолчанию — `legacy`. Для экспериментального A1 укажите
 `chat.dispatcher_mode = 'a1'` в отдельном TOML Chat либо `CHAT_DISPATCHER_MODE=a1`
 в режиме ENV. После изменения нужен перезапуск только Chat. A1 использует
-локальные уведомления и PostgreSQL fallback; NATS не подключается, секция
-`[nats]` по-прежнему не поддерживается. С Chat 0.24.8 поддерживается A2 на изолированном стенде, B1 отвергается валидатором.
+локальные уведомления и PostgreSQL fallback; NATS в A1/A2 не подключается. С Chat 0.24.8 поддерживается A2 на изолированном стенде;
+с Chat 0.24.9 добавлен B1 и секция `[nats]` только для Chat.
 
 Нормальный poll: 1–30s; degraded: 500ms–10s, не больше normal; overlap: 60s–10m.
 На N1 остаются отдельные security/scope проверки каждые 2s. Значения 10s/2s/60s
@@ -189,3 +189,35 @@ A2-триггер Chat не устанавливает; его внедрени�
 миграций требует отдельного разрешения. При отсутствии/потере NOTIFY остаётся
 polling. Откат: выбрать `a1` либо `legacy`, перезапустить Chat и лишь затем
 согласовывать SQL DOWN. [Инструкция N2](operations/nats-n2/README.ru.md).
+
+
+## Chat N3: опциональный Core NATS, Chat 0.24.9
+
+`dispatcher_mode = 'b1'` требует `[nats] enabled=true` и полного TLS-профиля
+пользователя `chat`. Режим по умолчанию — `legacy`. В A1/A2/legacy соединение
+NATS не создаётся и секреты не читаются; сервер брокера им не требуется.
+
+| TOML, секция `[nats]` | ENV | Значение / ограничение |
+| --- | --- | --- |
+| `enabled` | `NATS_ENABLED` | false по умолчанию; B1 требует true |
+| `service_identity` | `NATS_SERVICE_IDENTITY` | только `chat` на N3 |
+| `servers` | `NATS_SERVERS` | 1–3 `tls://host:port`; ENV через запятую, TOML array; URL без credentials/path/query |
+| `username` | `NATS_USERNAME` | только `chat` на N3 |
+| `password_file` | `NATS_PASSWORD_FILE` | защищённый обычный файл UTF-8, исходный пароль, не bcrypt hash и не `.creds` |
+| `ca_file` | `NATS_CA_FILE` | существующий PEM CA bundle, действующие CA-сертификаты |
+| `connect_timeout` | `NATS_CONNECT_TIMEOUT` | 2s default, 100ms–10s |
+| `reconnect_wait` | `NATS_RECONNECT_WAIT` | 1s default, 250ms–30s; небольшой jitter |
+
+Пути TOML разрешаются относительно CONFIG_FILE, ENV требует абсолютных путей.
+Сохраняется исключительный выбор TOML/ENV. Неизвестные поля (включая password,
+creds, JWT, NKey, insecure, JetStream) отвергаются strict decoder. Секция `[nats]`
+в конфиге Cosmos/Planet отвергается и новой общей библиотекой: используйте
+отдельный Chat TOML; EXE старых служб не пересобирались.
+
+Неверные локальные CA/secret файлы — ошибка конфигурации до запуска Chat.
+Удалённые TLS/auth/ACL ошибки классифицируются в логах отдельно от сети, Chat
+продолжает SQL fallback. Пароли, payload и DSN в диагностике NATS не выводятся.
+Файлы перечитываются после перезапуска Chat, горячей ротации клиента нет.
+
+Реальный `192.168.111.44:4222` пока не подтверждён как TLS-ready: одного
+изменения URL недостаточно. [Отчёт N3, безопасный стенд и Windows-подготовка](operations/nats-n3/README.ru.md).

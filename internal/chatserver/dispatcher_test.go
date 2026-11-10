@@ -255,7 +255,7 @@ func TestDispatcherFallbackAndShutdown(t *testing.T) {
 	}
 }
 func TestDispatcherConfigCompatibility(t *testing.T) {
-	for _, mode := range []string{"", "legacy", "A1", "a1", "A2", "a2"} {
+	for _, mode := range []string{"", "legacy", "A1", "a1", "A2", "a2", "B1", "b1"} {
 		c, e := dispatcherConfig(func(k string) string {
 			if k == "CHAT_DISPATCHER_MODE" {
 				return mode
@@ -266,7 +266,7 @@ func TestDispatcherConfigCompatibility(t *testing.T) {
 			t.Fatal(mode, e)
 		}
 	}
-	for key, value := range map[string]string{"CHAT_DISPATCHER_MODE": "b1", "CHAT_FALLBACK_POLL_INTERVAL": "0s", "CHAT_DEGRADED_POLL_INTERVAL": "30s", "CHAT_OUTBOX_OVERLAP": "15s"} {
+	for key, value := range map[string]string{"CHAT_DISPATCHER_MODE": "c1", "CHAT_FALLBACK_POLL_INTERVAL": "0s", "CHAT_DEGRADED_POLL_INTERVAL": "30s", "CHAT_OUTBOX_OVERLAP": "15s"} {
 		if _, e := dispatcherConfig(func(k string) string {
 			if k == key {
 				return value

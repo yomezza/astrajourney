@@ -175,7 +175,43 @@ outbox_overlap='60s'
 	if e != nil || c.Dispatcher.Mode != "a2" {
 		t.Fatal("dispatcher mapping or environment merge", e)
 	}
-	if _, e = configuration.Load(lookup(map[string]string{configuration.FileVariable: file(t, "[nats]\nenabled=false")}), configuration.Chat); e == nil {
-		t.Fatal("N2 unexpectedly accepts NATS settings")
+	if _, e = configuration.Load(lookup(map[string]string{configuration.FileVariable: file(t, "[nats]\nenabled=false\nunknown_key=true")}), configuration.Chat); e == nil {
+		t.Fatal("N3 unexpectedly accepts unknown NATS settings")
+	}
+}
+
+func TestNATSChatOnlyExclusiveAndRelativePaths(t *testing.T) {
+	p := file(t, `[database]
+url='postgres://test:password@127.0.0.1/game'
+[chat]
+erasure_journal='erasure.log'
+dispatcher_mode='a1'
+[nats]
+enabled=false
+service_identity='chat'
+servers=['tls://127.0.0.1:14222']
+username='chat'
+password_file='secrets/chat.password'
+ca_file='certs/ca.pem'
+connect_timeout='2s'
+reconnect_wait='1s'
+`)
+	source, e := configuration.Load(lookup(map[string]string{configuration.FileVariable: p, "NATS_ENABLED": "true", "NATS_PASSWORD_FILE": "environment-secret"}), configuration.Chat)
+	if e != nil {
+		t.Fatal(e)
+	}
+	if source.Getenv("NATS_ENABLED") != "false" || source.Getenv("NATS_PASSWORD_FILE") != filepath.Join(filepath.Dir(p), "secrets", "chat.password") {
+		t.Fatal("NATS paths/source isolation")
+	}
+	if _, e = chatserver.LoadConfig(source.Getenv); e != nil {
+		t.Fatal("disabled NATS read secrets", e)
+	}
+	for _, service := range []configuration.Service{configuration.Cosmos, configuration.Planet} {
+		if _, e = configuration.Load(lookup(map[string]string{configuration.FileVariable: p}), service); e == nil {
+			t.Fatal("N3 NATS section accepted by another process")
+		}
+	}
+	if _, e = configuration.Load(lookup(map[string]string{configuration.FileVariable: file(t, "[nats]\nenabled=false\nservers=['tls://one:4222,tls://two:4222']")}), configuration.Chat); e == nil {
+		t.Fatal("ambiguous NATS array accepted")
 	}
 }
