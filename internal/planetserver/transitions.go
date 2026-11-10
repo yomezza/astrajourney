@@ -3,6 +3,8 @@ package planetserver
 import (
 	"context"
 	"errors"
+	"github.com/yomezza/cosmosimulator/internal/platform/gamesignal"
+	"strconv"
 	"time"
 
 	"github.com/yomezza/cosmosimulator/internal/planet/access"
@@ -138,6 +140,12 @@ func (a *App) commitCrossing(ctx context.Context, id access.Identity, w visits.W
 	next, err := a.visits.Transition(ctx, id, w, f, m.Scene(), o.pin.Scene(), pos.X, pos.Y, o.ID, operation)
 	if err != nil {
 		return m, w, err
+	}
+	// Transition returned only after the receipt and visit update COMMIT.
+	// Publish before RAM Join: a failed Join does not undo authoritative SQL.
+	if a.publisher != nil {
+		k := m.Scene().Key()
+		a.publisher.enqueue(gamesignal.SectorChange{UserID: strconv.FormatInt(id.User, 10), VisitID: next.Visit, Generation: strconv.FormatInt(next.Generation, 10), Epoch: strconv.FormatInt(next.Epoch, 10), RuntimeFence: strconv.FormatInt(f.Number, 10), SurfaceID: strconv.FormatInt(k.Surface, 10), From: k.Sector, To: next.Sector, Revision: strconv.FormatInt(k.Revision, 10), Operation: operation})
 	}
 	replacement, err := a.motion.Join(movement.Stamp{User: id.User, Actor: stamp.Actor, Nickname: stamp.Nickname, Visit: next.Visit, Epoch: next.Epoch, Generation: next.Generation, Version: next.PositionVersion}, o.pin.Scene(), next.X, next.Y)
 	if err != nil {

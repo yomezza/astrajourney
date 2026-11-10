@@ -17,11 +17,12 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/platform/telemetry"
 )
 
-const Version = "0.24.4"
+const Version = "0.24.10"
 const Stage = "P2-9"
 
 // App wires only planetary components. New does not start goroutines or migrate.
 type App struct {
+	publisher        *planetPublisher
 	checkpoints      telemetry.Samples
 	checkpointErrors atomic.Uint64
 	transport        transportMetrics
@@ -53,11 +54,15 @@ func New(db *pgxpool.Pool, config Config, logger *slog.Logger) (*App, error) {
 	if logger == nil {
 		logger = slog.Default()
 	}
+	publisher, err := newPlanetPublisher(config.NATS)
+	if err != nil {
+		return nil, err
+	}
 	c, err := planetruntime.NewCoordinator(db, config.LeaseTTL, logger)
 	if err != nil {
 		return nil, err
 	}
-	return &App{db: db, controllers: map[int64]int{}, entryGates: map[int64]chan struct{}{}, visits: &visits.Service{DB: db}, config: config, logger: logger, coordinator: c, store: scenestore.New(db)}, nil
+	return &App{publisher: publisher, db: db, controllers: map[int64]int{}, entryGates: map[int64]chan struct{}{}, visits: &visits.Service{DB: db}, config: config, logger: logger, coordinator: c, store: scenestore.New(db)}, nil
 }
 
 func (a *App) Handler() http.Handler {

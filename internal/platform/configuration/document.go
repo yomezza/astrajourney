@@ -121,6 +121,8 @@ func (d document) values(service Service) map[string]string {
 	}
 	if service == Chat {
 		values["PLANET_INTERNAL_URL"] = d.Chat.PlanetInternalURL
+	}
+	if service == Chat || service == Planet {
 		if n := d.NATS; n != nil {
 			values["NATS_ENABLED"] = value(n.Enabled)
 			values["NATS_SERVICE_IDENTITY"] = n.ServiceIdentity

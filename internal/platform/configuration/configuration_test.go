@@ -1,8 +1,10 @@
 package configuration_test
 
 import (
+	"github.com/yomezza/cosmosimulator/internal/testkit/natsfixture"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -180,7 +182,7 @@ outbox_overlap='60s'
 	}
 }
 
-func TestNATSChatOnlyExclusiveAndRelativePaths(t *testing.T) {
+func TestNATSServiceIsolationAndRelativePaths(t *testing.T) {
 	p := file(t, `[database]
 url='postgres://test:password@127.0.0.1/game'
 [chat]
@@ -206,12 +208,42 @@ reconnect_wait='1s'
 	if _, e = chatserver.LoadConfig(source.Getenv); e != nil {
 		t.Fatal("disabled NATS read secrets", e)
 	}
-	for _, service := range []configuration.Service{configuration.Cosmos, configuration.Planet} {
+	for _, service := range []configuration.Service{configuration.Cosmos} {
 		if _, e = configuration.Load(lookup(map[string]string{configuration.FileVariable: p}), service); e == nil {
 			t.Fatal("N3 NATS section accepted by another process")
 		}
 	}
 	if _, e = configuration.Load(lookup(map[string]string{configuration.FileVariable: file(t, "[nats]\nenabled=false\nservers=['tls://one:4222,tls://two:4222']")}), configuration.Chat); e == nil {
 		t.Fatal("ambiguous NATS array accepted")
+	}
+}
+
+func TestPlanetNATSExclusiveConfig(t *testing.T) {
+	m := natsfixture.PKI(t, false)
+	p := file(t, `[database]
+url='postgres://test:password@127.0.0.1/game'
+[planet]
+http_addr='127.0.0.1:18081'
+[nats]
+enabled=true
+service_identity='planet'
+username='planet'
+servers=['tls://127.0.0.1:14222']
+password_file=`+strconv.Quote(m.PasswordFile)+`
+ca_file=`+strconv.Quote(m.CAFile)+`
+`)
+	src, e := configuration.Load(lookup(map[string]string{configuration.FileVariable: p, "NATS_USERNAME": "chat", "NATS_ENABLED": "false"}), configuration.Planet)
+	if e != nil {
+		t.Fatal(e)
+	}
+	cfg, e := planetserver.LoadConfig(src.Getenv)
+	if e != nil || cfg.NATS.Username != "planet" || !cfg.NATS.Enabled {
+		t.Fatal("Planet NATS mapping/source isolation", e)
+	}
+	if _, e = chatserver.LoadConfig(src.Getenv); e == nil {
+		t.Fatal("Chat accepted Planet credentials")
+	}
+	if _, e = configuration.Load(lookup(map[string]string{configuration.FileVariable: p}), configuration.Cosmos); e == nil {
+		t.Fatal("Cosmic NATS accidentally enabled")
 	}
 }

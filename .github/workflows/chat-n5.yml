@@ -1,0 +1,69 @@
+name: Planet to Chat N5 functional checks
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'internal/chat/**'
+      - 'internal/chatserver/**'
+      - 'internal/planetserver/**'
+      - 'internal/platform/natscore/**'
+      - 'internal/platform/gamesignal/**'
+      - 'internal/platform/configuration/**'
+      - 'internal/server/integration/chat_n*.go'
+      - 'internal/testkit/natsfixture/**'
+      - 'go.mod'
+      - 'go.sum'
+      - '.github/workflows/chat-n5.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  functional:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: cosmos
+          POSTGRES_PASSWORD: test-only
+          POSTGRES_DB: cosmos_n5_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U cosmos -d cosmos_n5_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgres://cosmos:test-only@127.0.0.1:5432/cosmos_n5_test?sslmode=disable
+      TEST_NATS_SERVER_BINARY: ${{ runner.temp }}/nats-n5/nats-server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Install pinned NATS test binary (no live broker)
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/nats-n5"
+          curl -fLsS https://github.com/nats-io/nats-server/releases/download/v2.15.2/nats-server-v2.15.2-linux-amd64.tar.gz -o "$RUNNER_TEMP/nats-n5/server.tar.gz"
+          python3 - <<'PY'
+          import hashlib, os
+          from pathlib import Path
+          archive = Path(os.environ['RUNNER_TEMP']) / 'nats-n5/server.tar.gz'
+          assert hashlib.sha256(archive.read_bytes()).hexdigest() == '67cb8e10bc6f0c4b47f75a728529a20953dbae2a4f9a4a52ae8517d65ae303ff'
+          PY
+          tar -xzf "$RUNNER_TEMP/nats-n5/server.tar.gz" --strip-components=1 -C "$RUNNER_TEMP/nats-n5"
+          "$TEST_NATS_SERVER_BINARY" --version
+      - name: Config, TLS, Core ACL and source race tests
+        run: go test -race ./internal/chatserver ./internal/planetserver ./internal/platform/configuration ./internal/platform/natscore ./internal/platform/gamesignal -count=1 -timeout=2m
+      - name: Real Planet/Chat processes and previous modes, functional only
+        run: |
+          set -o pipefail
+          go test -race ./internal/server/integration \
+            -run '^(TestN5NativePlanetNATSChat|TestChatN3(CommitRollbackSQLFailureAndUUID|OfflineStartupOutageRecoveryAndLostSignal|PrivateCorporationAndCleanup|SpatialTransition|RestartAndRollback|PublishDeniedKeepsCommittedMessage)|TestChatN2SocketFallbackScopeAndReconnect|TestChatN1SocketFallbackScopeAndReconnect|TestPlanetTransitions210)$' \
+            -count=1 -timeout=8m -v | tee chat-n5-functional.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: chat-n5-functional
+          path: chat-n5-functional.log

@@ -4,6 +4,7 @@ package planetserver
 import (
 	"errors"
 	"fmt"
+	"github.com/yomezza/cosmosimulator/internal/platform/natscore"
 	"math"
 	"net"
 	"net/url"
@@ -13,6 +14,7 @@ import (
 )
 
 type Config struct {
+	NATS             natscore.Config
 	MoveSpeed        float64
 	PathBudget       int
 	DatabaseURL      string
@@ -35,6 +37,19 @@ func DefaultConfig() Config {
 
 func LoadConfig(getenv func(string) string) (Config, error) {
 	c := DefaultConfig()
+	var err error
+	c.NATS, err = natscore.LoadConfig(getenv)
+	if err != nil {
+		return c, err
+	}
+	if err = c.NATS.Validate("planet", false); err != nil {
+		return c, err
+	}
+	if c.NATS.Enabled {
+		if _, _, err = c.NATS.Credentials(); err != nil {
+			return c, err
+		}
+	}
 	c.DatabaseURL = getenv("DATABASE_URL")
 	c.Schema = getenv("DB_SCHEMA")
 	c.LogFile = getenv("PLANET_LOG_FILE")
@@ -94,6 +109,9 @@ func LoadConfig(getenv func(string) string) (Config, error) {
 }
 
 func (c Config) Validate() error {
+	if e := c.NATS.Validate("planet", false); e != nil {
+		return e
+	}
 	if math.IsNaN(c.MoveSpeed) || math.IsInf(c.MoveSpeed, 0) || c.MoveSpeed < 1 || c.MoveSpeed > 12 || c.PathBudget < 1000 || c.PathBudget > 65536 {
 		return errors.New("movement speed must be 1-12 and path budget 1000-65536")
 	}

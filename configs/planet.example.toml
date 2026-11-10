@@ -16,3 +16,15 @@ shutdown_timeout = '10s'
 scene_capacity = 32
 scene_idle_ttl = '2m'
 scene_load_timeout = '20s'
+
+# Planet 0.24.10 / N5 only. Separate file/account from Chat; disabled by default.
+# Loopback address below belongs to an isolated TLS test broker, not cosmoNATS.
+[nats]
+enabled = false
+service_identity = 'planet'
+servers = ['tls://127.0.0.1:14222']
+username = 'planet'
+password_file = '../secrets/planet.password'
+ca_file = '../certs/ca.pem'
+connect_timeout = '2s'
+reconnect_wait = '1s'

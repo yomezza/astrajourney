@@ -1,4 +1,4 @@
-package chatserver
+package natscore
 
 import (
 	"errors"

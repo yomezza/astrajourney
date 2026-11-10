@@ -74,16 +74,18 @@ func PKI(t *testing.T, wrongName bool) Material {
 	return m
 }
 
-type Options struct{ WrongName, DenyPublish, DenySubscribe bool }
+type Options struct{ WrongName, DenyPublish, DenySubscribe, PlanetSignals bool }
 type Broker struct {
 	stderr bytes.Buffer
 	Material
-	URL, ConfigFile, LogFile string
-	cmd                      *exec.Cmd
-	done                     chan error
-	binary                   string
-	t                        *testing.T
-	OperatorPassword         string
+	URL, ConfigFile, LogFile           string
+	MonitorURL                         string
+	cmd                                *exec.Cmd
+	done                               chan error
+	binary                             string
+	t                                  *testing.T
+	OperatorPassword                   string
+	PlanetPassword, PlanetPasswordFile string
 }
 
 func New(t *testing.T, options Options) *Broker {
@@ -124,6 +126,9 @@ func New(t *testing.T, options Options) *Broker {
 		return string(v)
 	}
 	allowPub, allowSub := []string{Subject}, []string{Subject}
+	if options.PlanetSignals {
+		allowSub = append(allowSub, "cosmos.v1.signal.planet.sector.changed")
+	}
 	if options.DenyPublish {
 		allowPub = []string{"n3.denied"}
 	}
@@ -132,7 +137,33 @@ func New(t *testing.T, options Options) *Broker {
 	}
 	user := map[string]any{"user": "chat", "password": hash(m.Password), "permissions": map[string]any{"publish": map[string]any{"allow": allowPub}, "subscribe": map[string]any{"allow": allowSub}}}
 	operator := map[string]any{"user": "n3_test_operator", "password": hash(b.OperatorPassword), "permissions": map[string]any{"publish": map[string]any{"allow": []string{">"}}, "subscribe": map[string]any{"allow": []string{">"}}}}
-	config := map[string]any{"server_name": "n3-disposable", "host": "127.0.0.1", "port": port, "tls": map[string]any{"cert_file": m.CertFile, "key_file": m.KeyFile, "min_version": "1.2", "timeout": 2}, "authorization": map[string]any{"users": []any{user, operator}}, "log_file": b.LogFile}
+	users := []any{user, operator}
+	if options.PlanetSignals {
+		secret := make([]byte, 32)
+		if _, e = rand.Read(secret); e != nil {
+			t.Fatal(e)
+		}
+		b.PlanetPassword = base64.RawURLEncoding.EncodeToString(secret)
+		b.PlanetPasswordFile = filepath.Join(dir, "planet.password")
+		if e = os.WriteFile(b.PlanetPasswordFile, []byte(b.PlanetPassword), 0600); e != nil {
+			t.Fatal(e)
+		}
+		users = append(users, map[string]any{"user": "planet", "password": hash(b.PlanetPassword), "permissions": map[string]any{"publish": map[string]any{"allow": []string{"cosmos.v1.signal.planet.sector.changed"}}, "subscribe": map[string]any{"deny": []string{">"}}}})
+	}
+	config := map[string]any{"server_name": "n3-disposable", "host": "127.0.0.1", "port": port, "tls": map[string]any{"cert_file": m.CertFile, "key_file": m.KeyFile, "min_version": "1.2", "timeout": 2}, "authorization": map[string]any{"users": users}, "log_file": b.LogFile}
+	if options.PlanetSignals {
+		monitor, e := net.Listen("tcp", "127.0.0.1:0")
+		if e != nil {
+			t.Fatal(e)
+		}
+		monitorAddr := monitor.Addr().String()
+		monitor.Close()
+		if monitorAddr == "127.0.0.1:"+strconv.Itoa(port) {
+			t.Fatal("duplicate owned test ports")
+		}
+		config["http"] = monitorAddr
+		b.MonitorURL = "http://" + monitorAddr
+	}
 	var configJSON bytes.Buffer
 	encoder := json.NewEncoder(&configJSON)
 	encoder.SetEscapeHTML(false) // NATS config lexer does not accept JSON \u003e for ACL >.

@@ -1,6 +1,6 @@
 //go:build !windows
 
-package chatserver
+package natscore
 
 import (
 	"errors"

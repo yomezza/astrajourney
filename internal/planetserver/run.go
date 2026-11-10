@@ -85,11 +85,21 @@ func (a *App) Serve(ctx context.Context, listener net.Listener, onListening func
 	if err := a.newScenes(run); err != nil {
 		return err
 	}
+	if a.publisher != nil {
+		a.publisher.start(run)
+		defer func() {
+			cancel()
+			stop, done := context.WithTimeout(context.Background(), a.config.ShutdownTimeout)
+			defer done()
+			_ = a.publisher.close(stop)
+		}()
+	}
 	step := func() { c, done := context.WithTimeout(run, a.config.DBTimeout); defer done(); a.coordinator.Step(c) }
 	step()
 	finished := make(chan struct{})
 	go func() {
 		defer close(finished)
+		count := 0
 		ticker := time.NewTicker(a.config.LeaseRenew)
 		defer ticker.Stop()
 		for {
@@ -98,6 +108,10 @@ func (a *App) Serve(ctx context.Context, listener net.Listener, onListening func
 				return
 			case <-ticker.C:
 				step()
+				count++
+				if a.publisher != nil && count%15 == 0 {
+					a.logger.Info("planet NATS diagnostics", "metrics", a.NATSDiagnostics())
+				}
 			}
 		}
 	}()

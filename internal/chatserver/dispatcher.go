@@ -23,6 +23,8 @@ type dispatchCycle struct {
 	after, floor int64
 }
 type EventDispatcher struct {
+	spatial                                                   map[int64]bool
+	spatialRechecks                                           atomic.Uint64
 	backend                                                   DispatchBackend
 	registry                                                  *WSRegistry
 	source                                                    WakeSource
@@ -40,7 +42,7 @@ type EventDispatcher struct {
 }
 
 func NewEventDispatcher(b DispatchBackend, r *WSRegistry, s WakeSource, c DispatcherConfig) *EventDispatcher {
-	return &EventDispatcher{backend: b, registry: r, source: s, config: c, seen: map[int64]bool{}}
+	return &EventDispatcher{backend: b, registry: r, source: s, config: c, seen: map[int64]bool{}, spatial: map[int64]bool{}}
 }
 func (d *EventDispatcher) remember(id int64) {
 	if len(d.ring) < 32768 {
@@ -58,6 +60,9 @@ func (d *EventDispatcher) remember(id int64) {
 // no cursor persists across process restarts (fresh WS always bootstraps).
 func (d *EventDispatcher) step(ctx context.Context) (bool, error) {
 	d.scans.Add(1)
+	if err := d.refreshSpatial(ctx); err != nil {
+		return false, err
+	}
 	if d.cycle == nil {
 		w, err := d.backend.OutboxWindow(ctx, d.config.Overlap)
 		if err != nil {
@@ -171,6 +176,13 @@ func (d *EventDispatcher) Run(ctx context.Context) {
 			timer.Reset(left)
 			continue
 		}
+		if source, ok := d.source.(interface{ TakeSpatialDirty() []int64 }); ok {
+			for _, id := range source.TakeSpatialDirty() {
+				if len(d.spatial) < 256 || d.spatial[id] {
+					d.spatial[id] = true
+				}
+			}
+		}
 		if source, ok := d.source.(interface{ TakeReconcile() bool }); ok && source.TakeReconcile() {
 			d.reconcile = true
 			d.cycle = nil
@@ -215,5 +227,5 @@ func (d *EventDispatcher) Run(ctx context.Context) {
 	}
 }
 func (d *EventDispatcher) Diagnostics() map[string]any {
-	return map[string]any{"scans": d.scans.Load(), "scan_errors": d.failures.Load(), "rows": d.rows.Load(), "deduplicated_rows": d.duplicates.Load(), "wakes": d.wakes.Load(), "highwater": d.water.Load(), "degraded": d.degraded.Load(), "state_reconciliations": d.reconciliations.Load(), "state_reconcile_interval_seconds": stateReconcileInterval.Seconds()}
+	return map[string]any{"scans": d.scans.Load(), "scan_errors": d.failures.Load(), "rows": d.rows.Load(), "deduplicated_rows": d.duplicates.Load(), "wakes": d.wakes.Load(), "highwater": d.water.Load(), "degraded": d.degraded.Load(), "state_reconciliations": d.reconciliations.Load(), "state_reconcile_interval_seconds": stateReconcileInterval.Seconds(), "spatial_rechecks": d.spatialRechecks.Load()}
 }

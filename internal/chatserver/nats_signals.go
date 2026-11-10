@@ -3,30 +3,33 @@ package chatserver
 import (
 	"context"
 	"crypto/tls"
-	"crypto/x509"
 	"errors"
 	"math/rand/v2"
-	"net"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 
 	"github.com/nats-io/nats.go"
+	"github.com/yomezza/cosmosimulator/internal/platform/gamesignal"
+	"github.com/yomezza/cosmosimulator/internal/platform/natscore"
 )
 
 // NATSWakeSource uses Core only. One supervisor owns each connection and its
 // subscription; it automatically reconnects and confirms SUB with PING/PONG.
 // No domain operation, SQL ACL, request/reply or JetStream belongs here.
 type NATSWakeSource struct {
-	config                     NATSConfig
-	tls                        *tls.Config
-	password                   string
-	wakes, publishes           chan struct{}
-	mu                         sync.Mutex
-	cancel                     context.CancelFunc
-	done                       chan struct{}
-	closed, healthy, reconcile atomic.Bool
+	spatialMu                                                    sync.Mutex
+	spatial                                                      map[int64]bool
+	spatialReceived, spatialDropped, spatialSubscriptionFailures atomic.Uint64
+	config                                                       NATSConfig
+	tls                                                          *tls.Config
+	password                                                     string
+	wakes, publishes                                             chan struct{}
+	mu                                                           sync.Mutex
+	cancel                                                       context.CancelFunc
+	done                                                         chan struct{}
+	closed, healthy, reconcile                                   atomic.Bool
 
 	attempts, registrations, disconnects, published, received, invalid, duplicates, coalesced, dropped atomic.Uint64
 	lastError                                                                                          atomic.Value
@@ -74,8 +77,42 @@ func (s *NATSWakeSource) AfterCommit() {
 		s.coalesced.Add(1)
 	}
 }
+func (s *NATSWakeSource) TakeSpatialDirty() []int64 {
+	s.spatialMu.Lock()
+	defer s.spatialMu.Unlock()
+	ids := make([]int64, 0, len(s.spatial))
+	for id := range s.spatial {
+		ids = append(ids, id)
+	}
+	s.spatial = nil
+	return ids
+}
 func (s *NATSWakeSource) accept(m *nats.Msg) {
 	if s.closed.Load() {
+		return
+	}
+	if m.Subject == gamesignal.PlanetSectorSubject {
+		event, ok := gamesignal.DecodePlanet(m.Subject, m.Data)
+		if !ok || m.Reply != "" {
+			s.invalid.Add(1)
+			return
+		}
+		if s.duplicate("planet:" + event.Data.UserID + ":" + event.SignalID) {
+			return
+		}
+		s.spatialReceived.Add(1)
+		id := event.Data.User()
+		s.spatialMu.Lock()
+		if s.spatial == nil {
+			s.spatial = map[int64]bool{}
+		}
+		if len(s.spatial) < 256 || s.spatial[id] {
+			s.spatial[id] = true
+		} else {
+			s.spatialDropped.Add(1)
+		}
+		s.spatialMu.Unlock()
+		s.wake()
 		return
 	}
 	signal, ok := decodeChatSignal(m.Subject, m.Data)
@@ -84,22 +121,8 @@ func (s *NATSWakeSource) accept(m *nats.Msg) {
 		return
 	}
 	s.received.Add(1)
-	if signal.SignalID != "" {
-		s.seenMu.Lock()
-		if s.seen[signal.SignalID] {
-			s.seenMu.Unlock()
-			s.duplicates.Add(1)
-			return
-		}
-		if len(s.ring) < 1024 {
-			s.ring = append(s.ring, signal.SignalID)
-		} else {
-			delete(s.seen, s.ring[s.ringIndex])
-			s.ring[s.ringIndex] = signal.SignalID
-			s.ringIndex = (s.ringIndex + 1) % len(s.ring)
-		}
-		s.seen[signal.SignalID] = true
-		s.seenMu.Unlock()
+	if s.duplicate(chatSignalKey(signal.SignalID)) {
+		return
 	}
 	s.wake()
 }
@@ -123,44 +146,7 @@ func (s *NATSWakeSource) Start(ctx context.Context) error {
 	}
 }
 
-// Cancel the actual socket even during initial INFO/TLS/auth reads, so shutdown
-// does not wait for connect_timeout * server count on unreachable/broken peers.
-type natsDialer struct {
-	ctx     context.Context
-	timeout time.Duration
-}
-type natsSocket struct {
-	net.Conn
-	stop func() bool
-}
-
-func (c *natsSocket) Close() error { c.stop(); return c.Conn.Close() }
-func (d natsDialer) Dial(network, address string) (net.Conn, error) {
-	c, e := (&net.Dialer{Timeout: d.timeout}).DialContext(d.ctx, network, address)
-	if e != nil {
-		return nil, e
-	}
-	return &natsSocket{Conn: c, stop: context.AfterFunc(d.ctx, func() { c.Close() })}, nil
-}
-func natsErrorCode(e error) string {
-	var verify *tls.CertificateVerificationError
-	var unknown x509.UnknownAuthorityError
-	var host x509.HostnameError
-	var invalid x509.CertificateInvalidError
-	if errors.As(e, &verify) || errors.As(e, &unknown) || errors.As(e, &host) || errors.As(e, &invalid) || errors.Is(e, nats.ErrTLS) || errors.Is(e, nats.ErrSecureConnRequired) || errors.Is(e, nats.ErrSecureConnWanted) {
-		return "tls_verification_failed"
-	}
-	if errors.Is(e, nats.ErrAuthorization) || errors.Is(e, nats.ErrAuthExpired) || errors.Is(e, nats.ErrAuthRevoked) {
-		return "authentication_failed"
-	}
-	if errors.Is(e, nats.ErrPermissionViolation) {
-		return "authorization_failed"
-	}
-	if errors.Is(e, nats.ErrSlowConsumer) {
-		return "slow_consumer"
-	}
-	return "network_unavailable"
-}
+func natsErrorCode(e error) string { return natscore.ErrorCode(e) }
 func (s *NATSWakeSource) session(ctx context.Context, first chan<- error) error {
 	s.attempts.Add(1)
 	fault := make(chan error, 1)
@@ -174,7 +160,13 @@ func (s *NATSWakeSource) session(ctx context.Context, first chan<- error) error 
 			}
 		}
 	}
-	nc, e := nats.Connect(strings.Join(s.config.Servers, ","), nats.Secure(s.tls.Clone()), nats.UserInfo(s.config.Username, s.password), nats.NoReconnect(), nats.IgnoreDiscoveredServers(), nats.ReconnectBufSize(0), nats.Timeout(s.config.ConnectTimeout), nats.FlusherTimeout(s.config.ConnectTimeout), nats.PingInterval(5*time.Second), nats.MaxPingsOutstanding(2), nats.SetCustomDialer(natsDialer{ctx, s.config.ConnectTimeout}), nats.Name("cosmos-chat-b1"), nats.ErrorHandler(func(_ *nats.Conn, _ *nats.Subscription, e error) { failed(e) }), nats.ClosedHandler(func(_ *nats.Conn) { failed(nats.ErrConnectionClosed) }))
+	nc, e := natscore.Connect(ctx, natscore.Config(s.config), s.tls, s.password, func(_ *nats.Conn, sub *nats.Subscription, e error) {
+		if errors.Is(e, nats.ErrPermissionViolation) && (sub != nil && sub.Subject == gamesignal.PlanetSectorSubject || strings.Contains(e.Error(), `Subscription to "`+gamesignal.PlanetSectorSubject+`"`)) {
+			s.spatialSubscriptionFailures.Add(1)
+			return
+		}
+		failed(e)
+	}, func(_ *nats.Conn) { failed(nats.ErrConnectionClosed) })
 	if e != nil {
 		return e
 	}
@@ -184,6 +176,15 @@ func (s *NATSWakeSource) session(ctx context.Context, first chan<- error) error 
 		return e
 	}
 	defer sub.Unsubscribe()
+	planetSub, e := nc.Subscribe(gamesignal.PlanetSectorSubject, s.accept)
+	if e != nil {
+		return e
+	}
+	defer planetSub.Unsubscribe()
+	if e = planetSub.SetPendingLimits(64, 64*maxNATSSignal); e != nil {
+		return e
+	}
+
 	if e = sub.SetPendingLimits(64, 64*maxNATSSignal); e != nil {
 		return e
 	}
@@ -191,9 +192,6 @@ func (s *NATSWakeSource) session(ctx context.Context, first chan<- error) error 
 	e = nc.FlushWithContext(check)
 	cancel()
 	if e != nil {
-		return e
-	}
-	if e = nc.LastError(); e != nil {
 		return e
 	}
 	select {
@@ -301,5 +299,33 @@ func (s *NATSWakeSource) Close(ctx context.Context) error {
 	}
 }
 func (s *NATSWakeSource) Diagnostics() map[string]any {
-	return map[string]any{"healthy": s.Healthy(), "last_error_code": s.lastError.Load(), "connect_attempts": s.attempts.Load(), "registrations": s.registrations.Load(), "disconnects": s.disconnects.Load(), "published_hints": s.published.Load(), "received_signals": s.received.Load(), "invalid_signals": s.invalid.Load(), "duplicate_signals": s.duplicates.Load(), "coalesced_publishes": s.coalesced.Load(), "dropped_hints": s.dropped.Load(), "tls_failures": s.tlsFailures.Load(), "authentication_failures": s.authFailures.Load(), "authorization_failures": s.permissionFailures.Load(), "network_failures": s.networkFailures.Load()}
+	return map[string]any{"healthy": s.Healthy(), "last_error_code": s.lastError.Load(), "connect_attempts": s.attempts.Load(), "registrations": s.registrations.Load(), "disconnects": s.disconnects.Load(), "published_hints": s.published.Load(), "received_signals": s.received.Load(), "invalid_signals": s.invalid.Load(), "duplicate_signals": s.duplicates.Load(), "coalesced_publishes": s.coalesced.Load(), "dropped_hints": s.dropped.Load(), "tls_failures": s.tlsFailures.Load(), "authentication_failures": s.authFailures.Load(), "authorization_failures": s.permissionFailures.Load(), "network_failures": s.networkFailures.Load(), "spatial_signals": s.spatialReceived.Load(), "spatial_dropped": s.spatialDropped.Load(), "spatial_subscription_failures": s.spatialSubscriptionFailures.Load()}
+}
+
+func (s *NATSWakeSource) duplicate(id string) bool {
+	if id != "" {
+		s.seenMu.Lock()
+		if s.seen[id] {
+			s.seenMu.Unlock()
+			s.duplicates.Add(1)
+			return true
+		}
+		if len(s.ring) < 1024 {
+			s.ring = append(s.ring, id)
+		} else {
+			delete(s.seen, s.ring[s.ringIndex])
+			s.ring[s.ringIndex] = id
+			s.ringIndex = (s.ringIndex + 1) % len(s.ring)
+		}
+		s.seen[id] = true
+		s.seenMu.Unlock()
+	}
+	return false
+}
+
+func chatSignalKey(id string) string {
+	if id == "" {
+		return ""
+	}
+	return "chat:" + id
 }

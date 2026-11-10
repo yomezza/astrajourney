@@ -210,9 +210,8 @@ NATS не создаётся и секреты не читаются; серве
 
 Пути TOML разрешаются относительно CONFIG_FILE, ENV требует абсолютных путей.
 Сохраняется исключительный выбор TOML/ENV. Неизвестные поля (включая password,
-creds, JWT, NKey, insecure, JetStream) отвергаются strict decoder. Секция `[nats]`
-в конфиге Cosmos/Planet отвергается и новой общей библиотекой: используйте
-отдельный Chat TOML; EXE старых служб не пересобирались.
+creds, JWT, NKey, insecure, JetStream) отвергаются strict decoder. Секция `[nats]` с 0.24.10 разрешена Chat и Planet с отдельными профилями;
+Cosmos её не принимает. Старые Planet EXE до 0.24.10 её не знают.
 
 Неверные локальные CA/secret файлы — ошибка конфигурации до запуска Chat.
 Удалённые TLS/auth/ACL ошибки классифицируются в логах отдельно от сети, Chat
@@ -221,3 +220,20 @@ creds, JWT, NKey, insecure, JetStream) отвергаются strict decoder. С
 
 Реальный `192.168.111.44:4222` пока не подтверждён как TLS-ready: одного
 изменения URL недостаточно. [Отчёт N3, безопасный стенд и Windows-подготовка](operations/nats-n3/README.ru.md).
+
+
+## N5: отдельный профиль NATS Planet (0.24.10)
+
+Planet поддерживает те же ключи `[nats]` / `NATS_*`, но `service_identity` и
+`username` должны быть `planet`, а password_file — собственным. В Chat остаются
+значения `chat`. TOML не смешивается с ENV, относительные пути считаются от
+своего CONFIG_FILE. Старый Planet TOML без NATS сохраняет прежнее поведение.
+Default — disabled; отключение не требует работающего брокера или secret files.
+
+Сначала обновите Planet EXE, затем в отдельном согласованном стенде добавляйте
+секцию в её **собственный** TOML. Старые EXE отвергают неизвестные поля.
+Cosmic не обновлять и не добавлять ему `[nats]`. Для отключения публикации
+установите в Planet `enabled=false` и перезапустите только Planet.
+Откат Chat на A1/legacy не требует остановки Planet и не меняет SQL данные.
+
+[Отчёт N5 и точные будущие ACL](operations/nats-n5/README.ru.md).

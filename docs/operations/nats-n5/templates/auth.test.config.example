@@ -1,0 +1,24 @@
+# ISOLATED TEST TEMPLATE ONLY. Do not overwrite the working auth.config.
+authorization {
+  users: [
+    {
+      user: "planet"
+      password: "<BCRYPT_HASH_PLANET_TEST>"
+      permissions: {
+        publish: { allow: ["cosmos.v1.signal.planet.sector.changed"] }
+        subscribe: { deny: [">"] }
+      }
+    }
+    {
+      user: "chat"
+      password: "<BCRYPT_HASH_CHAT_TEST>"
+      permissions: {
+        publish: { allow: ["cosmos.v1.signal.chat.outbox.changed"] }
+        subscribe: { allow: [
+          "cosmos.v1.signal.chat.outbox.changed",
+          "cosmos.v1.signal.planet.sector.changed"
+        ] }
+      }
+    }
+  ]
+}
