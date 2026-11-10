@@ -1,0 +1,37 @@
+/* Cosmosimulator colony catalogue; scoped to avoid changing planet controls. */
+.colony-catalog-root{display:flex;flex-direction:column;gap:12px;min-width:0;min-height:0;overflow:auto}
+.colony-catalog-root *{box-sizing:border-box}
+.colony-catalog-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid #395666;padding:4px 0 12px}
+.colony-catalog-heading h3,.colony-catalog-library h3{margin:0 0 4px;font-size:17px;color:#e2edf2}
+.colony-catalog-heading p{margin:0;font-size:12px}
+.colony-catalog-layout{display:grid;grid-template-columns:minmax(285px,43%) minmax(0,1fr);gap:14px;flex:1;min-height:0}
+.colony-catalog-detail,.colony-catalog-library{min-width:0;min-height:0;background:linear-gradient(145deg,#152633,#0c1722);border:1px solid #345162;padding:14px}
+.colony-catalog-detail{overflow-y:auto;scrollbar-width:thin}
+.colony-catalog-eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:#81b4c4;margin:0 0 9px}
+.colony-catalog-visual{position:relative;display:flex;align-items:center;justify-content:center;flex-direction:column;min-height:212px;padding:10px;background:radial-gradient(ellipse at 50% 48%,#234c6670,transparent 66%),radial-gradient(circle at 14% 23%,#c2e9ffb0 0 1px,transparent 2px),radial-gradient(circle at 83% 69%,#d4eaffb0 0 1px,transparent 2px),#091522;background-size:auto,180px 140px,230px 160px,auto;border:1px solid #304856}
+.colony-catalog-planet{width:min(100%,225px);height:205px;object-fit:contain;filter:drop-shadow(0 4px 18px #0009)}
+.colony-catalog-planet-name{font-size:12px;color:#b5d5df;text-align:center}
+.colony-catalog-detail h2{color:#eaf3f5;font-size:20px;margin:13px 0 7px;overflow-wrap:anywhere}
+.colony-catalog-status{display:inline-block;font-size:11px;color:#e8c773;border:1px solid #8f783b;background:#53451a44;padding:3px 7px}
+.colony-catalog-status[data-status="building"]{color:#f2ae7e;border-color:#a96c46}
+.colony-catalog-status[data-status="complete"]{color:#93dbb5;border-color:#4b936e}
+.colony-catalog-status:is([data-status="cancelled"],[data-status="expired"]){color:#cf98a1;border-color:#995b67}
+.colony-catalog-data{margin-top:13px;padding:10px;background:#0b1926a3;border:1px solid #2b4757}
+.colony-catalog-data h3{font-size:12px;color:#8fced5;margin:0 0 7px;text-transform:uppercase;letter-spacing:.07em}
+.colony-catalog-row{display:flex;gap:12px;justify-content:space-between;padding:4px 0;border-bottom:1px solid #314a544d;font-size:12px}
+.colony-catalog-row span{color:#94adbc}.colony-catalog-row strong{color:#e2edf0;font-weight:550;text-align:right;overflow-wrap:anywhere}
+.colony-catalog-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.colony-catalog-action{min-height:32px;padding:5px 10px;cursor:pointer}
+.colony-catalog-library{display:flex;flex-direction:column;overflow:hidden}
+.colony-catalog-search{width:100%;min-width:0;margin:8px 0 10px;padding:8px 10px;background:#0b1a26;border:1px solid #416375;color:#e2edf0;border-radius:2px}
+.colony-catalog-entries{display:flex;flex:1;min-height:80px;flex-direction:column;gap:8px;overflow-y:auto;padding-right:4px;scrollbar-width:thin}
+.colony-catalog-entry{display:flex;flex-direction:column;align-items:stretch;text-align:left;gap:5px;width:100%;border:1px solid #395260;background:#172935;color:#dce8ee;padding:12px;cursor:pointer}
+.colony-catalog-entry:hover,.colony-catalog-entry:focus-visible{border-color:#73b6c2;background:#1b3543}
+.colony-catalog-entry[aria-pressed="true"]{border-color:#7dc8d5;background:linear-gradient(100deg,#21475a,#162c38);box-shadow:inset 3px 0 #8cdbe0}
+.colony-catalog-entry-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.colony-catalog-entry-top strong{font-size:13px;overflow-wrap:anywhere}
+.colony-catalog-entry-status{font-size:10px;color:#e6bb79;text-align:right;max-width:50%}
+.colony-catalog-entry small{font-size:11px;color:#a5c0cc}
+.colony-catalog-refunds{border:1px solid #38505c;padding:10px;display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.colony-catalog-refunds h3{font-size:12px;margin:0 8px 0 0;color:#9cd1d7}
+@media(max-width:670px){.colony-catalog-layout{grid-template-columns:minmax(0,1fr)}.colony-catalog-library{min-height:260px}.colony-catalog-entries{max-height:320px}.colony-catalog-planet{height:180px}.colony-catalog-visual{min-height:185px}}
