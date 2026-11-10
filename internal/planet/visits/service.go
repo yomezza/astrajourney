@@ -9,6 +9,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/planet/access"
 	"github.com/yomezza/cosmosimulator/internal/planet/scene"
 	"github.com/yomezza/cosmosimulator/internal/planet/scenestore"
+	"github.com/yomezza/cosmosimulator/internal/platform/gamesignal"
 	"time"
 )
 
@@ -17,7 +18,10 @@ var ErrUsed = errors.New("ticket_used")
 var ErrExpired = errors.New("ticket_expired")
 var ErrReplaced = errors.New("session_replaced")
 
-type Service struct{ DB *pgxpool.Pool }
+type Service struct {
+	DB      *pgxpool.Pool
+	Signals gamesignal.Emit
+}
 type Intent struct {
 	Hash                   string
 	Handoff, Visit         string
@@ -186,6 +190,11 @@ func (a *Service) Activate(ctx context.Context, id access.Identity, in Intent, s
 	if err = tx.Commit(ctx); err != nil {
 		return w, err
 	}
+	subject := gamesignal.VisitStartedSubject
+	if in.Handoff == "" {
+		subject = gamesignal.VisitResumedSubject
+	}
+	a.lifecycleCommitted(subject, gamesignal.VisitChange{UserID: fmtInt(id.User), VisitID: w.Visit, Generation: fmtInt(w.Generation), Epoch: fmtInt(w.Epoch), RuntimeFence: fmtInt(f.Number), SurfaceID: fmtInt(in.Key.Surface), Sector: in.Key.Sector})
 	w.Nickname = id.Nickname
 	w.Time = time.Now().UnixMilli()
 	w.Planet = site.Name

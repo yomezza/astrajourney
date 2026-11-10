@@ -8,6 +8,7 @@ import (
 	"errors"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/yomezza/cosmosimulator/internal/platform/gamesignal"
 	"github.com/yomezza/cosmosimulator/internal/platform/identifiers"
 	"io"
 	"strings"
@@ -34,6 +35,7 @@ type Service struct {
 	Journal         *ErasureJournal
 	PlanetAvailable func() bool
 	commitWake      atomic.Pointer[func(string)]
+	cleanupWake     atomic.Pointer[gamesignal.Emit]
 	changesCalls    atomic.Uint64
 	scopeChecks     atomic.Uint64
 }

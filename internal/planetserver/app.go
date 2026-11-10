@@ -17,7 +17,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/platform/telemetry"
 )
 
-const Version = "0.24.10"
+const Version = "0.24.11"
 const Stage = "P2-9"
 
 // App wires only planetary components. New does not start goroutines or migrate.
@@ -62,7 +62,11 @@ func New(db *pgxpool.Pool, config Config, logger *slog.Logger) (*App, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &App{publisher: publisher, db: db, controllers: map[int64]int{}, entryGates: map[int64]chan struct{}{}, visits: &visits.Service{DB: db}, config: config, logger: logger, coordinator: c, store: scenestore.New(db)}, nil
+	visitsService := &visits.Service{DB: db}
+	if publisher != nil {
+		visitsService.Signals = publisher.publish
+	}
+	return &App{publisher: publisher, db: db, controllers: map[int64]int{}, entryGates: map[int64]chan struct{}{}, visits: visitsService, config: config, logger: logger, coordinator: c, store: scenestore.New(db)}, nil
 }
 
 func (a *App) Handler() http.Handler {

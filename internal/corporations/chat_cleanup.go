@@ -14,11 +14,15 @@ func (a *Service) RunChatCleanup(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			return
+		case <-a.CleanupWake:
 		case <-tick.C:
-			check, done := context.WithTimeout(ctx, 4*time.Second)
-			_ = a.FinalizeChatDeletion(check)
-			done()
 		}
+		if ctx.Err() != nil {
+			return
+		}
+		check, done := context.WithTimeout(ctx, 4*time.Second)
+		_ = a.FinalizeChatDeletion(check)
+		done()
 	}
 }
 func (a *Service) FinalizeChatDeletion(ctx context.Context) error {
@@ -53,12 +57,35 @@ func (a *Service) FinalizeChatDeletion(ctx context.Context) error {
 	if e != nil {
 		return e
 	}
+	departed := []int64{}
 	for _, i := range items {
 		if e = wallet.Credit(ctx, tx, i.owner, i.balance); e != nil {
 			return e
 		}
-		if _, e = tx.Exec(ctx, `UPDATE users SET company_id=NULL,company_role=NULL WHERE company_id=$1`, i.id); e != nil {
-			return e
+		if a.Signals == nil {
+			if _, e = tx.Exec(ctx, `UPDATE users SET company_id=NULL,company_role=NULL WHERE company_id=$1`, i.id); e != nil {
+				return e
+			}
+		} else {
+			members, err := tx.Query(ctx, `UPDATE users SET company_id=NULL,company_role=NULL WHERE company_id=$1 RETURNING id`, i.id)
+			if err != nil {
+				return err
+			}
+			for members.Next() {
+				var uid int64
+				if e = members.Scan(&uid); e != nil {
+					members.Close()
+					return e
+				}
+				if len(departed) < 256 {
+					departed = append(departed, uid)
+				}
+			}
+			e = members.Err()
+			members.Close()
+			if e != nil {
+				return e
+			}
 		}
 		if _, e = tx.Exec(ctx, `UPDATE stations SET company_id=NULL,founder=(SELECT id FROM companies WHERE founder_key='founder-01') WHERE company_id=$1`, i.id); e != nil {
 			return e
@@ -70,5 +97,12 @@ func (a *Service) FinalizeChatDeletion(ctx context.Context) error {
 			return e
 		}
 	}
-	return tx.Commit(ctx)
+	if e = tx.Commit(ctx); e != nil {
+		return e
+	}
+
+	for _, uid := range departed {
+		a.MembershipCommitted(uid)
+	}
+	return nil
 }

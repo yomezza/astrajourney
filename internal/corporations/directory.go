@@ -235,5 +235,6 @@ func (a *Service) CompanyAction(w http.ResponseWriter, r *http.Request) {
 		httpkit.Internal(w, err)
 		return
 	}
+	a.MembershipCommitted(u.ID)
 	httpkit.Reply(w, 200, map[string]bool{"ok": true})
 }

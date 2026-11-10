@@ -17,7 +17,7 @@ scene_capacity = 32
 scene_idle_ttl = '2m'
 scene_load_timeout = '20s'
 
-# Planet 0.24.10 / N5 only. Separate file/account from Chat; disabled by default.
+# Planet 0.24.11 / N6. Own file/account, distinct from Cosmic/Chat; disabled by default.
 # Loopback address below belongs to an isolated TLS test broker, not cosmoNATS.
 [nats]
 enabled = false

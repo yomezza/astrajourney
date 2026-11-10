@@ -3,8 +3,10 @@ package server
 
 import (
 	"context"
+	"github.com/yomezza/cosmosimulator/internal/platform/natscore"
 	"net/http"
 	"net/netip"
+	"sync/atomic"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -28,7 +30,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/worldstore"
 )
 
-const Version = "0.24.6"
+const Version = "0.24.11"
 
 type Config struct {
 	Secure         bool
@@ -39,6 +41,8 @@ type Config struct {
 // App is the composition root, not a shared domain service. New does not run
 // migrations, seed data, register a second writer or start simulation goroutines.
 type App struct {
+	nats           *natscore.SignalClient
+	natsInvalid    *atomic.Uint64
 	Transfer       *transfer.Service
 	DB             *pgxpool.Pool
 	Auth           *account.Service

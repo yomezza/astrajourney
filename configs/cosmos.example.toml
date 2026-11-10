@@ -18,3 +18,15 @@ chat_internal_url = 'http://127.0.0.1:8082'
 [admin]
 username = ''
 password = ''
+
+# Cosmic 0.24.11 / N6. Отдельный профиль, отключён по умолчанию.
+# Loopback-порт ниже принадлежит изолированному TLS стенду, не рабочему cosmoNATS.
+[nats]
+enabled = false
+service_identity = 'cosmos'
+servers = ['tls://127.0.0.1:14222']
+username = 'cosmos'
+password_file = '../secrets/cosmos.password'
+ca_file = '../certs/ca.pem'
+connect_timeout = '2s'
+reconnect_wait = '1s'

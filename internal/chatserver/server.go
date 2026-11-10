@@ -26,7 +26,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/platform/postgres"
 )
 
-const Version = "0.24.10"
+const Version = "0.24.11"
 
 type Config struct {
 	DatabaseURL, Schema, Addr, CosmicURL, PlanetURL, Journal string
@@ -523,6 +523,12 @@ func (a *App) Serve(ctx context.Context, listener net.Listener, started func()) 
 		workers.Add(1)
 		go func() { defer workers.Done(); a.dispatcher.Run(run) }()
 	}
+	var maintenanceWake <-chan struct{}
+	if source, ok := a.source.(*NATSWakeSource); ok {
+		maintenanceWake = source.MaintenanceWakeups()
+		unsubscribe := a.Service.ObserveCompanyCleanup(source.CompanyCleanup)
+		defer unsubscribe()
+	}
 	workers.Add(2)
 	go func() {
 		defer workers.Done()
@@ -550,21 +556,25 @@ func (a *App) Serve(ctx context.Context, listener net.Listener, started func()) 
 			select {
 			case <-run.Done():
 				return
+			case <-maintenanceWake:
 			case <-tick.C:
-				c, done := context.WithTimeout(run, 9*time.Second)
-				e := a.Service.Maintain(c)
-				a.mu.Lock()
-				if e != nil {
-					a.maintenanceState = "failed"
-				} else {
-					a.maintenanceState = "ready"
-				}
-				a.mu.Unlock()
-				if e != nil {
-					slog.Warn("chat maintenance failed", "code", code(e))
-				}
-				done()
 			}
+			if run.Err() != nil {
+				return
+			}
+			c, done := context.WithTimeout(run, 9*time.Second)
+			e := a.Service.Maintain(c)
+			a.mu.Lock()
+			if e != nil {
+				a.maintenanceState = "failed"
+			} else {
+				a.maintenanceState = "ready"
+			}
+			a.mu.Unlock()
+			if e != nil {
+				slog.Warn("chat maintenance failed", "code", code(e))
+			}
+			done()
 		}
 	}()
 	defer workers.Wait()

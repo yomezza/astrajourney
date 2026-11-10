@@ -1,0 +1,12 @@
+# DISPOSABLE TEST ONLY. Never replace the existing cosmoNATS configuration.
+server_name: "n5-planet-chat-isolated"
+listen: "127.0.0.1:14222"
+http: "127.0.0.1:18222"
+tls {
+  cert_file: "./certs/server.pem"
+  key_file: "./certs/server.key"
+  min_version: "1.2"
+  timeout: 2
+}
+include ./auth.test.config
+# No JetStream, store, cluster or request/reply configuration.

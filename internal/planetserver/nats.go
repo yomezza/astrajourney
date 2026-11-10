@@ -18,7 +18,7 @@ type planetPublisher struct {
 	config                                              natscore.Config
 	tls                                                 *tls.Config
 	password                                            string
-	queue                                               chan []byte
+	queue                                               chan gamesignal.Message
 	cancel                                              context.CancelFunc
 	done                                                chan struct{}
 	healthy, closed                                     atomic.Bool
@@ -37,7 +37,7 @@ func newPlanetPublisher(c natscore.Config) (*planetPublisher, error) {
 	if e != nil {
 		return nil, e
 	}
-	p := &planetPublisher{config: c, tls: t, password: password, queue: make(chan []byte, 64), done: make(chan struct{})}
+	p := &planetPublisher{config: c, tls: t, password: password, queue: make(chan gamesignal.Message, 64), done: make(chan struct{})}
 	p.lastError.Store("")
 	return p, nil
 }
@@ -48,7 +48,18 @@ func (p *planetPublisher) enqueue(d gamesignal.SectorChange) {
 		return
 	}
 	select {
-	case p.queue <- b:
+	case p.queue <- gamesignal.Message{Subject: gamesignal.PlanetSectorSubject, Data: b}:
+	default:
+		p.dropped.Add(1)
+	}
+}
+func (p *planetPublisher) publish(m gamesignal.Message) {
+	if _, ok := gamesignal.DecodeVisit(m.Subject, m.Data); !ok || !p.healthy.Load() || p.closed.Load() {
+		p.dropped.Add(1)
+		return
+	}
+	select {
+	case p.queue <- m:
 	default:
 		p.dropped.Add(1)
 	}
@@ -100,7 +111,7 @@ func (p *planetPublisher) session(ctx context.Context) error {
 				p.dropped.Add(1)
 				continue
 			}
-			if e = nc.Publish(gamesignal.PlanetSectorSubject, data); e != nil {
+			if e = nc.Publish(data.Subject, data.Data); e != nil {
 				p.dropped.Add(1)
 				return e
 			}

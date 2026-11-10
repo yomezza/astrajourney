@@ -1,0 +1,58 @@
+# TEMPLATE ONLY. Merge exact subjects into an approved separate test broker.
+# Each placeholder must be replaced with an independently generated bcrypt hash.
+# Never replace production users/auth config with this test file.
+authorization {
+  users = [
+    {
+      user: "cosmos"
+      password: "<BCRYPT_HASH_COSMOS>"
+      permissions: {
+        publish: { allow: [
+          "cosmos.v1.signal.cosmic.company.membership.changed",
+          "cosmos.v1.signal.cosmic.company.role.changed",
+          "cosmos.v1.signal.cosmic.company.permissions.changed",
+          "cosmos.v1.signal.cosmic.moderator.changed",
+          "cosmos.v1.signal.cosmic.company.deletion.requested"
+        ] }
+        subscribe: { allow: ["cosmos.v1.signal.chat.company.cleanup.completed"] }
+      }
+    }
+    {
+      user: "planet"
+      password: "<BCRYPT_HASH_PLANET>"
+      permissions: {
+        publish: { allow: [
+          "cosmos.v1.signal.planet.sector.changed",
+          "cosmos.v1.signal.planet.visit.started",
+          "cosmos.v1.signal.planet.visit.resumed",
+          "cosmos.v1.signal.planet.visit.disconnected",
+          "cosmos.v1.signal.planet.visit.ended"
+        ] }
+        subscribe: { deny: [">"] }
+      }
+    }
+    {
+      user: "chat"
+      password: "<BCRYPT_HASH_CHAT>"
+      permissions: {
+        publish: { allow: [
+          "cosmos.v1.signal.chat.outbox.changed",
+          "cosmos.v1.signal.chat.company.cleanup.completed"
+        ] }
+        subscribe: { allow: [
+          "cosmos.v1.signal.chat.outbox.changed",
+          "cosmos.v1.signal.cosmic.company.membership.changed",
+          "cosmos.v1.signal.cosmic.company.role.changed",
+          "cosmos.v1.signal.cosmic.company.permissions.changed",
+          "cosmos.v1.signal.cosmic.moderator.changed",
+          "cosmos.v1.signal.cosmic.company.deletion.requested",
+          "cosmos.v1.signal.planet.sector.changed",
+          "cosmos.v1.signal.planet.visit.started",
+          "cosmos.v1.signal.planet.visit.resumed",
+          "cosmos.v1.signal.planet.visit.disconnected",
+          "cosmos.v1.signal.planet.visit.ended"
+        ] }
+      }
+    }
+  ]
+}

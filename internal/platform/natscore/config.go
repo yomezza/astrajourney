@@ -59,8 +59,8 @@ func (c Config) Validate(identity string, required bool) error {
 	if !c.Enabled {
 		return nil
 	}
-	if (identity != "chat" && identity != "planet") || c.ServiceIdentity != identity || c.Username != identity {
-		return errors.New("NATS service_identity and username must match the service (chat/planet)")
+	if (identity != "chat" && identity != "planet" && identity != "cosmos") || c.ServiceIdentity != identity || c.Username != identity {
+		return errors.New("NATS service_identity and username must match the service (cosmos/planet/chat)")
 	}
 	if len(c.Servers) < 1 || len(c.Servers) > 3 {
 		return errors.New("NATS requires 1-3 explicit TLS servers")

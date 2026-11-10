@@ -39,6 +39,7 @@ func (s *Service) Maintain(ctx context.Context) error {
 	if _, e = tx.Exec(ctx, `INSERT INTO chat_cleanup_jobs(id,kind,scope_id,operation_id) SELECT gen_random_uuid(),'company',company_id::text,operation_id FROM chat_company_deletion_requests ON CONFLICT DO NOTHING; INSERT INTO chat_cleanup_jobs(id,kind,scope_id,operation_id) SELECT gen_random_uuid(),'surface',surface_id::text,operation_id FROM chat_surface_cleanup_requests ON CONFLICT DO NOTHING`); e != nil {
 		return e
 	}
+	companyCompleted := false
 	var job, kind, scope, op string
 	e = tx.QueryRow(ctx, `SELECT id::text,kind,scope_id,operation_id::text FROM chat_cleanup_jobs WHERE phase<>'completed' ORDER BY created_at LIMIT 1 FOR UPDATE SKIP LOCKED`).Scan(&job, &kind, &scope, &op)
 	if e != nil && e != pgx.ErrNoRows {
@@ -93,6 +94,11 @@ func (s *Service) Maintain(ctx context.Context) error {
 				if _, e = tx.Exec(ctx, `INSERT INTO chat_company_cleanup_receipts(company_id,operation_id) VALUES($1::text::bigint,$2) ON CONFLICT DO NOTHING`, scope, op); e != nil {
 					return e
 				}
+				if s.cleanupWake.Load() != nil {
+					if e = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM chat_company_cleanup_receipts WHERE company_id=$1::text::bigint AND operation_id=$2)`, scope, op).Scan(&companyCompleted); e != nil {
+						return e
+					}
+				}
 			case "surface":
 				if _, e = tx.Exec(ctx, `INSERT INTO chat_surface_cleanup_receipts(surface_id,operation_id) VALUES($1::text::bigint,$2) ON CONFLICT DO NOTHING`, scope, op); e != nil {
 					return e
@@ -117,6 +123,9 @@ func (s *Service) Maintain(ctx context.Context) error {
 	}
 	if e = tx.Commit(ctx); e != nil {
 		return e
+	}
+	if companyCompleted {
+		s.companyCleaned(scope, op)
 	}
 	s.committed("maintenance")
 	return nil

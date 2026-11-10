@@ -11,6 +11,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/chatserver"
 	"github.com/yomezza/cosmosimulator/internal/planetserver"
 	"github.com/yomezza/cosmosimulator/internal/platform/configuration"
+	"github.com/yomezza/cosmosimulator/internal/platform/natscore"
 )
 
 func file(t *testing.T, text string) string {
@@ -208,10 +209,8 @@ reconnect_wait='1s'
 	if _, e = chatserver.LoadConfig(source.Getenv); e != nil {
 		t.Fatal("disabled NATS read secrets", e)
 	}
-	for _, service := range []configuration.Service{configuration.Cosmos} {
-		if _, e = configuration.Load(lookup(map[string]string{configuration.FileVariable: p}), service); e == nil {
-			t.Fatal("N3 NATS section accepted by another process")
-		}
+	if _, e = configuration.Load(lookup(map[string]string{configuration.FileVariable: p}), configuration.Cosmos); e != nil {
+		t.Fatal("disabled N6 section", e)
 	}
 	if _, e = configuration.Load(lookup(map[string]string{configuration.FileVariable: file(t, "[nats]\nenabled=false\nservers=['tls://one:4222,tls://two:4222']")}), configuration.Chat); e == nil {
 		t.Fatal("ambiguous NATS array accepted")
@@ -243,7 +242,39 @@ ca_file=`+strconv.Quote(m.CAFile)+`
 	if _, e = chatserver.LoadConfig(src.Getenv); e == nil {
 		t.Fatal("Chat accepted Planet credentials")
 	}
-	if _, e = configuration.Load(lookup(map[string]string{configuration.FileVariable: p}), configuration.Cosmos); e == nil {
-		t.Fatal("Cosmic NATS accidentally enabled")
+	cosmic, e := configuration.Load(lookup(map[string]string{configuration.FileVariable: p}), configuration.Cosmos)
+	if e != nil {
+		t.Fatal(e)
+	}
+	nc, e := natscore.LoadConfig(cosmic.Getenv)
+	if e != nil || nc.Validate("cosmos", false) == nil {
+		t.Fatal("Cosmic accepted Planet identity")
+	}
+
+}
+
+func TestCosmicNATSExclusiveConfig(t *testing.T) {
+	m := natsfixture.PKI(t, false)
+	p := file(t, `[nats]
+enabled=true
+service_identity='cosmos'
+username='cosmos'
+servers=['tls://127.0.0.1:14222']
+password_file=`+strconv.Quote(m.PasswordFile)+`
+ca_file=`+strconv.Quote(m.CAFile)+`
+`)
+	source, e := configuration.Load(lookup(map[string]string{configuration.FileVariable: p, "NATS_USERNAME": "chat", "NATS_ENABLED": "false"}), configuration.Cosmos)
+	if e != nil {
+		t.Fatal(e)
+	}
+	c, e := natscore.LoadConfig(source.Getenv)
+	if e != nil || c.Validate("cosmos", false) != nil || !c.Enabled || c.Username != "cosmos" {
+		t.Fatal("Cosmic exclusive mapping", e)
+	}
+	if c.Validate("planet", false) == nil || c.Validate("chat", false) == nil {
+		t.Fatal("cross-service identity")
+	}
+	if _, _, e = c.Credentials(); e != nil {
+		t.Fatal(e)
 	}
 }

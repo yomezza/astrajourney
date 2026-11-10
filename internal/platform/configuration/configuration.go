@@ -75,9 +75,6 @@ func Load(getenv func(string) string, service Service) (*Source, error) {
 	if err != nil {
 		return nil, errors.New("cannot resolve CONFIG_FILE directory")
 	}
-	if document.NATS != nil && service == Cosmos {
-		return nil, errors.New("[nats] is supported only by Chat/Planet; use separate service TOML files")
-	}
 	values := document.values(service)
 	for _, name := range []string{"PLANET_LOG_FILE", "CHAT_ERASURE_JOURNAL", "NATS_PASSWORD_FILE", "NATS_CA_FILE"} {
 		if value := values[name]; value != "" && !filepath.IsAbs(value) {

@@ -176,6 +176,14 @@ func (d *EventDispatcher) Run(ctx context.Context) {
 			timer.Reset(left)
 			continue
 		}
+		if source, ok := d.source.(interface{ TakeAuthorityDirty() bool }); ok && source.TakeAuthorityDirty() {
+			// Revalidate ALL currently connected accounts, including former members.
+			// Company IDs/roles from NATS are never applied as permissions.
+			for _, h := range d.registry.Snapshot() {
+				d.spatial[h.Connection.Identity.ID] = true
+			}
+			d.reconcile = true
+		}
 		if source, ok := d.source.(interface{ TakeSpatialDirty() []int64 }); ok {
 			for _, id := range source.TakeSpatialDirty() {
 				if len(d.spatial) < 256 || d.spatial[id] {

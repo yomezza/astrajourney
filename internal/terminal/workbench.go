@@ -196,6 +196,11 @@ func (a *Service) Command(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+	signalTarget, err := a.Corporations.SignalTarget(ctx, tx, u.ID, in)
+	if err != nil {
+		httpkit.Internal(w, err)
+		return
+	}
 	handled, err := a.Navigation.NavigationCommand(ctx, tx, u, &s, g, in)
 	if !handled {
 		handled, err = a.Commerce.EconomyCommand(ctx, tx, u, &s, g, in)
@@ -240,6 +245,11 @@ func (a *Service) Command(w http.ResponseWriter, r *http.Request) {
 		httpkit.Internal(w, err)
 		return
 	}
+	signals, err := a.Corporations.StageCommand(ctx, tx, signalTarget, in.Action)
+	if err != nil {
+		httpkit.Internal(w, err)
+		return
+	}
 	if in.Action == "portal_contribute" {
 		err = a.World.Commit(ctx, tx)
 	} else {
@@ -249,6 +259,7 @@ func (a *Service) Command(w http.ResponseWriter, r *http.Request) {
 		httpkit.Internal(w, err)
 		return
 	}
+	a.Corporations.EmitSignals(signals)
 	if pendingDeletion {
 		httpkit.Reply(w, 202, map[string]any{"ok": true, "status": "deleting"})
 		return

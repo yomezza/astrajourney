@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"math/rand/v2"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -19,6 +20,11 @@ import (
 // subscription; it automatically reconnects and confirms SUB with PING/PONG.
 // No domain operation, SQL ACL, request/reply or JetStream belongs here.
 type NATSWakeSource struct {
+	authority                                                        atomic.Bool
+	corporateReceived, lifecycleReceived, optionalPermissionFailures atomic.Uint64
+	maintenance                                                      chan struct{}
+	cleanupPublishes                                                 chan gamesignal.Message
+
 	spatialMu                                                    sync.Mutex
 	spatial                                                      map[int64]bool
 	spatialReceived, spatialDropped, spatialSubscriptionFailures atomic.Uint64
@@ -49,7 +55,7 @@ func NewNATSWakeSource(c NATSConfig) (*NATSWakeSource, error) {
 	if e != nil {
 		return nil, e
 	}
-	s := &NATSWakeSource{config: c, tls: tlsConfig, password: password, wakes: make(chan struct{}, 1), publishes: make(chan struct{}, 1), seen: map[string]bool{}}
+	s := &NATSWakeSource{config: c, tls: tlsConfig, password: password, wakes: make(chan struct{}, 1), publishes: make(chan struct{}, 1), seen: map[string]bool{}, maintenance: make(chan struct{}, 1), cleanupPublishes: make(chan gamesignal.Message, 64)}
 	s.lastError.Store("")
 	return s, nil
 }
@@ -87,8 +93,86 @@ func (s *NATSWakeSource) TakeSpatialDirty() []int64 {
 	s.spatial = nil
 	return ids
 }
+func (s *NATSWakeSource) TakeAuthorityDirty() bool            { return s.authority.Swap(false) }
+func (s *NATSWakeSource) MaintenanceWakeups() <-chan struct{} { return s.maintenance }
+func (s *NATSWakeSource) CompanyCleanup(m gamesignal.Message) {
+	if _, ok := gamesignal.DecodeCompany(m.Subject, m.Data); !ok || m.Subject != gamesignal.CleanupSubject || !s.Healthy() {
+		s.dropped.Add(1)
+		return
+	}
+	select {
+	case s.cleanupPublishes <- m:
+	default:
+		s.dropped.Add(1)
+	}
+}
+func (s *NATSWakeSource) markSpatial(id int64) {
+	s.spatialMu.Lock()
+	if s.spatial == nil {
+		s.spatial = map[int64]bool{}
+	}
+	if len(s.spatial) < 256 || s.spatial[id] {
+		s.spatial[id] = true
+	} else {
+		s.spatialDropped.Add(1)
+	}
+	s.spatialMu.Unlock()
+	s.wake()
+}
+func optionalSubjects() []string {
+	subjects := append([]string{gamesignal.PlanetSectorSubject}, gamesignal.VisitSubjects...)
+	return append(subjects, gamesignal.CosmicSubjects...)
+}
+func optionalPermission(sub *nats.Subscription, e error) bool {
+	for _, subject := range optionalSubjects() {
+		if sub != nil && sub.Subject == subject || strings.Contains(e.Error(), `Subscription to "`+subject+`"`) {
+			return true
+		}
+	}
+	return strings.Contains(e.Error(), `Publish to "`+gamesignal.CleanupSubject+`"`)
+}
 func (s *NATSWakeSource) accept(m *nats.Msg) {
 	if s.closed.Load() {
+		return
+	}
+	for _, subject := range gamesignal.CosmicSubjects {
+		if m.Subject != subject {
+			continue
+		}
+		event, ok := gamesignal.DecodeCompany(m.Subject, m.Data)
+		if !ok || m.Reply != "" {
+			s.invalid.Add(1)
+			return
+		}
+		if s.duplicate(m.Subject + ":" + event.Data.UserID + ":" + event.Data.CompanyID + ":" + event.SignalID) {
+			return
+		}
+		s.corporateReceived.Add(1)
+		s.authority.Store(true)
+		if subject == gamesignal.DeletionSubject {
+			select {
+			case s.maintenance <- struct{}{}:
+			default:
+			}
+		}
+		s.wake()
+		return
+	}
+	for _, subject := range gamesignal.VisitSubjects {
+		if m.Subject != subject {
+			continue
+		}
+		event, ok := gamesignal.DecodeVisit(m.Subject, m.Data)
+		if !ok || m.Reply != "" {
+			s.invalid.Add(1)
+			return
+		}
+		if s.duplicate(m.Subject + ":" + event.Data.UserID + ":" + event.SignalID) {
+			return
+		}
+		id, _ := strconv.ParseInt(event.Data.UserID, 10, 64)
+		s.lifecycleReceived.Add(1)
+		s.markSpatial(id)
 		return
 	}
 	if m.Subject == gamesignal.PlanetSectorSubject {
@@ -102,17 +186,7 @@ func (s *NATSWakeSource) accept(m *nats.Msg) {
 		}
 		s.spatialReceived.Add(1)
 		id := event.Data.User()
-		s.spatialMu.Lock()
-		if s.spatial == nil {
-			s.spatial = map[int64]bool{}
-		}
-		if len(s.spatial) < 256 || s.spatial[id] {
-			s.spatial[id] = true
-		} else {
-			s.spatialDropped.Add(1)
-		}
-		s.spatialMu.Unlock()
-		s.wake()
+		s.markSpatial(id)
 		return
 	}
 	signal, ok := decodeChatSignal(m.Subject, m.Data)
@@ -161,8 +235,11 @@ func (s *NATSWakeSource) session(ctx context.Context, first chan<- error) error 
 		}
 	}
 	nc, e := natscore.Connect(ctx, natscore.Config(s.config), s.tls, s.password, func(_ *nats.Conn, sub *nats.Subscription, e error) {
-		if errors.Is(e, nats.ErrPermissionViolation) && (sub != nil && sub.Subject == gamesignal.PlanetSectorSubject || strings.Contains(e.Error(), `Subscription to "`+gamesignal.PlanetSectorSubject+`"`)) {
-			s.spatialSubscriptionFailures.Add(1)
+		if errors.Is(e, nats.ErrPermissionViolation) && optionalPermission(sub, e) {
+			s.optionalPermissionFailures.Add(1)
+			if sub != nil && sub.Subject == gamesignal.PlanetSectorSubject || strings.Contains(e.Error(), `Subscription to "`+gamesignal.PlanetSectorSubject+`"`) {
+				s.spatialSubscriptionFailures.Add(1)
+			}
 			return
 		}
 		failed(e)
@@ -176,13 +253,15 @@ func (s *NATSWakeSource) session(ctx context.Context, first chan<- error) error 
 		return e
 	}
 	defer sub.Unsubscribe()
-	planetSub, e := nc.Subscribe(gamesignal.PlanetSectorSubject, s.accept)
-	if e != nil {
-		return e
-	}
-	defer planetSub.Unsubscribe()
-	if e = planetSub.SetPendingLimits(64, 64*maxNATSSignal); e != nil {
-		return e
+	for _, subject := range optionalSubjects() {
+		optionalSub, err := nc.Subscribe(subject, s.accept)
+		if err != nil {
+			return err
+		}
+		defer optionalSub.Unsubscribe()
+		if err = optionalSub.SetPendingLimits(64, 64*maxNATSSignal); err != nil {
+			return err
+		}
 	}
 
 	if e = sub.SetPendingLimits(64, 64*maxNATSSignal); e != nil {
@@ -216,6 +295,16 @@ func (s *NATSWakeSource) session(ctx context.Context, first chan<- error) error 
 			return ctx.Err()
 		case e := <-fault:
 			return e
+		case m := <-s.cleanupPublishes:
+			if !s.Healthy() || !nc.IsConnected() {
+				s.dropped.Add(1)
+				continue
+			}
+			if e = nc.Publish(m.Subject, m.Data); e != nil {
+				s.dropped.Add(1)
+				return e
+			}
+			s.published.Add(1)
 		case <-s.publishes:
 			if !s.Healthy() || !nc.IsConnected() {
 				s.dropped.Add(1)
@@ -269,6 +358,15 @@ func (s *NATSWakeSource) run(ctx context.Context, first chan error) {
 			s.dropped.Add(1)
 		default:
 		}
+	drainCleanup:
+		for {
+			select {
+			case <-s.cleanupPublishes:
+				s.dropped.Add(1)
+			default:
+				break drainCleanup
+			}
+		}
 		delay := s.config.ReconnectWait + time.Duration(rand.Int64N(int64(s.config.ReconnectWait/5)+1))
 		timer := time.NewTimer(delay)
 		select {
@@ -299,7 +397,7 @@ func (s *NATSWakeSource) Close(ctx context.Context) error {
 	}
 }
 func (s *NATSWakeSource) Diagnostics() map[string]any {
-	return map[string]any{"healthy": s.Healthy(), "last_error_code": s.lastError.Load(), "connect_attempts": s.attempts.Load(), "registrations": s.registrations.Load(), "disconnects": s.disconnects.Load(), "published_hints": s.published.Load(), "received_signals": s.received.Load(), "invalid_signals": s.invalid.Load(), "duplicate_signals": s.duplicates.Load(), "coalesced_publishes": s.coalesced.Load(), "dropped_hints": s.dropped.Load(), "tls_failures": s.tlsFailures.Load(), "authentication_failures": s.authFailures.Load(), "authorization_failures": s.permissionFailures.Load(), "network_failures": s.networkFailures.Load(), "spatial_signals": s.spatialReceived.Load(), "spatial_dropped": s.spatialDropped.Load(), "spatial_subscription_failures": s.spatialSubscriptionFailures.Load()}
+	return map[string]any{"healthy": s.Healthy(), "last_error_code": s.lastError.Load(), "connect_attempts": s.attempts.Load(), "registrations": s.registrations.Load(), "disconnects": s.disconnects.Load(), "published_hints": s.published.Load(), "received_signals": s.received.Load(), "invalid_signals": s.invalid.Load(), "duplicate_signals": s.duplicates.Load(), "coalesced_publishes": s.coalesced.Load(), "dropped_hints": s.dropped.Load(), "tls_failures": s.tlsFailures.Load(), "authentication_failures": s.authFailures.Load(), "authorization_failures": s.permissionFailures.Load(), "network_failures": s.networkFailures.Load(), "corporate_signals": s.corporateReceived.Load(), "visit_signals": s.lifecycleReceived.Load(), "optional_permission_failures": s.optionalPermissionFailures.Load(), "spatial_signals": s.spatialReceived.Load(), "spatial_dropped": s.spatialDropped.Load(), "spatial_subscription_failures": s.spatialSubscriptionFailures.Load()}
 }
 
 func (s *NATSWakeSource) duplicate(id string) bool {

@@ -23,6 +23,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/yomezza/cosmosimulator/internal/platform/gamesignal"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -74,7 +75,7 @@ func PKI(t *testing.T, wrongName bool) Material {
 	return m
 }
 
-type Options struct{ WrongName, DenyPublish, DenySubscribe, PlanetSignals bool }
+type Options struct{ WrongName, DenyPublish, DenySubscribe, PlanetSignals, N6 bool }
 type Broker struct {
 	stderr bytes.Buffer
 	Material
@@ -86,6 +87,7 @@ type Broker struct {
 	t                                  *testing.T
 	OperatorPassword                   string
 	PlanetPassword, PlanetPasswordFile string
+	CosmosPassword, CosmosPasswordFile string
 }
 
 func New(t *testing.T, options Options) *Broker {
@@ -126,8 +128,13 @@ func New(t *testing.T, options Options) *Broker {
 		return string(v)
 	}
 	allowPub, allowSub := []string{Subject}, []string{Subject}
-	if options.PlanetSignals {
+	if options.PlanetSignals || options.N6 {
 		allowSub = append(allowSub, "cosmos.v1.signal.planet.sector.changed")
+	}
+	if options.N6 {
+		allowPub = append(allowPub, gamesignal.CleanupSubject)
+		allowSub = append(allowSub, gamesignal.VisitSubjects...)
+		allowSub = append(allowSub, gamesignal.CosmicSubjects...)
 	}
 	if options.DenyPublish {
 		allowPub = []string{"n3.denied"}
@@ -138,7 +145,7 @@ func New(t *testing.T, options Options) *Broker {
 	user := map[string]any{"user": "chat", "password": hash(m.Password), "permissions": map[string]any{"publish": map[string]any{"allow": allowPub}, "subscribe": map[string]any{"allow": allowSub}}}
 	operator := map[string]any{"user": "n3_test_operator", "password": hash(b.OperatorPassword), "permissions": map[string]any{"publish": map[string]any{"allow": []string{">"}}, "subscribe": map[string]any{"allow": []string{">"}}}}
 	users := []any{user, operator}
-	if options.PlanetSignals {
+	if options.PlanetSignals || options.N6 {
 		secret := make([]byte, 32)
 		if _, e = rand.Read(secret); e != nil {
 			t.Fatal(e)
@@ -148,10 +155,26 @@ func New(t *testing.T, options Options) *Broker {
 		if e = os.WriteFile(b.PlanetPasswordFile, []byte(b.PlanetPassword), 0600); e != nil {
 			t.Fatal(e)
 		}
-		users = append(users, map[string]any{"user": "planet", "password": hash(b.PlanetPassword), "permissions": map[string]any{"publish": map[string]any{"allow": []string{"cosmos.v1.signal.planet.sector.changed"}}, "subscribe": map[string]any{"deny": []string{">"}}}})
+		planetPub := []string{gamesignal.PlanetSectorSubject}
+		if options.N6 {
+			planetPub = append(planetPub, gamesignal.VisitSubjects...)
+		}
+		users = append(users, map[string]any{"user": "planet", "password": hash(b.PlanetPassword), "permissions": map[string]any{"publish": map[string]any{"allow": planetPub}, "subscribe": map[string]any{"deny": []string{">"}}}})
+	}
+	if options.N6 {
+		secret := make([]byte, 32)
+		if _, e = rand.Read(secret); e != nil {
+			t.Fatal(e)
+		}
+		b.CosmosPassword = base64.RawURLEncoding.EncodeToString(secret)
+		b.CosmosPasswordFile = filepath.Join(dir, "cosmos.password")
+		if e = os.WriteFile(b.CosmosPasswordFile, []byte(b.CosmosPassword), 0600); e != nil {
+			t.Fatal(e)
+		}
+		users = append(users, map[string]any{"user": "cosmos", "password": hash(b.CosmosPassword), "permissions": map[string]any{"publish": map[string]any{"allow": gamesignal.CosmicSubjects}, "subscribe": map[string]any{"allow": []string{gamesignal.CleanupSubject}}}})
 	}
 	config := map[string]any{"server_name": "n3-disposable", "host": "127.0.0.1", "port": port, "tls": map[string]any{"cert_file": m.CertFile, "key_file": m.KeyFile, "min_version": "1.2", "timeout": 2}, "authorization": map[string]any{"users": users}, "log_file": b.LogFile}
-	if options.PlanetSignals {
+	if options.PlanetSignals || options.N6 {
 		monitor, e := net.Listen("tcp", "127.0.0.1:0")
 		if e != nil {
 			t.Fatal(e)
@@ -198,6 +221,11 @@ func (b *Broker) Start() {
 		case <-b.done:
 			b.cmd = nil
 			message := strings.ReplaceAll(strings.ReplaceAll(b.stderr.String(), b.Password, "[redacted]"), b.OperatorPassword, "[redacted]")
+			for _, secret := range []string{b.PlanetPassword, b.CosmosPassword} {
+				if secret != "" {
+					message = strings.ReplaceAll(message, secret, "[redacted]")
+				}
+			}
 			message = regexp.MustCompile(`\$2[aby]\$[0-9]{2}\$[./A-Za-z0-9]{53}`).ReplaceAllString(message, "[redacted-hash]")
 			b.t.Fatalf("owned NATS exited before readiness: %s", message)
 		default:

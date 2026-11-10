@@ -3,8 +3,10 @@ package administration
 import (
 	"context"
 	"encoding/json"
+	"github.com/yomezza/cosmosimulator/internal/platform/gamesignal"
 	"io"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/yomezza/cosmosimulator/internal/platform/configuration"
@@ -50,6 +52,11 @@ func (a *Service) ChatModerator(w http.ResponseWriter, r *http.Request) {
 	if e != nil {
 		httpkit.Internal(w, e)
 		return
+	}
+	if a.Signals != nil {
+		if m, ok := gamesignal.EncodeCompany(gamesignal.ModeratorSubject, gamesignal.CompanyChange{UserID: strconv.FormatInt(in.User, 10)}); ok {
+			a.Signals(m)
+		}
 	}
 	httpkit.Reply(w, 200, map[string]bool{"ok": true})
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/planet/access"
 	"github.com/yomezza/cosmosimulator/internal/planet/scene"
 	"github.com/yomezza/cosmosimulator/internal/planet/scenestore"
+	"github.com/yomezza/cosmosimulator/internal/platform/gamesignal"
 	"strconv"
 )
 
@@ -53,11 +54,21 @@ func (a *Service) Disconnect(ctx context.Context, id access.Identity, w Welcome,
 		return err
 	}
 	defer tx.Rollback(context.Background())
-	_, err = tx.Exec(ctx, `UPDATE planet_visits SET state='disconnected' WHERE user_id=$1 AND visit_id=$2 AND connection_epoch=$3 AND runtime_fence=$4 AND state='active'`, id.User, w.Visit, w.Epoch, f.Number)
+	d, err := a.lifecycleSnapshot(ctx, tx, id.User)
 	if err != nil {
 		return err
 	}
-	return tx.Commit(ctx)
+	tag, err := tx.Exec(ctx, `UPDATE planet_visits SET state='disconnected' WHERE user_id=$1 AND visit_id=$2 AND connection_epoch=$3 AND runtime_fence=$4 AND state='active'`, id.User, w.Visit, w.Epoch, f.Number)
+	if err != nil {
+		return err
+	}
+	if err = tx.Commit(ctx); err != nil {
+		return err
+	}
+	if tag.RowsAffected() > 0 {
+		a.lifecycleCommitted(gamesignal.VisitDisconnectedSubject, d)
+	}
+	return nil
 }
 func end(ctx context.Context, tx pgx.Tx, uid int64, reason string) error {
 	_, err := tx.Exec(ctx, `UPDATE planet_visits SET state='ended',end_reason=$2,colony=NULL,ship=NULL,current_surface=NULL,current_sector=NULL,revision=NULL,landing_site=NULL,session_hash=NULL WHERE user_id=$1`, uid, reason)
@@ -109,9 +120,15 @@ func (a *Service) sweepOne(ctx context.Context, uid int64, f scenestore.Fence) e
 	if err != nil {
 		return err
 	}
+	d, err := a.lifecycleSnapshot(ctx, tx, uid)
+	if err != nil {
+		return err
+	}
+	subject := ""
 	if state == "legacy" {
 		if revoke {
 			err = end(ctx, tx, uid, "legacy_return")
+			subject = gamesignal.VisitEndedSubject
 		}
 	} else {
 		invalid := !valid || site == nil || ship == nil
@@ -134,7 +151,11 @@ func (a *Service) sweepOne(ctx context.Context, uid int64, f scenestore.Fence) e
 		}
 		if invalid {
 			err = end(ctx, tx, uid, "control_or_access_revoked")
+			subject = gamesignal.VisitEndedSubject
 		} else if previousFence != f.Number {
+			if state != "disconnected" {
+				subject = gamesignal.VisitDisconnectedSubject
+			}
 			_, err = tx.Exec(ctx, `UPDATE planet_visits SET state='disconnected' WHERE user_id=$1`, uid)
 		}
 	}
@@ -144,7 +165,13 @@ func (a *Service) sweepOne(ctx context.Context, uid int64, f scenestore.Fence) e
 	if _, err = tx.Exec(ctx, `UPDATE planet_visits SET checked_at=clock_timestamp() WHERE user_id=$1`, uid); err != nil {
 		return err
 	}
-	return tx.Commit(ctx)
+	if err = tx.Commit(ctx); err != nil {
+		return err
+	}
+	if subject != "" {
+		a.lifecycleCommitted(subject, d)
+	}
+	return nil
 }
 
 // Checkpoint saves only a server-owned position using the active epoch, control
@@ -177,6 +204,13 @@ func (a *Service) Checkpoint(ctx context.Context, id access.Identity, w Welcome,
 	if err != nil {
 		return 0, err
 	}
+	var endedSignal gamesignal.VisitChange
+	if finish {
+		endedSignal, err = a.lifecycleSnapshot(ctx, tx, id.User)
+		if err != nil {
+			return 0, err
+		}
+	}
 	if finish {
 		if err = end(ctx, tx, id.User, "return"); err != nil {
 			return 0, err
@@ -184,6 +218,9 @@ func (a *Service) Checkpoint(ctx context.Context, id access.Identity, w Welcome,
 	}
 	if err = tx.Commit(ctx); err != nil {
 		return 0, err
+	}
+	if finish {
+		a.lifecycleCommitted(gamesignal.VisitEndedSubject, endedSignal)
 	}
 	return version, nil
 }
