@@ -26,7 +26,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/platform/postgres"
 )
 
-const Version = "0.24.7"
+const Version = "0.24.8"
 
 type Config struct {
 	DatabaseURL, Schema, Addr, CosmicURL, PlanetURL, Journal string
@@ -134,8 +134,12 @@ func New(s *chat.Service, c Config) (*App, error) {
 	}
 	a := &App{Service: s, config: c, instance: chat.UUID(), connections: map[*websocket.Conn]bool{}}
 	a.registry = NewWSRegistry()
-	if c.Dispatcher.Mode == "a1" {
-		a.source = NewLocalWakeSource()
+	if c.Dispatcher.Mode != "legacy" {
+		if c.Dispatcher.Mode == "a2" {
+			a.source = NewPostgresWakeSource(s.DB)
+		} else {
+			a.source = NewLocalWakeSource()
+		}
 		a.dispatcher = NewEventDispatcher(s, a.registry, a.source, c.Dispatcher)
 	}
 	s.PlanetAvailable = func() bool { h := a.Health(); return h.Ready && h.Planet }

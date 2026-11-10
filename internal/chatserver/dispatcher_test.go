@@ -255,7 +255,7 @@ func TestDispatcherFallbackAndShutdown(t *testing.T) {
 	}
 }
 func TestDispatcherConfigCompatibility(t *testing.T) {
-	for _, mode := range []string{"", "legacy", "A1", "a1"} {
+	for _, mode := range []string{"", "legacy", "A1", "a1", "A2", "a2"} {
 		c, e := dispatcherConfig(func(k string) string {
 			if k == "CHAT_DISPATCHER_MODE" {
 				return mode

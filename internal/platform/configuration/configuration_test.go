@@ -162,7 +162,7 @@ func TestChatDispatcherTOMLRemainsExclusive(t *testing.T) {
 url='postgres://test:password@127.0.0.1/game'
 [chat]
 erasure_journal='erasure.log'
-dispatcher_mode='a1'
+dispatcher_mode='a2'
 fallback_poll_interval='10s'
 degraded_poll_interval='2s'
 outbox_overlap='60s'
@@ -172,10 +172,10 @@ outbox_overlap='60s'
 		t.Fatal(e)
 	}
 	c, e := chatserver.LoadConfig(source.Getenv)
-	if e != nil || c.Dispatcher.Mode != "a1" {
+	if e != nil || c.Dispatcher.Mode != "a2" {
 		t.Fatal("dispatcher mapping or environment merge", e)
 	}
 	if _, e = configuration.Load(lookup(map[string]string{configuration.FileVariable: file(t, "[nats]\nenabled=false")}), configuration.Chat); e == nil {
-		t.Fatal("N1 unexpectedly accepts NATS settings")
+		t.Fatal("N2 unexpectedly accepts NATS settings")
 	}
 }

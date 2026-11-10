@@ -136,7 +136,7 @@ TOML**, а не EXE. Каталоги создаются заранее. Для 
 | `chat.maintenance_database_url` | `CHAT_MAINTENANCE_DATABASE_URL` |
 | `chat.runtime_role` | `CHAT_RUNTIME_ROLE` |
 | `chat.definer_role` | `CHAT_DEFINER_ROLE` |
-| `chat.dispatcher_mode` | `CHAT_DISPATCHER_MODE` (Chat 0.24.7+, `legacy`/`a1`) |
+| `chat.dispatcher_mode` | `CHAT_DISPATCHER_MODE` (Chat 0.24.7+, `legacy`/`a1`, с Chat 0.24.8 также `a2`) |
 | `chat.fallback_poll_interval` | `CHAT_FALLBACK_POLL_INTERVAL` (default `10s`) |
 | `chat.degraded_poll_interval` | `CHAT_DEGRADED_POLL_INTERVAL` (default `2s`) |
 | `chat.outbox_overlap` | `CHAT_OUTBOX_OVERLAP` (default `60s`) |
@@ -159,7 +159,7 @@ TOML**, а не EXE. Каталоги создаются заранее. Для 
 `chat.dispatcher_mode = 'a1'` в отдельном TOML Chat либо `CHAT_DISPATCHER_MODE=a1`
 в режиме ENV. После изменения нужен перезапуск только Chat. A1 использует
 локальные уведомления и PostgreSQL fallback; NATS не подключается, секция
-`[nats]` по-прежнему не поддерживается. A2/B1 отвергаются валидатором.
+`[nats]` по-прежнему не поддерживается. С Chat 0.24.8 поддерживается A2 на изолированном стенде, B1 отвергается валидатором.
 
 Нормальный poll: 1–30s; degraded: 500ms–10s, не больше normal; overlap: 60s–10m.
 На N1 остаются отдельные security/scope проверки каждые 2s. Значения 10s/2s/60s
@@ -170,3 +170,22 @@ TOML**, а не EXE. Каталоги создаются заранее. Для 
 в старом общем файле новые параметры не добавляйте. Режим CONFIG_FILE не
 подмешивает ENV, поэтому переключение через ENV при выбранном TOML не сработает.
 Миграций/повторной выдачи SQL-прав нет. [Полный отчёт N1](operations/nats-n1/README.ru.md).
+
+
+### Chat N2: A2 с PostgreSQL, начиная с Chat 0.24.8
+
+Для изолированного теста установите `dispatcher_mode = 'a2'` в существующем
+разделе `[chat]` отдельного TOML Chat, либо `CHAT_DISPATCHER_MODE=a2` при
+неустановленном `CONFIG_FILE`. Остальные параметры 10s/2s/60s сохраняются.
+A2 использует LISTEN на отдельном физическом соединении с прежними DB_SCHEMA
+и SQL-правами; требует session pooling/direct PostgreSQL (transaction pooling
+для LISTEN не подходит). Локальные post-COMMIT wakeups в этом режиме отключены.
+
+A1/A2 независимо от outbox выполняют авторизованный state refresh каждые 30s.
+Это защита текущего UI при поздних COMMIT за пределами overlap и retention,
+а не гарантия доставки каждого hint. Никаких новых TOML/ENV-ключей для этого нет.
+
+A2-триггер Chat не устанавливает; его внедрение через утверждённый механизм
+миграций требует отдельного разрешения. При отсутствии/потере NOTIFY остаётся
+polling. Откат: выбрать `a1` либо `legacy`, перезапустить Chat и лишь затем
+согласовывать SQL DOWN. [Инструкция N2](operations/nats-n2/README.ru.md).

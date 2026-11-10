@@ -9,5 +9,8 @@ func (a *App) Diagnostics() map[string]any {
 	if a.dispatcher != nil {
 		v["dispatcher"] = a.dispatcher.Diagnostics()
 	}
+	if source, ok := a.source.(interface{ Diagnostics() map[string]any }); ok {
+		v["wake_source"] = source.Diagnostics()
+	}
 	return v
 }

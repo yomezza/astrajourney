@@ -37,8 +37,8 @@ func dispatcherConfig(getenv func(string) string) (DispatcherConfig, error) {
 	return c, c.Validate()
 }
 func (c DispatcherConfig) Validate() error {
-	if c.Mode != "legacy" && c.Mode != "a1" {
-		return errors.New("chat.dispatcher_mode / CHAT_DISPATCHER_MODE must be legacy or a1; A2/B1 are not implemented")
+	if c.Mode != "legacy" && c.Mode != "a1" && c.Mode != "a2" {
+		return errors.New("chat.dispatcher_mode / CHAT_DISPATCHER_MODE must be legacy, a1 or a2; B1 is not implemented")
 	}
 	if c.PollInterval < time.Second || c.PollInterval > 30*time.Second || c.DegradedInterval < 500*time.Millisecond || c.DegradedInterval > 10*time.Second || c.DegradedInterval > c.PollInterval || c.Overlap < 60*time.Second || c.Overlap > 10*time.Minute {
 		return errors.New("invalid Chat dispatcher intervals: poll 1s-30s, degraded 500ms-10s and <=poll, overlap 60s-10m")

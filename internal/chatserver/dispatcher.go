@@ -13,25 +13,30 @@ type DispatchBackend interface {
 	OutboxPage(context.Context, chat.DispatchWindow, int64, int64, int) ([]chat.DispatchEvent, error)
 	ResolveRecipients(context.Context, []chat.DispatchEvent, []chat.DispatchConnection) (map[int64]bool, error)
 }
+
+// This is a state-refresh bound, NOT a promise to replay every outbox hint.
+// It does not depend on sequence order, created_at, NOTIFY or outbox retention.
+const stateReconcileInterval = 30 * time.Second
+
 type dispatchCycle struct {
 	window       chat.DispatchWindow
 	after, floor int64
 }
 type EventDispatcher struct {
-	backend                                  DispatchBackend
-	registry                                 *WSRegistry
-	source                                   WakeSource
-	config                                   DispatcherConfig
-	cycle                                    *dispatchCycle
-	highwater                                int64
-	initialized                              bool
-	reconcile                                bool
-	seen                                     map[int64]bool
-	ring                                     []int64
-	ringIndex                                int
-	scans, failures, rows, duplicates, wakes atomic.Uint64
-	water                                    atomic.Int64
-	degraded                                 atomic.Bool
+	backend                                                   DispatchBackend
+	registry                                                  *WSRegistry
+	source                                                    WakeSource
+	config                                                    DispatcherConfig
+	cycle                                                     *dispatchCycle
+	highwater                                                 int64
+	initialized                                               bool
+	reconcile                                                 bool
+	seen                                                      map[int64]bool
+	ring                                                      []int64
+	ringIndex                                                 int
+	scans, failures, rows, duplicates, wakes, reconciliations atomic.Uint64
+	water                                                     atomic.Int64
+	degraded                                                  atomic.Bool
 }
 
 func NewEventDispatcher(b DispatchBackend, r *WSRegistry, s WakeSource, c DispatcherConfig) *EventDispatcher {
@@ -49,7 +54,7 @@ func (d *EventDispatcher) remember(id int64) {
 }
 
 // step processes at most one bounded page. highwater advances only after the
-// entire fixed-window scan succeeds. Late lower IDs are recovered by overlap;
+// entire fixed-window scan succeeds. Overlap handles ordinary late lower IDs;
 // no cursor persists across process restarts (fresh WS always bootstraps).
 func (d *EventDispatcher) step(ctx context.Context) (bool, error) {
 	d.scans.Add(1)
@@ -115,6 +120,9 @@ func (d *EventDispatcher) step(ctx context.Context) (bool, error) {
 			}
 		}
 	}
+	if d.reconcile {
+		d.reconciliations.Add(1)
+	}
 	d.reconcile = false
 	for _, e := range fresh {
 		d.remember(e.ID)
@@ -143,6 +151,7 @@ func (d *EventDispatcher) Run(ctx context.Context) {
 	timer := time.NewTimer(0)
 	defer timer.Stop()
 	var retryAt time.Time
+	nextReconcile := time.Now().Add(stateReconcileInterval)
 	dirty := false
 	for {
 		select {
@@ -162,6 +171,16 @@ func (d *EventDispatcher) Run(ctx context.Context) {
 			timer.Reset(left)
 			continue
 		}
+		if source, ok := d.source.(interface{ TakeReconcile() bool }); ok && source.TakeReconcile() {
+			d.reconcile = true
+			d.cycle = nil
+		}
+		// A lower ID may commit arbitrarily late, beyond overlap, or its hint
+		// may have been pruned. Re-authorize all current sessions and ask their
+		// existing HTTP client to reload current state independently of hints.
+		if !time.Now().Before(nextReconcile) {
+			d.reconcile = true
+		}
 		// A wake consumed while paging must cause a NEW window after this one,
 		// not be lost as just a continuation of a pre-commit max(id) snapshot.
 		if d.cycle == nil {
@@ -179,6 +198,9 @@ func (d *EventDispatcher) Run(ctx context.Context) {
 			retryAt = time.Now().Add(d.config.DegradedInterval)
 			next = d.config.DegradedInterval
 		} else {
+			if !d.reconcile && !time.Now().Before(nextReconcile) {
+				nextReconcile = time.Now().Add(stateReconcileInterval)
+			}
 			d.degraded.Store(!d.source.Healthy())
 			if backlog || dirty {
 				next = time.Millisecond
@@ -186,9 +208,12 @@ func (d *EventDispatcher) Run(ctx context.Context) {
 				next = d.config.DegradedInterval
 			}
 		}
+		if !d.reconcile {
+			next = min(next, max(time.Millisecond, time.Until(nextReconcile)))
+		}
 		timer.Reset(next)
 	}
 }
 func (d *EventDispatcher) Diagnostics() map[string]any {
-	return map[string]any{"scans": d.scans.Load(), "scan_errors": d.failures.Load(), "rows": d.rows.Load(), "deduplicated_rows": d.duplicates.Load(), "wakes": d.wakes.Load(), "highwater": d.water.Load(), "degraded": d.degraded.Load()}
+	return map[string]any{"scans": d.scans.Load(), "scan_errors": d.failures.Load(), "rows": d.rows.Load(), "deduplicated_rows": d.duplicates.Load(), "wakes": d.wakes.Load(), "highwater": d.water.Load(), "degraded": d.degraded.Load(), "state_reconciliations": d.reconciliations.Load(), "state_reconcile_interval_seconds": stateReconcileInterval.Seconds()}
 }

@@ -306,13 +306,20 @@ func eventuallyN1(t *testing.T, f func() bool) {
 	}
 }
 func n1App(t *testing.T, f *fixture033, mode string, listener net.Listener) (*chatserver.App, *chat.Service, string, string) {
+	a, s, url, origin, _ := chatTestApp(t, f, mode, listener)
+	return a, s, url, origin
+}
+func chatTestApp(t *testing.T, f *fixture033, mode string, listener net.Listener, settings ...func(*chatserver.Config)) (*chatserver.App, *chat.Service, string, string, func()) {
+	return chatTestAppJournal(t, f, mode, listener, filepath.Join(t.TempDir(), "journal"), settings...)
+}
+func chatTestAppJournal(t *testing.T, f *fixture033, mode string, listener net.Listener, journalPath string, settings ...func(*chatserver.Config)) (*chatserver.App, *chat.Service, string, string, func()) {
 	t.Helper()
 	health := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]string{"status": "ready"})
 	}))
 	t.Cleanup(health.Close)
 	s := &chat.Service{DB: f.db}
-	j, e := chat.OpenJournal(f.ctx, s, filepath.Join(t.TempDir(), "journal"))
+	j, e := chat.OpenJournal(f.ctx, s, journalPath)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -324,10 +331,13 @@ func n1App(t *testing.T, f *fixture033, mode string, listener net.Listener) (*ch
 			t.Fatal(e)
 		}
 	}
-	cfg := chatserver.Config{DatabaseURL: "test", Journal: "test", Addr: listener.Addr().String(), CosmicURL: health.URL, PlanetURL: health.URL, Origins: []string{health.URL}, Dispatcher: chatserver.DefaultDispatcherConfig()}
+	cfg := chatserver.Config{DatabaseURL: "test", Journal: journalPath, Addr: listener.Addr().String(), CosmicURL: health.URL, PlanetURL: health.URL, Origins: []string{health.URL}, Dispatcher: chatserver.DefaultDispatcherConfig()}
 	cfg.Dispatcher.Mode = mode
 	cfg.Dispatcher.PollInterval = time.Second
 	cfg.Dispatcher.DegradedInterval = 500 * time.Millisecond
+	for _, setting := range settings {
+		setting(&cfg)
+	}
 	a, e := chatserver.New(s, cfg)
 	if e != nil {
 		t.Fatal(e)
@@ -337,23 +347,37 @@ func n1App(t *testing.T, f *fixture033, mode string, listener net.Listener) (*ch
 	started := make(chan struct{})
 	go func() { done <- a.Serve(ctx, listener, func() { close(started) }) }()
 	<-started
-	t.Cleanup(func() {
-		cancel()
-		select {
-		case e := <-done:
-			if e != nil {
-				t.Error(e)
+	var stopOnce sync.Once
+	stop := func() {
+		stopOnce.Do(func() {
+			cancel()
+			select {
+			case e := <-done:
+				if e != nil {
+					t.Error(e)
+				}
+			case <-time.After(10 * time.Second):
+				t.Error("Chat shutdown timeout")
 			}
-		case <-time.After(10 * time.Second):
-			t.Error("Chat shutdown timeout")
-		}
-	})
-	return a, s, "http://" + listener.Addr().String(), health.URL
+			j.Close()
+		})
+	}
+	t.Cleanup(stop)
+	if mode == "a2" {
+		eventuallyN1(t, func() bool { return a.Diagnostics()["wake_source"].(map[string]any)["healthy"].(bool) })
+	}
+	return a, s, "http://" + listener.Addr().String(), health.URL, stop
 }
 func TestChatN1SocketFallbackScopeAndReconnect(t *testing.T) {
+	testChatN1SocketFallbackScopeAndReconnect(t, "a1")
+}
+func testChatN1SocketFallbackScopeAndReconnect(t *testing.T, mode string) {
 	t.Setenv("CHAT_ENABLED", "true")
 	f := newFixture033(t)
-	a, _, url, origin := n1App(t, f, "a1", nil)
+	if mode == "a2" {
+		n2SQL(t, f, "up")
+	}
+	a, _, url, origin := n1App(t, f, mode, nil)
 	cookie, id := f.signup("n1socket")
 	c := n1Dial(t, url, origin, cookie.Value)
 	eventuallyN1(t, func() bool { return c.syncs.Load() > 0 })
@@ -377,6 +401,21 @@ func TestChatN1SocketFallbackScopeAndReconnect(t *testing.T) {
 	})
 	fresh := n1Dial(t, url, origin, cookie.Value)
 	eventuallyN1(t, func() bool { return fresh.syncs.Load() > 0 })
+	if mode == "a2" {
+		// A stale socket must not release the replacement generation's lease.
+		f.exec(`UPDATE chat_ws_leases SET generation=generation+1 WHERE user_id=$1`, id)
+		select {
+		case <-fresh.closed:
+		case <-time.After(4 * time.Second):
+			t.Fatal("stale generation remained connected")
+		}
+		if f.integer(`SELECT count(*) FROM chat_ws_leases WHERE user_id=$1 AND expires_at>clock_timestamp()`, id) != 1 {
+			t.Fatal("old socket released the new generation")
+		}
+		f.exec(`UPDATE chat_ws_leases SET expires_at=clock_timestamp()-interval '1 second' WHERE user_id=$1`, id)
+		fresh = n1Dial(t, url, origin, cookie.Value)
+		eventuallyN1(t, func() bool { return fresh.syncs.Load() > 0 })
+	}
 	f.exec(`UPDATE sessions SET expires_at=clock_timestamp()-interval '1 second' WHERE user_id=$1`, id)
 	select {
 	case <-fresh.closed:
@@ -422,15 +461,19 @@ func (l *n1Listener) Accept() (net.Conn, error) {
 	}
 	return c, nil
 }
-func TestChatN1SlowWriterIsolation(t *testing.T) {
+func TestChatN1SlowWriterIsolation(t *testing.T) { testChatN1SlowWriterIsolation(t, "a1") }
+func testChatN1SlowWriterIsolation(t *testing.T, mode string) {
 	t.Setenv("CHAT_ENABLED", "true")
 	f := newFixture033(t)
+	if mode == "a2" {
+		n2SQL(t, f, "up")
+	}
 	listener, e := net.Listen("tcp", "127.0.0.1:0")
 	if e != nil {
 		t.Fatal(e)
 	}
 	wrapped := &n1Listener{Listener: listener, first: make(chan *n1BlockedConn, 1)}
-	_, _, url, origin := n1App(t, f, "a1", wrapped)
+	_, _, url, origin := n1App(t, f, mode, wrapped)
 	slowCookie, _ := f.signup("n1slow")
 	healthyCookie, _ := f.signup("n1healthy")
 	slow := n1Dial(t, url, origin, slowCookie.Value)
@@ -451,13 +494,17 @@ func TestChatN1SlowWriterIsolation(t *testing.T) {
 	}
 }
 
-func TestChatN1SQLFailureRecovery(t *testing.T) {
+func TestChatN1SQLFailureRecovery(t *testing.T) { testChatN1SQLFailureRecovery(t, "a1") }
+func testChatN1SQLFailureRecovery(t *testing.T, mode string) {
 	t.Setenv("CHAT_ENABLED", "true")
 	f := newFixture033(t)
+	if mode == "a2" {
+		n2SQL(t, f, "up")
+	}
 	pool, role, _ := n1RuntimePool(t, f)
 	copyFixture := *f
 	copyFixture.db = pool
-	a, _, url, origin := n1App(t, &copyFixture, "a1", nil)
+	a, _, url, origin := n1App(t, &copyFixture, mode, nil)
 	cookie, id := f.signup("n1sqlfailure")
 	client := n1Dial(t, url, origin, cookie.Value)
 	eventuallyN1(t, func() bool { return client.syncs.Load() > 0 })

@@ -11,7 +11,9 @@ allowed_origins = ['http://192.168.111.44:8080']
 # Путь относительно TOML; заранее создайте каталог и сохраните старый журнал.
 erasure_journal = '../data/chat-erasure.log'
 
-# Chat 0.24.7+: legacy remains the default; a1 is an opt-in N1 experiment.
+# Chat 0.24.8: legacy (default), a1 (local wake), a2 (PostgreSQL LISTEN).
+# A2 is test-only until separate approval of the DBA trigger/migration rollout.
+# No trigger is installed by this executable; polling remains mandatory.
 # Use a separate Chat config: older Cosmic/Planet EXEs reject these new keys.
 dispatcher_mode = 'legacy'
 fallback_poll_interval = '10s'

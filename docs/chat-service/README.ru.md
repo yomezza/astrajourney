@@ -23,7 +23,7 @@ $env:COSMIC_INTERNAL_URL = 'http://127.0.0.1:8080'
 $env:PLANET_INTERNAL_URL = 'http://127.0.0.1:8081'
 $env:CHAT_ALLOWED_ORIGINS = 'http://YOUR_GAME_HOST:8080'
 $env:CHAT_ERASURE_JOURNAL = 'C:\Cosmosimulator\data\chat-erasure.log'
-.\downloads\cosmosimulator-chat-v0.24.7-windows-amd64.exe
+.\downloads\cosmosimulator-chat-v0.24.8-windows-amd64.exe
 ```
 
 Каталог журнала должен существовать. Служебному аккаунту Windows нужен доступ к файлу; другим аккаунтам доступ ограничить. Браузер обращается к Cosmic `/chat/api/v1/*` и `/chat/ws/v1`; открывать порт 8082 наружу не требуется. В Cosmic при необходимости задать `CHAT_INTERNAL_URL`. Для сайта за HTTPS указывать точный HTTPS Origin. `DATABASE_URL` используется как запасной адрес Chat, если не задан `CHAT_DATABASE_URL`.
@@ -31,7 +31,7 @@ $env:CHAT_ERASURE_JOURNAL = 'C:\Cosmosimulator\data\chat-erasure.log'
 SCM поддерживается с именем `CosmosimulatorChat`:
 
 ```powershell
-sc.exe create CosmosimulatorChat binPath= 'C:\Cosmosimulator\cosmosimulator-chat-v0.24.7-windows-amd64.exe' start= auto
+sc.exe create CosmosimulatorChat binPath= 'C:\Cosmosimulator\cosmosimulator-chat-v0.24.8-windows-amd64.exe' start= auto
 sc.exe start CosmosimulatorChat
 ```
 
@@ -106,7 +106,7 @@ CREATE ROLE chat_definer NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE;
 ```powershell
 $env:CHAT_RUNTIME_ROLE = 'chat_runtime'
 $env:CHAT_DEFINER_ROLE = 'chat_definer'
-.\cosmosimulator-chat-v0.24.7-windows-amd64.exe --grant-runtime
+.\cosmosimulator-chat-v0.24.8-windows-amd64.exe --grant-runtime
 ```
 
 Команда выдаёт права на чат, ограниченное чтение игровых данных и EXECUTE на защищённые функции. Владельцем этих функций становится отдельная NOLOGIN-роль; PUBLIC execute отозван, `search_path` фиксирован. Логин runtime не получает UPDATE пользователей, корпораций, присутствия или fences и не читает пароли/сессии напрямую. После команды убрать DBA-реквизиты из окружения Chat. При последующих миграциях DBA/migration-роль должна иметь право заменять функции, принадлежащие `chat_definer`; повторить выдачу прав после обновления контракта.
@@ -119,7 +119,7 @@ Chat runtime не выполняет DDL. Запланировать ежедн�
 
 ```powershell
 $env:CHAT_MAINTENANCE_DATABASE_URL = 'postgres://PARTITION_OWNER:YOUR_PASSWORD@127.0.0.1:5432/YOUR_DATABASE?sslmode=disable'
-.\cosmosimulator-chat-v0.24.7-windows-amd64.exe --maintain
+.\cosmosimulator-chat-v0.24.8-windows-amd64.exe --maintain
 ```
 
 Она создаёт дневные секции на 14 дней и недельные на 8 недель вперёд, удаляет полностью просроченные пустые секции. Владельцу обслуживания нужны права на родительские таблицы/секции и CREATE в выбранной схеме; это **не** runtime-логин. Опционально `CHAT_MAINTENANCE_DATABASE_URL` запускает обслуживание внутри процесса раз в час; для строгого разделения реквизитов использовать отдельную задачу. Без обслуживания начальный запас секций закончится, отправка сообщений будет отклонена; не заменять эту ошибку записью в произвольную секцию.
@@ -150,3 +150,26 @@ WS lease; HTTP/WS протокол и SQL read/write ACL сохранены. `[n
 Новые параметры нельзя добавлять в общий файл, используемый прежними EXE
 Cosmic/Planet: их строгий decoder не знает этих полей. Для Chat нужна отдельная
 копия TOML. [Отчёт, измерения и проверки](../operations/nats-n1/README.ru.md).
+
+
+## PostgreSQL LISTEN/NOTIFY N2 (Chat 0.24.8)
+
+Добавлен `dispatcher_mode = 'a2'` в существующую секцию `[chat]` отдельного
+TOML Chat; в ENV-режиме — `CHAT_DISPATCHER_MODE=a2`. `legacy` остаётся default,
+`a1` сохранён. NATS и `[nats]` не подключены.
+
+A2 использует один выделенный PostgreSQL-сеанс, канал
+`cosmos_chat_<md5(DB_SCHEMA)>`, переподписку и обязательный резервный polling.
+Пустой NOTIFY только будит прежний общий диспетчер; ACL остаются в SQL.
+Каждые 30s A1/A2 дополнительно перепроверяют действующие session/WS lease
+и отправляют общий `sync`, чтобы восстановить текущее состояние даже при
+позднем COMMIT вне overlap. Это не replay каждого исторического события.
+
+**N2 разрешён только на изолированном стенде.** Chat не создаёт A2 SQL-объекты.
+Проект DBA-триггера требует отдельного согласованного внедрения владельцем
+миграций; действующая цепочка Cosmic не изменена. Без триггера LISTEN может
+зарегистрироваться, но сообщения обнаруживаются только polling. Поле
+`wake_source.healthy` в логах означает зарегистрированное соединение,
+а не подтверждённую установку или доставку от триггера.
+
+[Полный отчёт, функциональные проверки и rollback](../operations/nats-n2/README.ru.md).

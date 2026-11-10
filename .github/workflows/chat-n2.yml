@@ -1,0 +1,50 @@
+name: Chat N2 functional PostgreSQL checks
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'internal/chat/**'
+      - 'internal/chatserver/**'
+      - 'internal/platform/configuration/**'
+      - 'internal/server/integration/chat_n*.go'
+      - 'docs/ideas/nats-event-bus/dba/sql/notify-*.sql'
+      - '.github/workflows/chat-n2.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  functional:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: cosmos
+          POSTGRES_PASSWORD: test-only
+          POSTGRES_DB: cosmos_n2_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U cosmos -d cosmos_n2_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgres://cosmos:test-only@127.0.0.1:5432/cosmos_n2_test?sslmode=disable
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Unit, config and race
+        run: go test -race ./internal/chatserver ./internal/chat ./internal/platform/configuration
+      - name: Functional A2, late commits and rollback (no benchmarks)
+        run: |
+          set -o pipefail
+          go test -race ./internal/server/integration \
+            -run '^(TestChatN2.*|TestChatN1(RecipientsAndPostCommit|SocketFallbackScopeAndReconnect|SQLFailureRecovery)|TestChat240(Transactions|RestrictedRole|LateCommittedOutbox))$' \
+            -count=1 -timeout=9m -v | tee chat-n2-functional.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: chat-n2-functional
+          path: chat-n2-functional.log
