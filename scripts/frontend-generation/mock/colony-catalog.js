@@ -134,7 +134,7 @@ export function mountColonyCatalog(root, data, options) {
       options.onLoadError?.(error);
     }finally{
       state.pending.delete(key);
-      if(state.serial===serial&&state.request===request&&String(state.selected)===String(p.id))renderDetail();
+      if(state.serial===serial&&root.isConnected&&String(state.selected)===String(p.id))renderDetail();
     }
   }
   function renderEntries(){
