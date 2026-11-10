@@ -138,7 +138,7 @@ export function mountColonyCatalog(root, data, options) {
       options.onLoadError?.(error);
     }finally{
       state.pending.delete(key);
-      if(state.serial===serial&&root.isConnected&&String(state.selected)===String(p.id))renderDetail();
+      if(state.serial===serial&&root.isConnected&&String(state.selected)===String(p.id))state.renderDetail?.();
     }
   }
   function renderEntries(){
@@ -165,6 +165,7 @@ export function mountColonyCatalog(root, data, options) {
     if(!filtered.length)entries.append(node("p","muted",projects.length?tr("Ничего не найдено"):tr("Нет доступных колоний или проектов колонизации")));
     entries.scrollTop=oldScroll;
   }
+  state.renderDetail=renderDetail;
   search.addEventListener("input",()=>{state.query=search.value;renderEntries();});
   renderEntries();entries.scrollTop=state.scroll||0;renderDetail();
   if(restoreFocus){
