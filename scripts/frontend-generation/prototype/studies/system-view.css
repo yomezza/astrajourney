@@ -32,18 +32,31 @@
   flex:1 1 auto;min-height:165px;min-width:0;width:100%;
   overflow-x:auto;overflow-y:auto;overscroll-behavior-x:contain;
   scrollbar-color:#516c7e #14222d;scrollbar-width:thin;
-  background:radial-gradient(ellipse at 46% 45%,#193342 0,#101e2b 55%,#101820 95%);
+  /* Ordered front-to-back: fine coordinate grid, distant stars, soft nebula, space. */
+  background-color:#080f19;
+  background-image:
+    linear-gradient(to right,#7db3c21b 1px,transparent 1px),
+    linear-gradient(to bottom,#7db3c21b 1px,transparent 1px),
+    radial-gradient(circle at 14% 23%,#d7f4ffbd 0 1px,transparent 1.7px),
+    radial-gradient(circle at 63% 72%,#c4e4ff9c 0 1px,transparent 1.8px),
+    radial-gradient(circle at 83% 38%,#b5d4ed99 0 1px,transparent 1.7px),
+    radial-gradient(circle at 38% 83%,#e3f7ff88 0 1px,transparent 1.7px),
+    radial-gradient(ellipse at 38% 46%,#24516a70 0,transparent 56%),
+    radial-gradient(ellipse at 83% 72%,#49345a4d 0,transparent 49%),
+    linear-gradient(130deg,#07111c,#102334 56%,#080f19);
+  background-size:64px 64px,64px 64px,263px 197px,337px 251px,
+    401px 293px,487px 349px,100% 100%,100% 100%,100% 100%;
   border-top:1px solid #345367;border-bottom:1px solid #345367;
   outline-offset:-3px;
 }
 .research-system-view .research-system-scroll:focus-visible{outline:2px solid #78c7d9}
 .research-system-view .research-system-lineup{
-  display:flex;gap:9px;align-items:center;
+  display:flex;gap:26px;align-items:center;
   width:max-content;min-width:100%;min-height:100%;
-  padding:20px 22px 28px;position:relative;
+  padding:26px 32px 36px;position:relative;
 }
 .research-system-view .research-system-object{
-  width:148px;min-width:148px;flex:0 0 148px;
+  width:260px;min-width:260px;flex:0 0 260px;
   display:flex;flex-direction:column;align-items:center;
 }
 .research-system-view .research-system-object-trigger{
@@ -61,13 +74,32 @@
   outline:2px solid #78c7d9;outline-offset:0;
 }
 .research-system-view .research-system-art{
-  width:140px;height:150px;display:flex;align-items:center;justify-content:center;
+  width:250px;height:270px;display:flex;align-items:center;justify-content:center;
   overflow:hidden;contain:layout paint;
   transition:transform .18s ease,filter .18s ease;
 }
 .research-system-view .research-system-art img{
-  display:block;width:140px;height:140px;object-fit:contain;
+  display:block;width:250px;height:250px;object-fit:contain;
   background:transparent;border:0;pointer-events:none;user-select:none;
+}
+/* Stars and resource fields have their own legible visual scale. */
+.research-system-view .research-system-object[data-kind="Звезда"]{
+  width:330px;min-width:330px;flex-basis:330px;
+}
+.research-system-view .research-system-object[data-kind="Звезда"] .research-system-art{
+  width:320px;height:340px;
+}
+.research-system-view .research-system-object[data-kind="Звезда"] .research-system-art img{
+  width:320px;height:320px;
+}
+.research-system-view .research-system-object:is([data-kind="Пояс астероидов"],[data-kind="Ледяное поле"]){
+  width:290px;min-width:290px;flex-basis:290px;
+}
+.research-system-view .research-system-object:is([data-kind="Пояс астероидов"],[data-kind="Ледяное поле"]) .research-system-art{
+  width:280px;height:300px;
+}
+.research-system-view .research-system-object:is([data-kind="Пояс астероидов"],[data-kind="Ледяное поле"]) .research-system-art img{
+  width:280px;height:280px;
 }
 .research-system-view .research-system-object-trigger:hover .research-system-art,
 .research-system-view .research-system-object-trigger:focus-visible .research-system-art{
@@ -112,17 +144,29 @@
 .study-detail-actions{display:flex;flex-wrap:wrap;gap:6px}
 .study-entry .study-entry-actions>button{white-space:nowrap}
 @media(max-width:760px){
-  .research-system-view .research-system-object{width:124px;min-width:124px;flex-basis:124px}
-  .research-system-view .research-system-art{width:118px;height:128px}
-  .research-system-view .research-system-art img{width:118px;height:118px}
-  .research-system-view .research-system-lineup{padding:12px 12px 22px;gap:7px}
+  .research-system-view .research-system-object{width:210px;min-width:210px;flex-basis:210px}
+  .research-system-view .research-system-art{width:200px;height:220px}
+  .research-system-view .research-system-art img{width:200px;height:200px}
+  .research-system-view .research-system-object[data-kind="Звезда"]{width:270px;min-width:270px;flex-basis:270px}
+  .research-system-view .research-system-object[data-kind="Звезда"] .research-system-art{width:260px;height:280px}
+  .research-system-view .research-system-object[data-kind="Звезда"] .research-system-art img{width:260px;height:260px}
+  .research-system-view .research-system-object:is([data-kind="Пояс астероидов"],[data-kind="Ледяное поле"]){width:230px;min-width:230px;flex-basis:230px}
+  .research-system-view .research-system-object:is([data-kind="Пояс астероидов"],[data-kind="Ледяное поле"]) .research-system-art{width:220px;height:240px}
+  .research-system-view .research-system-object:is([data-kind="Пояс астероидов"],[data-kind="Ледяное поле"]) .research-system-art img{width:220px;height:220px}
+  .research-system-view .research-system-lineup{padding:18px 20px 26px;gap:18px}
   .research-system-view .research-system-top{gap:8px}
   .research-system-view .research-system-top h3{font-size:15px}
 }
 @media(max-width:420px){
-  .research-system-view .research-system-object{width:111px;min-width:111px;flex-basis:111px}
-  .research-system-view .research-system-art{width:106px;height:116px}
-  .research-system-view .research-system-art img{width:104px;height:104px}
+  .research-system-view .research-system-object{width:185px;min-width:185px;flex-basis:185px}
+  .research-system-view .research-system-art{width:175px;height:195px}
+  .research-system-view .research-system-art img{width:175px;height:175px}
+  .research-system-view .research-system-object[data-kind="Звезда"]{width:235px;min-width:235px;flex-basis:235px}
+  .research-system-view .research-system-object[data-kind="Звезда"] .research-system-art{width:225px;height:245px}
+  .research-system-view .research-system-object[data-kind="Звезда"] .research-system-art img{width:225px;height:225px}
+  .research-system-view .research-system-object:is([data-kind="Пояс астероидов"],[data-kind="Ледяное поле"]){width:205px;min-width:205px;flex-basis:205px}
+  .research-system-view .research-system-object:is([data-kind="Пояс астероидов"],[data-kind="Ледяное поле"]) .research-system-art{width:195px;height:215px}
+  .research-system-view .research-system-object:is([data-kind="Пояс астероидов"],[data-kind="Ледяное поле"]) .research-system-art img{width:195px;height:195px}
   .research-system-view .research-system-object-name{font-size:11px}
   .study-entry-actions{justify-content:start}
 }
