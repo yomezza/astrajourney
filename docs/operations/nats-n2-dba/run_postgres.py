@@ -371,6 +371,20 @@ def d14():
                 "users_write_denied": denied, "security_definer": fn}
 
 
+def d15():
+    # Existing Chat Service: Authenticate, Claim, Changes, Execute, History
+    # through the restricted pg role while A2 trigger is installed. No LISTEN.
+    proc = subprocess.run(
+        ["go", "run", "docs/operations/nats-n2-dba/legacy.go"],
+        cwd=ROOT, capture_output=True, text=True, timeout=140, env=os.environ.copy()
+    )
+    if proc.returncode != 0:
+        raise RuntimeError("Legacy Chat A2 compatibility failed: " + proc.stderr[-1700:])
+    assert "D15 legacy PASS" in proc.stdout
+    return {"native_go": proc.stdout.strip(), "runtime_role": "chat_runtime",
+            "listening": False}
+
+
 def d21_partial():
     with connect() as c:
         rid = c.execute("INSERT INTO chat_outbox(event_kind,created_at) "
@@ -529,11 +543,10 @@ def main():
        ("D01",d01),("D02",d02),("D03",d03),("D04",d04),
        ("D05",d05),("D06",d06),("D07",lambda:late_test(0)),
        ("D08",lambda:late_test(70.7)),("D09",d09),("D10",d10),
-       ("D11",d11),("D12",d12),("D13",d13),("D14",d14),
+       ("D11",d11),("D12",d12),("D13",d13),("D14",d14),("D15",d15),
     ]:
         case(cid, fn)
     for cid, why in [
-       ("D15","Legacy Chat binary against same A2-enabled schema not exercised; separate baseline Go regression follows"),
        ("D16","End-to-end company role change with A2 trigger and live WS requires N2 Go adapter"),
        ("D17","End-to-end corporation deletion/cleanup with A2 trigger requires N2 Go adapter"),
        ("D18","Planet sector transition and N2 WS adapter not implemented"),
