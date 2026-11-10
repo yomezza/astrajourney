@@ -1,6 +1,12 @@
 // This adds *only* the approved studies v13 overlay and a chat preview entry.
 // All other module markup, CSS and interactions are the ORIGINAL web client.
 import { Modules } from '/ui/runtime.js';
+import { Session } from '/core/session.js';
+import { I18n } from '/core/i18n.js';
+import { api } from '/core/api.js';
+import { world, loadWorld } from '/core/world-store.js';
+import { loadPlanet } from '/features/planet/loader.js';
+import { mountColonyCatalog, clearColonyCatalog } from '/mock/colony-catalog.js';
 
 let studiesRoot;
 function openResearch() {
@@ -90,3 +96,63 @@ const bootUiLab=()=>import('/mock/ui-lab/lab.js')
   .catch(error=>console.error('[Cosmosimulator UI/UX]',error));
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootUiLab);
 else bootUiLab();
+
+// Reuse the same catalogue component as production, with existing demo RAM API.
+// The archived original-web code is intentionally left untouched.
+const colonyCSS=document.createElement('link');
+colonyCSS.rel='stylesheet';colonyCSS.href='/mock/colony-catalog.css';
+document.head.append(colonyCSS);
+let colonyTicket=0, colonyObserver=null, colonyRendering=false;
+async function openColonyCatalogue(background=false){
+  const ticket=++colonyTicket, session=Session.epoch;
+  try{
+    const [data, planet]=await Promise.all([api('planet/projects'),loadPlanet()]);
+    if(!world.data)await loadWorld().catch(()=>null);
+    if(ticket!==colonyTicket||session!==Session.epoch||!Session.signedIn)return;
+    if(background&&!Modules.isOpen('colonies'))return;
+    const root=Modules.create('colonies','Колонии',950,700);
+    colonyRendering=true;
+    try{
+      mountColonyCatalog(root,data,{
+        language:()=>I18n.language,
+        assetBase:'/',
+        starName:id=>world.stars.get(Number(id))?.name||'',
+        translateKind:kind=>I18n.t(kind),
+        loadSystem:id=>api('system?id='+encodeURIComponent(id)),
+        resourceName:id=>Session.data.expedition?.resources?.find(r=>r.id===id)?.name||id,
+        onProject:id=>planet.project(id),
+        onSurface:(star,site)=>planet.open(star,site),
+        onVisit:()=>import('/features/planet/visit.js').then(x=>x.openVisit()),
+        onRefund:async refund=>{
+          try{
+            await api('planet/action',{action:'claim_refund',id:refund.id,
+              request:Array.from(crypto.getRandomValues(new Uint32Array(4)),x=>x.toString(16)).join('-')});
+            await openColonyCatalogue();
+          }catch(error){console.error('[Colonies]',error);}
+        }
+      });
+    }finally{colonyRendering=false;}
+    if(!colonyObserver){
+      colonyObserver=new MutationObserver(()=>{
+        if(!colonyRendering && Modules.isOpen('colonies') &&
+          root.isConnected && !root.querySelector('.colony-catalog-layout'))
+          openColonyCatalogue(true).catch(console.error);
+      });
+      colonyObserver.observe(root,{childList:true});
+    }
+    if(!background)Modules.open('colonies');
+  }catch(error){console.error('[Cosmosimulator Colonies]',error);}
+}
+document.addEventListener('click',event=>{
+  const button=event.target.closest?.('#nav-colonies');
+  if(!button)return;
+  event.preventDefault();event.stopImmediatePropagation();
+  openColonyCatalogue();
+},true);
+window.addEventListener('languagechange',()=>{if(Modules.isOpen('colonies'))openColonyCatalogue(true);});
+window.addEventListener('signedout',()=>{
+  colonyTicket++;
+  colonyObserver?.disconnect();colonyObserver=null;
+  const root=document.querySelector('#window-colonies .module-content');
+  if(root)clearColonyCatalog(root);
+});
