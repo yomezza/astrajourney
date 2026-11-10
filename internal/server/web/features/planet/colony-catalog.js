@@ -42,7 +42,11 @@ export function mountColonyCatalog(root, data, options) {
   if(!projects.some(p=>String(p.id)===String(state.selected)))
     state.selected=projects.length?projects[0].id:null;
   state.request++;
-  const request=state.request;
+  const oldSearch=root.querySelector(".colony-catalog-search");
+  const restoreFocus=document.activeElement===oldSearch;
+  const cursor=restoreFocus?oldSearch.selectionStart:null;
+  const oldList=root.querySelector(".colony-catalog-entries");
+  if(oldList)state.scroll=oldList.scrollTop;
   root.classList.add("colony-catalog-root");
   root.replaceChildren();
   const header=node("div","colony-catalog-heading");
@@ -162,7 +166,11 @@ export function mountColonyCatalog(root, data, options) {
     entries.scrollTop=oldScroll;
   }
   search.addEventListener("input",()=>{state.query=search.value;renderEntries();});
-  renderEntries();renderDetail();
+  renderEntries();entries.scrollTop=state.scroll||0;renderDetail();
+  if(restoreFocus){
+    search.focus({preventScroll:true});
+    if(cursor!==null)search.setSelectionRange(cursor,cursor);
+  }
   return {select:id=>{state.selected=id;renderEntries();renderDetail();}};
 }
 export function clearColonyCatalog(root){const s=views.get(root);if(s){s.serial++;views.delete(root);}}
