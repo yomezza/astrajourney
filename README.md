@@ -166,12 +166,15 @@ python3 scripts/build-release.py v0.24.13
 
 ## Документация
 
+- [Навигатор по документации](docs/README.md)
+- [Реестр идей и концепций](docs/ideas/README.md)
+- [ИИ-разработчикам: промпты и передача контекста](ai/README.md)
 - [Изменения версии 0.23.0](release-notes/v0.23.0.md) и [предыдущие выпуски](release-notes/)
 - [Установка и эксплуатация планетарного режима](docs/planetary/P2-10/README.ru.md)
 - [Документация планетарного режима](docs/planetary/README.ru.md)
 - [Архитектура Go-сервера](docs/refactoring/server/README.ru.md)
 - [Архитектура браузерного интерфейса](docs/refactoring/ui/IMPLEMENTATION-0.13.0.ru.md)
-- [Реестр идей и принятых решений](docs/roadmap/README.md)
+- [Планы и ранее принятые решения](docs/roadmap/README.md)
 - [Прежняя подробная версия README (архив)](docs/archive/README-0.23.0-before-rewrite.md)
 
 Исходные заметки о механиках и старых этапах оставлены в документации и архивном README. Описания будущих функций не следует принимать за возможности текущей версии.
