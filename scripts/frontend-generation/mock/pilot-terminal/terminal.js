@@ -6,7 +6,7 @@ import {createFleet} from "./fixtures.js";
 import {TYPES,LABELS,MAX_WORKSPACES,seeded,empty,newWorkspace,newInstance,
         duplicateWorkspace,validName,graphemes,validateState,resolveShip,windowId} from "./model.js";
 import {renderModule} from "./modules.js";
-import "./terminal.css";
+
 const make=(tag,label,cls)=>{
   const n=document.createElement(tag);
   if(label!==undefined&&label!==null)n.textContent=String(label);
@@ -351,6 +351,10 @@ export function openPilotTerminal(){
 }
 export function initPilotTerminal(){
   if(document.querySelector("[data-pilot-terminal-open]"))return;
+  if(!document.getElementById("pt-demo-css")){
+    const link=make("link");link.id="pt-demo-css";link.rel="stylesheet";link.href="/mock/pilot-terminal/terminal.css";
+    document.head.append(link);
+  }
   const nav=document.querySelector("#sidebar");
   if(!nav)return;
   const b=make("button",null,"pt-sidebar-entry");b.type="button";
