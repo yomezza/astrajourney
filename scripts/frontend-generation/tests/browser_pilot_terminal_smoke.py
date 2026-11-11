@@ -84,7 +84,7 @@ def run():
         page.locator(".pt-context select").select_option("82")
         assert "#41" in page.locator('dialog[id^="window-ptdemo-u"]:has(.pt-ship-art)').inner_text()
         assert "Биомасса" not in cargoWindow.inner_text() # RUDA category is still in effect
-        assert "Нет ресурсов" in cargoWindow.inner_text()
+        assert "Медь" in cargoWindow.inner_text() and "Железо" not in cargoWindow.inner_text()
         mining=page.locator('dialog[id^="window-ptdemo-u"]:has(.pt-mining-site)')
         assert "Альтаир" in mining.inner_text()
         beforeAction=len(forbidden)
@@ -112,6 +112,23 @@ def run():
         terminal.get_by_role("button",name="Дублировать").click()
         assert page.locator(".pt-tab").count()==3
         page.screenshot(path=str(OUT/"terminal-desktop.png"))
+
+        # PT09: both mock-account scopes survive independent switching.
+        terminal.get_by_role("button",name="Mock аккаунт: A").click()
+        assert page.locator(".pt-tab").count()==2,"PT09: B reused A's spaces"
+        page.locator(".pt-terminal").get_by_role("button",name="Mock аккаунт: B").click()
+        assert page.locator(".pt-tab").count()==3,"PT09: A did not recover its saved spaces"
+
+        # PT05: 10 workspaces allowed; 11th disabled. Prompts are demo-only.
+        prompts=iter(range(4,11))
+        page.on("dialog",lambda dialog:dialog.accept("Workspace "+str(next(prompts))))
+        for _ in range(7):
+            page.locator(".pt-workspace-tabs > button").last.click()
+        assert page.locator(".pt-tab").count()==10
+        assert page.locator(".pt-workspace-tabs > button").last.is_disabled(),(
+            "PT05: 11th workspace was not disabled"
+        )
+        page.screenshot(path=str(OUT/"terminal-ten-spaces.png"))
 
         # Disabled storage must not crash the UI (fresh sandbox context).
         assert page.locator("#chat-root").count()<=1,"PT10: duplicate global chat root"
