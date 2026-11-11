@@ -62,7 +62,8 @@ export function renderModule({root,instance:ins,workspace:ws,ships,onChanged,onB
       fieldRow(root,"Тип корпуса",ship.model);
       fieldRow(root,"Состояние щита",ship.shield+"%");
     }else{
-      const art=el("div","◈","pt-ship-art");
+      const art=el("div",null,"pt-ship-art");
+      art.append(UI.hologram(ship.model,ship.name+" #"+ship.id,"pt-ship-model"));
       art.append(el("strong",ship.name+" · #"+ship.id));
       root.append(art);
       root.append(UI.bar(ship.fuel,ship.fuelMax,"Топливо"));
