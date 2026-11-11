@@ -39,6 +39,14 @@ class PilotWorkspaceController{
     const raw=Preferences.read(this.key,null);
     this.corrupt=raw!==null&&!validateState(raw);
     this.state=validateState(raw)?raw:raw===null?seeded():empty();
+    // A newly opened tab starts at the chosen default; F5 in the same tab
+    // restores the last active workspace without replacing its UI state.
+    try{
+      const sessionKey="ptdemo-tab-session:"+account;
+      if(sessionStorage.getItem(sessionKey)!=="1")
+        this.state.activeWorkspaceId=this.state.defaultWorkspaceId;
+      sessionStorage.setItem(sessionKey,"1");
+    }catch{/* sessionStorage may be blocked, too */}
     this.ships=createFleet();
     this.catalogOpen=false;this.query="";
     this.silent=false;this.activeWindows=new Map();this.log=[];
