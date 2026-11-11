@@ -1,7 +1,7 @@
 # Скопируйте в planet.toml. База и схема те же, что в Cosmic.
 [database]
 url = 'postgres://cosmos:CHANGE_ME@127.0.0.1:5432/existing_database?sslmode=disable'
-schema = 'astra_journey'
+schema = 'astra_journey' # Новая установка; при обновлении сохраните прежнее имя схемы.
 
 [planet]
 http_addr = '127.0.0.1:8081'

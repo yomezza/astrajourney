@@ -2,7 +2,7 @@
 # Подставьте адрес игры, PostgreSQL и настоящие NATS-пароли.
 [database]
 url = 'postgres://YOUR_DB_USER:YOUR_DB_PASSWORD@127.0.0.1:5432/YOUR_DATABASE?sslmode=disable'
-schema = 'astra_journey'
+schema = 'astra_journey' # Новая установка; при обновлении сохраните прежнее имя схемы.
 
 [cosmos]
 http_addr = '0.0.0.0:8080'

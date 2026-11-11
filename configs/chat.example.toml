@@ -1,7 +1,7 @@
 # Скопируйте в chat.toml. Используйте отдельный ограниченный логин Chat.
 [database]
 url = 'postgres://chat_runtime:CHANGE_ME@127.0.0.1:5432/existing_database?sslmode=disable'
-schema = 'astra_journey'
+schema = 'astra_journey' # Новая установка; при обновлении сохраните прежнее имя схемы.
 
 [chat]
 http_addr = '127.0.0.1:8082'
