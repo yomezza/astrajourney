@@ -1,0 +1,53 @@
+/* Pilot terminal is an isolated demo; original shell, tokens and Modules remain unchanged. */
+#window-ptdemo-control-u7 .module-content{padding:0;overflow:hidden}
+.module-content:has(>.pt-terminal){padding:0!important;overflow:hidden!important;min-height:0}
+.pt-terminal{height:100%;min-height:0;display:flex;flex-direction:column;gap:7px;padding:12px;
+  background:linear-gradient(125deg,#121c27,#172633);color:#dce5ed;
+  font:12px/1.5 "Segoe UI",system-ui,sans-serif;overflow-y:auto;overscroll-behavior:contain}
+.pt-terminal *,.pt-module-body *{box-sizing:border-box}
+.pt-terminal button,.pt-module-body button{font:11px/1.4 "Segoe UI",system-ui,sans-serif;
+  padding:5px 9px;min-height:27px;border:1px solid #4c6470;background:#223441;color:#dce5ed}
+.pt-terminal button:hover,.pt-module-body button:hover{border-color:#85b9c6;color:#f2c38b}
+.pt-terminal button:focus-visible,.pt-module-body button:focus-visible,.pt-terminal select:focus-visible,
+.pt-module-body select:focus-visible{outline:2px solid #83ced8;outline-offset:1px}
+.pt-workspace-tabs{display:flex;align-items:center;gap:4px;overflow-x:auto;padding:1px 0 6px;
+  flex:0 0 auto;scrollbar-width:thin}
+.pt-workspace-tabs .pt-tab{white-space:nowrap;flex:0 0 auto;background:#182834}
+.pt-workspace-tabs .pt-tab[aria-selected="true"]{background:#315064;border-color:#87bac5;color:#f1d3a8}
+.pt-context{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  padding:6px 8px;border:1px solid #3b5868;background:#142631}
+.pt-context>div{display:flex;flex-direction:column;min-width:0}
+.pt-context strong{font-size:13px}.pt-context small{font-size:10px}
+.pt-context label{display:flex;align-items:center;gap:7px;margin:0;font-size:11px}
+.pt-terminal select,.pt-module-body select{width:auto;max-width:100%;margin:0;padding:5px 8px;
+  background:#111f29;color:#e0eaf0;border:1px solid #55707c;font-size:11px}
+.pt-workspace-actions,.pt-demo-controls{display:flex;gap:5px;flex-wrap:wrap}
+.pt-demo-controls{margin-top:2px;padding-top:5px;border-top:1px solid #314754}
+.pt-demo-controls button{font-size:10px}
+.pt-storage-warning,.pt-message{margin:0;padding:5px 8px;border-left:2px solid #d7a565;
+  background:#382c244d;font-size:11px;color:#e9c5a0}
+.pt-storage-warning[hidden],.pt-message[hidden]{display:none}
+.pt-catalog{display:flex;flex-wrap:wrap;gap:8px;padding:8px;background:#101f2b;border:1px solid #3b5360}
+.pt-catalog input{margin:0;width:200px;max-width:100%;padding:6px;background:#0f1924;color:#e2ebf0;border:1px solid #506c7a}
+.pt-catalog-list{display:flex;gap:5px;flex-wrap:wrap}
+.pt-action-log{font:10px/1.5 monospace;color:#8fbcac;max-height:70px;overflow:auto}
+.pt-module-body{display:flex;flex-direction:column;gap:9px;min-height:0;padding:14px;
+  background:linear-gradient(135deg,#152530,#111d28);overscroll-behavior:contain;overflow:auto}
+.pt-module-header{display:flex;flex-direction:column;gap:3px;padding-bottom:7px;border-bottom:1px solid #35515e}
+.pt-module-header h3{margin:0;color:#e7edf0;font-size:15px}
+.pt-module-tools{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.pt-module-body>select{align-self:flex-start}
+.pt-module-body .row{padding:5px 2px}
+.pt-module-body .row b{color:#dfebf1;overflow-wrap:anywhere}
+.pt-ship-art{display:flex;gap:7px;justify-content:center;align-items:center;flex-direction:column;
+  background:radial-gradient(ellipse at center,#234859,#101b29 66%,#0b1520);
+  min-height:70px;border:1px solid #375666;color:#8ecad4;font-size:20px}
+.pt-ship-art strong{font:600 12px "Segoe UI",sans-serif;color:#e5edf2}
+.pt-filter{display:flex;flex-wrap:wrap;gap:7px}
+.pt-mining-site{display:flex;align-items:flex-start;flex-direction:column;gap:6px;padding:9px;border:1px solid #344c58;background:#172b38}
+.pt-mining-site small{font-size:11px;color:#a8bfca}
+.pt-mining-site button{align-self:flex-start}
+.pt-notice{color:#edbb86;border-left:2px solid #c08c63;padding:8px;background:#382c2944}
+.pt-guide h4{color:#e5c58a;margin:3px 0}
+.pt-guide p{color:#a9c3cc;font-size:12px}
+@media(max-width:720px){.pt-terminal{padding:8px}.pt-context{align-items:flex-start}.pt-workspace-actions button{font-size:10px}.pt-module-body{padding:9px}}
