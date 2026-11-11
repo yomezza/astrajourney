@@ -70,6 +70,21 @@ class UiLabTests(unittest.TestCase):
         self.assertIn("studies-source-kkm", code)
         self.assertNotIn("fetch('/api/workbench'", code)
 
+    def test_lab_scroll_is_isolated_from_page_layout(self):
+        code = (LAB / "lab.js").read_text(encoding="utf-8")
+        css = (LAB / "lab.css").read_text(encoding="utf-8")
+        # The game's global header/main selectors must not affect lab panels.
+        self.assertIn("const main=$('div',null,'uiux-main')", code)
+        self.assertIn("const toolbar=$('div',null,'uiux-toolbar')", code)
+        self.assertNotIn("const main=$('main',null,'uiux-main')", code)
+        self.assertNotIn("const toolbar=$('header',null,'uiux-toolbar')", code)
+        self.assertIn(".uiux-content{flex:1;overflow-y:auto;overflow-x:hidden", css)
+        self.assertIn(".uiux-category-scroll{flex:1;overflow-y:auto", css)
+        self.assertIn("overscroll-behavior:contain", css)
+        self.assertIn("overscroll-behavior-y:contain", css)
+        self.assertIn(".uiux-root{", css)
+        self.assertIn("height:100%;width:100%;min-width:0;min-height:0;overflow:hidden", css)
+
     def test_integration_does_not_wrap_chat(self):
         integration = (ROOT / "mock" / "ui-overlay.js").read_text("utf-8")
         self.assertIn("import('/mock/ui-lab/lab.js')", integration)
