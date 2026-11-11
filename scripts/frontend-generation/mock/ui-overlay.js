@@ -12,7 +12,7 @@ import { mountColonyCatalog, clearColonyCatalog } from '/mock/colony-catalog.js'
 // presents the current product name while preserving their source files.
 function showProductName(){
   document.title=document.title.replace(/cosmosimulator/ig,'Astra Journey');
-  for(const root of document.querySelectorAll('.apphead .brand, footer')){
+  for(const root of document.querySelectorAll('header .brand, footer')){
     const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
     for(let node;node=walker.nextNode();){node.nodeValue=node.nodeValue.replace(/cosmosimulator/ig,'Astra Journey');}
   }
