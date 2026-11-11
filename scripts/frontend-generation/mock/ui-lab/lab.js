@@ -856,8 +856,10 @@ function buildWindow(contents){
   head.append(catSearch);
   categoryList=$('nav',null,'uiux-category-scroll');categoryList.setAttribute('aria-label','Категории UI/UX');
   side.append(head,categoryList);
-  const main=$('main',null,'uiux-main');
-  const toolbar=$('header',null,'uiux-toolbar');
+  // Use neutral containers: global game styles position <header> fixed and
+  // size <main> to the whole viewport, breaking this module's scroll area.
+  const main=$('div',null,'uiux-main');
+  const toolbar=$('div',null,'uiux-toolbar');
   title=$('h3','Контекстные меню');
   search=$('input');search.id='uiux-search';search.type='search';search.className='uiux-control';search.placeholder='Название, ККМ, ID, CSS…';
   search.addEventListener('input',()=>{keyword=search.value.trim();refreshItems();});
