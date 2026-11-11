@@ -68,7 +68,7 @@ export function windowId(accountId,ws,ins){
   return "ptdemo-u"+String(accountId).replace(/[^a-z0-9-]/gi,"-")+"-w"+ws.id+"-i"+ins.id;
 }
 export function duplicateWorkspace(ws){
-  const copy=newWorkspace(ws.name+" · копия",ws.shipId);
+  const copy=newWorkspace(graphemes(ws.name+" · копия").slice(0,32).join(""),ws.shipId);
   copy.instances=ws.instances.map(ins=>({...structuredClone(ins),id:uuid()}));
   return copy;
 }
