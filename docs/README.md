@@ -22,6 +22,7 @@
 | Изолированная UI-демосреда | [frontend-generation](../scripts/frontend-generation/README.md) | Frontend |
 | Текущие тесты и ревизии | [QA](qa/terminal-0.14.1.ru.md) · [Аудиты](audits/2026-10-28/) | QA, разработчики |
 | Выпущенные версии | [Release notes](../release-notes/) | Всем |
+| Почему нельзя сразу убрать EXE из Git | [Аудит релизных бинарников](operations/release-artifacts-audit.ru.md) | Backend, release, владелец |
 | Исторические документы | [Архив](archive/) | При расследовании истории |
 
 ## Как выбирать источник истины
