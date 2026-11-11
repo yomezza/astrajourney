@@ -1,0 +1,44 @@
+{
+  "tag": "v0.24.11",
+  "builds": [
+    {
+      "file": "cosmosimulator-v0.24.11-linux-amd64",
+      "service": "cosmos",
+      "goos": "linux",
+      "goarch": "amd64",
+      "goamd64": "v1",
+      "cgo_enabled": false,
+      "source_ref": "v0.24.11",
+      "source_commit": "15447049599e17477a2553c7c517543f64226c77",
+      "source_dirty": false,
+      "compiler": "go version go1.27.3 linux/amd64",
+      "sha256": "5cee716a4076661654a7f9b89799db6e7840825c7a1eb98c8a475ecbba928f91"
+    },
+    {
+      "file": "cosmosimulator-planet-v0.24.11-linux-amd64",
+      "service": "planet",
+      "goos": "linux",
+      "goarch": "amd64",
+      "goamd64": "v1",
+      "cgo_enabled": false,
+      "source_ref": "v0.24.11",
+      "source_commit": "15447049599e17477a2553c7c517543f64226c77",
+      "source_dirty": false,
+      "compiler": "go version go1.27.3 linux/amd64",
+      "sha256": "ffcb004d5db3a2c4d17418d484845d0f88d1bc75270308b594c7e11063bbc1c1"
+    },
+    {
+      "file": "cosmosimulator-chat-v0.24.11-linux-amd64",
+      "service": "chat",
+      "goos": "linux",
+      "goarch": "amd64",
+      "goamd64": "v1",
+      "cgo_enabled": false,
+      "source_ref": "v0.24.11",
+      "source_commit": "15447049599e17477a2553c7c517543f64226c77",
+      "source_dirty": false,
+      "compiler": "go version go1.27.3 linux/amd64",
+      "sha256": "35004d91192f8bc0b34097f9094d148fbd6e49c1665986cc3a487fda3fb3b1ab"
+    }
+  ]
+}

@@ -17,14 +17,18 @@ jobs:
           test -f "release-notes/$RELEASE_TAG.md"
           found=false
           for suffix in '' '-planet' '-chat'; do
-            if test -f "downloads/cosmosimulator${suffix}-${RELEASE_TAG}-windows-amd64.exe"; then
+            windows="downloads/cosmosimulator${suffix}-${RELEASE_TAG}-windows-amd64.exe"
+            linux="downloads/cosmosimulator${suffix}-${RELEASE_TAG}-linux-amd64"
+            if test -f "$windows" || test -f "$linux"; then
+              test -f "$windows"
+              test -f "$linux"
               found=true
             fi
           done
           test "$found" = true
         env:
           RELEASE_TAG: ${{ github.ref_name }}
-      - name: Publish Windows executable and checksums
+      - name: Publish Windows and Linux amd64 binaries and checksums
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -33,11 +37,15 @@ jobs:
           set -euo pipefail
           executables=()
           for suffix in '' '-planet' '-chat'; do
-            asset="downloads/cosmosimulator${suffix}-${RELEASE_TAG}-windows-amd64.exe"
-            if test -f "$asset"; then
-              executables+=("$asset")
+            windows="downloads/cosmosimulator${suffix}-${RELEASE_TAG}-windows-amd64.exe"
+            linux="downloads/cosmosimulator${suffix}-${RELEASE_TAG}-linux-amd64"
+            if test -f "$windows"; then
+              executables+=("$windows" "$linux")
             fi
           done
+          if test -f "downloads/cosmosimulator-${RELEASE_TAG}-build.json"; then
+            executables+=("downloads/cosmosimulator-${RELEASE_TAG}-build.json")
+          fi
           gh release create "$RELEASE_TAG" \
             "${executables[@]}" \
             configs/cosmos.example.toml \

@@ -1,0 +1,81 @@
+name: Add Linux binaries to an existing release
+on:
+  push:
+    branches: [main]
+    paths: ['.github/linux-release-backfill.json']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: release-linux-backfill
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read exact release source
+        run: |
+          python3 - <<'PY'
+          import json, os, re
+          request = json.load(open('.github/linux-release-backfill.json'))
+          assert re.fullmatch(r'v[0-9]+\.[0-9]+\.[0-9]+', request['tag'])
+          assert re.fullmatch(r'[a-f0-9]{40}', request['source_commit'])
+          with open(os.environ['GITHUB_ENV'], 'a') as output:
+              output.write('RELEASE_TAG=' + request['tag'] + '\n')
+              output.write('SOURCE_COMMIT=' + request['source_commit'] + '\n')
+          PY
+      - name: Verify source, artifacts and existing Windows checksums
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin "refs/tags/$RELEASE_TAG:refs/tags/$RELEASE_TAG"
+          test "$(git rev-parse "$RELEASE_TAG^{commit}")" = "$SOURCE_COMMIT"
+          sha256sum -c downloads/SHA256SUMS
+          gh release download "$RELEASE_TAG" --pattern SHA256SUMS --dir "$RUNNER_TEMP/previous-release"
+          python3 - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          tag = os.environ['RELEASE_TAG']
+          previous = dict((line.split(maxsplit=1)[1].strip(), line.split()[0]) for line in (Path(os.environ['RUNNER_TEMP']) / 'previous-release/SHA256SUMS').read_text().splitlines())
+          builds = json.load(open(f'downloads/cosmosimulator-{tag}-build.json'))['builds']
+          for suffix in ('', '-planet', '-chat'):
+              name = f'cosmosimulator{suffix}-{tag}'
+              windows = Path(f'downloads/{name}-windows-amd64.exe')
+              assert hashlib.sha256(windows.read_bytes()).hexdigest() == previous[str(windows)], 'existing Windows file changed'
+              linux = Path(f'downloads/{name}-linux-amd64')
+              records = [build for build in builds if build['file'] == linux.name]
+              assert len(records) == 1
+              build = records[0]
+              assert build['source_commit'] == os.environ['SOURCE_COMMIT'] and not build['source_dirty']
+              assert build['goos'] == 'linux' and build['goarch'] == 'amd64' and not build['cgo_enabled']
+              assert hashlib.sha256(linux.read_bytes()).hexdigest() == build['sha256']
+          PY
+      - name: Append Linux assets; preserve existing Windows files
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          assets=()
+          for suffix in '' '-planet' '-chat'; do
+            assets+=("downloads/cosmosimulator${suffix}-${RELEASE_TAG}-linux-amd64")
+          done
+          gh release upload "$RELEASE_TAG" "${assets[@]}" \
+            "downloads/cosmosimulator-${RELEASE_TAG}-build.json" \
+            downloads/SHA256SUMS --clobber
+          gh release view "$RELEASE_TAG" --json body --jq .body > "$RUNNER_TEMP/release-body.md"
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          path = Path(os.environ['RUNNER_TEMP']) / 'release-body.md'
+          body = path.read_text()
+          if '### Linux amd64 / Debian 13' not in body:
+              body += '\n\n### Linux amd64 / Debian 13\n\n'
+              body += 'Добавлены статические Linux amd64 сборки Cosmic, Planet и Chat из исходников этого тега. Windows EXE сохранены без пересборки. SHA256 и build.json включают новые файлы.\n\n'
+              body += '[Запуск на Debian 13 и дальнейшая сборка обеих платформ](https://github.com/yomezza/cosmosimulator/blob/main/docs/operations/linux-amd64.ru.md).\n'
+              path.write_text(body)
+          PY
+          gh release edit "$RELEASE_TAG" --notes-file "$RUNNER_TEMP/release-body.md"
