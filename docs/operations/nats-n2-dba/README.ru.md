@@ -1,4 +1,4 @@
-# Cosmosimulator — NATS N2 DBA: PostgreSQL 17, итог изолированной проверки
+# Astra Journey — NATS N2 DBA: PostgreSQL 17, итог изолированной проверки
 
 **Дата:** 2026-11-10. **Статус:** выполнена DBA-проверка на disposable PostgreSQL. **Разрешение на реализацию N2/A2 здесь не выдаётся**: его отдельно согласует владелец. Production rollout не разрешён.
 

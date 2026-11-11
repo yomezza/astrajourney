@@ -242,8 +242,8 @@ func n5NoSignal(t *testing.T, events <-chan []byte) {
 func TestN5NativePlanetNATSChat(t *testing.T) {
 	t.Setenv("CHAT_ENABLED", "true")
 	broker := natsfixture.New(t, natsfixture.Options{PlanetSignals: true})
-	planetBinary := n5Build(t, "./cmd/cosmosimulator-planet", "planet", false)
-	chatBinary := n5Build(t, "./cmd/cosmosimulator-chat", "chat", false)
+	planetBinary := n5Build(t, "./cmd/astra-journey-planet", "planet", false)
+	chatBinary := n5Build(t, "./cmd/astra-journey-chat", "chat", false)
 	probeBinary := n5Build(t, "./internal/planetserver", "planet-probe.test", true)
 	f, c, uid, surface, site, ship := prepare180(t)
 	for _, sector := range []int{2, 3, 4, 5, 6, 7} {

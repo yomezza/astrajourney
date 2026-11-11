@@ -1,4 +1,4 @@
-# Cosmosimulator — DBA / PostgreSQL для NATS Event Bus
+# Astra Journey — DBA / PostgreSQL для NATS Event Bus
 
 **Состояние: 9 ноября 2026. Проектирование завершено, SQL опубликован как НЕПРИМЕНЯЕМЫЕ примеры, PostgreSQL и игровой код не изменены.**
 

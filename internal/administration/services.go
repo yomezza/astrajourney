@@ -108,7 +108,7 @@ func (a *Service) planetCard(ctx context.Context, o ServicesOptions) ServiceCard
 	card.Info = append(card.Info, ServiceMetric{"HTTP readiness", strconv.Itoa(response.StatusCode)}, ServiceMetric{"Ответ службы, мс", strconv.FormatInt(time.Since(began).Milliseconds(), 10)})
 	var health planetHealth
 	card.Status = "not_ready"
-	if json.NewDecoder(io.LimitReader(response.Body, 32768)).Decode(&health) != nil || health.Service != "cosmosimulator-planet" {
+	if json.NewDecoder(io.LimitReader(response.Body, 32768)).Decode(&health) != nil || (health.Service != "astra-journey-planet" && health.Service != "cosmosimulator-planet") {
 		card.Reason = "planetary_health_invalid"
 		return card
 	}

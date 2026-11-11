@@ -83,8 +83,8 @@ func TestPlanetLoad230(t *testing.T) {
 	colonies := f.integer(`SELECT count(*) FROM planet_colonies`)
 	modules := f.integer(`SELECT count(*) FROM planet_landing_sites WHERE enabled`)
 	users := f.integer(`SELECT count(*) FROM users`)
-	spaceBinary := buildLoad230(t, "cosmosimulator")
-	planetBinary := buildLoad230(t, "cosmosimulator-planet")
+	spaceBinary := buildLoad230(t, "astra-journey")
+	planetBinary := buildLoad230(t, "astra-journey-planet")
 	spaceURL, planetURL := loadPort230(t), loadPort230(t)
 	dsn, err := url.Parse(os.Getenv("TEST_DATABASE_URL"))
 	if err != nil {

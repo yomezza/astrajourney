@@ -1,4 +1,4 @@
-# Cosmosimulator · 0.23.0
+# Astra Journey · 0.23.0
 
 Лёгкая браузерная космическая экономическая песочница: Go + PostgreSQL, встроенные HTML/CSS/JavaScript и SVG. Космический Windows x64 `.exe` подключается к существующей базе и обслуживает терминал по HTTP; для локальных планетарных сцен запускается отдельный `.exe` второй службы. npm для запуска и сборки не нужен.
 
@@ -40,13 +40,13 @@ $env:ADMIN_PASSWORD = 'YOUR_PASSWORD'
 
 ## Windows-служба и обновление
 
-Исполняемый файл поддерживает Service Control Manager. После проверки консольного запуска скопируйте выбранную сборку в `C:\Cosmosimulator\cosmosimulator.exe`. В PowerShell администратора:
+Исполняемый файл поддерживает Service Control Manager. После проверки консольного запуска скопируйте выбранную сборку в `C:\Astra Journey\cosmosimulator.exe`. В PowerShell администратора:
 
 ```powershell
-sc.exe create Cosmosimulator binPath= 'C:\Cosmosimulator\cosmosimulator.exe' start= auto
-New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\Cosmosimulator' -Name Environment -PropertyType MultiString -Value @('DATABASE_URL=postgres://cosmos:YOUR_URL_ENCODED_PASSWORD@127.0.0.1:5432/existing_database?sslmode=disable','DB_SCHEMA=cosmosimulator','HTTP_ADDR=127.0.0.1:8080') -Force
-sc.exe start Cosmosimulator
-sc.exe query Cosmosimulator
+sc.exe create Astra Journey binPath= 'C:\Astra Journey\cosmosimulator.exe' start= auto
+New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\Astra Journey' -Name Environment -PropertyType MultiString -Value @('DATABASE_URL=postgres://cosmos:YOUR_URL_ENCODED_PASSWORD@127.0.0.1:5432/existing_database?sslmode=disable','DB_SCHEMA=cosmosimulator','HTTP_ADDR=127.0.0.1:8080') -Force
+sc.exe start Astra Journey
+sc.exe query Astra Journey
 ```
 
 Окружение службы отличается от окружения PowerShell. Перед обновлением остановите службу, сохраните резервную копию схемы и замените `.exe`. Запускайте одну версию сервера на одной схеме. Миграция 0.3.3 меняет ключ кораблей и привязывает задания добычи к конкретным кораблям; **0.3.2 нельзя запускать на обновлённой схеме**. Для возврата нужна резервная копия схемы 0.3.2.

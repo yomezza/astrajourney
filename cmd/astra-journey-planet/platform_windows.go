@@ -2,7 +2,8 @@ package main
 
 import (
 	"context"
-	"github.com/yomezza/cosmosimulator/internal/server"
+
+	"github.com/yomezza/cosmosimulator/internal/planetserver"
 	"golang.org/x/sys/windows/svc"
 )
 
@@ -12,11 +13,16 @@ func (windowsService) Execute(_ []string, requests <-chan svc.ChangeRequest, sta
 	statuses <- svc.Status{State: svc.StartPending}
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+	listening := make(chan struct{})
 	done := make(chan error, 1)
-	go func() { done <- server.Run(ctx) }()
-	statuses <- svc.Status{State: svc.Running, Accepts: svc.AcceptStop | svc.AcceptShutdown}
+	go func() { done <- planetserver.RunStarted(ctx, func() { close(listening) }) }()
+	current := svc.Status{State: svc.StartPending, Accepts: svc.AcceptStop | svc.AcceptShutdown}
 	for {
 		select {
+		case <-listening:
+			listening = nil
+			current = svc.Status{State: svc.Running, Accepts: svc.AcceptStop | svc.AcceptShutdown}
+			statuses <- current
 		case err := <-done:
 			if err != nil {
 				return true, 1
@@ -25,7 +31,7 @@ func (windowsService) Execute(_ []string, requests <-chan svc.ChangeRequest, sta
 		case request := <-requests:
 			switch request.Cmd {
 			case svc.Interrogate:
-				statuses <- request.CurrentStatus
+				statuses <- current
 			case svc.Stop, svc.Shutdown:
 				statuses <- svc.Status{State: svc.StopPending}
 				cancel()
@@ -37,13 +43,14 @@ func (windowsService) Execute(_ []string, requests <-chan svc.ChangeRequest, sta
 		}
 	}
 }
+
 func runPlatform() error {
 	service, err := svc.IsWindowsService()
 	if err != nil {
 		return err
 	}
 	if service {
-		return svc.Run("Cosmosimulator", windowsService{})
+		return svc.Run("AstraJourneyPlanet", windowsService{})
 	}
 	return runConsole()
 }

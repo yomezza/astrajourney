@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 
-	"github.com/yomezza/cosmosimulator/internal/planetserver"
+	"github.com/yomezza/cosmosimulator/internal/chatserver"
 	"golang.org/x/sys/windows/svc"
 )
 
@@ -15,7 +15,7 @@ func (windowsService) Execute(_ []string, requests <-chan svc.ChangeRequest, sta
 	defer cancel()
 	listening := make(chan struct{})
 	done := make(chan error, 1)
-	go func() { done <- planetserver.RunStarted(ctx, func() { close(listening) }) }()
+	go func() { done <- chatserver.RunStarted(ctx, func() { close(listening) }) }()
 	current := svc.Status{State: svc.StartPending, Accepts: svc.AcceptStop | svc.AcceptShutdown}
 	for {
 		select {
@@ -50,7 +50,7 @@ func runPlatform() error {
 		return err
 	}
 	if service {
-		return svc.Run("CosmosimulatorPlanet", windowsService{})
+		return svc.Run("AstraJourneyChat", windowsService{})
 	}
 	return runConsole()
 }

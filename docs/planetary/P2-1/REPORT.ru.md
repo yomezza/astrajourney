@@ -4,7 +4,7 @@
 
 ## Что работает
 
-- `cmd/cosmosimulator-planet`: отдельные console/Windows entry, адрес, сигналы/SCM остановки; service name CosmosimulatorPlanet.
+- `cmd/cosmosimulator-planet`: отдельные console/Windows entry, адрес, сигналы/SCM остановки; service name AstraJourneyPlanet.
 - `internal/planetserver`: проверяемый config из process environment, чистое подключение, JSON logging, HTTP listener с таймаутами, liveness/readiness, Origin allowlist и shutdown. SCM Running отправляется после bind listener.
 - `internal/planet/runtime`: random owner identity, DB lease/fence, heartbeat, standby второго процесса, проверка истечения по часам БД, освобождение только своей записи.
 - `internal/server/schema150.sql`: marker версии 1 и singleton lease. Только cosmic initialization исполняет DDL под прежним lock; planet ничего не создаёт.

@@ -13,9 +13,9 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
 SERVICES = {
-    "cosmos": ("cosmosimulator", "internal/server/app.go"),
-    "planet": ("cosmosimulator-planet", "internal/planetserver/app.go"),
-    "chat": ("cosmosimulator-chat", "internal/chatserver/server.go"),
+    "cosmos": ("astra-journey", "internal/server/app.go"),
+    "planet": ("astra-journey-planet", "internal/planetserver/app.go"),
+    "chat": ("astra-journey-chat", "internal/chatserver/server.go"),
 }
 
 
@@ -64,7 +64,7 @@ def main():
             parser.error(f"refusing to overwrite {path.name}; choose a new version or select only a missing platform/service")
     source_commit = capture("git", "rev-parse", "--verify", f"{args.source_ref or 'HEAD'}^{{commit}}")
     dirty = not args.source_ref and bool(capture("git", "status", "--porcelain", "--", "cmd", "internal", "go.mod", "go.sum"))
-    manifest_path = output / f"cosmosimulator-{args.tag}-build.json"
+    manifest_path = output / f"astra-journey-{args.tag}-build.json"
     manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {"tag": args.tag, "builds": []}
     additions = []
     with tempfile.TemporaryDirectory(prefix="cosmos-release-") as directory:

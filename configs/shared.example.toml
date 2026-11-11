@@ -1,8 +1,8 @@
-# Один CONFIG_FILE для Cosmic, Planet и Chat 0.24.12+ на Debian 13.
+# Один CONFIG_FILE для Cosmic, Planet и Chat 0.24.13+ на Debian 13.
 # Подставьте адрес игры, PostgreSQL и настоящие NATS-пароли.
 [database]
 url = 'postgres://YOUR_DB_USER:YOUR_DB_PASSWORD@127.0.0.1:5432/YOUR_DATABASE?sslmode=disable'
-schema = 'cosmosimulator'
+schema = 'astra_journey'
 
 [cosmos]
 http_addr = '0.0.0.0:8080'
@@ -17,7 +17,7 @@ chat_internal_url = 'http://127.0.0.1:8082'
 [planet]
 http_addr = '127.0.0.1:8081'
 allowed_origins = ['http://192.168.111.44:8080']
-log_file = '/var/lib/cosmosimulator/planet.log'
+log_file = '/var/lib/astra-journey/planet.log'
 move_speed = 4.0
 path_budget = 24000
 db_timeout = '2s'
@@ -33,7 +33,7 @@ http_addr = '127.0.0.1:8082'
 cosmic_internal_url = 'http://127.0.0.1:8080'
 planet_internal_url = 'http://127.0.0.1:8081'
 allowed_origins = ['http://192.168.111.44:8080']
-erasure_journal = '/var/lib/cosmosimulator/chat-erasure.log'
+erasure_journal = '/var/lib/astra-journey/chat-erasure.log'
 # Для NATS переключить на 'b1' и включить [nats] ниже.
 dispatcher_mode = 'a1'
 fallback_poll_interval = '10s'

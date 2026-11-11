@@ -1,4 +1,4 @@
-# Архитектурный аудит Cosmosimulator
+# Архитектурный аудит Astra Journey
 
 - [Полный отчёт на русском](REPORT.ru.md)
 - [ZIP: отчёт, инвентаризация PostgreSQL, указатели исходников и результаты проверок](cosmosimulator-architecture-audit.zip)

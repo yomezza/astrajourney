@@ -102,7 +102,7 @@ private key и чужие password files; разрешить Read публичн
 ```powershell
 # CA key зашифрован, OpenSSL запросит пароль интерактивно.
 openssl req -x509 -newkey rsa:4096 -keyout ca-key.pem -out ca.pem -days 3650 -sha256 `
-  -subj '/CN=Cosmosimulator Private CA' -addext 'basicConstraints=critical,CA:TRUE'
+  -subj '/CN=Astra Journey Private CA' -addext 'basicConstraints=critical,CA:TRUE'
 # Серверный ключ для unattended NATS; защищается NTFS ACL.
 openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:3072 -out server-key.pem
 openssl req -new -key server-key.pem -out server.csr -config server-cert.cnf

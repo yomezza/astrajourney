@@ -8,7 +8,7 @@
 
 ---
 
-# Cosmosimulator UI Mirror — отчёт о переносе (01.11.2026)
+# Astra Journey UI Mirror — отчёт о переносе (01.11.2026)
 
 ## Проверенный источник
 

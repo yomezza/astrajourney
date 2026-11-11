@@ -1,4 +1,4 @@
-"""Generate exact Cosmosimulator v0.23.0 spacecraft assets from upstream parametric model recipe.
+"""Generate exact Astra Journey v0.23.0 spacecraft assets from upstream parametric model recipe.
 Source: scripts/generate_ship_holograms.py, docs/design/ship-holograms/generate.py.
 """
 import sys,math

@@ -50,7 +50,7 @@ func TestAdminServices200(t *testing.T) {
 			t.Error("forwarded browser cookie")
 		}
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{"service":"cosmosimulator-planet","status":"ready","gameplay_ready":true,"version":"0.21.0","schema_version":7,"runtime_instance":"00000000-0000-4000-8000-000000000001","runtime_fence":1}`))
+		w.Write([]byte(`{"service":"astra-journey-planet","status":"ready","gameplay_ready":true,"version":"0.21.0","schema_version":7,"runtime_instance":"00000000-0000-4000-8000-000000000001","runtime_fence":1}`))
 	}))
 	defer fake.Close()
 	t.Setenv("PLANET_INTERNAL_URL", fake.URL)

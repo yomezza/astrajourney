@@ -17,8 +17,8 @@ jobs:
           test -f "release-notes/$RELEASE_TAG.md"
           found=false
           for suffix in '' '-planet' '-chat'; do
-            windows="downloads/cosmosimulator${suffix}-${RELEASE_TAG}-windows-amd64.exe"
-            linux="downloads/cosmosimulator${suffix}-${RELEASE_TAG}-linux-amd64"
+            windows="downloads/astra-journey${suffix}-${RELEASE_TAG}-windows-amd64.exe"
+            linux="downloads/astra-journey${suffix}-${RELEASE_TAG}-linux-amd64"
             if test -f "$windows" || test -f "$linux"; then
               test -f "$windows"
               test -f "$linux"
@@ -37,14 +37,14 @@ jobs:
           set -euo pipefail
           executables=()
           for suffix in '' '-planet' '-chat'; do
-            windows="downloads/cosmosimulator${suffix}-${RELEASE_TAG}-windows-amd64.exe"
-            linux="downloads/cosmosimulator${suffix}-${RELEASE_TAG}-linux-amd64"
+            windows="downloads/astra-journey${suffix}-${RELEASE_TAG}-windows-amd64.exe"
+            linux="downloads/astra-journey${suffix}-${RELEASE_TAG}-linux-amd64"
             if test -f "$windows"; then
               executables+=("$windows" "$linux")
             fi
           done
-          if test -f "downloads/cosmosimulator-${RELEASE_TAG}-build.json"; then
-            executables+=("downloads/cosmosimulator-${RELEASE_TAG}-build.json")
+          if test -f "downloads/astra-journey-${RELEASE_TAG}-build.json"; then
+            executables+=("downloads/astra-journey-${RELEASE_TAG}-build.json")
           fi
           gh release create "$RELEASE_TAG" \
             "${executables[@]}" \
@@ -54,5 +54,5 @@ jobs:
             configs/shared.example.toml \
             downloads/SHA256SUMS \
             --verify-tag \
-            --title "Cosmosimulator $RELEASE_TAG" \
+            --title "Astra Journey $RELEASE_TAG" \
             --notes-file "release-notes/$RELEASE_TAG.md"

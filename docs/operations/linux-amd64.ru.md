@@ -1,87 +1,57 @@
-# Linux amd64 · Debian 13
+# Astra Journey · Linux amd64 · Debian 13
 
-Начиная с 0.24.11 доступны Cosmic, Planet и Chat для Linux amd64. Бинарники
-собраны с `GOOS=linux GOARCH=amd64 GOAMD64=v1 CGO_ENABLED=0`: статические ELF
-x86-64, без динамического загрузчика и зависимости от версии glibc.
+Выпуск 0.24.13 содержит три статических ELF x86-64 для Debian 13:
 
-Для первого выпуска Linux использован точный тег **v0.24.11**, commit
-`15447049599e17477a2553c7c517543f64226c77`. Windows EXE взяты из существующего
-релиза без пересборки и без повторной загрузки поверх них. Последующие изменения
-main не включались в Linux 0.24.11: обе платформы относятся к одному выпуску.
+- `astra-journey-v0.24.13-linux-amd64` — космический сервер;
+- `astra-journey-planet-v0.24.13-linux-amd64` — планетарная служба;
+- `astra-journey-chat-v0.24.13-linux-amd64` — чат.
 
-В [релизе 0.24.11](https://github.com/yomezza/cosmosimulator/releases/tag/v0.24.11)
-доступны три файла без расширения:
-
-- `cosmosimulator-v0.24.11-linux-amd64`
-- `cosmosimulator-planet-v0.24.11-linux-amd64`
-- `cosmosimulator-chat-v0.24.11-linux-amd64`
-
-В downloads сохраняются все версии. `SHA256SUMS` включает Windows, Linux и
-`cosmosimulator-v0.24.11-build.json` с исходным commit, компилятором и параметрами.
-Суммы manifest записаны относительно корня репозитория (`downloads/...`).
+[Релиз](https://github.com/yomezza/cosmosimulator/releases/tag/v0.24.13),
+[общий конфиг](../../configs/shared.example.toml). Параметры сборки:
+GOOS=linux, GOARCH=amd64, GOAMD64=v1, CGO_ENABLED=0. Нет зависимости от glibc
+или внешнего динамического загрузчика. Контрольные суммы — downloads/SHA256SUMS,
+исходный commit/параметры — astra-journey-v0.24.13-build.json.
 
 ## Запуск
 
-После скачивания выдать право исполнения. Например, из каталога с файлами:
+После скачивания выдать право исполнения:
 
 ```sh
-chmod +x cosmosimulator-v0.24.11-linux-amd64
-chmod +x cosmosimulator-planet-v0.24.11-linux-amd64
-chmod +x cosmosimulator-chat-v0.24.11-linux-amd64
+chmod +x astra-journey-v0.24.13-linux-amd64
+chmod +x astra-journey-planet-v0.24.13-linux-amd64
+chmod +x astra-journey-chat-v0.24.13-linux-amd64
 ```
 
-Каждой службе нужен собственный TOML. Пример запуска Cosmic в текущем терминале:
+Каждую службу запускать отдельным процессом с тем же общим CONFIG_FILE. Например:
 
 ```sh
-CONFIG_FILE=/etc/cosmosimulator/cosmos.toml ./cosmosimulator-v0.24.11-linux-amd64
+CONFIG_FILE=/etc/astra-journey/config.toml ./astra-journey-v0.24.13-linux-amd64
 ```
 
-Для Planet использовать `planet.toml` и её бинарник, для Chat — `chat.toml` и её
-бинарник, в отдельных процессах. Без CONFIG_FILE применяются только ENV, как на
-Windows. Правила PostgreSQL, DB_SCHEMA, HTTP адресов, origins и NATS не менялись.
-Для фона можно использовать systemd; процессы штатно обрабатывают SIGTERM.
+Для фонового запуска можно использовать systemd, остановка — SIGTERM.
+Планетарную службу и Chat запустить после готовности Cosmic/его миграций.
+Конфигурационные секции `[cosmos]`, `[planet]`, `[chat]` и переменные окружения
+сохранены. Старый путь к CONFIG_FILE тоже допустим: каталог не определяет имя игры.
 
-При переносе настроек Windows заменить пути вида `D:/...` на Linux paths.
-Пример Chat: `erasure_journal='/var/lib/cosmosimulator/chat-erasure.log'`;
-каталог должен существовать и быть доступен на запись аккаунту Chat. Для NATS
-используются отдельные password_file, читаемые только нужным аккаунтом (0400/0600),
-и доверенный ca_file. Относительные пути TOML считаются от CONFIG_FILE.
-NATS по умолчанию отключён; перенос на Linux не включает его автоматически.
+Для новой установки данные можно хранить в `/var/lib/astra-journey`, настройки —
+в `/etc/astra-journey`. Каталоги должны быть доступны соответствующим процессам.
+При обновлении сохранить старые database.schema и erasure_journal; не выбирать
+другую схему ради переименования. При переносе журнала скопировать существующий
+файл модераторских удалений, а не создавать пустую замену.
 
-Проверены ELF amd64, отсутствие динамического loader и выполнение всех трёх
-бинарников на Debian 13.6 x86_64 до штатной проверки конфигурации. Повторный
-полный игровой/БД прогон не проводился: игровые исходники релиза не менялись.
-Установка и запуск на сервере владельца не выполнялись.
-
-## Дальнейшие релизы: обе платформы
-
-Из корня проекта с установленным Go версии go.mod или новее:
+## Сборка и публикация
 
 ```sh
-python3 scripts/build-release.py v0.24.12
+python3 scripts/build-release.py v0.24.13
 ```
 
-По умолчанию собираются все три службы для **Windows amd64 и Linux amd64**,
-в downloads добавляются бинарники, build.json и SHA256. Предварительно обновить
-Version изменяемых служб. Если меняется одна служба, например только Chat:
+Скрипт собирает все три службы для Windows amd64 и Linux amd64, сохраняет их
+в downloads и обновляет SHA256SUMS/build.json. Для обновления только Chat:
+`python3 scripts/build-release.py v0.24.14 --service chat` (после изменения Version).
+По умолчанию собираются обе платформы; готовые файлы скрипт не перезаписывает.
+Каталоги команд: cmd/astra-journey, cmd/astra-journey-planet, cmd/astra-journey-chat.
+Go module и адрес GitHub остаются github.com/yomezza/cosmosimulator.
 
-```sh
-python3 scripts/build-release.py v0.24.12 --service chat
-```
-
-Дополнение Linux к существующему тегу без пересборки Windows:
-
-```sh
-python3 scripts/build-release.py v0.24.11 --platform linux --source-ref v0.24.11
-```
-
-Последняя команда уже выполнена для 0.24.11; повтор откажется затирать готовые
-файлы. Скрипт сохраняет прежние версии, проверяет соответствие Version исходников
-номеру выпуска и записывает параметры сборки. Для двух платформ обычного нового
-релиза используйте один запуск, чтобы обе собирались из одного состояния кода.
-
-Tag workflow требует пары Windows/Linux для каждой обновляемой службы и
-публикует обе. Частичный Windows-only релиз не пройдёт проверку. Backfill workflow
-дополняет существующий релиз только Linux/build.json/SHA256SUMS, предварительно
-проверяет исходный тег и прежние опубликованные Windows checksums. Windows assets
-при этом остаются на месте; исходный tag не перемещается.
+Прежние выпуски до 0.24.13 сохраняют оригинальные имена бинарников в downloads
+и на страницах релизов. Скрипт backfill для первого Linux выпуска 0.24.11
+обслуживает именно тот старый тег и не переименовывает исторические файлы.

@@ -1,4 +1,4 @@
-# Проверки интерфейса Cosmosimulator
+# Проверки интерфейса Astra Journey
 
 Тесты запускают production HTML/ES modules/CSS/SVG из `internal/server/web` на временном loopback-порту. API перехватываются; неожиданный endpoint, мутация, внешний URL или JavaScript exception проваливают сценарий. Адрес настоящего сервера не настраивается. Go, PostgreSQL и реальные аккаунты браузерным тестам не нужны.
 

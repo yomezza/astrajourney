@@ -1,4 +1,4 @@
-// Cosmosimulator UI/UX advanced labs. Original UI/renderers + isolated fictitious data.
+// Astra Journey UI/UX advanced labs. Original UI/renderers + isolated fictitious data.
 // No mutation calls to game APIs. All async leases and event listeners are disposed on close.
 import { UI, Modules } from '/ui/runtime.js';
 import { createVisual, createSceneSprites } from '/features/planet/scene-actors.js';

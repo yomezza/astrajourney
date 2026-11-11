@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "origin": "Cosmosimulator original web v0.23.0 and approved frontend-generation v13; source paths verified in repository",
+  "origin": "Astra Journey original web v0.23.0 and approved frontend-generation v13; source paths verified in repository",
   "updated_at": "2026-11-05",
   "source_root": "internal/server/web/",
   "catalog_status": "interactive-lab-with-adapters; full production parity not certified",

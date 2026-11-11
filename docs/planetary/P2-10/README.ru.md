@@ -31,21 +31,21 @@ GRANT SELECT(role) ON cosmosimulator.users TO cosmos_planet;
 
 ```powershell
 $env:DATABASE_URL = 'postgres://cosmos:URL_ENCODED_PASSWORD@127.0.0.1:5432/existing_database?sslmode=disable'
-$env:DB_SCHEMA = 'cosmosimulator'
+$env:DB_SCHEMA = 'astra_journey'
 $env:HTTP_ADDR = '127.0.0.1:8080'
 $env:PLANET_ENABLED = 'true'
 $env:PLANET_INTERNAL_URL = 'http://127.0.0.1:8081'
-.\downloads\cosmosimulator-v0.23.0-windows-amd64.exe
+.\downloads\astra-journey-v0.24.13-windows-amd64.exe
 ```
 
 Во втором окне:
 
 ```powershell
 $env:DATABASE_URL = 'postgres://cosmos_planet:URL_ENCODED_PASSWORD@127.0.0.1:5432/existing_database?sslmode=disable'
-$env:DB_SCHEMA = 'cosmosimulator'
+$env:DB_SCHEMA = 'astra_journey'
 $env:PLANET_HTTP_ADDR = '127.0.0.1:8081'
 $env:PLANET_ALLOWED_ORIGINS = 'http://127.0.0.1:8080,http://localhost:8080'
-.\downloads\cosmosimulator-planet-v0.23.0-windows-amd64.exe
+.\downloads\astra-journey-planet-v0.24.13-windows-amd64.exe
 ```
 
 ```powershell
@@ -83,17 +83,17 @@ Invoke-RestMethod http://127.0.0.1:8081/planet/api/v1/health/ready
 
 ## Две службы SCM
 
-После проверки консольного запуска скопировать выбранные EXE в постоянные пути `C:\Cosmosimulator\cosmosimulator.exe` и `C:\Cosmosimulator\cosmosimulator-planet.exe`. В административном PowerShell:
+После проверки консольного запуска скопировать выбранные EXE в постоянные пути `C:\AstraJourney\astra-journey.exe` и `C:\AstraJourney\astra-journey-planet.exe`. В административном PowerShell:
 
 ```powershell
-sc.exe create Cosmosimulator binPath= 'C:\Cosmosimulator\cosmosimulator.exe' start= auto
-sc.exe create CosmosimulatorPlanet binPath= 'C:\Cosmosimulator\cosmosimulator-planet.exe' start= auto
-New-Item -ItemType Directory -Force C:\Cosmosimulator\logs
-New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\CosmosimulatorPlanet' -Name Environment -PropertyType MultiString -Value @('DATABASE_URL=postgres://cosmos_planet:URL_ENCODED_PASSWORD@127.0.0.1:5432/existing_database?sslmode=disable','DB_SCHEMA=cosmosimulator','PLANET_HTTP_ADDR=127.0.0.1:8081','PLANET_ALLOWED_ORIGINS=http://127.0.0.1:8080,http://localhost:8080','PLANET_LOG_FILE=C:\Cosmosimulator\logs\planet.log') -Force
-New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\Cosmosimulator' -Name Environment -PropertyType MultiString -Value @('DATABASE_URL=postgres://cosmos:URL_ENCODED_PASSWORD@127.0.0.1:5432/existing_database?sslmode=disable','DB_SCHEMA=cosmosimulator','HTTP_ADDR=127.0.0.1:8080','PLANET_ENABLED=true','PLANET_INTERNAL_URL=http://127.0.0.1:8081') -Force
-sc.exe start Cosmosimulator
-sc.exe start CosmosimulatorPlanet
-sc.exe query CosmosimulatorPlanet
+sc.exe create Astra Journey binPath= 'C:\AstraJourney\astra-journey.exe' start= auto
+sc.exe create AstraJourneyPlanet binPath= 'C:\AstraJourney\astra-journey-planet.exe' start= auto
+New-Item -ItemType Directory -Force C:\AstraJourney\logs
+New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\AstraJourneyPlanet' -Name Environment -PropertyType MultiString -Value @('DATABASE_URL=postgres://cosmos_planet:URL_ENCODED_PASSWORD@127.0.0.1:5432/existing_database?sslmode=disable','DB_SCHEMA=cosmosimulator','PLANET_HTTP_ADDR=127.0.0.1:8081','PLANET_ALLOWED_ORIGINS=http://127.0.0.1:8080,http://localhost:8080','PLANET_LOG_FILE=C:\AstraJourney\logs\planet.log') -Force
+New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\Astra Journey' -Name Environment -PropertyType MultiString -Value @('DATABASE_URL=postgres://cosmos:URL_ENCODED_PASSWORD@127.0.0.1:5432/existing_database?sslmode=disable','DB_SCHEMA=cosmosimulator','HTTP_ADDR=127.0.0.1:8080','PLANET_ENABLED=true','PLANET_INTERNAL_URL=http://127.0.0.1:8081') -Force
+sc.exe start Astra Journey
+sc.exe start AstraJourneyPlanet
+sc.exe query AstraJourneyPlanet
 ```
 
 Переменные текущего окна PowerShell не меняют окружение установленной службы. Доступ к секретам реестра, каталогам и портам ограничивает оператор. У уже установленных служб повторять `sc create` не нужно; остановить, заменить EXE и запустить. SCM Running подтверждает listener; готовность БД/схемы/lease проверяется отдельно по ready.

@@ -1,4 +1,4 @@
-/* Cosmosimulator UI/UX laboratory. Demo only. No production API mutations. */
+/* Astra Journey UI/UX laboratory. Demo only. No production API mutations. */
 import { UI, Modules } from '/ui/runtime.js';
 import { pager, cursorMore } from '/ui/pager.js';
 import { actionAmount } from '/ui/quantity.js';
@@ -333,7 +333,7 @@ function specimenWindow(item,host) {
     activeWindows.add(id);
     const content=Modules.create(id, 'UI/UX · '+item.name_ru, 560, item.variant==='scroll'?530:360,
       {transient:true,private:false});
-    content.replaceChildren($('h3',item.name_ru),$('p','Тестовое окно Cosmosimulator. Перетаскивайте заголовок, изменяйте размер, закрепляйте и разворачивайте окно.'));
+    content.replaceChildren($('h3',item.name_ru),$('p','Тестовое окно Astra Journey. Перетаскивайте заголовок, изменяйте размер, закрепляйте и разворачивайте окно.'));
     if(item.variant==='scroll')for(let i=0;i<18;i++)content.append($('p','Строка '+(i+1)+' · проверка прокрутки'));
     content.append(UI.bar(7,12,'Прогресс'));
     Modules.open(id);
@@ -850,7 +850,7 @@ function buildWindow(contents){
   root=$('div',null,'uiux-root');
   const side=$('aside',null,'uiux-sidebar');
   const head=$('div',null,'uiux-side-head');
-  head.append($('div','COSMOSIMULATOR / UI LAB','uiux-eyebrow'),$('h3','UI/UX'),$('p','Реестр интерфейсных элементов'));
+  head.append($('div','ASTRA JOURNEY / UI LAB','uiux-eyebrow'),$('h3','UI/UX'),$('p','Реестр интерфейсных элементов'));
   const catSearch=$('input');catSearch.id='uiux-category-search';catSearch.className='uiux-control';catSearch.type='search';catSearch.placeholder='Поиск категории…';
   catSearch.oninput=categoryListRender;
   head.append(catSearch);

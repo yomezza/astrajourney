@@ -63,7 +63,7 @@ flowchart LR
 
 `GET /planet/api/v1/health/live` проверяет процесс, `/health/ready` — DB, marker схемы и lease. Неготовый runtime отвечает 503 и не принимает высадки. Cosmic показывает независимый статус с ограниченным таймаутом; не проксирует каждую команду движения и продолжает работать при остановленном planet.
 
-SCM service name `CosmosimulatorPlanet`, отдельный EXE/журнал, stop → запрет новых входов → checkpoint → закрытие WS → освобождение lease → pool.Close. Общий SCM адаптер получает функцию Run, не знает о cosmic tick.
+SCM service name `AstraJourneyPlanet`, отдельный EXE/журнал, stop → запрет новых входов → checkpoint → закрытие WS → освобождение lease → pool.Close. Общий SCM адаптер получает функцию Run, не знает о cosmic tick.
 
 ## Клиент
 

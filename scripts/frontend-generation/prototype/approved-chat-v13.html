@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="dark">
-<title>Cosmosimulator · Edem — главная + Chat Service</title>
+<title>Astra Journey · Edem — главная + Chat Service</title>
 <style>
 :root{--bg:#10151b;--panel:#171e26;--border:#2d3945;--muted:#8a9aab;--text:#dce5ed;--accent:#efad58;--control:32px;--focus:#78c7d9;--header:58px;--action:#192a35;--action-border:#405966;color-scheme:dark}
 *{box-sizing:border-box}
@@ -117,7 +117,7 @@ select:focus,input:focus{outline-color:var(--focus)}
 @media(max-width:1100px){.window-switcher{max-width:22vw}}
 @media(max-width:760px){header{padding:0 9px}.brand{font-size:11px}.brand small{font-size:8px}.header-actions{gap:5px}.window-switcher{display:none}#demo-chip{display:none}#profile-nick{max-width:75px}.dropdown>summary{font-size:10px;padding:6px}#sidebar{width:48px;padding-inline:5px}#sidebar .sidebar-title,#sidebar .nav-label{display:none}#sidebar .sidebar-heading{justify-content:center}#sidebar>button,#sidebar .maps-navigation>button{justify-content:center;padding-inline:0;height:32px;min-height:32px}main{margin-left:48px!important;padding:78px 12px 45px}.overview-stats{grid-template-columns:1fr}.pilot-line{gap:10px}.toolbar h1{font-size:24px}.module-window{left:8px;max-width:calc(100vw - 16px)}.dropdown .menu{min-width:190px}.toolbar{margin-bottom:16px}}
 @media(max-width:430px){.header-actions{gap:4px}.brand{letter-spacing:1px}.brand small{letter-spacing:1px}.toolbar h1{font-size:21px}.level-overview{gap:2px 6px}.level-overview progress{width:85px}.level-overview button{padding:3px 5px;font-size:9px}.overview-stats article{padding:12px 13px}.workspace-intro{padding:26px 8px}footer{padding:0 7px;font-size:8px;letter-spacing:0}#server-status{font-size:9px}}
-/* Chat Service — frontend-only mock. Cosmosimulator tokens, isolated .chat-* styles. */
+/* Chat Service — frontend-only mock. Astra Journey tokens, isolated .chat-* styles. */
 #sidebar>button.chat-bottom{margin-top:auto;color:#9bd3cd;border-color:#48666b}
 #sidebar>button.chat-bottom.module-open{border-color:#79bab9;background:#21353e}
 .home-lower-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;margin-top:16px;min-width:0;align-items:start}
@@ -361,7 +361,7 @@ body.chat-docked .workspace-intro{padding-top:22px}
 </head>
 <body>
 <header>
-  <a class="brand" href="#game" id="brand" aria-label="Вернуться на главную">◈ COSMOSIMULATOR <small>EDEM / 0.17.0</small></a>
+  <a class="brand" href="#game" id="brand" aria-label="Вернуться на главную">◈ ASTRA JOURNEY <small>EDEM / 0.17.0</small></a>
   <div class="header-actions">
     <div id="window-switcher" class="window-switcher" aria-label="Открытые окна"></div>
     <span id="demo-chip" title="Демонстрация без сервера">DEMO · MOCK DATA</span>
@@ -432,14 +432,14 @@ body.chat-docked .workspace-intro{padding-top:22px}
     <p id="connection" class="muted">Данные обновлены: 14:36:00</p>
   </section>
 </main>
-<footer><span id="server-status" title="Демонстрационный сервер Иггдрасиль · Игроки онлайн: 74 · Боты: 12">● СЕРВЕР ОНЛАЙН</span><span>COSMOSIMULATOR · v0.17.0</span></footer>
+<footer><span id="server-status" title="Демонстрационный сервер Иггдрасиль · Игроки онлайн: 74 · Боты: 12">● СЕРВЕР ОНЛАЙН</span><span>ASTRA JOURNEY · v0.17.0</span></footer>
 <div id="toast" role="status" aria-live="polite" hidden></div>
 <div id="demo-window" class="module-window" role="dialog" aria-labelledby="module-title" hidden>
   <div id="demo-window-titlebar" class="module-titlebar"><h2 id="module-title">Модуль</h2><div class="window-actions"><button type="button" id="pin-window" title="Закрепить окно" aria-pressed="false">⌖</button><button type="button" id="max-window" title="Развернуть">□</button><button type="button" id="close-window" title="Закрыть">×</button></div></div>
   <div class="module-content" id="module-content"></div>
 </div>
 <section id="chat-floating" class="chat-floating" aria-label="Плавающий чат" hidden></section>
-<div id="chat-root" class="chat-root" aria-label="Чат Cosmosimulator" hidden>
+<div id="chat-root" class="chat-root" aria-label="Чат Astra Journey" hidden>
   <div class="chat-titlebar" id="chat-draghandle">
     <div class="chat-appname"><span id="chat-signal" class="chat-signal healthy" tabindex="0" role="img" aria-label="Сервис чата работает" aria-describedby="chat-status-tooltip"></span><b id="chat-title">Чат · Global</b></div>
     <div class="chat-toolset">
@@ -536,7 +536,7 @@ body.chat-docked .workspace-intro{padding-top:22px}
     }else if(name==='Пропустить тик'){
       text(c,'Демо-действие администратора. Реальное игровое время не изменяется.');action(c,'Симулировать игровой тик',()=>{$('star-date').textContent='0019 ЭД · 137 · 685';toast('Тестовый тик выполнен')});
     }else{
-      text(c,'Этот модуль существует в навигации Cosmosimulator. В данной демонстрации подробно воспроизведена только главная страница.');
+      text(c,'Этот модуль существует в навигации Astra Journey. В данной демонстрации подробно воспроизведена только главная страница.');
       text(c,'Все значения вымышленные; запросов к Go-серверу и PostgreSQL нет.','muted');
       action(c,'Вернуться на главную',closeWindow);
     }

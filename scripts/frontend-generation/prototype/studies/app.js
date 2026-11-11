@@ -71,7 +71,7 @@ function markSelection(){
 }
 function openOnMap(system){
   if(window.parent!==window && new URLSearchParams(location.search).has('embed')){
-    window.parent.postMessage({type:'cosmosimulator-demo:show-star',star:system.star},location.origin);
+    window.parent.postMessage({type:'astra-journey-demo:show-star',star:system.star},location.origin);
     return;
   }
   modal('Галактическая карта',`<div class="fake-map"><div class="starline"><b>✦ ${escape(system.name)}</b><p>${escape(system.galaxy)} · ${escape(system.region)} · Звезда класса ${escape(system.class)}</p></div><p>В настоящей игре «На карте» открывает модуль галактики с выбранной звездой.</p></div>`,()=>{},true);

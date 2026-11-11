@@ -1,4 +1,4 @@
-# Cosmosimulator — Planetary Fixes
+# Astra Journey — Planetary Fixes
 
 **Статус:** идея согласована владельцем игры; реализация не запущена.
 

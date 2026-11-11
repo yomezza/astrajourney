@@ -1,4 +1,4 @@
-# NATS Event Bus — 01. Фактическая архитектура Cosmosimulator
+# NATS Event Bus — 01. Фактическая архитектура Astra Journey
 
 Дата исследования: 2026-11-09. База: main 6f75b58e0f02f918b19d726baefe6d3aafa71859, релиз v0.24.4. Статус: **подтверждённый исходниками аудит**, не реализация NATS. Путь репозитория: https://github.com/yomezza/cosmosimulator .
 

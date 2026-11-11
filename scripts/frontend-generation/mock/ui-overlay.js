@@ -8,6 +8,18 @@ import { world, loadWorld } from '/core/world-store.js';
 import { loadPlanet } from '/features/planet/loader.js';
 import { mountColonyCatalog, clearColonyCatalog } from '/mock/colony-catalog.js';
 
+// Historical source snapshots retain their original title; the current mirror
+// presents the current product name while preserving their source files.
+function showProductName(){
+  document.title=document.title.replace(/cosmosimulator/ig,'Astra Journey');
+  for(const root of document.querySelectorAll('.apphead .brand, footer')){
+    const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+    for(let node;node=walker.nextNode();){node.nodeValue=node.nodeValue.replace(/cosmosimulator/ig,'Astra Journey');}
+  }
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',showProductName,{once:true});
+else showProductName();
+
 let studiesRoot;
 function openResearch() {
   if (!studiesRoot || !studiesRoot.isConnected) {
@@ -44,7 +56,7 @@ async function addChatEntry() {
   grid.append(slot,news);stats.after(grid);
   // Independent local news feed, available even if chat is never opened.
   import('/mock/news/news.js').then(({mountNewsWidget})=>mountNewsWidget(news))
-    .catch(error=>console.error('[Cosmosimulator News]',error));
+    .catch(error=>console.error('[Astra Journey News]',error));
   // Chat has its own draggable/resizable shell, not a nested Modules window.
   const floating=document.createElement('section');floating.id='chat-floating';floating.className='chat-floating';floating.hidden=true;
   floating.setAttribute('role','dialog');floating.setAttribute('aria-label','Чат');
@@ -70,7 +82,7 @@ document.addEventListener('click', event => {
 },true);
 // The embedded studies preview opens the ORIGINAL galaxy map for its star.
 window.addEventListener('message', event => {
-  if(event.origin !== location.origin || event.data?.type !== 'cosmosimulator-demo:show-star')return;
+  if(event.origin !== location.origin || event.data?.type !== 'astra-journey-demo:show-star')return;
   const frame=document.querySelector('#window-studies-v13-mock iframe');
   if(event.source !== frame?.contentWindow)return;
   const star=Number(event.data.star);
@@ -83,7 +95,7 @@ window.addEventListener('moduleclose', ({ detail }) => {
     document.querySelectorAll('#sidebar [data-open="studies"]').forEach(el=>el.classList.remove('module-open'));
 });
 const bootChat=()=>addChatEntry().catch(err=>{
-  console.error('[Cosmosimulator Chat] '+err.message,err);
+  console.error('[Astra Journey Chat] '+err.message,err);
   const nav=document.querySelector('#sidebar [data-chat-open]');
   if(nav){nav.disabled=true;nav.title='Ошибка загрузки чата';}
 });
@@ -93,7 +105,7 @@ else bootChat();
 // Demo-only UI/UX component laboratory; original sidebar and modules stay untouched.
 const bootUiLab=()=>import('/mock/ui-lab/lab.js')
   .then(({initUiLab})=>initUiLab())
-  .catch(error=>console.error('[Cosmosimulator UI/UX]',error));
+  .catch(error=>console.error('[Astra Journey UI/UX]',error));
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootUiLab);
 else bootUiLab();
 
@@ -141,7 +153,7 @@ async function openColonyCatalogue(background=false){
       colonyObserver.observe(root,{childList:true});
     }
     if(!background)Modules.open('colonies');
-  }catch(error){console.error('[Cosmosimulator Colonies]',error);}
+  }catch(error){console.error('[Astra Journey Colonies]',error);}
 }
 document.addEventListener('click',event=>{
   const button=event.target.closest?.('#nav-colonies');

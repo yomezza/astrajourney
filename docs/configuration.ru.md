@@ -36,20 +36,20 @@ Origin во всех файлах должен соответствовать а
 
 ```powershell
 # Cosmic: запускается первым, выполняет миграции общей схемы.
-$env:CONFIG_FILE = 'D:\cosmosimulator\configs\cosmos.toml'
-& 'D:\cosmosimulator\downloads\cosmosimulator-v0.24.4-windows-amd64.exe'
+$env:CONFIG_FILE = 'D:\AstraJourney\configs\cosmos.toml'
+& 'D:\AstraJourney\downloads\astra-journey-v0.24.13-windows-amd64.exe'
 ```
 
 ```powershell
 # Planet
-$env:CONFIG_FILE = 'D:\cosmosimulator\configs\planet.toml'
-& 'D:\cosmosimulator\downloads\cosmosimulator-planet-v0.24.4-windows-amd64.exe'
+$env:CONFIG_FILE = 'D:\AstraJourney\configs\planet.toml'
+& 'D:\AstraJourney\downloads\astra-journey-planet-v0.24.13-windows-amd64.exe'
 ```
 
 ```powershell
 # Chat
-$env:CONFIG_FILE = 'D:\cosmosimulator\configs\chat.toml'
-& 'D:\cosmosimulator\downloads\cosmosimulator-chat-v0.24.4-windows-amd64.exe'
+$env:CONFIG_FILE = 'D:\AstraJourney\configs\chat.toml'
+& 'D:\AstraJourney\downloads\astra-journey-chat-v0.24.13-windows-amd64.exe'
 ```
 
 Для возврата к переменным окружения перед следующим запуском:
@@ -71,7 +71,7 @@ PostgreSQL удобнее три файла: выдайте каждому пр�
 ## Формат и пути
 
 TOML сохраняется в UTF-8, с BOM или без него. Строки URL и Windows-пути удобно заключать в одинарные
-кавычки: `'D:\cosmosimulator\data\chat-erasure.log'`. В таких строках обратные
+кавычки: `'D:\AstraJourney\data\chat-erasure.log'`. В таких строках обратные
 слеши не являются escape-последовательностями. URL пишутся как `http://`, без
 слешей перед двоеточием. Подстановка `${VARIABLE}` не выполняется.
 

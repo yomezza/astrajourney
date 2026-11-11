@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parent
 
 
 def main():
-    p = argparse.ArgumentParser(description="Cosmosimulator frontend mirror launcher")
+    p = argparse.ArgumentParser(description="Astra Journey frontend mirror launcher")
     p.add_argument("--offline", action="store_true", help="no GitHub requests; use files already installed")
     p.add_argument("--no-update", action="store_true", help="skip updates of demo program")
     p.add_argument("--no-prepare", action="store_true", help="skip installation of original frontend")

@@ -1,4 +1,4 @@
-/* Cosmosimulator demo: single SVG news projector, shared A/B/C typography.
+/* Astra Journey demo: single SVG news projector, shared A/B/C typography.
  * Artwork: exact Git blobs from docs/ideas/news/, not generated illustrations.
  * All data come from one immutable local news.json fixture; no real game API.
  */

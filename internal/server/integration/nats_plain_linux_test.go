@@ -45,9 +45,9 @@ func TestPlainNATSNativeSharedConfig(t *testing.T) {
 		"nats":     map[string]any{"enabled": true, "servers": []string{b.URL}, "connect_timeout": "500ms", "reconnect_wait": "250ms", "cosmos": profile("cosmos", b.CosmosPassword), "planet": profile("planet", b.PlanetPassword), "chat": profile("chat", b.Password)},
 	}
 	config := n5Config(t, doc)
-	n5Process(t, n5Build(t, "./cmd/cosmosimulator", "cosmos", false), config, cosmos+"/api/health")
-	n5Process(t, n5Build(t, "./cmd/cosmosimulator-planet", "planet", false), config, planet+"/planet/api/v1/health/ready")
-	n5Process(t, n5Build(t, "./cmd/cosmosimulator-chat", "chat", false), config, chat+"/chat/api/v1/health")
+	n5Process(t, n5Build(t, "./cmd/astra-journey", "cosmos", false), config, cosmos+"/api/health")
+	n5Process(t, n5Build(t, "./cmd/astra-journey-planet", "planet", false), config, planet+"/planet/api/v1/health/ready")
+	n5Process(t, n5Build(t, "./cmd/astra-journey-chat", "chat", false), config, chat+"/chat/api/v1/health")
 	ready := func() {
 		eventuallyN1(t, func() bool {
 			res, e := (&http.Client{Timeout: time.Second}).Get(b.MonitorURL + "/connz")

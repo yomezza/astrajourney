@@ -98,7 +98,7 @@ func Run(ctx context.Context) error {
 		defer cancel()
 		_ = srv.Shutdown(c)
 	}()
-	log.Printf("Cosmosimulator listening on %s", addr)
+	log.Printf("Astra Journey listening on %s", addr)
 	err = srv.ListenAndServe()
 	if errors.Is(err, http.ErrServerClosed) {
 		return nil

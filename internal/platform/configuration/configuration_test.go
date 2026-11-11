@@ -144,7 +144,7 @@ func TestExamples(t *testing.T) {
 		if err != nil {
 			t.Fatal(service, err)
 		}
-		if source.Getenv("DB_SCHEMA") != "cosmosimulator" {
+		if source.Getenv("DB_SCHEMA") != "astra_journey" {
 			t.Fatal("example missing shared schema")
 		}
 		switch service {

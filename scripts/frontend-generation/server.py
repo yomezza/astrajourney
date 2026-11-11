@@ -199,7 +199,7 @@ class DemoHandler(SimpleHTTPRequestHandler):
         path=url.path
         if path=='/index.html':
             if not (WEB/'index.html').is_file():
-                html='''<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cosmosimulator UI Mirror — подготовка</title><style>body{background:#10151b;color:#dce5ed;font:14px/1.6 system-ui;max-width:780px;margin:10vh auto;padding:24px}h1{font-size:23px;color:#efad58}code,pre{background:#1b2b35;padding:4px 6px}pre{padding:14px;overflow:auto}a{color:#78c7d9}</style><h1>◈ Cosmosimulator UI Mirror</h1><p>Для запуска всех оригинальных модулей сначала скопируйте 152 файла frontend из релиза v0.23.0.</p><pre>python prepare.py
+                html='''<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Astra Journey UI Mirror — подготовка</title><style>body{background:#10151b;color:#dce5ed;font:14px/1.6 system-ui;max-width:780px;margin:10vh auto;padding:24px}h1{font-size:23px;color:#efad58}code,pre{background:#1b2b35;padding:4px 6px}pre{padding:14px;overflow:auto}a{color:#78c7d9}</style><h1>◈ Astra Journey UI Mirror</h1><p>Для запуска всех оригинальных модулей сначала скопируйте 152 файла frontend из релиза v0.23.0.</p><pre>python prepare.py
 python server.py</pre><p>Если GitHub недоступен: <code>python prepare.py --from ПУТЬ_К_РЕПОЗИТОРИЮ</code> или <code>python prepare.py --archive source.zip</code>.</p><p>Все 33 оригинальных SVG уже включены в архив и доступны для проверки:</p><p><a href="/demo/assets/">Открыть галерею SVG кораблей, звёзд и космических объектов</a></p><p>До загрузки оригинала картинки PNG отмечаются как отсутствующие. Работающая игра не имитируется.</p></html>'''
                 encoded=html.encode('utf-8')
                 self.send_response(200);self.send_header('Content-Type','text/html; charset=utf-8');self.send_header('Content-Length',str(len(encoded)));self.end_headers()
@@ -241,7 +241,7 @@ if __name__=='__main__':
     if not (WEB/'bootstrap.js').is_file():
         print('ВНИМАНИЕ: original-web ещё не подготовлен. Сейчас доступна галерея всех 33 SVG; для полной игры выполните python prepare.py.')
     status = local_version()
-    print('Cosmosimulator / оригинальный frontend + вымышленные данные', flush=True)
+    print('Astra Journey / оригинальный frontend + вымышленные данные', flush=True)
     print('[версия] Коммит демоверсии: ' + (status['commit'] or 'НЕИЗВЕСТЕН'), flush=True)
     print('[версия] ' + status['message'] + (' (' + str(status['files']) + ' файлов)' if status['verified'] else ''), flush=True)
     print('[версия] Исполняемый каталог: ' + str(ROOT), flush=True)

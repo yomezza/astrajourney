@@ -1,4 +1,4 @@
-/* Chat Service — frontend-only mock. Cosmosimulator tokens, isolated .chat-* styles. */
+/* Chat Service — frontend-only mock. Astra Journey tokens, isolated .chat-* styles. */
 #sidebar>button.chat-bottom{margin-top:auto;color:#9bd3cd;border-color:#48666b}
 #sidebar>button.chat-bottom.module-open{border-color:#79bab9;background:#21353e}
 .home-lower-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;margin-top:16px;min-width:0;align-items:start}

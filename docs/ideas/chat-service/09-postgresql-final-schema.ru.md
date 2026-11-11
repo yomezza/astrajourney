@@ -4,7 +4,7 @@
 
 ## 1. Нормализованная схема объектов
 
-Все **новые** объекты СУБД именуются с префиксом chat_. Имена существующих таблиц Cosmosimulator (users/sessions/companies/planet_visits/planet_surfaces/planet_sectors) не меняются. Для SQL всё в текущем DB_SCHEMA.
+Все **новые** объекты СУБД именуются с префиксом chat_. Имена существующих таблиц Astra Journey (users/sessions/companies/planet_visits/planet_surfaces/planet_sectors) не меняются. Для SQL всё в текущем DB_SCHEMA.
 
 ### 1.1. Scope / беседы
 

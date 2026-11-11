@@ -1,10 +1,15 @@
-# Cosmosimulator
+# Astra Journey
 
-Cosmosimulator — браузерная космическая экономическая игра с общим миром. Игрок начинает с небольшого корабля, исследует звёздные системы, добывает ресурсы, торгует, перевозит грузы и участвует в развитии колоний. Можно играть самостоятельно или вступить в корпорацию.
+Astra Journey — браузерная космическая экономическая игра с общим миром. Игрок начинает с небольшого корабля, исследует звёздные системы, добывает ресурсы, торгует, перевозит грузы и участвует в развитии колоний. Можно играть самостоятельно или вступить в корпорацию.
 
 Сервер написан на Go, данные хранятся в PostgreSQL. Интерфейс работает в браузере на HTML, CSS, JavaScript и SVG. Для запуска не нужны Node.js и npm.
 
-**Версии служб:** Cosmic 0.24.12, Planet 0.24.12, Chat 0.24.12. [NATS без TLS и общий конфиг](release-notes/v0.24.12.md).
+**Версии служб:** Cosmic 0.24.13, Planet 0.24.13, Chat 0.24.13. [Переименование в Astra Journey](release-notes/v0.24.13.md).
+
+При обновлении существующей установки сохраните прежние `database.schema`,
+пути к данным и `chat-erasure.log` из своего конфига. Имя схемы не зависит от
+названия игры; например, существующая `cosmosimulator` продолжает поддерживаться.
+[Переименование и переход на новые имена служб](docs/operations/astra-journey-rename.ru.md).
 
 В релизах публикуются сборки **Windows amd64 и Linux amd64**. [Запуск на Debian 13 и сборка обеих платформ](docs/operations/linux-amd64.ru.md).
 
@@ -42,7 +47,7 @@ Cosmosimulator — браузерная космическая экономич�
 
 ### Высадка на планету
 
-С версии 0.23.0 планетарный режим работает в отдельном процессе `cosmosimulator-planet`. Игрок может высадиться на доступной площадке, перемещаться по локальной 2D-сцене щелчками мыши, обходить препятствия, видеть других персонажей и переходить между соседними разрешёнными секторами с подтверждением перехода.
+С версии 0.23.0 планетарный режим работает в отдельном процессе `astra-journey-planet`. Игрок может высадиться на доступной площадке, перемещаться по локальной 2D-сцене щелчками мыши, обходить препятствия, видеть других персонажей и переходить между соседними разрешёнными секторами с подтверждением перехода.
 
 Корабль, с которого произведена высадка, остаётся закреплённым у планеты. Визит можно продолжить после закрытия вкладки или перезапуска планетарной службы. Космический сервер при сбое планетарного процесса продолжает работать.
 
@@ -56,7 +61,7 @@ Cosmosimulator — браузерная космическая экономич�
 
 ## Игровое время
 
-В Cosmosimulator используются разные способы отсчёта времени:
+В Astra Journey используются разные способы отсчёта времени:
 
 - **Тик** — завершённый цикл обновления игрового мира.
 - **Календарные импульсы** — счётчик даты ЭД. Один период содержит 1000 импульсов, один год — 360 периодов.
@@ -75,7 +80,7 @@ Cosmosimulator — браузерная космическая экономич�
 
 ```powershell
 $env:DATABASE_URL = 'postgres://cosmos:URL_ENCODED_PASSWORD@127.0.0.1:5432/existing_database?sslmode=disable'
-$env:DB_SCHEMA = 'cosmosimulator'
+$env:DB_SCHEMA = 'astra_journey'
 $env:HTTP_ADDR = '127.0.0.1:8080'
 $env:PLANET_ENABLED = 'true'
 $env:PLANET_INTERNAL_URL = 'http://127.0.0.1:8081'
@@ -84,7 +89,7 @@ $env:PLANET_INTERNAL_URL = 'http://127.0.0.1:8081'
 $env:ADMIN_USERNAME = 'operator'
 $env:ADMIN_PASSWORD = 'REPLACE_WITH_A_UNIQUE_PASSWORD'
 
-.\downloads\cosmosimulator-v0.24.6-windows-amd64.exe
+.\downloads\astra-journey-v0.24.13-windows-amd64.exe
 ```
 
 После запуска откройте `http://127.0.0.1:8080`. Для остановки используйте Ctrl+C. После создания администратора уберите `ADMIN_USERNAME` и `ADMIN_PASSWORD` из окружения последующих запусков.
@@ -93,10 +98,10 @@ $env:ADMIN_PASSWORD = 'REPLACE_WITH_A_UNIQUE_PASSWORD'
 
 ```powershell
 $env:DATABASE_URL = 'postgres://cosmos:URL_ENCODED_PASSWORD@127.0.0.1:5432/existing_database?sslmode=disable'
-$env:DB_SCHEMA = 'cosmosimulator'
+$env:DB_SCHEMA = 'astra_journey'
 $env:PLANET_HTTP_ADDR = '127.0.0.1:8081'
 
-.\downloads\cosmosimulator-planet-v0.24.4-windows-amd64.exe
+.\downloads\astra-journey-planet-v0.24.13-windows-amd64.exe
 ```
 
 Обе службы используют одну базу и одну схему. Миграции выполняет космическая служба; планетарная не должна запускаться первой при обновлении схемы. В браузере нужен только порт космической службы: запросы к планетарной проходят через её шлюз.
@@ -110,8 +115,8 @@ $env:PLANET_HTTP_ADDR = '127.0.0.1:8081'
 Вместо отдельных переменных можно указать только путь к файлу:
 
 ```powershell
-$env:CONFIG_FILE = 'D:\cosmosimulator\configs\cosmos.toml'
-.\downloads\cosmosimulator-v0.24.6-windows-amd64.exe
+$env:CONFIG_FILE = 'D:\AstraJourney\configs\cosmos.toml'
+.\downloads\astra-journey-v0.24.13-windows-amd64.exe
 ```
 
 Для Planet и Chat используется та же переменная, но путь к их файлу.
@@ -145,11 +150,10 @@ go test ./...
 
 Интеграционные тесты используют `TEST_DATABASE_URL` и отдельную тестовую базу с суффиксом `_test`. Если переменная не задана, требующие PostgreSQL тесты пропускаются.
 
-Сборка для Windows x64 из корня репозитория:
+Сборка Windows amd64 и Linux amd64 из корня репозитория:
 
 ```sh
-CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -buildvcs=false -trimpath -ldflags='-s -w' -o downloads/cosmosimulator-v0.24.6-windows-amd64.exe ./cmd/cosmosimulator
-CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -buildvcs=false -trimpath -ldflags='-s -w' -o downloads/cosmosimulator-planet-v0.24.4-windows-amd64.exe ./cmd/cosmosimulator-planet
+python3 scripts/build-release.py v0.24.13
 ```
 
 Управление космическим сервером находится в `internal/server` и профильных Go-пакетах; браузерные ресурсы — в `internal/server/web`. Node/Playwright применяются при разработке и тестировании интерфейса, но не нужны для работы Windows-сборок.

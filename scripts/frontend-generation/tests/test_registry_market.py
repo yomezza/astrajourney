@@ -78,8 +78,8 @@ class RegistryMarketTests(unittest.TestCase):
         source=(ROOT/'prototype/studies/app.js').read_text(encoding='utf-8')
         overlay=(ROOT/'mock/ui-overlay.js').read_text(encoding='utf-8')
         self.assertIn("fetch('/api/demo/registry'",source)
-        self.assertIn("cosmosimulator-demo:show-star",source)
-        self.assertIn("cosmosimulator-demo:show-star",overlay)
+        self.assertIn("astra-journey-demo:show-star",source)
+        self.assertIn("astra-journey-demo:show-star",overlay)
         self.assertIn("Modules.open('galaxy')",overlay)
 
 if __name__=='__main__':unittest.main()

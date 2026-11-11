@@ -17,7 +17,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/platform/telemetry"
 )
 
-const Version = "0.24.12"
+const Version = "0.24.13"
 const Stage = "P2-9"
 
 // App wires only planetary components. New does not start goroutines or migrate.
@@ -118,5 +118,5 @@ func (a *App) Handler() http.Handler {
 
 func (a *App) health(w http.ResponseWriter, status int, reason string) {
 	lease, _ := a.coordinator.Current()
-	httpkit.Reply(w, status, map[string]any{"schema_version": planetruntime.SchemaVersion, "runtime_instance": lease.Owner, "runtime_fence": lease.Fence, "service": "cosmosimulator-planet", "version": Version, "stage": Stage, "status": reason, "gameplay_ready": status == 200 && reason == "ready", "multiplayer_ready": status == 200 && reason == "ready", "landing_ready": status == 200 && reason == "ready"})
+	httpkit.Reply(w, status, map[string]any{"schema_version": planetruntime.SchemaVersion, "runtime_instance": lease.Owner, "runtime_fence": lease.Fence, "service": "astra-journey-planet", "version": Version, "stage": Stage, "status": reason, "gameplay_ready": status == 200 && reason == "ready", "multiplayer_ready": status == 200 && reason == "ready", "landing_ready": status == 200 && reason == "ready"})
 }

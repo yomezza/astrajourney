@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Copy/download a pinned and complete Cosmosimulator web tree; validate every asset."""
+"""Copy/download a pinned and complete Astra Journey web tree; validate every asset."""
 import argparse, hashlib, io, json, shutil, sys, urllib.request, zipfile, time
 from pathlib import Path
 BASE=Path(__file__).resolve().parent
@@ -35,7 +35,7 @@ class Progress:
         print(f'  ({time.monotonic()-self.start:.1f} c)')
 
 def download_with_progress(url):
-    request=urllib.request.Request(url,headers={'User-Agent':'cosmosimulator-ui-mirror-v3'})
+    request=urllib.request.Request(url,headers={'User-Agent':'astra-journey-ui-mirror-v3'})
     with urllib.request.urlopen(request,timeout=70) as response:
         total=int(response.headers.get('Content-Length') or 0)
         progress=Progress('Загрузка оригинала',total,'байт')
@@ -134,7 +134,7 @@ EXPECTED_ASSET_SHAS={
 
 def main():
     p=argparse.ArgumentParser(description='Установить оригинальный frontend + SVG кораблей/объектов + PNG планет')
-    p.add_argument('--from',dest='local',help='локальный checkout Cosmosimulator либо его internal/server/web/')
+    p.add_argument('--from',dest='local',help='локальный checkout Astra Journey либо его internal/server/web/')
     p.add_argument('--archive',type=Path,help='заранее скачанный ZIP исходников с GitHub')
     p.add_argument('--check-only',action='store_true',help='проверить полноту, ничего не загружая')
     p.add_argument('--force',action='store_true')

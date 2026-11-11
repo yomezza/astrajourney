@@ -69,14 +69,14 @@ GRANT UPDATE (owner_id, fence, expires_at)
 Копировать EXE в постоянный путь. В административном PowerShell:
 
 ```powershell
-New-Item -ItemType Directory -Force C:\Cosmosimulator\logs
-sc.exe create CosmosimulatorPlanet binPath= 'C:\Cosmosimulator\cosmosimulator-planet.exe' start= auto
-New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\CosmosimulatorPlanet' -Name Environment -PropertyType MultiString -Value @('DATABASE_URL=postgres://cosmos_planet:URL_ENCODED_PASSWORD@127.0.0.1:5432/existing_database?sslmode=disable','DB_SCHEMA=cosmosimulator','PLANET_HTTP_ADDR=127.0.0.1:8081','PLANET_LOG_FILE=C:\Cosmosimulator\logs\planet.log') -Force
-sc.exe start CosmosimulatorPlanet
-sc.exe query CosmosimulatorPlanet
+New-Item -ItemType Directory -Force C:\Astra Journey\logs
+sc.exe create AstraJourneyPlanet binPath= 'C:\Astra Journey\cosmosimulator-planet.exe' start= auto
+New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\AstraJourneyPlanet' -Name Environment -PropertyType MultiString -Value @('DATABASE_URL=postgres://cosmos_planet:URL_ENCODED_PASSWORD@127.0.0.1:5432/existing_database?sslmode=disable','DB_SCHEMA=cosmosimulator','PLANET_HTTP_ADDR=127.0.0.1:8081','PLANET_LOG_FILE=C:\Astra Journey\logs\planet.log') -Force
+sc.exe start AstraJourneyPlanet
+sc.exe query AstraJourneyPlanet
 ```
 
-Значения окружения службы отличаются от окна PowerShell; `.env` автоматически не читается. Права на каталог/лог и секреты реестра ограничивает оператор. Имя службы отдельно от `Cosmosimulator`; остановка одной не останавливает другую. SCM Running означает, что HTTP listener создан, а состояние DB/schema/lease проверяется health/ready. Нет обязательной зависимости SCM от cosmic: planet может дождаться миграции в состоянии 503.
+Значения окружения службы отличаются от окна PowerShell; `.env` автоматически не читается. Права на каталог/лог и секреты реестра ограничивает оператор. Имя службы отдельно от `Astra Journey`; остановка одной не останавливает другую. SCM Running означает, что HTTP listener создан, а состояние DB/schema/lease проверяется health/ready. Нет обязательной зависимости SCM от cosmic: planet может дождаться миграции в состоянии 503.
 
 При stop сначала выключается readiness и отменяется heartbeat, затем HTTP drain и условное освобождение lease. При недоступной DB освобождение не объявляется успешным: блокировка истечёт сама. Нативный SCM не проверен в Linux; обе Windows x64 команды собираются отдельно.
 

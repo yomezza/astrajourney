@@ -70,12 +70,14 @@ const HullCatalogueVersion = 2
 // Keep PostgreSQL's fuel/class invariant in sync with the authoritative Go
 // catalogue, including upgrades of databases containing only the original hulls.
 func EnsureShipHullConstraint(ctx context.Context, tx pgx.Tx) error {
-	marker := fmt.Sprintf("cosmosimulator-hulls-%d", HullCatalogueVersion)
+	marker := fmt.Sprintf("astra-journey-hulls-%d", HullCatalogueVersion)
+	// Accept persisted markers from before the rename without rebuilding the constraint.
+	legacyMarker := fmt.Sprintf("cosmosimulator-hulls-%d", HullCatalogueVersion)
 	var current string
 	if err := tx.QueryRow(ctx, `SELECT COALESCE(obj_description(oid,'pg_constraint'),'') FROM pg_constraint WHERE conrelid='ships'::regclass AND conname='ships_class_fuel'`).Scan(&current); err != nil {
 		return err
 	}
-	if current == marker {
+	if current == marker || current == legacyMarker {
 		return nil
 	}
 	var cases strings.Builder

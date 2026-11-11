@@ -110,7 +110,7 @@ select:focus,input:focus{outline-color:var(--focus)}
 @media(max-width:1100px){.window-switcher{max-width:22vw}}
 @media(max-width:760px){header{padding:0 9px}.brand{font-size:11px}.brand small{font-size:8px}.header-actions{gap:5px}.window-switcher{display:none}#demo-chip{display:none}#profile-nick{max-width:75px}.dropdown>summary{font-size:10px;padding:6px}#sidebar{width:48px;padding-inline:5px}#sidebar .sidebar-title,#sidebar .nav-label{display:none}#sidebar .sidebar-heading{justify-content:center}#sidebar>button,#sidebar .maps-navigation>button{justify-content:center;padding-inline:0;height:32px;min-height:32px}main{margin-left:48px!important;padding:78px 12px 45px}.overview-stats{grid-template-columns:1fr}.pilot-line{gap:10px}.toolbar h1{font-size:24px}.module-window{left:8px;max-width:calc(100vw - 16px)}.dropdown .menu{min-width:190px}.toolbar{margin-bottom:16px}}
 @media(max-width:430px){.header-actions{gap:4px}.brand{letter-spacing:1px}.brand small{letter-spacing:1px}.toolbar h1{font-size:21px}.level-overview{gap:2px 6px}.level-overview progress{width:85px}.level-overview button{padding:3px 5px;font-size:9px}.overview-stats article{padding:12px 13px}.workspace-intro{padding:26px 8px}footer{padding:0 7px;font-size:8px;letter-spacing:0}#server-status{font-size:9px}}
-/* Chat Service — frontend-only mock. Cosmosimulator tokens, isolated .chat-* styles. */
+/* Chat Service — frontend-only mock. Astra Journey tokens, isolated .chat-* styles. */
 #sidebar>button.chat-bottom{margin-top:auto;color:#9bd3cd;border-color:#48666b}
 #sidebar>button.chat-bottom.module-open{border-color:#79bab9;background:#21353e}
 .home-lower-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;margin-top:16px;min-width:0;align-items:start}

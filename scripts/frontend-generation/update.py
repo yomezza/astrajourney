@@ -41,7 +41,7 @@ def git_sha(payload):
 
 def request(url, *, timeout=TIMEOUT):
     req = urllib.request.Request(url, headers={
-        'User-Agent': 'Cosmosimulator-Frontend-Mirror/1',
+        'User-Agent': 'AstraJourney-Frontend-Mirror/1',
         'Accept': 'application/vnd.github+json',
     })
     for attempt in range(RETRIES):

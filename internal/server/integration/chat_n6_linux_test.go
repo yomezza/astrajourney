@@ -126,9 +126,9 @@ func TestN6NativeThreeServices(t *testing.T) {
 	}
 	dsn := os.Getenv("TEST_DATABASE_URL")
 	b := natsfixture.New(t, natsfixture.Options{N6: true})
-	cosmicBinary := n5Build(t, "./cmd/cosmosimulator", "cosmic", false)
-	planetBinary := n5Build(t, "./cmd/cosmosimulator-planet", "planet", false)
-	chatBinary := n5Build(t, "./cmd/cosmosimulator-chat", "chat", false)
+	cosmicBinary := n5Build(t, "./cmd/astra-journey", "cosmic", false)
+	planetBinary := n5Build(t, "./cmd/astra-journey-planet", "planet", false)
+	chatBinary := n5Build(t, "./cmd/astra-journey-chat", "chat", false)
 	cosmicAddr, planetAddr, chatAddr := n5Port(t), n5Port(t), n5Port(t)
 	cosmic, planet, chat := "http://"+cosmicAddr, "http://"+planetAddr, "http://"+chatAddr
 	natsDoc := func(identity, secret string) map[string]any {

@@ -1,7 +1,7 @@
 # Скопируйте в planet.toml. База и схема те же, что в Cosmic.
 [database]
 url = 'postgres://cosmos:CHANGE_ME@127.0.0.1:5432/existing_database?sslmode=disable'
-schema = 'cosmosimulator'
+schema = 'astra_journey'
 
 [planet]
 http_addr = '127.0.0.1:8081'
@@ -17,7 +17,7 @@ scene_capacity = 32
 scene_idle_ttl = '2m'
 scene_load_timeout = '20s'
 
-# Planet 0.24.12 / N6. Own file/account, distinct from Cosmic/Chat; disabled by default.
+# Planet 0.24.13 / N6. Own file/account, distinct from Cosmic/Chat; disabled by default.
 # Loopback address below belongs to an isolated TLS test broker, not cosmoNATS.
 [nats]
 enabled = false
@@ -29,6 +29,6 @@ ca_file = '../certs/ca.pem'
 connect_timeout = '2s'
 reconnect_wait = '1s'
 
-# С 0.24.12: для подключения без TLS используйте nats://host:4222,
+# С 0.24.13: для подключения без TLS используйте nats://host:4222,
 # удалите ca_file/password_file и задайте password = 'YOUR_NATS_PASSWORD'.
 # Общий конфиг трёх служб: shared.example.toml.

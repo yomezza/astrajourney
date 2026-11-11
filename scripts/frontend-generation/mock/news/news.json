@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "fictional": true,
-  "source": "Cosmosimulator frontend-generation mock/registry.py, fixed IDs",
+  "source": "Astra Journey frontend-generation mock/registry.py, fixed IDs",
   "generated_for_demo": "2026-11-05",
   "items": [
     {
