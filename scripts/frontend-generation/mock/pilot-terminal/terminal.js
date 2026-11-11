@@ -47,7 +47,7 @@ class PilotWorkspaceController{
     this.shell=null;this.root=null;
     this.onClose=event=>this.closed(event.detail);
     this.onDestroy=event=>this.destroyed(event.detail);
-    this.onPageHide=()=>this.save();
+    this.onPageHide=()=>{this.captureGeometry();this.save();};
     this.onSignOut=()=>this.dispose();
     window.addEventListener("moduleclose",this.onClose);
     window.addEventListener("moduledestroy",this.onDestroy);
@@ -57,6 +57,20 @@ class PilotWorkspaceController{
   }
   current(){return this.state.workspaces.find(w=>w.id===this.state.activeWorkspaceId);}
   id(ws,ins){return windowId(this.account,ws,ins);}
+  captureGeometry(){
+    // Public Modules geometry uses the same preference keys. Capture once more
+    // on pagehide in case the last drag/resize has not emitted its final event.
+    for(const id of this.activeWindows.keys()){
+      const dialog=document.getElementById("window-"+id);
+      if(!dialog?.open||dialog.classList.contains("maximized"))continue;
+      const r=dialog.getBoundingClientRect();
+      if(r.width<=0||r.height<=0)continue;
+      Preferences.write("module:"+id,{
+        x:r.left,y:r.top,w:r.width,h:r.height,
+        pinned:dialog.classList.contains("pinned")
+      });
+    }
+  }
   save(){
     Preferences.write(this.key,this.state);
     if(this.storageOK){
@@ -100,6 +114,7 @@ class PilotWorkspaceController{
     const index=ws?.instances.findIndex(x=>x.id===record.ins.id)??-1;
     if(index>=0){ws.instances.splice(index,1);this.save();this.renderControl();}
     Modules.destroy(id);
+    Preferences.remove("module:"+id);
   }
   destroyed(id){this.activeWindows.delete(id);}
   dispose(){
@@ -135,11 +150,11 @@ class PilotWorkspaceController{
     const id=this.id(ws,ins),data=Preferences.read("module:"+id,{});
     if(Number.isFinite(data.x)&&Number.isFinite(data.w))return;
     const index=TYPES.indexOf(ins.type);
-    const width=Math.min(356,innerWidth-12);
+    const width=Math.min(340,innerWidth-12);
     const height=Math.min(ins.type==="guide"?280:330,innerHeight-110);
-    const columns=Math.max(1,Math.floor((innerWidth-20)/375));
+    const columns=Math.max(1,Math.floor((innerWidth-16)/350));
     const column=index%columns,row=Math.floor(index/columns);
-    const x=Math.min(innerWidth-width-6,8+column*375);
+    const x=Math.min(innerWidth-width-6,8+column*350);
     const y=Math.min(innerHeight-height-36,Math.max(64,356+row*60));
     Preferences.write("module:"+id,{x,y,w:width,h:height,pinned:false});
   }
@@ -150,7 +165,7 @@ class PilotWorkspaceController{
       const id=this.id(ws,ins);
       if(this.activeWindows.has(id))continue;
       this.ensureGeometry(ws,ins);
-      const root=Modules.create(id,LABELS[ins.type]+" · "+ws.name,356,330,{private:false});
+      const root=Modules.create(id,LABELS[ins.type]+" · "+ws.name,340,330,{private:false});
       this.activeWindows.set(id,{ws,ins,root});
       this.renderInstance(ws,ins,root);
       Modules.open(id);
