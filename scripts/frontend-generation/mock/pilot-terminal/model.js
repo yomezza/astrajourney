@@ -46,7 +46,7 @@ export function validateState(value){
       if(!isID(ins.id)||seen.has(ins.id)||!TYPES.includes(ins.type)||types.has(ins.type)||
         !ins.binding||!["workspace","fixed","none"].includes(ins.binding.mode)||
         (ins.type==="guide")!==(ins.binding.mode==="none")||
-        (ins.binding.mode==="fixed"&&!shipID(ins.binding.shipId))||
+        (ins.binding.mode==="fixed"&&![41,82].includes(ins.binding.shipId))||
         !ins.uiState||typeof ins.uiState!=="object"||Array.isArray(ins.uiState))
         return false;
       const allowed=ins.type==="cargo"?["category","sort"]:ins.type==="mining"?["filter"]:ins.type==="ship"?["tab"]:[];
