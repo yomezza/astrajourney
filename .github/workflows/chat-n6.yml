@@ -1,4 +1,4 @@
-name: Cosmic Planet Chat N6 functional checks
+name: Core NATS TLS and plaintext functional checks
 on:
   push:
     branches: [main]
@@ -15,6 +15,7 @@ on:
       - 'internal/platform/gamesignal/**'
       - 'internal/platform/configuration/**'
       - 'internal/server/integration/chat_n*.go'
+      - 'internal/server/integration/nats_plain*.go'
       - 'internal/testkit/natsfixture/**'
       - 'go.mod'
       - 'go.sum'
@@ -65,7 +66,7 @@ jobs:
         run: |
           set -o pipefail
           go test -race ./internal/server/integration \
-            -run '^(TestN6NativeThreeServices|TestN5NativePlanetNATSChat|TestChatN3(SocketScopeSessionAndLease|PrivateCorporationAndCleanup|SpatialTransition|RestartAndRollback)|TestChatN2SocketFallbackScopeAndReconnect|TestChatN1SocketFallbackScopeAndReconnect)$' \
+            -run '^(TestPlainNATSNativeSharedConfig|TestN6NativeThreeServices|TestN5NativePlanetNATSChat|TestChatN3(SocketScopeSessionAndLease|PrivateCorporationAndCleanup|SpatialTransition|RestartAndRollback)|TestChatN2SocketFallbackScopeAndReconnect|TestChatN1SocketFallbackScopeAndReconnect)$' \
             -count=1 -timeout=8m -v | tee chat-n6-functional.log
       - uses: actions/upload-artifact@v4
         if: always()

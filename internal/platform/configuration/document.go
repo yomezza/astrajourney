@@ -5,6 +5,63 @@ import (
 	"strings"
 )
 
+// NATSSettings is embedded to preserve the original flat [nats] syntax.
+type NATSSettings struct {
+	Enabled         *bool    `toml:"enabled"`
+	ServiceIdentity string   `toml:"service_identity"`
+	Servers         []string `toml:"servers"`
+	Username        string   `toml:"username"`
+	Password        string   `toml:"password"`
+	PasswordFile    string   `toml:"password_file"`
+	CAFile          string   `toml:"ca_file"`
+	ConnectTimeout  string   `toml:"connect_timeout"`
+	ReconnectWait   string   `toml:"reconnect_wait"`
+}
+type natsDocument struct {
+	NATSSettings
+	Cosmos *NATSSettings `toml:"cosmos"`
+	Planet *NATSSettings `toml:"planet"`
+	Chat   *NATSSettings `toml:"chat"`
+}
+
+func (n *natsDocument) profile(service Service) *NATSSettings {
+	switch service {
+	case Cosmos:
+		return n.Cosmos
+	case Planet:
+		return n.Planet
+	case Chat:
+		return n.Chat
+	}
+	return nil
+}
+func (n *natsDocument) profiled() bool { return n.Cosmos != nil || n.Planet != nil || n.Chat != nil }
+func (n *natsDocument) selected(service Service) NATSSettings {
+	out := n.NATSSettings
+	p := n.profile(service)
+	if p == nil {
+		return out
+	}
+	if p.Enabled != nil {
+		out.Enabled = p.Enabled
+	}
+	if p.Servers != nil {
+		out.Servers = p.Servers
+	}
+	for _, pair := range []struct {
+		dst *string
+		src string
+	}{{&out.ServiceIdentity, p.ServiceIdentity}, {&out.Username, p.Username}, {&out.Password, p.Password}, {&out.PasswordFile, p.PasswordFile}, {&out.CAFile, p.CAFile}, {&out.ConnectTimeout, p.ConnectTimeout}, {&out.ReconnectWait, p.ReconnectWait}} {
+		if pair.src != "" {
+			*pair.dst = pair.src
+		}
+	}
+	if out.ServiceIdentity == "" {
+		out.ServiceIdentity = string(service)
+	}
+	return out
+}
+
 type document struct {
 	Database struct {
 		URL    string `toml:"url"`
@@ -53,16 +110,7 @@ type document struct {
 		DegradedPollInterval   string   `toml:"degraded_poll_interval"`
 		OutboxOverlap          string   `toml:"outbox_overlap"`
 	} `toml:"chat"`
-	NATS *struct {
-		Enabled         *bool    `toml:"enabled"`
-		ServiceIdentity string   `toml:"service_identity"`
-		Servers         []string `toml:"servers"`
-		Username        string   `toml:"username"`
-		PasswordFile    string   `toml:"password_file"`
-		CAFile          string   `toml:"ca_file"`
-		ConnectTimeout  string   `toml:"connect_timeout"`
-		ReconnectWait   string   `toml:"reconnect_wait"`
-	} `toml:"nats"`
+	NATS *natsDocument `toml:"nats"`
 }
 
 func value[T bool | int | float64](v *T) string {
@@ -123,11 +171,13 @@ func (d document) values(service Service) map[string]string {
 		values["PLANET_INTERNAL_URL"] = d.Chat.PlanetInternalURL
 	}
 	if service == Chat || service == Planet || service == Cosmos {
-		if n := d.NATS; n != nil {
+		if d.NATS != nil {
+			n := d.NATS.selected(service)
 			values["NATS_ENABLED"] = value(n.Enabled)
 			values["NATS_SERVICE_IDENTITY"] = n.ServiceIdentity
 			values["NATS_SERVERS"] = strings.Join(n.Servers, ",")
 			values["NATS_USERNAME"] = n.Username
+			values["NATS_PASSWORD"] = n.Password
 			values["NATS_PASSWORD_FILE"] = n.PasswordFile
 			values["NATS_CA_FILE"] = n.CAFile
 			values["NATS_CONNECT_TIMEOUT"] = n.ConnectTimeout

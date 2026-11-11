@@ -40,7 +40,11 @@ func n5Wire(t *testing.T, b *natsfixture.Broker) *nats.Conn {
 	if e != nil || !roots.AppendCertsFromPEM(raw) {
 		t.Fatal("CA fixture")
 	}
-	nc, e := nats.Connect(b.URL, nats.Secure(&tls.Config{RootCAs: roots, MinVersion: tls.VersionTLS12}), nats.UserInfo("n3_test_operator", b.OperatorPassword), nats.NoReconnect(), nats.Timeout(time.Second))
+	opts := []nats.Option{nats.UserInfo("n3_test_operator", b.OperatorPassword), nats.NoReconnect(), nats.Timeout(time.Second)}
+	if strings.HasPrefix(b.URL, "tls://") {
+		opts = append(opts, nats.Secure(&tls.Config{RootCAs: roots, MinVersion: tls.VersionTLS12}))
+	}
+	nc, e := nats.Connect(b.URL, opts...)
 	if e != nil {
 		t.Fatal("owned broker unavailable")
 	}

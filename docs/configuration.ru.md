@@ -261,3 +261,12 @@ CONFIG_FILE либо собственные ENV. Смешивания источ
 [отчёт N6](operations/nats-n6/README.ru.md). Старому Cosmic 0.24.6 перед
 возвратом нужно убрать даже disabled `[nats]` из его TOML: strict parser той
 версии ещё не поддерживает секцию. Новому EXE для отката достаточно disabled.
+
+## 0.24.12: обычный NATS и общий TOML
+
+Поддержаны nats:// без TLS и `password` / NATS_PASSWORD вместо password_file.
+Для общего файла используются `[nats.cosmos]`, `[nats.planet]`, `[nats.chat]`
+с раздельными username/password; общие servers/enabled/timeouts — в `[nats]`.
+Старые плоские TLS-конфиги сохранены. Один список servers использует одну схему.
+[Настройка и проверки](operations/nats-plain.ru.md),
+[полный общий пример](../configs/shared.example.toml).

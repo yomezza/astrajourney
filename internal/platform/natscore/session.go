@@ -1,4 +1,4 @@
-// Package natscore provides TLS/password Core NATS transport, not game state.
+// Package natscore provides authenticated Core NATS transport, not game state.
 package natscore
 
 import (
@@ -54,5 +54,12 @@ func ErrorCode(e error) string {
 // Connect has no reconnect loop or subscriptions: its owner chooses its exact
 // subjects and lifecycle. All sockets, including handshake reads, are cancellable.
 func Connect(ctx context.Context, c Config, tlsConfig *tls.Config, password string, onError nats.ErrHandler, onClose nats.ConnHandler) (*nats.Conn, error) {
-	return nats.Connect(strings.Join(c.Servers, ","), nats.Secure(tlsConfig.Clone()), nats.UserInfo(c.Username, password), nats.NoReconnect(), nats.IgnoreDiscoveredServers(), nats.ReconnectBufSize(0), nats.Timeout(c.ConnectTimeout), nats.FlusherTimeout(c.ConnectTimeout), nats.PingInterval(5*time.Second), nats.MaxPingsOutstanding(2), nats.SetCustomDialer(natsDialer{ctx, c.ConnectTimeout}), nats.Name("cosmos-"+c.ServiceIdentity+"-core"), nats.ErrorHandler(onError), nats.ClosedHandler(onClose))
+	options := []nats.Option{nats.UserInfo(c.Username, password), nats.NoReconnect(), nats.IgnoreDiscoveredServers(), nats.ReconnectBufSize(0), nats.Timeout(c.ConnectTimeout), nats.FlusherTimeout(c.ConnectTimeout), nats.PingInterval(5 * time.Second), nats.MaxPingsOutstanding(2), nats.SetCustomDialer(natsDialer{ctx, c.ConnectTimeout}), nats.Name("cosmos-" + c.ServiceIdentity + "-core"), nats.ErrorHandler(onError), nats.ClosedHandler(onClose)}
+	if c.UsesTLS() {
+		if tlsConfig == nil {
+			return nil, errors.New("NATS TLS configuration is required")
+		}
+		options = append(options, nats.Secure(tlsConfig.Clone()))
+	}
+	return nats.Connect(strings.Join(c.Servers, ","), options...)
 }

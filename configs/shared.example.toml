@@ -1,0 +1,61 @@
+# Один CONFIG_FILE для Cosmic, Planet и Chat 0.24.12+ на Debian 13.
+# Подставьте адрес игры, PostgreSQL и настоящие NATS-пароли.
+[database]
+url = 'postgres://YOUR_DB_USER:YOUR_DB_PASSWORD@127.0.0.1:5432/YOUR_DATABASE?sslmode=disable'
+schema = 'cosmosimulator'
+
+[cosmos]
+http_addr = '0.0.0.0:8080'
+public_origin = 'http://192.168.111.44:8080'
+cookie_secure = false
+trusted_proxies = []
+planet_enabled = true
+chat_enabled = true
+planet_internal_url = 'http://127.0.0.1:8081'
+chat_internal_url = 'http://127.0.0.1:8082'
+
+[planet]
+http_addr = '127.0.0.1:8081'
+allowed_origins = ['http://192.168.111.44:8080']
+log_file = '/var/lib/cosmosimulator/planet.log'
+move_speed = 4.0
+path_budget = 24000
+db_timeout = '2s'
+lease_ttl = '15s'
+lease_renew = '5s'
+shutdown_timeout = '10s'
+scene_capacity = 32
+scene_idle_ttl = '2m'
+scene_load_timeout = '20s'
+
+[chat]
+http_addr = '127.0.0.1:8082'
+cosmic_internal_url = 'http://127.0.0.1:8080'
+planet_internal_url = 'http://127.0.0.1:8081'
+allowed_origins = ['http://192.168.111.44:8080']
+erasure_journal = '/var/lib/cosmosimulator/chat-erasure.log'
+# Для NATS переключить на 'b1' и включить [nats] ниже.
+dispatcher_mode = 'a1'
+fallback_poll_interval = '10s'
+degraded_poll_interval = '2s'
+outbox_overlap = '60s'
+# Если у Chat отдельный SQL-логин:
+# database_url = 'postgres://chat_runtime:YOUR_CHAT_DB_PASSWORD@127.0.0.1:5432/YOUR_DATABASE?sslmode=disable'
+
+[nats]
+enabled = false
+servers = ['nats://127.0.0.1:4222']
+connect_timeout = '2s'
+reconnect_wait = '1s'
+
+[nats.cosmos]
+username = 'cosmos'
+password = 'YOUR_COSMOS_NATS_PASSWORD'
+
+[nats.planet]
+username = 'planet'
+password = 'YOUR_PLANET_NATS_PASSWORD'
+
+[nats.chat]
+username = 'chat'
+password = 'YOUR_CHAT_NATS_PASSWORD'

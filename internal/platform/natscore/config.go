@@ -20,12 +20,16 @@ import (
 type Config struct {
 	Enabled                                         bool
 	ServiceIdentity, Username, PasswordFile, CAFile string
+	Password                                        string `json:"-"`
 	Servers                                         []string
 	ConnectTimeout, ReconnectWait                   time.Duration
 }
 
 func LoadConfig(getenv func(string) string) (Config, error) {
-	c := Config{ServiceIdentity: getenv("NATS_SERVICE_IDENTITY"), Username: getenv("NATS_USERNAME"), PasswordFile: getenv("NATS_PASSWORD_FILE"), CAFile: getenv("NATS_CA_FILE"), ConnectTimeout: 2 * time.Second, ReconnectWait: time.Second}
+	c := Config{ServiceIdentity: getenv("NATS_SERVICE_IDENTITY"), Username: getenv("NATS_USERNAME"), Password: getenv("NATS_PASSWORD"), PasswordFile: getenv("NATS_PASSWORD_FILE"), CAFile: getenv("NATS_CA_FILE"), ConnectTimeout: 2 * time.Second, ReconnectWait: time.Second}
+	if c.ServiceIdentity == "" {
+		c.ServiceIdentity = c.Username
+	}
 	var err error
 	if v := getenv("NATS_ENABLED"); v != "" {
 		c.Enabled, err = strconv.ParseBool(v)
@@ -63,26 +67,52 @@ func (c Config) Validate(identity string, required bool) error {
 		return errors.New("NATS service_identity and username must match the service (cosmos/planet/chat)")
 	}
 	if len(c.Servers) < 1 || len(c.Servers) > 3 {
-		return errors.New("NATS requires 1-3 explicit TLS servers")
+		return errors.New("NATS requires 1-3 explicit servers")
 	}
+	scheme := ""
 	for _, server := range c.Servers {
 		u, e := url.Parse(server)
-		if e != nil || u.Scheme != "tls" || u.User != nil || u.Host == "" || u.Path != "" || u.RawQuery != "" || u.ForceQuery || u.Fragment != "" {
-			return errors.New("NATS servers must be tls://host:port without credentials or URL extras")
+		if e != nil || (u.Scheme != "tls" && u.Scheme != "nats") || u.User != nil || u.Host == "" || u.Path != "" || u.RawQuery != "" || u.ForceQuery || u.Fragment != "" {
+			return errors.New("NATS servers must be nats://host:port or tls://host:port without credentials or URL extras")
 		}
+		if scheme != "" && scheme != u.Scheme {
+			return errors.New("NATS servers must use one transport scheme; mixed nats/tls is not supported")
+		}
+		scheme = u.Scheme
 		h, p, e := net.SplitHostPort(u.Host)
 		port, pe := strconv.Atoi(p)
 		if e != nil || pe != nil || port < 1 || port > 65535 || h == "" || strings.ContainsAny(h, "* >\t\r\n%") {
-			return errors.New("invalid NATS TLS host/port")
+			return errors.New("invalid NATS host/port")
 		}
 	}
 	if c.ConnectTimeout < 100*time.Millisecond || c.ConnectTimeout > 10*time.Second || c.ReconnectWait < 250*time.Millisecond || c.ReconnectWait > 30*time.Second {
 		return errors.New("NATS connect_timeout must be 100ms-10s and reconnect_wait 250ms-30s")
 	}
-	if !filepath.IsAbs(c.PasswordFile) || !filepath.IsAbs(c.CAFile) {
-		return errors.New("NATS password_file and ca_file must be absolute (TOML paths resolve against CONFIG_FILE)")
+	if (c.Password == "") == (c.PasswordFile == "") {
+		return errors.New("NATS requires exactly one of password or password_file")
 	}
+	if c.PasswordFile != "" && !filepath.IsAbs(c.PasswordFile) {
+		return errors.New("NATS password_file must be absolute (TOML paths resolve against CONFIG_FILE)")
+	}
+	if c.Password != "" && !validPassword(c.Password) {
+		return errors.New("invalid NATS password content")
+	}
+	if scheme == "tls" && !filepath.IsAbs(c.CAFile) {
+		return errors.New("NATS TLS requires an absolute ca_file (TOML paths resolve against CONFIG_FILE)")
+	}
+	if scheme == "nats" && c.CAFile != "" {
+		return errors.New("NATS ca_file applies only to tls:// servers")
+	}
+
 	return nil
+}
+
+// TLS is selected explicitly by the URL. TLS profiles never fall back to plaintext.
+func (c Config) UsesTLS() bool {
+	return len(c.Servers) > 0 && strings.HasPrefix(c.Servers[0], "tls://")
+}
+func validPassword(p string) bool {
+	return len(p) > 0 && len(p) <= 4096 && utf8.ValidString(p) && !strings.ContainsAny(p, "\x00\r\n")
 }
 func readNATSFile(path string, limit int64, secret bool) ([]byte, error) {
 	f, e := os.Open(path)
@@ -109,14 +139,23 @@ func readNATSFile(path string, limit int64, secret bool) ([]byte, error) {
 // Local material is validated before any broker connection; remote identity
 // failures are classified separately by the transport, without logging secrets.
 func (c Config) Credentials() (*tls.Config, string, error) {
-	b, e := readNATSFile(c.PasswordFile, 4096, true)
-	if e != nil {
-		return nil, "", e
+	if (c.Password == "") == (c.PasswordFile == "") {
+		return nil, "", errors.New("NATS requires exactly one of password or password_file")
 	}
-	b = bytes.TrimPrefix(b, []byte{0xef, 0xbb, 0xbf})
-	password := strings.TrimSuffix(strings.TrimSuffix(string(b), "\n"), "\r")
-	if password == "" || !utf8.ValidString(password) || strings.ContainsAny(password, "\x00\r\n") {
-		return nil, "", errors.New("invalid NATS password_file content")
+	password := c.Password
+	if c.PasswordFile != "" {
+		b, e := readNATSFile(c.PasswordFile, 4096, true)
+		if e != nil {
+			return nil, "", e
+		}
+		b = bytes.TrimPrefix(b, []byte{0xef, 0xbb, 0xbf})
+		password = strings.TrimSuffix(strings.TrimSuffix(string(b), "\n"), "\r")
+	}
+	if !validPassword(password) {
+		return nil, "", errors.New("invalid NATS password content")
+	}
+	if !c.UsesTLS() {
+		return nil, password, nil
 	}
 	ca, e := readNATSFile(c.CAFile, 1<<20, false)
 	if e != nil {

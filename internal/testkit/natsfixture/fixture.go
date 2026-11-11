@@ -75,7 +75,7 @@ func PKI(t *testing.T, wrongName bool) Material {
 	return m
 }
 
-type Options struct{ WrongName, DenyPublish, DenySubscribe, PlanetSignals, N6 bool }
+type Options struct{ WrongName, DenyPublish, DenySubscribe, PlanetSignals, N6, Plain bool }
 type Broker struct {
 	stderr bytes.Buffer
 	Material
@@ -174,6 +174,10 @@ func New(t *testing.T, options Options) *Broker {
 		users = append(users, map[string]any{"user": "cosmos", "password": hash(b.CosmosPassword), "permissions": map[string]any{"publish": map[string]any{"allow": gamesignal.CosmicSubjects}, "subscribe": map[string]any{"allow": []string{gamesignal.CleanupSubject}}}})
 	}
 	config := map[string]any{"server_name": "n3-disposable", "host": "127.0.0.1", "port": port, "tls": map[string]any{"cert_file": m.CertFile, "key_file": m.KeyFile, "min_version": "1.2", "timeout": 2}, "authorization": map[string]any{"users": users}, "log_file": b.LogFile}
+	if options.Plain {
+		delete(config, "tls")
+		b.URL = "nats://127.0.0.1:" + strconv.Itoa(port)
+	}
 	if options.PlanetSignals || options.N6 {
 		monitor, e := net.Listen("tcp", "127.0.0.1:0")
 		if e != nil {
@@ -214,7 +218,7 @@ func (b *Broker) Start() {
 	b.done = make(chan error, 1)
 	cmd := b.cmd
 	go func() { b.done <- cmd.Wait() }()
-	address := b.URL[len("tls://"):]
+	address := strings.TrimPrefix(strings.TrimPrefix(b.URL, "tls://"), "nats://")
 	deadline := time.Now().Add(5 * time.Second)
 	for {
 		select {

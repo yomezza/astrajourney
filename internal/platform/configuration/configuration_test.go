@@ -278,3 +278,48 @@ ca_file=`+strconv.Quote(m.CAFile)+`
 		t.Fatal(e)
 	}
 }
+
+func TestSharedNATSPlainProfiles(t *testing.T) {
+	text := `[nats]
+enabled=true
+servers=['nats://127.0.0.1:14222']
+connect_timeout='1s'
+[nats.cosmos]
+username='cosmos'
+password='cosmos-test-only'
+[nats.planet]
+username='planet'
+password='planet-test-only'
+[nats.chat]
+username='chat'
+password='chat-test-only'
+`
+	p := file(t, text)
+	for _, service := range []configuration.Service{configuration.Cosmos, configuration.Planet, configuration.Chat} {
+		source, e := configuration.Load(lookup(map[string]string{configuration.FileVariable: p, "NATS_PASSWORD": "environment-secret", "NATS_SERVERS": "tls://wrong:4222"}), service)
+		if e != nil {
+			t.Fatal(e)
+		}
+		c, e := natscore.LoadConfig(source.Getenv)
+		if e != nil || c.Validate(string(service), false) != nil {
+			t.Fatal("selected profile", service, e)
+		}
+		if c.Password != string(service)+"-test-only" || c.ServiceIdentity != string(service) || c.UsesTLS() {
+			t.Fatal("profile/ENV contamination")
+		}
+		tls, _, e := c.Credentials()
+		if e != nil || tls != nil {
+			t.Fatal("plain required files", e)
+		}
+	}
+	for _, bad := range []string{
+		text + "\nmisspelled_password='do-not-print-this'",
+		"[nats]\nenabled=true\nusername='cosmos'\npassword='do-not-print-this'\n[nats.chat]\nusername='chat'",
+		"[nats]\nenabled=true\n[nats.chat]\nusername='chat'",
+	} {
+		_, e := configuration.Load(lookup(map[string]string{configuration.FileVariable: file(t, bad)}), configuration.Cosmos)
+		if e == nil || strings.Contains(e.Error(), "do-not-print-this") {
+			t.Fatal("invalid common config accepted or leaked")
+		}
+	}
+}

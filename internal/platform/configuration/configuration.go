@@ -75,6 +75,14 @@ func Load(getenv func(string) string, service Service) (*Source, error) {
 	if err != nil {
 		return nil, errors.New("cannot resolve CONFIG_FILE directory")
 	}
+	if n := document.NATS; n != nil && n.profiled() {
+		if n.Username != "" || n.Password != "" || n.PasswordFile != "" || n.ServiceIdentity != "" {
+			return nil, errors.New("put NATS credentials in per-service profiles when using [nats.cosmos/planet/chat]")
+		}
+		if n.Enabled != nil && *n.Enabled && n.profile(service) == nil {
+			return nil, errors.New("missing NATS profile for this service")
+		}
+	}
 	values := document.values(service)
 	for _, name := range []string{"PLANET_LOG_FILE", "CHAT_ERASURE_JOURNAL", "NATS_PASSWORD_FILE", "NATS_CA_FILE"} {
 		if value := values[name]; value != "" && !filepath.IsAbs(value) {
@@ -90,10 +98,15 @@ func Load(getenv func(string) string, service Service) (*Source, error) {
 			}
 		}
 	}
-	if document.NATS != nil {
-		for _, item := range document.NATS.Servers {
-			if strings.Contains(item, ",") {
-				return nil, errors.New("TOML NATS server entries must not contain commas")
+	if n := document.NATS; n != nil {
+		for _, profile := range []*NATSSettings{&n.NATSSettings, n.Cosmos, n.Planet, n.Chat} {
+			if profile == nil {
+				continue
+			}
+			for _, item := range profile.Servers {
+				if strings.Contains(item, ",") {
+					return nil, errors.New("TOML NATS server entries must not contain commas")
+				}
 			}
 		}
 	}

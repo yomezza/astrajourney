@@ -11,6 +11,15 @@ import (
 
 func TestObjectHolograms080(t *testing.T) {
 	files, err := fs.Glob(testAssets, "web/object-*.svg")
+	// The research catalogue also contains a static unknown-object placeholder.
+	// Its drawing is not one of the seventeen animated object holograms.
+	holograms := files[:0]
+	for _, file := range files {
+		if file != "web/object-unknown.svg" {
+			holograms = append(holograms, file)
+		}
+	}
+	files = holograms
 	if err != nil || len(files) != 17 {
 		t.Fatal("expected seventeen object holograms", len(files), err)
 	}
