@@ -82,6 +82,7 @@ class PilotWorkspaceController{
           w:Math.min(1120,innerWidth-12),h:Math.min(282,innerHeight-112),pinned:false});
       }
       this.shell=Modules.create(this.shellId,"Командный терминал · проба",1120,282,{private:false});
+      this.shell.classList.add("pt-terminal-host");
       this.root=make("div",null,"pt-terminal");
       this.shell.replaceChildren(this.root);
     }
@@ -114,12 +115,13 @@ class PilotWorkspaceController{
     if(controller===this)controller=null;
   }
   unmountWorkspace(){
+    const wasSilent=this.silent;
     this.silent=true;
     for(const id of [...this.activeWindows.keys()]){
       Modules.close(id);Modules.destroy(id);
     }
     this.activeWindows.clear();
-    this.silent=false;
+    this.silent=wasSilent;
     this.save();
   }
   switchWorkspace(id){
