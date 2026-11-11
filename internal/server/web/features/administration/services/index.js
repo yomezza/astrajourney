@@ -51,10 +51,18 @@ export function createAdministrationServices({ root }) {
         badge.dataset.status = service.status;
         badge.setAttribute("role", "status");
         heading.append(n("h3", tr(service.name)), badge);
+        const natsLabels={connected:"Подключён",disconnected:"Нет соединения",connecting:"Подключение…",disabled:"Отключён в настройках",not_used:"Не используется режимом чата",unknown:"Нет данных"};
+        const state=service.nats?.state || "unknown";
+        const transport=n("span","NATS · "+tr(natsLabels[state] || "Нет данных"),"service-status-tag service-nats-tag");
+        transport.dataset.status=state;transport.setAttribute("role","status");
+        heading.append(transport);
         const info = n("dl", undefined, "service-info");
         for (const field of service.info)
           info.append(n("dt", tr(field.label)), n("dd", tr(field.value)));
         card.append(heading, n("hr"));
+        if(state==="not_used")card.append(n("p",tr("Для NATS выберите dispatcher_mode = b1 в настройках Chat"),"service-reason"));
+        if(service.nats?.error_code)card.append(n("p",service.nats.error_code,"service-reason"));
+
         if (service.reason)
           card.append(n("p", tr(service.reason), "service-reason"));
         card.append(info);

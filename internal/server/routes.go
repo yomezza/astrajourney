@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"embed"
+	"github.com/yomezza/cosmosimulator/internal/platform/natscore"
 	"io/fs"
 	"net/http"
 	"strings"
@@ -21,7 +22,7 @@ func (a *App) Handler() http.Handler {
 	m.HandleFunc("GET /api/admin/metrics", a.metricsView)
 	m.HandleFunc("POST /api/admin/chat/moderator", a.Administration.ChatModerator)
 	target, _ := planetEndpoint()
-	m.HandleFunc("GET /api/admin/services", a.Administration.Services(administration.ServicesOptions{Version: Version, Started: a.startedAt, PlanetURL: target, PlanetEnabled: func() bool { return a.Transfer.Enabled }, ExpectedSchema: planetruntime.SchemaVersion}))
+	m.HandleFunc("GET /api/admin/services", a.Administration.Services(administration.ServicesOptions{NATSStatus: func() natscore.Status { return natscore.StatusFromDiagnostics(a.NATSDiagnostics()) }, Version: Version, Started: a.startedAt, PlanetURL: target, PlanetEnabled: func() bool { return a.Transfer.Enabled }, ExpectedSchema: planetruntime.SchemaVersion}))
 	m.HandleFunc("GET /api/health", func(w http.ResponseWriter, r *http.Request) {
 		c, cancel := context.WithTimeout(r.Context(), 2*time.Second)
 		defer cancel()

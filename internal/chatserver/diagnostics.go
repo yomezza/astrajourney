@@ -1,6 +1,7 @@
 package chatserver
 
 import "github.com/yomezza/cosmosimulator/internal/platform/telemetry"
+import "github.com/yomezza/cosmosimulator/internal/platform/natscore"
 
 // Diagnostics contains no user/session/channel labels. It is used by structured
 // process logs and owned test probes, never by the browser chat protocol.
@@ -13,4 +14,21 @@ func (a *App) Diagnostics() map[string]any {
 		v["wake_source"] = source.Diagnostics()
 	}
 	return v
+}
+
+func (a *App) NATSStatus() natscore.Status {
+	s := natscore.Status{State: "disabled", Enabled: a.config.NATS.Enabled, Mode: a.config.Dispatcher.Mode}
+	if !s.Enabled {
+		return s
+	}
+	source, ok := a.source.(*NATSWakeSource)
+	if !ok {
+		s.State = "not_used"
+		return s
+	}
+	d := source.Diagnostics()
+	d["enabled"] = true
+	s = natscore.StatusFromDiagnostics(d)
+	s.Mode = a.config.Dispatcher.Mode
+	return s
 }

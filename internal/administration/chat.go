@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/yomezza/cosmosimulator/internal/platform/gamesignal"
+	"github.com/yomezza/cosmosimulator/internal/platform/natscore"
 	"io"
 	"net/http"
 	"strconv"
@@ -62,6 +63,7 @@ func (a *Service) ChatModerator(w http.ResponseWriter, r *http.Request) {
 }
 func (a *Service) chatCard(ctx context.Context) ServiceCard {
 	card := ServiceCard{ID: "chat", Name: "Служба чата", Status: "disabled", Info: []ServiceMetric{}}
+	card.NATS.State = "unknown"
 	if configuration.Getenv("CHAT_ENABLED") != "true" {
 		card.Reason = "chat_disabled"
 		card.Info = append(card.Info, ServiceMetric{"Включение в Cosmic", "В TOML: cosmos.chat_enabled=true; в окружении: CHAT_ENABLED=true. Затем перезапустите Cosmic"})
@@ -84,15 +86,23 @@ func (a *Service) chatCard(ctx context.Context) ServiceCard {
 	}
 	defer response.Body.Close()
 	var h struct {
-		Version string `json:"version"`
-		Ready   bool   `json:"ready"`
-		Schema  int    `json:"schema_version"`
-		Cosmic  bool   `json:"cosmic"`
-		Planet  bool   `json:"planet"`
+		NATS    natscore.Status `json:"nats"`
+		Version string          `json:"version"`
+		Ready   bool            `json:"ready"`
+		Schema  int             `json:"schema_version"`
+		Cosmic  bool            `json:"cosmic"`
+		Planet  bool            `json:"planet"`
 	}
 	if json.NewDecoder(io.LimitReader(response.Body, 4096)).Decode(&h) != nil {
 		card.Status = "not_ready"
 		return card
+	}
+	card.NATS = h.NATS
+	if card.NATS.State == "" {
+		card.NATS.State = "unknown"
+	}
+	if h.NATS.Mode != "" {
+		card.Info = append(card.Info, ServiceMetric{"Режим чата", h.NATS.Mode})
 	}
 	card.Status = "not_ready"
 	if h.Ready {
@@ -104,6 +114,6 @@ func (a *Service) chatCard(ctx context.Context) ServiceCard {
 		}
 		return "unavailable"
 	}
-	card.Info = []ServiceMetric{{"Версия", h.Version}, {"Cosmic", state(h.Cosmic)}, {"Planet", state(h.Planet)}}
+	card.Info = append(card.Info, ServiceMetric{"Версия", h.Version}, ServiceMetric{"Cosmic", state(h.Cosmic)}, ServiceMetric{"Planet", state(h.Planet)})
 	return card
 }

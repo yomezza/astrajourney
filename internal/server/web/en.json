@@ -1848,5 +1848,12 @@
   "chat_disabled": "Chat is disabled in the running Cosmic process",
   "Включение в Cosmic": "Enable in Cosmic",
   "В TOML: cosmos.chat_enabled=true; в окружении: CHAT_ENABLED=true. Затем перезапустите Cosmic": "TOML: cosmos.chat_enabled=true; environment: CHAT_ENABLED=true. Then restart Cosmic",
-  "Подробнее": "Details"
+  "Подробнее": "Details",
+  "Подключён": "Connected",
+  "Нет соединения": "Disconnected",
+  "Подключение…": "Connecting…",
+  "Отключён в настройках": "Disabled in settings",
+  "Не используется режимом чата": "Not used by chat mode",
+  "Режим чата": "Chat mode",
+  "Для NATS выберите dispatcher_mode = b1 в настройках Chat": "For NATS, select dispatcher_mode = b1 in Chat settings"
 }

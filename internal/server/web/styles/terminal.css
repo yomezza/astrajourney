@@ -4873,3 +4873,8 @@ button.picker-button.system-picker .picker-chevron {
 }
 .visit-art-warning { display: flex; align-items: center; gap: 12px; color: #dfbc81; padding: 4px 0 10px; font-size: 12px; }
 .visit-art-warning[hidden],.visit-object-info[hidden] { display: none; }
+
+.service-nats-tag { margin-left:6px; }
+.service-nats-tag[data-status="connected"] { color:var(--green,#7bd5ac); border-color:var(--green,#7bd5ac); }
+.service-nats-tag[data-status="disconnected"] { color:var(--red,#ed7b83); border-color:var(--red,#ed7b83); }
+.service-nats-tag[data-status="connecting"],.service-nats-tag[data-status="not_used"] { color:var(--accent,#efad58); border-color:var(--accent,#efad58); }

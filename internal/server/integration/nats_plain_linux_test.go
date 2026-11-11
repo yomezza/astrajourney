@@ -18,6 +18,7 @@ import (
 func TestPlainNATSNativeSharedConfig(t *testing.T) {
 	t.Setenv("CHAT_ENABLED", "true")
 	f, c, uid, _, site, ship := prepare180(t)
+	f.exec(`UPDATE users SET role='admin' WHERE id=$1`, uid)
 	b := natsfixture.New(t, natsfixture.Options{N6: true, Plain: true})
 	_, role, _ := n1RuntimePool(t, f)
 	var schema string
@@ -71,6 +72,24 @@ func TestPlainNATSNativeSharedConfig(t *testing.T) {
 		})
 	}
 	ready()
+	checkStatus := func(connected bool) bool {
+		response := n6API(t, cosmos, "/api/admin/services", c, nil, 200)
+		cards := response["services"].([]any)
+		if len(cards) != 3 {
+			return false
+		}
+		for _, entry := range cards {
+			state := entry.(map[string]any)["nats"].(map[string]any)
+			if state["connected"] != connected {
+				return false
+			}
+			if connected && state["state"] != "connected" {
+				return false
+			}
+		}
+		return true
+	}
+	eventuallyN1(t, func() bool { return checkStatus(true) })
 	wire := n5Wire(t, b)
 	events := make(chan gamesignal.Message, 16)
 	watch := func(nc *nats.Conn) {
@@ -103,6 +122,7 @@ func TestPlainNATSNativeSharedConfig(t *testing.T) {
 	conn.CloseNow()
 	n6Event(t, events, gamesignal.VisitDisconnectedSubject)
 	b.Stop()
+	eventuallyN1(t, func() bool { return checkStatus(false) })
 	starter := f.integer(`SELECT id FROM companies WHERE starter LIMIT 1`)
 	n6API(t, cosmos, "/api/companies", c, map[string]any{"action": "join", "id": starter}, 200)
 	ack := n6Command(t, pilot, "favorite.note", map[string]any{"body": "plain NATS outage"})

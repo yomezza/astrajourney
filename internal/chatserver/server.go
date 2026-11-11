@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/yomezza/cosmosimulator/internal/platform/natscore"
 	"io"
 	"log/slog"
 	"net"
@@ -26,7 +27,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/platform/postgres"
 )
 
-const Version = "0.24.13"
+const Version = "0.24.14"
 
 type Config struct {
 	DatabaseURL, Schema, Addr, CosmicURL, PlanetURL, Journal string
@@ -102,14 +103,15 @@ func (c Config) Validate() error {
 }
 
 type Health struct {
-	Cosmic      bool   `json:"cosmic"`
-	Planet      bool   `json:"planet"`
-	Ready       bool   `json:"ready"`
-	Version     string `json:"version"`
-	Service     string `json:"service"`
-	Schema      int    `json:"schema_version"`
-	Status      string `json:"status"`
-	Maintenance string `json:"maintenance"`
+	NATS        natscore.Status `json:"nats"`
+	Cosmic      bool            `json:"cosmic"`
+	Planet      bool            `json:"planet"`
+	Ready       bool            `json:"ready"`
+	Version     string          `json:"version"`
+	Service     string          `json:"service"`
+	Schema      int             `json:"schema_version"`
+	Status      string          `json:"status"`
+	Maintenance string          `json:"maintenance"`
 }
 type App struct {
 	Service                        *chat.Service
@@ -171,6 +173,7 @@ func (a *App) Health() Health {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	h := a.health
+	h.NATS = a.NATSStatus()
 	h.Maintenance = a.maintenanceState
 	if time.Since(a.checkedAt) > 3*time.Second {
 		h.Ready = false

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/yomezza/cosmosimulator/internal/platform/natscore"
 	"io"
 	"net/http"
 	"net/url"
@@ -19,6 +20,7 @@ type ServiceMetric struct {
 	Value string `json:"value"`
 }
 type ServiceCard struct {
+	NATS   natscore.Status `json:"nats"`
 	ID     string          `json:"id"`
 	Name   string          `json:"name"`
 	Status string          `json:"status"`
@@ -26,6 +28,7 @@ type ServiceCard struct {
 	Info   []ServiceMetric `json:"info"`
 }
 type ServicesOptions struct {
+	NATSStatus     func() natscore.Status
 	Version        string
 	Started        time.Time
 	PlanetURL      *url.URL // Validated deployment config; never an HTTP query parameter.
@@ -33,15 +36,16 @@ type ServicesOptions struct {
 	ExpectedSchema int
 }
 type planetHealth struct {
-	Service     string `json:"service"`
-	Version     string `json:"version"`
-	Stage       string `json:"stage"`
-	Status      string `json:"status"`
-	Ready       bool   `json:"gameplay_ready"`
-	Multiplayer bool   `json:"multiplayer_ready"`
-	Schema      int    `json:"schema_version"`
-	Instance    string `json:"runtime_instance"`
-	Fence       int64  `json:"runtime_fence"`
+	NATS        natscore.Status `json:"nats"`
+	Service     string          `json:"service"`
+	Version     string          `json:"version"`
+	Stage       string          `json:"stage"`
+	Status      string          `json:"status"`
+	Ready       bool            `json:"gameplay_ready"`
+	Multiplayer bool            `json:"multiplayer_ready"`
+	Schema      int             `json:"schema_version"`
+	Instance    string          `json:"runtime_instance"`
+	Fence       int64           `json:"runtime_fence"`
 }
 
 func (a *Service) Services(o ServicesOptions) http.HandlerFunc {
@@ -68,6 +72,11 @@ func (a *Service) cosmicCard(ctx context.Context, o ServicesOptions) ServiceCard
 		{"Платформа", runtime.GOOS + "/" + runtime.GOARCH}, {"Go", runtime.Version()},
 		{"Соединения БД: занято / максимум", fmt.Sprintf("%d / %d", pool.AcquiredConns(), pool.MaxConns())},
 	}}
+	if o.NATSStatus != nil {
+		card.NATS = o.NATSStatus()
+	} else {
+		card.NATS.State = "unknown"
+	}
 	began := time.Now()
 	var schema string
 	if err := a.DB.QueryRow(ctx, `SELECT current_schema()`).Scan(&schema); err != nil {
@@ -80,6 +89,7 @@ func (a *Service) cosmicCard(ctx context.Context, o ServicesOptions) ServiceCard
 }
 func (a *Service) planetCard(ctx context.Context, o ServicesOptions) ServiceCard {
 	card := ServiceCard{ID: "planet", Name: "Планетарная служба", Status: "disabled", Reason: "planetary_disabled", Info: []ServiceMetric{{"Ожидаемая схема", strconv.Itoa(o.ExpectedSchema)}}}
+	card.NATS.State = "unknown"
 	if o.PlanetEnabled == nil || !o.PlanetEnabled() {
 		return card
 	}
@@ -111,6 +121,10 @@ func (a *Service) planetCard(ctx context.Context, o ServicesOptions) ServiceCard
 	if json.NewDecoder(io.LimitReader(response.Body, 32768)).Decode(&health) != nil || (health.Service != "astra-journey-planet" && health.Service != "cosmosimulator-planet") {
 		card.Reason = "planetary_health_invalid"
 		return card
+	}
+	card.NATS = health.NATS
+	if card.NATS.State == "" {
+		card.NATS.State = "unknown"
 	}
 	card.Reason = knownReason(health.Status)
 	card.Info = append(card.Info, ServiceMetric{"Версия", health.Version}, ServiceMetric{"Этап", health.Stage}, ServiceMetric{"Схема службы", strconv.Itoa(health.Schema)})
