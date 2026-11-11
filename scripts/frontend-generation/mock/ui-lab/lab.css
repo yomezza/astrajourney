@@ -1,7 +1,7 @@
 @import url('/mock/ui-lab/advanced.css');
 /* UI/UX laboratory; only local frontend-generation, no changes to original game. */
-#window-uiux-lab .module-content {padding:0 !important;overflow:hidden !important;min-height:0;display:flex;flex-direction:column}
-.uiux-root{--lab-ink:#dce5ed;display:grid;grid-template-columns:minmax(190px,244px) minmax(0,1fr);height:100%;min-width:0;min-height:0;color:#dce5ed;background:#151d25;font:12px/1.5 "Segoe UI",system-ui,sans-serif}
+#window-uiux-lab .module-content {padding:0 !important;overflow:hidden !important;min-height:0;display:flex;flex-direction:column;overscroll-behavior:contain}
+.uiux-root{--lab-ink:#dce5ed;display:grid;grid-template-columns:minmax(190px,244px) minmax(0,1fr);height:100%;width:100%;min-width:0;min-height:0;overflow:hidden;color:#dce5ed;background:#151d25;font:12px/1.5 "Segoe UI",system-ui,sans-serif}
 .uiux-root *{box-sizing:border-box}
 .uiux-root button,.uiux-root input,.uiux-root select,.uiux-root textarea{font-family:"Segoe UI",system-ui,sans-serif}
 .uiux-root button{cursor:pointer}
@@ -12,7 +12,7 @@
 .uiux-side-head h3{margin:5px 0;font-size:16px;line-height:1.2}
 .uiux-side-head p{color:#92a5b6;margin:3px 0 10px;font-size:11px}
 .uiux-control{width:100%;padding:7px 9px;background:#0f171e;color:#dce5ed;border:1px solid #49606d;border-radius:0}
-.uiux-category-scroll{flex:1;overflow-y:auto;min-height:0;padding:7px 5px 15px;scrollbar-width:thin;scrollbar-color:#4a5d6d transparent}
+.uiux-category-scroll{flex:1;overflow-y:auto;overscroll-behavior-y:contain;min-height:0;padding:7px 5px 15px;scrollbar-width:thin;scrollbar-color:#4a5d6d transparent}
 .uiux-category-group{margin-bottom:2px;border:0}
 .uiux-category-main{display:flex;align-items:center;gap:7px;width:100%;min-height:30px;border:0;border-left:2px solid transparent;border-radius:0;background:transparent;color:#b4c5d1;text-align:left;padding:5px 8px;font-size:11px}
 .uiux-category-main:hover,.uiux-category-main[aria-current="true"]{background:#243541;color:#f1ba72}
@@ -30,7 +30,7 @@
 .uiux-toolbar .uiux-small{font-size:10px;color:#8b9ea9}
 .uiux-toolbar label{display:flex;align-items:center;gap:5px;color:#adc0cc;font-size:11px}
 .uiux-toolbar select{width:auto;min-width:80px}
-.uiux-content{flex:1;overflow:auto;min-height:0;padding:15px;scrollbar-width:thin;scrollbar-color:#4a5d6d transparent}
+.uiux-content{flex:1;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;min-height:0;padding:15px;scrollbar-width:thin;scrollbar-color:#4a5d6d transparent}
 .uiux-summary{display:flex;gap:7px;align-items:center;flex-wrap:wrap;padding-bottom:11px;border-bottom:1px solid #2f424e;margin-bottom:12px}
 .uiux-summary span{padding:2px 6px;border:1px solid #344a55;color:#9fb7c4;font-size:10px}
 .uiux-note{color:#9cb0bc;font-size:11px;padding:7px 10px;border-left:2px solid #698c98;background:#1d2d36;margin:3px 0 12px}
