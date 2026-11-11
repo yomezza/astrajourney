@@ -168,3 +168,11 @@ window.addEventListener('signedout',()=>{
   const root=document.querySelector('#window-colonies .module-content');
   if(root)clearColonyCatalog(root);
 });
+
+// Optional isolated pilot-command-terminal POC. It does not alter the original
+// Modules registry or existing sidebar/game routes.
+const bootPilotTerminal=()=>import("/mock/pilot-terminal/terminal.js")
+  .then(({initPilotTerminal})=>initPilotTerminal())
+  .catch(error=>console.error("[Astra Journey Pilot Terminal]",error));
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bootPilotTerminal);
+else bootPilotTerminal();
