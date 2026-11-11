@@ -50,7 +50,7 @@ class PilotTerminalTests(unittest.TestCase):
     def test_storage_lifecycle_and_scope(self):
         for item in (
             'Preferences.key("pilot-terminal",{account,version:STORAGE_VERSION})',
-            '"module:"+this.id(ws,ins)', "Modules.close(id);Modules.destroy(id)",
+            'Preferences.read("module:"+id,{})', "Modules.close(id);Modules.destroy(id)",
             "Preferences.remove", 'window.addEventListener("pagehide"',
             'localStorage.getItem(this.key)!==JSON.stringify(this.state)',
             'window.addEventListener("signedout"',
