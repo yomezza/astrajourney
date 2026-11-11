@@ -1,5 +1,5 @@
 /* Pilot terminal is an isolated demo; original shell, tokens and Modules remain unchanged. */
-#window-ptdemo-control-u7 .module-content{padding:0;overflow:hidden}
+.module-content.pt-terminal-host{padding:0!important;overflow:hidden!important;min-height:0}
 .module-content:has(>.pt-terminal){padding:0!important;overflow:hidden!important;min-height:0}
 .pt-terminal{height:100%;min-height:0;display:flex;flex-direction:column;gap:7px;padding:12px;
   background:linear-gradient(125deg,#121c27,#172633);color:#dce5ed;
