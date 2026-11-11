@@ -57,10 +57,15 @@ class PilotWorkspaceController{
     this.onDestroy=event=>this.destroyed(event.detail);
     this.onPageHide=()=>{this.captureGeometry();this.save();};
     this.onSignOut=()=>this.dispose();
+    this.onLanguage=()=>{
+      this.renderControl();
+      for(const {ws,ins,root} of this.activeWindows.values())this.renderInstance(ws,ins,root);
+    };
     window.addEventListener("moduleclose",this.onClose);
     window.addEventListener("moduledestroy",this.onDestroy);
     window.addEventListener("pagehide",this.onPageHide);
     window.addEventListener("signedout",this.onSignOut);
+    window.addEventListener("languagechange",this.onLanguage);
     this.save();
   }
   current(){return this.state.workspaces.find(w=>w.id===this.state.activeWorkspaceId);}
@@ -134,6 +139,7 @@ class PilotWorkspaceController{
     window.removeEventListener("moduledestroy",this.onDestroy);
     window.removeEventListener("pagehide",this.onPageHide);
     window.removeEventListener("signedout",this.onSignOut);
+    window.removeEventListener("languagechange",this.onLanguage);
     this.silent=false;this.shell=null;this.root=null;
     if(controller===this)controller=null;
   }
