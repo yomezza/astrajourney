@@ -125,6 +125,11 @@ func (a *App) Handler() http.Handler {
 			}
 		}
 		if strings.HasPrefix(r.URL.Path, "/api/") {
+			// Only the two bounded administrator generation operations may outlive
+			// the normal 15-second HTTP write deadline (up to 50,000 systems).
+			if httpkit.GalaxyGenerationRequest(r) {
+				_ = http.NewResponseController(w).SetWriteDeadline(time.Now().Add(httpkit.GalaxyGenerationTimeout))
+			}
 			bounded, cancel := httpkit.APIDeadline(r)
 			defer cancel()
 			r = bounded

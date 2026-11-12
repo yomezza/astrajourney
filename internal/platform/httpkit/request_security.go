@@ -53,7 +53,17 @@ func BufferJSON(w http.ResponseWriter, r *http.Request) bool {
 
 // Context deadlines bound waits for pool connections and locks even after the
 // request body has already arrived. HTTP write deadlines alone do not do that.
+const GalaxyGenerationTimeout = 2 * time.Minute
+
+func GalaxyGenerationRequest(r *http.Request) bool {
+	return r.Method == http.MethodPost && (r.URL.Path == "/api/admin/galaxies/preview" || r.URL.Path == "/api/admin/galaxies/apply")
+}
+
 func APIDeadline(r *http.Request) (*http.Request, context.CancelFunc) {
-	ctx, cancel := context.WithTimeout(r.Context(), 12*time.Second)
+	timeout := 12 * time.Second
+	if GalaxyGenerationRequest(r) {
+		timeout = GalaxyGenerationTimeout
+	}
+	ctx, cancel := context.WithTimeout(r.Context(), timeout)
 	return r.WithContext(ctx), cancel
 }

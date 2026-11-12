@@ -7,3 +7,5 @@
 [001 — перенос исследований и колоний в production](001-research-colonies-production/prompt.md), по прямому поручению владельца. [Отчёт](../../handoffs/backend/001-research-colonies-production.ru.md).
 
 Следующая задача получает очередной номер по [шаблону](../../templates/prompt.md), после отдельного поручения владельца. Не меняй production API, базу или релизы без прямого разрешения.
+
+[002 — создание галактик, ресурсы, панель и пределы размера](002-galaxy-editor-and-limits/prompt.md). [Отчёт](../../handoffs/backend/002-galaxy-editor-and-limits.ru.md).

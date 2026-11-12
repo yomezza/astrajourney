@@ -49,6 +49,12 @@ type Galaxy struct {
 // Stable IDs and a private seeded RNG keep world generation independent of ticks.
 // Four connected spiral arms and isolated outer stars deliberately form separate regions.
 func Generate(count int, seed int64) Galaxy {
+	return generate(count, seed, true)
+}
+
+// Managed galaxies rebuild corridors themselves; avoid generating an unused
+// quadratic legacy network while preserving the exact same stars and RNG.
+func generate(count int, seed int64, withLanes bool) Galaxy {
 	g := Galaxy{Name: "Edem", Seed: seed, Version: 1, Stars: make([]Star, 0, count), Lanes: []Lane{}}
 	rng := rand.New(rand.NewSource(seed))
 	classes := []string{"M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "K", "K", "K", "K", "G", "G", "F", "A"}
@@ -64,36 +70,38 @@ func Generate(count int, seed int64) Galaxy {
 		}
 		g.Stars = append(g.Stars, Star{ID: i + 1, Name: fmt.Sprintf("ED-%04d", i+1), X: math.Round(math.Cos(angle)*radius*100) / 100, Y: math.Round(math.Sin(angle)*radius*100) / 100, Region: region, Class: classes[rng.Intn(len(classes))]})
 	}
-	// Attach each system to its three nearest predecessors in the same arm.
-	// The first edge forms a spanning tree; extra edges create alternate routes.
-	// No cross-arm edges and no edges to isolated systems are generated.
-	for i, s := range g.Stars {
-		if s.Region < 0 {
-			continue
-		}
-		best := [3]int{-1, -1, -1}
-		dist := [3]float64{math.Inf(1), math.Inf(1), math.Inf(1)}
-		for j := 0; j < i; j++ {
-			p := g.Stars[j]
-			if p.Region != s.Region {
+	if withLanes {
+		// Attach each system to its three nearest predecessors in the same arm.
+		// The first edge forms a spanning tree; extra edges create alternate routes.
+		// No cross-arm edges and no edges to isolated systems are generated.
+		for i, s := range g.Stars {
+			if s.Region < 0 {
 				continue
 			}
-			d := (s.X-p.X)*(s.X-p.X) + (s.Y-p.Y)*(s.Y-p.Y)
-			for k := 0; k < 3; k++ {
-				if d < dist[k] {
-					for n := 2; n > k; n-- {
-						dist[n] = dist[n-1]
-						best[n] = best[n-1]
+			best := [3]int{-1, -1, -1}
+			dist := [3]float64{math.Inf(1), math.Inf(1), math.Inf(1)}
+			for j := 0; j < i; j++ {
+				p := g.Stars[j]
+				if p.Region != s.Region {
+					continue
+				}
+				d := (s.X-p.X)*(s.X-p.X) + (s.Y-p.Y)*(s.Y-p.Y)
+				for k := 0; k < 3; k++ {
+					if d < dist[k] {
+						for n := 2; n > k; n-- {
+							dist[n] = dist[n-1]
+							best[n] = best[n-1]
+						}
+						dist[k] = d
+						best[k] = j
+						break
 					}
-					dist[k] = d
-					best[k] = j
-					break
 				}
 			}
-		}
-		for _, j := range best {
-			if j >= 0 {
-				g.Lanes = append(g.Lanes, Lane{From: g.Stars[j].ID, To: s.ID})
+			for _, j := range best {
+				if j >= 0 {
+					g.Lanes = append(g.Lanes, Lane{From: g.Stars[j].ID, To: s.ID})
+				}
 			}
 		}
 	}

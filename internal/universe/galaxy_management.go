@@ -10,6 +10,11 @@ import (
 	resourcecatalog "github.com/yomezza/cosmosimulator/internal/resources"
 )
 
+const MinGalaxySystems = 5
+const MaxGalaxySystems = 50000
+const MaxGalaxies = 24
+const MaxWorldSystems = MaxGalaxySystems * MaxGalaxies
+
 type GalaxySettings struct {
 	ExtraLanes      int            `json:"extra_lanes"`
 	CrossLinks      int            `json:"cross_links"`
@@ -100,18 +105,19 @@ func AppendGalaxySystems(g *Galaxy, id string, target int) error {
 		return errors.New("Галактика не найдена")
 	}
 	current := len(GalaxyStars(g, id))
-	if target < current || target > 10000 {
-		return errors.New("Количество систем можно только увеличивать, максимум 10000")
+	if target < current || target > MaxGalaxySystems {
+		return errors.New("Количество систем можно только увеличивать, максимум 50000")
 	}
-	if len(g.Stars)+target-current > 50000 {
-		return errors.New("От 50 до 10000 систем; всего не более 50000")
+	if len(g.Stars)+target-current > MaxWorldSystems {
+		return errors.New("Достигнут общий предел систем вселенной")
 	}
 	if current == target {
 		return nil
 	}
 	// New objects get globally unique IDs; generation of existing objects is never repeated.
-	generated := Generate(target-current, d.Seed+int64(current)*131)
+	generated := generate(target-current, d.Seed+int64(current)*131, false)
 	rng := rand.New(rand.NewSource(d.Seed + int64(current)*104729))
+	spacing := newSpacingIndex(GalaxyStars(g, id))
 	used := map[string]bool{}
 	for _, s := range g.Stars {
 		used[s.Name] = true
@@ -156,12 +162,7 @@ func AppendGalaxySystems(g *Galaxy, id string, target int) error {
 			if d.Shape == "elliptical" {
 				y *= .55
 			}
-			nearest := math.Inf(1)
-			for _, p := range g.Stars {
-				if GalaxyKey(p) == id {
-					nearest = math.Min(nearest, math.Hypot(x-p.X, y-p.Y))
-				}
-			}
+			nearest := spacing.nearest(x, y)
 			if nearest > bestDistance {
 				bestX, bestY, bestDistance = x, y, nearest
 			}
@@ -173,6 +174,7 @@ func AppendGalaxySystems(g *Galaxy, id string, target int) error {
 		}
 		s.X = math.Round(bestX*100) / 100
 		s.Y = math.Round(bestY*100) / 100
+		spacing.add(s.X, s.Y)
 		prefix := "ED"
 		if id == "asterion" {
 			prefix = "AS"
@@ -257,128 +259,135 @@ func RebuildGalaxyLanes(g *Galaxy, id string, protected []Lane) {
 			add(e.From, e.To)
 		}
 	}
-	// A minimum spanning forest favors short corridors; isolated systems stay out.
-	regionSet := map[int]bool{}
-	for _, s := range stars {
-		if s.Region >= 0 {
-			regionSet[s.Region] = true
+	if len(stars) > 10000 {
+		for _, edge := range largeGalaxyLanes(stars, d) {
+			add(edge.From, edge.To)
 		}
-	}
-	regionIDs := []int{}
-	for r := range regionSet {
-		regionIDs = append(regionIDs, r)
-	}
-	sort.Ints(regionIDs)
-	for _, region := range regionIDs {
-		members := []Star{}
+	} else {
+		// A minimum spanning forest favors short corridors; isolated systems stay out.
+		regionSet := map[int]bool{}
 		for _, s := range stars {
-			if s.Region == region {
-				members = append(members, s)
+			if s.Region >= 0 {
+				regionSet[s.Region] = true
 			}
 		}
-		if len(members) < 2 {
-			continue
+		regionIDs := []int{}
+		for r := range regionSet {
+			regionIDs = append(regionIDs, r)
 		}
-		inTree := make([]bool, len(members))
-		distance := make([]float64, len(members))
-		parent := make([]int, len(members))
-		for i := range distance {
-			distance[i] = math.Inf(1)
-			parent[i] = -1
-		}
-		distance[0] = 0
-		for range members {
-			u := -1
-			for j := range members {
-				if !inTree[j] && (u < 0 || distance[j] < distance[u]) {
-					u = j
+		sort.Ints(regionIDs)
+		for _, region := range regionIDs {
+			members := []Star{}
+			for _, s := range stars {
+				if s.Region == region {
+					members = append(members, s)
 				}
 			}
-			inTree[u] = true
-			if parent[u] >= 0 && distance[u] <= float64(d.Settings.MaxLaneLength) {
-				add(members[u].ID, members[parent[u]].ID)
-			}
-			for j := range members {
-				if !inTree[j] {
-					v := math.Hypot(members[u].X-members[j].X, members[u].Y-members[j].Y)
-					if v < distance[j] {
-						distance[j] = v
-						parent[j] = u
-					}
-				}
-			}
-		}
-		for _, s := range members {
-			if stablePercent(d.Seed, s.ID, 3) >= d.Settings.ExtraLanes {
+			if len(members) < 2 {
 				continue
 			}
-			best := 0
-			dist := float64(d.Settings.MaxLaneLength)
-			for _, p := range members {
-				a, b := s.ID, p.ID
-				if a > b {
-					a, b = b, a
+			inTree := make([]bool, len(members))
+			distance := make([]float64, len(members))
+			parent := make([]int, len(members))
+			for i := range distance {
+				distance[i] = math.Inf(1)
+				parent[i] = -1
+			}
+			distance[0] = 0
+			for range members {
+				u := -1
+				for j := range members {
+					if !inTree[j] && (u < 0 || distance[j] < distance[u]) {
+						u = j
+					}
 				}
-				v := math.Hypot(s.X-p.X, s.Y-p.Y)
-				if p.ID != s.ID && !seen[[2]int{a, b}] && v < dist {
-					best = p.ID
-					dist = v
+				inTree[u] = true
+				if parent[u] >= 0 && distance[u] <= float64(d.Settings.MaxLaneLength) {
+					add(members[u].ID, members[parent[u]].ID)
+				}
+				for j := range members {
+					if !inTree[j] {
+						v := math.Hypot(members[u].X-members[j].X, members[u].Y-members[j].Y)
+						if v < distance[j] {
+							distance[j] = v
+							parent[j] = u
+						}
+					}
 				}
 			}
-			if best > 0 {
-				add(s.ID, best)
-			}
-		}
-	}
-	// Keep only the nearest candidates per adjacent arm pair in one pass.
-	// Increasing the requested bridge count does not repeat the all-pairs search.
-	type bridgeCandidate struct {
-		a, b     int
-		distance float64
-	}
-	candidates := [4][]bridgeCandidate{}
-	if d.Settings.CrossLinks > 0 {
-		limit := (d.Settings.CrossLinks + 3) / 4
-		for arm := 0; arm < 4; arm++ {
-			for _, a := range stars {
-				if a.Region < 0 || a.Region%4 != arm {
+			for _, s := range members {
+				if stablePercent(d.Seed, s.ID, 3) >= d.Settings.ExtraLanes {
 					continue
 				}
-				for _, b := range stars {
-					if b.Region < 0 || b.Region%4 != (arm+1)%4 {
-						continue
+				best := 0
+				dist := float64(d.Settings.MaxLaneLength)
+				for _, p := range members {
+					a, b := s.ID, p.ID
+					if a > b {
+						a, b = b, a
 					}
-					x, y := a.ID, b.ID
-					if x > y {
-						x, y = y, x
+					v := math.Hypot(s.X-p.X, s.Y-p.Y)
+					if p.ID != s.ID && !seen[[2]int{a, b}] && v < dist {
+						best = p.ID
+						dist = v
 					}
-					if seen[[2]int{x, y}] {
-						continue
-					}
-					distance := math.Hypot(a.X-b.X, a.Y-b.Y)
-					if distance > float64(d.Settings.MaxLaneLength) {
-						continue
-					}
-					list := candidates[arm]
-					if len(list) == limit && distance >= list[len(list)-1].distance {
-						continue
-					}
-					list = append(list, bridgeCandidate{a.ID, b.ID, distance})
-					sort.Slice(list, func(i, j int) bool { return list[i].distance < list[j].distance })
-					if len(list) > limit {
-						list = list[:limit]
-					}
-					candidates[arm] = list
+				}
+				if best > 0 {
+					add(s.ID, best)
 				}
 			}
 		}
-		for i := 0; i < d.Settings.CrossLinks; i++ {
-			list := candidates[i%4]
-			index := i / 4
-			if index < len(list) {
-				add(list[index].a, list[index].b)
+		// Keep only the nearest candidates per adjacent arm pair in one pass.
+		// Increasing the requested bridge count does not repeat the all-pairs search.
+		type bridgeCandidate struct {
+			a, b     int
+			distance float64
+		}
+		candidates := [4][]bridgeCandidate{}
+		if d.Settings.CrossLinks > 0 {
+			limit := (d.Settings.CrossLinks + 3) / 4
+			for arm := 0; arm < 4; arm++ {
+				for _, a := range stars {
+					if a.Region < 0 || a.Region%4 != arm {
+						continue
+					}
+					for _, b := range stars {
+						if b.Region < 0 || b.Region%4 != (arm+1)%4 {
+							continue
+						}
+						x, y := a.ID, b.ID
+						if x > y {
+							x, y = y, x
+						}
+						if seen[[2]int{x, y}] {
+							continue
+						}
+						distance := math.Hypot(a.X-b.X, a.Y-b.Y)
+						if distance > float64(d.Settings.MaxLaneLength) {
+							continue
+						}
+						list := candidates[arm]
+						if len(list) == limit && distance >= list[len(list)-1].distance {
+							continue
+						}
+						list = append(list, bridgeCandidate{a.ID, b.ID, distance})
+						sort.Slice(list, func(i, j int) bool { return list[i].distance < list[j].distance })
+						if len(list) > limit {
+							list = list[:limit]
+						}
+						candidates[arm] = list
+					}
+				}
+			}
+			for i := 0; i < d.Settings.CrossLinks; i++ {
+				list := candidates[i%4]
+				index := i / 4
+				if index < len(list) {
+					add(list[index].a, list[index].b)
+				}
 			}
 		}
+
 	}
 
 	for _, e := range protected {

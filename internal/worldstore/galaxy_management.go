@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	"github.com/jackc/pgx/v5"
@@ -217,11 +218,11 @@ func UpgradeManagedGalaxies(ctx context.Context, tx pgx.Tx, g *universe.Galaxy) 
 func validateGalaxyEdit(in universe.GalaxyEdit, g *universe.Galaxy) error {
 	d := g.Definition(in.ID)
 	if in.Create {
-		if d != nil || len(universe.VisibleGalaxies(g)) >= 24 || len(in.ID) < 3 || len(in.ID) > 40 || strings.ContainsFunc(in.ID, func(r rune) bool { return !(r >= 'a' && r <= 'z' || r >= '0' && r <= '9' || r == '-') }) {
+		if d != nil || len(universe.VisibleGalaxies(g)) >= universe.MaxGalaxies || len(in.ID) < 3 || len(in.ID) > 40 || strings.ContainsFunc(in.ID, func(r rune) bool { return !(r >= 'a' && r <= 'z' || r >= '0' && r <= '9' || r == '-') }) {
 			return errors.New("Некорректная новая галактика")
 		}
-		if in.Systems < 50 || len(g.Stars)+in.Systems > 50000 {
-			return errors.New("От 50 до 10000 систем; всего не более 50000")
+		if in.Systems < universe.MinGalaxySystems || in.Systems > universe.MaxGalaxySystems {
+			return errors.New("В галактике должно быть от 5 до 50000 систем")
 		}
 		if in.Shape != "spiral" && in.Shape != "rings" && in.Shape != "elliptical" && in.Shape != "irregular" {
 			return errors.New("Неизвестная форма галактики")
@@ -250,11 +251,11 @@ func validateGalaxyEdit(in universe.GalaxyEdit, g *universe.Galaxy) error {
 			return errors.New("Распространённость ресурса должна быть от 0 до 300%")
 		}
 	}
-	if len(g.Stars)+in.Systems-len(universe.GalaxyStars(g, in.ID)) > 50000 {
-		return errors.New("От 50 до 10000 систем; всего не более 50000")
+	if len(g.Stars)+in.Systems-len(universe.GalaxyStars(g, in.ID)) > universe.MaxWorldSystems {
+		return errors.New("Достигнут общий предел систем вселенной")
 	}
-	if in.Systems < len(universe.GalaxyStars(g, in.ID)) || in.Systems > 10000 {
-		return errors.New("Количество систем можно только увеличивать, максимум 10000")
+	if in.Systems < universe.MinGalaxySystems || in.Systems < len(universe.GalaxyStars(g, in.ID)) || in.Systems > universe.MaxGalaxySystems {
+		return errors.New("Количество систем можно только увеличивать, максимум 50000")
 	}
 	return nil
 }
@@ -348,7 +349,10 @@ func galaxyStatistics(g *universe.Galaxy, id string, ports map[string]bool) map[
 }
 
 func (a *Service) AdminGalaxies(w http.ResponseWriter, r *http.Request) {
-	u, ok := a.Auth.User(w, r)
+	// Keep authentication bounded even when the generation budget is longer.
+	authContext, cancelAuth := context.WithTimeout(r.Context(), 12*time.Second)
+	u, ok := a.Auth.User(w, r.WithContext(authContext))
+	cancelAuth()
 	if !ok {
 		return
 	}
