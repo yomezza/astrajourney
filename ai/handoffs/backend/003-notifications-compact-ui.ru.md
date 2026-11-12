@@ -1,6 +1,6 @@
 # Уведомления — Compact Chat Style A
 
-**Дата:** 12 ноября 2026. **Статус:** реализовано, локальные проверки пройдены. Владелец отдельно согласовал слияние командой «Давай, сливай в main»; ветка `feature/notifications-compact-ui` интегрирована merge-коммитом [`14c481b`](https://github.com/yomezza/astrajourney/commit/14c481b). Подготовлен Cosmic 0.24.17; подтверждение публикации сборок фиксируется ниже после завершения выпуска.
+**Дата:** 12 ноября 2026. **Статус:** реализовано, локальные проверки пройдены. Владелец отдельно согласовал слияние командой «Давай, сливай в main»; ветка `feature/notifications-compact-ui` интегрирована merge-коммитом [`14c481b`](https://github.com/yomezza/astrajourney/commit/14c481b). Cosmic 0.24.17 опубликован для Windows/Linux; подтверждение выпуска приведено ниже.
 
 Основа ветки — `main` на `c93572bb3b864fc14715350b61889a166c1b5da2`. Визуальный источник — [PR #4](https://github.com/yomezza/astrajourney/pull/4), ветка `frontend/notifications-ui-prototype`, коммит `b96b5d9cf2fc0a0337d6548a16fd2e3ce1217d3d`. Сам PR #4 не сливался. Перенесены только необходимые правила варианта A и локальные SVG-пути; автономная лаборатория, варианты B/C, fixtures и mock-модель не перенесены в игру.
 
@@ -86,3 +86,14 @@
 Исходники, тесты, задание и снимки опубликованы коммитом [`fc97ba3ef7da25da2df16e67ce857f16227840d6`](https://github.com/yomezza/astrajourney/commit/fc97ba3ef7da25da2df16e67ce857f16227840d6) в [рабочей ветке](https://github.com/yomezza/astrajourney/tree/feature/notifications-compact-ui). Внешняя проверка `git ls-remote` подтвердила SHA ветки; рабочее дерево чистое.
 
 Первоначальное создание PR командой `gh pr create` остановлено сетевой политикой облачной среды: `Post "https://api.github.com/graphql": Forbidden`. Номер PR не получен; [подготовленный текст PR](003-notifications-compact-ui.pr.md) сохранён как материал проверки. После прямой команды владельца выполнено обычное Git-слияние в `main` без PR, что разрешено AGENTS.md. Блокировка API не препятствует Git fetch/push. `origin` обновлён на `https://github.com/yomezza/astrajourney.git`; глобальная замена исторических импортов Go не выполнялась.
+
+## Подтверждённый выпуск 0.24.17
+
+- [Исходный коммит `e9178f2fc27ccf8fa89c2cfa6883029640aa352f`](https://github.com/yomezza/astrajourney/commit/e9178f2fc27ccf8fa89c2cfa6883029640aa352f) — точная основа обеих сборок, `source_dirty=false`. Коммит со сборками и цель тега `v0.24.17`: [`8503e2cd3f8d6492c69d1c6a1ac25f4ab1f20ff2`](https://github.com/yomezza/astrajourney/commit/8503e2cd3f8d6492c69d1c6a1ac25f4ab1f20ff2).
+- [GitHub Release 0.24.17](https://github.com/yomezza/astrajourney/releases/tag/v0.24.17) опубликован; [Publish release](https://github.com/yomezza/astrajourney/actions/runs/43205079572) — **Success**, 37 секунд.
+- В релизе восемь файлов: Windows/Linux Cosmic, manifest, SHA256SUMS и четыре примера TOML. Обе сборки, manifest и SHA256SUMS скачаны обратно с GitHub: SHA-256 и содержимое совпали с локальными файлами. Все исторические сборки и строки контрольных сумм сохранены.
+- Проверены Windows PE amd64 и статический Linux ELF amd64. Windows-процесс на Windows не запускался. Manifest: [`downloads/astra-journey-v0.24.17-build.json`](../../../downloads/astra-journey-v0.24.17-build.json).
+- [Полный UI contracts в GitHub](https://github.com/yomezza/astrajourney/actions/runs/43205079633) на момент подтверждения ещё выполняется. Это отдельно от завершённых локальных проверок, перечисленных выше.
+- В существующем `.github/workflows/chat-n6.yml` GitHub также сообщает ошибку проверки YAML: `Unrecognized named-value: 'runner'`, строка 44. Этот workflow не менялся относительно исходного `main`; его исправление не включалось в перенос уведомлений. Успех всего набора CI не заявляется.
+
+Для установки заменить только Cosmic сборкой 0.24.17, перезапустить службу и перезагрузить вкладку игры. Planet/Chat остаются 0.24.14; рабочие конфиги и БД этим выпуском не менялись.
