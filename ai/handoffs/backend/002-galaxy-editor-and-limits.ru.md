@@ -60,3 +60,7 @@
 - Только номер версии в `internal/server/app.go`, заметки о выпуске, manifest и новые бинарники в `downloads/`.
 
 Следующий шаг после публикации — заменить только Cosmic, перезапустить службу и перезагрузить вкладку игры. Старые сборки сохраняются.
+
+## Сборки и публикация
+
+Исходники: [`d6dfcc8404b2c54353a1793564e8e11bb9d82597`](https://github.com/yomezza/astrajourney/commit/d6dfcc8404b2c54353a1793564e8e11bb9d82597). Обе сборки Cosmic созданы из этого точного коммита, `source_dirty=false`. Проверены форматы Windows PE amd64 / статический Linux ELF amd64 и SHA-256. Manifest: `downloads/astra-journey-v0.24.16-build.json`. Исторические сборки сохранены. Подтверждение публикации будет добавлено после GitHub Release.
