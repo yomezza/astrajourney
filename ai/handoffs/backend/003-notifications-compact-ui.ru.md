@@ -79,3 +79,9 @@
 [Галерея и происхождение снимков](../../../docs/design/notifications-compact-ui/README.md): эталон A, production 420 × 540, 360 × 420, 320 × 360 и полный текст. Production-снимки сделаны из настоящей сборки web-исходников с временными тестовыми данными — это не лабораторный mock-интерфейс.
 
 Ветка должна быть рассмотрена через PR. После согласования владельца — учесть изменения `main`, слить production-интеграцию и выпустить обновление Cosmic по принятой схеме Windows/Linux. Пересборка Planet/Chat для этих изменений не требуется.
+
+## Сохранение на GitHub и препятствие для PR
+
+Исходники, тесты, задание и снимки опубликованы коммитом [`fc97ba3ef7da25da2df16e67ce857f16227840d6`](https://github.com/yomezza/astrajourney/commit/fc97ba3ef7da25da2df16e67ce857f16227840d6) в [рабочей ветке](https://github.com/yomezza/astrajourney/tree/feature/notifications-compact-ui). Внешняя проверка `git ls-remote` подтвердила SHA ветки; рабочее дерево чистое.
+
+Создание PR командой `gh pr create` остановлено сетевой политикой облачной среды: `Post "https://api.github.com/graphql": Forbidden`. **Номер PR не получен, PR пока не создан.** Это ограничение доступа к API, а не ошибка реализации. [Текст PR](003-notifications-compact-ui.pr.md) сохранён; [сравнение с main и создание PR](https://github.com/yomezza/astrajourney/compare/main...feature/notifications-compact-ui?expand=1) доступны через GitHub. После разрешения `api.github.com` в настройках среды нужно повторить создание PR и зафиксировать реальную ссылку. Статус CI для ещё не созданного PR не заявляется.
