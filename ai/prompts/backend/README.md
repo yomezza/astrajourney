@@ -10,4 +10,4 @@
 
 [002 — создание галактик, ресурсы, панель и пределы размера](002-galaxy-editor-and-limits/prompt.md). [Отчёт](../../handoffs/backend/002-galaxy-editor-and-limits.ru.md).
 
-[003 — компактные уведомления, вариант A](003-notifications-compact-ui/prompt.md). [Отчёт](../../handoffs/backend/003-notifications-compact-ui.ru.md). Интеграция в `main` — после согласования владельца согласно разделу 16 задания.
+[003 — компактные уведомления, вариант A](003-notifications-compact-ui/prompt.md). [Отчёт](../../handoffs/backend/003-notifications-compact-ui.ru.md). Интеграция в `main` согласована владельцем и выполнена; Cosmic 0.24.17.

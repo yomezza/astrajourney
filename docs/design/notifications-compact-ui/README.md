@@ -1,6 +1,6 @@
 # Уведомления — сверка с вариантом A
 
-Снимки 12 ноября 2026. Реализация: ветка `feature/notifications-compact-ui`; [отчёт](../../../ai/handoffs/backend/003-notifications-compact-ui.ru.md). В `main` и в выпущенные бинарники эта работа пока не включена.
+Снимки 12 ноября 2026. Реализация из ветки `feature/notifications-compact-ui` интегрирована в `main` после согласования владельца, Cosmic 0.24.17. [Отчёт и статус выпуска](../../../ai/handoffs/backend/003-notifications-compact-ui.ru.md).
 
 | Снимок | Происхождение |
 |---|---|
