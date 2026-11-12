@@ -146,6 +146,7 @@ export function initWindows() {
         pinned: false,
         maximized: false,
         initialized: false,
+        minContentWidth: options.minContentWidth ?? 350,
         width,
         height,
       };
@@ -348,7 +349,10 @@ export function initWindows() {
       const observer = new ResizeObserver(() => {
         if (!d.open) return;
         const r = d.getBoundingClientRect();
-        d.classList.toggle("too-small", r.width < 350 || r.height < 220);
+        d.classList.toggle(
+          "too-small",
+          r.width < w.minContentWidth || r.height < 220,
+        );
         clearTimeout(timer);
         timer = setTimeout(() => save(id, w), 200);
         window.dispatchEvent(new CustomEvent("moduleresize", { detail: id }));

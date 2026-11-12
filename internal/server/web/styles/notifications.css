@@ -1,0 +1,633 @@
+/* Approved Compact Chat Style A, adapted to the existing Modules window. */
+#window-notifications {
+  border-radius: 0;
+  background: #171e26;
+  color: #dce5ed;
+  font:
+    11px/1.4 "Segoe UI",
+    system-ui,
+    sans-serif;
+  border: 1px solid #907958;
+  container-type: inline-size;
+}
+#window-notifications > .module-titlebar {
+  height: 34px;
+  min-height: 34px;
+  flex: 0 0 34px;
+  padding: 4px 6px;
+  background: #1c2935;
+  border-bottom: 1px solid #40505b;
+  gap: 5px;
+}
+#window-notifications > .module-titlebar h2 {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#window-notifications .window-actions {
+  gap: 1px;
+}
+#window-notifications .window-actions button {
+  height: 24px;
+  width: 24px;
+  min-width: 24px;
+  min-height: 24px;
+  padding: 0 3px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #a8c0cc;
+  font: 15px/1 monospace;
+}
+#window-notifications .window-actions button:hover {
+  background: #263e4b;
+  border-color: #526d77;
+  color: #efad58;
+}
+#window-notifications > .module-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+  min-height: 0;
+  min-width: 0;
+}
+#window-notifications .notification-compact-appname {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  overflow: hidden;
+}
+#window-notifications .notification-compact-led {
+  display: block;
+  flex: 0 0 7px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #83cba6;
+  box-shadow: 0 0 6px #83cba675;
+  margin: 0 3px;
+}
+#window-notifications .notification-compact-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 19px;
+  height: 16px;
+  padding: 0 4px;
+  background: #25414a;
+  border: 1px solid #598388;
+  color: #b9e4df;
+  font: 10px/1 monospace;
+}
+#window-notifications button {
+  border-radius: 0;
+  box-shadow: none;
+  font:
+    11px/1.35 "Segoe UI",
+    system-ui,
+    sans-serif;
+}
+#window-notifications .notification-compact-body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+#window-notifications .notification-compact-statusbar {
+  flex: 0 0 29px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 3px 9px;
+  background: #14202a;
+  border-bottom: 1px solid #2d414d;
+  color: #a1b6c1;
+  font-size: 10px;
+}
+#window-notifications .notification-compact-statusbar-mark {
+  white-space: nowrap;
+  font: 9px/1.4 monospace;
+  color: #7899aa;
+}
+#window-notifications .notification-compact-statusbar-mark::first-letter {
+  color: #7eb7ac;
+}
+#window-notifications .notification-compact-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: #111921;
+  scrollbar-width: thin;
+  scrollbar-color: #3c505e transparent;
+  overscroll-behavior: contain;
+}
+#window-notifications .notification-compact-scroll::-webkit-scrollbar {
+  width: 7px;
+}
+#window-notifications .notification-compact-scroll::-webkit-scrollbar-track {
+  background: #111921;
+}
+#window-notifications .notification-compact-scroll::-webkit-scrollbar-thumb {
+  background: #3c505e;
+  border: 1px solid #111921;
+}
+#window-notifications .notification-compact-list {
+  min-width: 0;
+}
+#window-notifications .notification-compact-group-heading {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  padding: 6px 9px;
+  min-height: 26px;
+  background: #1b2a35ed;
+  border-bottom: 1px solid #344751;
+  color: #9cbac4;
+  font:
+    10px/1.35 "Segoe UI",
+    system-ui,
+    sans-serif;
+  font-weight: 600;
+}
+#window-notifications .notification-compact-group-heading small {
+  font: 9px/1.3 monospace;
+  color: #89a2af;
+  border: 1px solid #3a5360;
+  padding: 0 4px;
+}
+#window-notifications .notification-compact-row {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) 23px;
+  gap: 7px;
+  align-items: start;
+  min-height: 66px;
+  padding: 8px 7px 8px 9px;
+  border-bottom: 1px solid #34434b6b;
+  position: relative;
+}
+#window-notifications .notification-compact-row[data-read="false"] {
+  background: #1b29330f;
+}
+#window-notifications .notification-compact-row:hover,
+#window-notifications .notification-compact-row:focus-within {
+  background: #25404b5d;
+}
+#window-notifications .notification-compact-glyph {
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  color: #a6c4ca;
+  margin-top: 12px;
+}
+#window-notifications .notification-compact-glyph svg {
+  width: 17px;
+  height: 17px;
+}
+#window-notifications
+  .notification-compact-row[data-kind="system"]
+  .notification-compact-glyph {
+  color: #9db7c3;
+}
+#window-notifications
+  .notification-compact-row[data-kind="economy"]
+  .notification-compact-glyph {
+  color: #d0af80;
+}
+#window-notifications
+  .notification-compact-row[data-kind="research"]
+  .notification-compact-glyph {
+  color: #8dc5ce;
+}
+#window-notifications
+  .notification-compact-row[data-kind="corporation"]
+  .notification-compact-glyph {
+  color: #b1afd5;
+}
+#window-notifications
+  .notification-compact-row[data-kind="gameplay"]
+  .notification-compact-glyph {
+  color: #9ac7a9;
+}
+#window-notifications .notification-compact-open {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+#window-notifications
+  .notification-compact-open:hover
+  .notification-compact-row-title {
+  color: #f0c38d;
+}
+#window-notifications .notification-compact-row-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+#window-notifications .notification-compact-kind {
+  display: inline-block;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: #7faab6;
+  font: 9px/1.3 monospace;
+}
+#window-notifications .notification-compact-time {
+  margin-left: auto;
+  color: #718d9c;
+  font: 9px/1.35 monospace;
+  white-space: nowrap;
+}
+#window-notifications .notification-compact-row-title {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #d7e5e9;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#window-notifications
+  .notification-compact-row[data-read="true"]
+  .notification-compact-row-title {
+  font-weight: 500;
+  color: #a9bcc6;
+}
+#window-notifications .notification-compact-row-excerpt {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  color: #91a4b2;
+  font-size: 10px;
+  line-height: 1.5;
+}
+#window-notifications
+  .notification-compact-row[data-read="false"]
+  .notification-compact-row-excerpt {
+  color: #a8bac4;
+}
+#window-notifications .notification-compact-row-end {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-start;
+  padding-top: 5px;
+}
+#window-notifications .notification-compact-unread-dot {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #efad58;
+  box-shadow: 0 0 5px #efad585c;
+}
+#window-notifications .notification-compact-mark-one {
+  display: grid;
+  place-items: center;
+  min-width: 21px;
+  min-height: 21px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  color: #95b6bd;
+  font: 12px monospace;
+  opacity: 0.32;
+}
+#window-notifications
+  .notification-compact-row:hover
+  .notification-compact-mark-one,
+#window-notifications
+  .notification-compact-row:focus-within
+  .notification-compact-mark-one,
+#window-notifications .notification-compact-mark-one:focus-visible {
+  opacity: 1;
+}
+#window-notifications .notification-compact-mark-one:hover {
+  background: #293e46;
+  border-color: #5c8190;
+  color: #d7edea;
+}
+#window-notifications .notification-compact-read-mark {
+  color: #57747b;
+  font: 11px monospace;
+  opacity: 0.56;
+}
+#window-notifications .notification-compact-footer {
+  flex: 0 0 37px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 4px 6px;
+  border-top: 1px solid #40515d;
+  background: #17242e;
+}
+#window-notifications .notification-compact-filter {
+  display: flex;
+  gap: 1px;
+  align-items: center;
+  min-width: 0;
+}
+#window-notifications .notification-compact-filter-choice {
+  border: 0;
+  border-bottom: 2px solid transparent;
+  padding: 4px 7px;
+  min-height: 26px;
+  white-space: nowrap;
+  background: transparent;
+  color: #94a7b4;
+  font-size: 10px;
+}
+#window-notifications .notification-compact-filter-choice:hover {
+  background: #263d47;
+  color: #dce5ed;
+}
+#window-notifications .notification-compact-filter-choice.active {
+  color: #efad58;
+  border-bottom-color: #efad58;
+  background: #29353b;
+}
+#window-notifications .notification-compact-mark-all {
+  min-height: 25px;
+  padding: 3px 6px;
+  border: 1px solid #405966;
+  background: #192a35;
+  color: #bed8db;
+  white-space: nowrap;
+  font-size: 10px;
+}
+#window-notifications .notification-compact-mark-all:not(:disabled):hover {
+  background: #263f4b;
+  border-color: #6d9c9e;
+  color: #f2d4a6;
+}
+#window-notifications .notification-compact-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 230px;
+  max-width: 280px;
+  margin: 0 auto;
+  padding: 24px 10px;
+  color: #94a9b5;
+}
+#window-notifications .notification-compact-empty-symbol {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin: 0 0 13px;
+  border: 1px solid #466373;
+  color: #8aadb9;
+  background: #1b303c;
+  font-size: 27px;
+}
+#window-notifications .notification-compact-empty strong {
+  font-size: 12px;
+  font-weight: 600;
+  color: #d4e0e6;
+}
+#window-notifications .notification-compact-empty p {
+  font-size: 11px;
+  line-height: 1.6;
+  margin: 7px 0;
+}
+#window-notifications .notification-compact-detail-backdrop {
+  position: absolute;
+  inset: 34px 0 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #071017de;
+  padding: 10px;
+}
+#window-notifications .notification-compact-detail-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 100%;
+  width: 100%;
+  min-width: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 13px 14px;
+  background: linear-gradient(155deg, #20313c, #16232e);
+  border: 1px solid #64828c;
+  box-shadow: 0 8px 35px #000c;
+  color: #dce5ed;
+}
+#window-notifications .notification-compact-detail-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 20px;
+  gap: 12px;
+}
+#window-notifications .notification-compact-detail-category {
+  color: #9fc4c9;
+  font: 10px monospace;
+  letter-spacing: 0.5px;
+}
+#window-notifications
+  .notification-compact-detail-category[data-kind="economy"] {
+  color: #d3b68a;
+}
+#window-notifications
+  .notification-compact-detail-category[data-kind="corporation"] {
+  color: #c4b9dc;
+}
+#window-notifications .notification-compact-detail-panel h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+#window-notifications .notification-compact-detail-panel time {
+  color: #869eac;
+  font: 10px monospace;
+}
+#window-notifications .notification-compact-detail-text {
+  font-size: 11px;
+  line-height: 1.65;
+  color: #c5d6de;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding: 7px 0;
+  border-top: 1px solid #3c5560;
+}
+#window-notifications .notification-compact-detail-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding-top: 9px;
+  border-top: 1px solid #3a515c;
+}
+#window-notifications .notification-compact-detail-actions button {
+  min-height: 27px;
+  padding: 5px 8px;
+  border: 1px solid #4e6a78;
+  background: #213744;
+  color: #c8d9df;
+  font-size: 10px;
+}
+#window-notifications
+  .notification-compact-detail-actions
+  button:hover:not(:disabled) {
+  color: #f2c189;
+  border-color: #b19467;
+}
+
+#window-notifications .notification-compact-detail-backdrop {
+  inset: 0;
+}
+#window-notifications .notification-compact-status-tools {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+#window-notifications .notification-compact-menu,
+#window-notifications .notification-compact-detail-close {
+  height: 22px;
+  min-height: 22px;
+  min-width: 22px;
+  border: 1px solid transparent;
+  background: transparent;
+  padding: 0 4px;
+  font-size: 15px;
+  color: #a8c0cc;
+}
+#window-notifications .notification-compact-statusbar {
+  font-size: 10px;
+}
+#window-notifications .notification-compact-limit {
+  margin: 0;
+  padding: 8px 9px;
+  color: #91a7b4;
+  border-top: 1px solid #344751;
+  font-size: 10px;
+  line-height: 1.5;
+}
+#window-notifications .notification-compact-selection {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 3px 9px;
+  border-bottom: 1px solid #344751;
+  min-height: 28px;
+  font-size: 10px;
+}
+#window-notifications .notification-compact-selection button {
+  margin-left: auto;
+  padding: 2px 6px;
+  min-height: 21px;
+  font-size: 10px;
+}
+#window-notifications input[type="checkbox"] {
+  width: 13px;
+  height: 13px;
+  min-width: 13px;
+  margin: 0;
+  accent-color: #8cb9ba;
+}
+#window-notifications .notification-compact-open {
+  font: inherit;
+  min-height: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+#window-notifications .notification-compact-open:hover,
+#window-notifications .notification-compact-open:focus-visible {
+  background: transparent;
+}
+#window-notifications .notification-compact-detail-actions button {
+  min-height: 24px;
+  padding: 3px 7px;
+  font-size: 10px;
+}
+#window-notifications .notification-compact-mark-one {
+  min-width: 21px;
+  min-height: 21px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  color: #95b6bd;
+  font: 12px monospace;
+  opacity: 0.32;
+}
+#window-notifications
+  .notification-compact-row:hover
+  .notification-compact-mark-one,
+#window-notifications
+  .notification-compact-row:focus-within
+  .notification-compact-mark-one {
+  opacity: 1;
+}
+#window-notifications .notification-compact-detail-backdrop[hidden],
+#window-notifications .notification-compact-selection[hidden],
+#window-notifications .notification-compact-count[hidden],
+#window-notifications .notification-compact-limit[hidden] {
+  display: none;
+}
+#window-notifications .notification-compact-empty {
+  min-height: 150px;
+}
+#window-notifications .notification-compact-detail-panel {
+  scrollbar-width: thin;
+}
+@container (max-width:350px) {
+  #window-notifications .notification-compact-filter-choice {
+    padding: 3px 5px;
+  }
+  #window-notifications .notification-compact-mark-all {
+    padding: 3px 5px;
+  }
+  #window-notifications .notification-compact-row {
+    gap: 5px;
+  }
+  #window-notifications .notification-compact-detail-panel {
+    padding: 10px;
+  }
+}
+
+#window-notifications .notification-compact-mark-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+#window-notifications button:disabled {
+  cursor: default;
+}
