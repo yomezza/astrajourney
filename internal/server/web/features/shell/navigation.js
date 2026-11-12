@@ -37,7 +37,7 @@ export function initNavigation() {
     ["gameplay", "Игровой процесс", 800, 700],
     ["galaxies", "Галактики", 1120, 760],
     ["adminchanges", "Журнал изменений", 980, 650],
-    ["notifications", "Уведомления", 430, 620],
+    ["notifications", "Уведомления", 420, 540],
     ["guide", "Руководство пилота", 950, 650],
     ["tasks", "Планировщик задач", 900, 670],
     ["finance", "История финансов", 820, 580],
@@ -47,6 +47,7 @@ export function initNavigation() {
   ])
     Modules.create(id, title, w, h, {
       private: id !== "galaxy" && id !== "settings",
+      minContentWidth: id === "notifications" ? 300 : undefined,
       audience: [
         "users",
         "gameplay",

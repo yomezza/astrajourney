@@ -349,15 +349,6 @@ export function initExpedition() {
         !Modules.isOpen(e.detail)
       )
         return;
-      if (e.detail === "notifications") {
-        const dialog = document.getElementById("window-notifications");
-        if (!dialog.dataset.positioned) {
-          dialog.style.left =
-            Math.max(6, innerWidth - dialog.offsetWidth - 12) + "px";
-          dialog.style.top = "65px";
-          dialog.dataset.positioned = "true";
-        }
-      }
     } catch (error) {
       if (
         epoch === Session.epoch &&
