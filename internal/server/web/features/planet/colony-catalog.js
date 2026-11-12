@@ -29,6 +29,14 @@ export function mountColonyCatalog(root, data, options) {
     state={selected:null,query:"",cache:new Map(),serial:0,request:0,scroll:0};
     views.set(root,state);
   }
+  // Authenticated research/world changes can reveal a previously hidden planet.
+  // The optional revision comes from production snapshots, never from mock data.
+  if(state.revision!==options.revision){
+    state.revision=options.revision;
+    state.serial++;
+    state.cache.clear();
+    state.pending=new Set();
+  }
   const lang=options.language?.()==="en"?"en":"ru";
   const tr=(s)=>lang==="en"?(LABELS[s]||s):s;
   const status=(s)=>STATUS[s]?(STATUS[s][lang==="en"?1:0]):String(s||"");
@@ -125,7 +133,7 @@ export function mountColonyCatalog(root, data, options) {
     if(state.cache.has(key)||state.pending?.has(key))return;
     if(!state.pending)state.pending=new Set();
     state.pending.add(key);
-    const serial=state.serial;
+    const serial=state.serial, pending=state.pending;
     try{
       const system=await options.loadSystem(p.star);
       if(state.serial!==serial)return;
@@ -137,8 +145,11 @@ export function mountColonyCatalog(root, data, options) {
       state.cache.set(key,{site:null,star:null});
       options.onLoadError?.(error);
     }finally{
-      state.pending.delete(key);
-      if(state.serial===serial&&root.isConnected&&String(state.selected)===String(p.id))state.renderDetail?.();
+      pending.delete(key);
+      if(state.serial===serial&&root.isConnected){
+        state.renderEntries?.();
+        if(String(state.selected)===String(p.id))state.renderDetail?.();
+      }
     }
   }
   function renderEntries(){
@@ -166,6 +177,7 @@ export function mountColonyCatalog(root, data, options) {
     entries.scrollTop=oldScroll;
   }
   state.renderDetail=renderDetail;
+  state.renderEntries=renderEntries;
   search.addEventListener("input",()=>{state.query=search.value;renderEntries();});
   renderEntries();entries.scrollTop=state.scroll||0;renderDetail();
   if(restoreFocus){

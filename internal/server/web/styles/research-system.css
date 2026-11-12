@@ -30,7 +30,7 @@
 }
 .research-system-view .research-system-scroll{
   flex:1 1 auto;min-height:165px;min-width:0;width:100%;
-  overflow-x:auto;overflow-y:auto;overscroll-behavior-x:contain;
+  overflow-x:auto;overflow-y:auto;overscroll-behavior:contain;
   scrollbar-color:#516c7e #14222d;scrollbar-width:thin;
   /* Ordered front-to-back: fine coordinate grid, distant stars, soft nebula, space. */
   background-color:#080f19;
@@ -140,7 +140,7 @@
 }
 .research-system-tooltip-row span{color:#9aafbb}
 .research-system-tooltip-row b{color:#dbe8ed;font-weight:600;text-align:right;overflow-wrap:anywhere;max-width:60%}
-.study-entry-actions{display:flex;flex-wrap:wrap;align-items:center;gap:5px;justify-content:flex-end}
+.studies-content .study-entry-actions{display:flex;flex-wrap:wrap;align-items:center;gap:5px;justify-content:flex-end}
 .study-detail-actions{display:flex;flex-wrap:wrap;gap:6px}
 .study-entry .study-entry-actions>button{white-space:nowrap}
 @media(max-width:760px){
@@ -168,7 +168,7 @@
   .research-system-view .research-system-object:is([data-kind="Пояс астероидов"],[data-kind="Ледяное поле"]) .research-system-art{width:195px;height:215px}
   .research-system-view .research-system-object:is([data-kind="Пояс астероидов"],[data-kind="Ледяное поле"]) .research-system-art img{width:195px;height:195px}
   .research-system-view .research-system-object-name{font-size:11px}
-  .study-entry-actions{justify-content:start}
+  .studies-content .study-entry-actions{justify-content:start}
 }
 @media(prefers-reduced-motion:reduce){
   .research-system-view .research-system-art{transition:none!important}

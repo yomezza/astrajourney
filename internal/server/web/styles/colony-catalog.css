@@ -35,3 +35,5 @@
 .colony-catalog-refunds{border:1px solid #38505c;padding:10px;display:flex;align-items:center;flex-wrap:wrap;gap:8px}
 .colony-catalog-refunds h3{font-size:12px;margin:0 8px 0 0;color:#9cd1d7}
 @container(max-width:670px){.colony-catalog-layout{grid-template-columns:minmax(0,1fr)}.colony-catalog-library{min-height:260px}.colony-catalog-entries{max-height:320px}.colony-catalog-planet{height:180px}.colony-catalog-visual{min-height:185px}}
+
+.colony-catalog-root,.colony-catalog-root .colony-catalog-detail,.colony-catalog-root .colony-catalog-entries{overscroll-behavior:contain}

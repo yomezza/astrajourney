@@ -1855,5 +1855,9 @@
   "Отключён в настройках": "Disabled in settings",
   "Не используется режимом чата": "Not used by chat mode",
   "Режим чата": "Chat mode",
-  "Для NATS выберите dispatcher_mode = b1 в настройках Chat": "For NATS, select dispatcher_mode = b1 in Chat settings"
+  "Для NATS выберите dispatcher_mode = b1 в настройках Chat": "For NATS, select dispatcher_mode = b1 in Chat settings",
+  "Выбрать для просмотра": "Select for viewing",
+  "КОРАБЛЬ ЗДЕСЬ": "SHIP HERE",
+  "Выбранная система": "Selected system",
+  "Звезда класса": "Star class"
 }

@@ -1,7 +1,7 @@
 /*
  * Research system lineup: SVG assets and objects from the game's existing
- * /api/system?id=N DTO. Shared verbatim between the original UI and the
- * approved v13 demo, which provides a separate API callback.
+ * /api/system?id=N DTO. Adapted from the approved v13 demo for production
+ * string site IDs, window lifecycle and the shared localization catalogue.
  */
 const MODELS = Object.freeze({
   "Ледяная":"object-icy.svg", "Каменистая":"object-rocky.svg",
@@ -34,8 +34,10 @@ const make = (tag, cls, text) => {
 const tr = (lang, ru, en) => lang==="en" ? en : ru;
 
 function valid(s){
-  return s && typeof s==="object" && Number.isInteger(Number(s.id)) &&
-    s.name && typeof s.name==="string";
+  // Production site IDs are strings (planet-1, station, asteroids), not star IDs.
+  return s && typeof s==="object" &&
+    ((typeof s.id==="string" && s.id.trim()!=="") || Number.isInteger(s.id)) &&
+    typeof s.name==="string" && s.name.trim()!=="";
 }
 function orderSites(items) {
   return items.map((site,index)=>({site,index}))
@@ -49,7 +51,7 @@ function orderSites(items) {
 }
 function modelItems(data){
   const star=data?.star;
-  if(!valid(star))throw Error("Invalid system star");
+  if(!valid(star)||!Number.isInteger(Number(star.id))||Number(star.id)<1)throw Error("Invalid system star");
   const sites=Array.isArray(data?.sites) ? data.sites.filter(valid) : [];
   // The upstream API masks undiscovered sites. Never synthesize extras.
   return [{id:star.id,kind:"Звезда",name:star.name,star:true,details:star},
@@ -63,12 +65,12 @@ function createTooltip(){
   document.body.append(tip);
   return tip;
 }
-function fillTooltip(tip,model,data,lang,resolveResource){
+function fillTooltip(tip,model,data,lang,resolveResource,translateKind){
   tip.replaceChildren();
   const star=data.star;
   const heading=make("strong","research-system-tooltip-title",model.name);
   tip.append(heading,make("span","research-system-tooltip-kind",
-    model.star ? tr(lang,"Звезда","Star") : model.kind));
+    model.star ? tr(lang,"Звезда","Star") : translateKind(model.kind)));
   const rows=[];
   const row=(label,value)=>{
     if(value===undefined||value===null||value===""||!Number.isFinite(Number(value))&&typeof value==="number")return;
@@ -80,7 +82,7 @@ function fillTooltip(tip,model,data,lang,resolveResource){
     row(tr(lang,"Светимость, L☉","Luminosity, L☉"),star.luminosity);
   }else{
     row(tr(lang,"ID объекта","Object ID"),model.id);
-    row(tr(lang,"Тип","Type"),model.kind);
+    row(tr(lang,"Тип","Type"),translateKind(model.kind));
     const d=model.details;
     if(d&&typeof d==="object"){
       row(tr(lang,"Масса, M⊕","Mass, M⊕"),d.mass);
@@ -119,7 +121,7 @@ function placeTooltip(tip,anchor){
 export function mountSystemLineup({
   host,starId,loadSystem,onBack,assetBase="/",fallbackAsset="/object-unknown.svg",
   resolveResource=(id)=>id,language=()=>document.documentElement.lang,
-  onMap=null
+  onMap=null,translateKind=(kind)=>kind
 }){
   if(!host)throw Error("System view host is missing");
   if(!Number.isInteger(Number(starId))||Number(starId)<1)throw Error("Invalid star ID");
@@ -130,7 +132,8 @@ export function mountSystemLineup({
   previous.forEach(node=>node.hidden=true);
   const view=make("section","research-system-view");
   view.dataset.star=String(starId);
-  const top=make("header","research-system-top");
+  // A local heading must not inherit the game's fixed global <header> rules.
+  const top=make("div","research-system-top");
   const back=make("button","terminal-action research-system-back","← Назад");
   back.type="button";
   const hgroup=make("div","research-system-top-heading");
@@ -175,7 +178,7 @@ export function mountSystemLineup({
     active=button;
     button.setAttribute("aria-describedby",tooltip.id);
     button.setAttribute("aria-expanded","true");
-    fillTooltip(tooltip,model,current,lang(),resolveResource);
+    fillTooltip(tooltip,model,current,lang(),resolveResource,translateKind);
     tooltip.hidden=false;
     placeTooltip(tooltip,button);
   }
@@ -205,7 +208,7 @@ export function mountSystemLineup({
       card.dataset.kind=model.kind;
       const button=make("button","research-system-object-trigger");
       button.type="button";
-      button.setAttribute("aria-label",model.name+": "+(model.kind||""));
+      button.setAttribute("aria-label",model.name+": "+translateKind(model.kind||""));
       button.setAttribute("aria-haspopup","true");
       button.setAttribute("aria-expanded","false");
        const frame=make("span","research-system-art");
@@ -222,7 +225,7 @@ export function mountSystemLineup({
       },{signal});
       frame.append(art);
       button.append(frame,make("span","research-system-object-name",model.name));
-      if(!model.star)button.append(make("small","research-system-object-kind",model.kind||""));
+      if(!model.star)button.append(make("small","research-system-object-kind",translateKind(model.kind||"")));
       card.append(button);
       button.addEventListener("pointerenter",e=>{if(e.pointerType!=="touch")showTooltip(button,model)},{signal});
       button.addEventListener("focus",()=>showTooltip(button,model),{signal});
@@ -249,7 +252,7 @@ export function mountSystemLineup({
   const onScroll=()=>hideTooltip();
   const onResize=()=>hideTooltip();
   const onLanguage=()=>{hideTooltip();render()};
-  document.addEventListener("keydown",onKey,{signal});
+  document.addEventListener("keydown",onKey,{capture:true,signal});
   document.addEventListener("pointerdown",outside,{signal});
   document.addEventListener("scroll",onScroll,{capture:true,passive:true,signal});
   window.addEventListener("resize",onResize,{signal});

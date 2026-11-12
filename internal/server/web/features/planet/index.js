@@ -1236,13 +1236,21 @@ export function initPlanet() {
     mountColonyCatalog(root, data, {
       language: () => I18n.language,
       assetBase: "",
+      revision: JSON.stringify([Session.data.workbench?.universe_revision,
+        Session.data.workbench?.known, Session.data.workbench?.research]),
       starName: id => world.stars.get(Number(id))?.name || "",
       translateKind: kind => tr(kind),
       loadSystem: id => api("system?id=" + encodeURIComponent(id)),
       resourceName: id => asset(id),
-      onProject: id => project(id),
-      onSurface: (star, planet) => open(star, planet),
-      onVisit: () => openVisit(),
+      onProject: id => project(id).catch(error => {
+        if (Session.signedIn && session === Session.epoch) notify(error.message, "error");
+      }),
+      onSurface: (star, planet) => open(star, planet).catch(error => {
+        if (Session.signedIn && session === Session.epoch) notify(error.message, "error");
+      }),
+      onVisit: () => openVisit().catch(error => {
+        if (Session.signedIn && session === Session.epoch) notify(error.message, "error");
+      }),
       onRefund: refund => send({action:"claim_refund",id:refund.id}).then(result => {
         if (result) manager();
       })
@@ -1343,7 +1351,7 @@ export function initPlanet() {
   });
   window.addEventListener("languagechange", () => {
     if (Modules.isOpen("colonies")) manager(true).catch(() => {});
-    if (current) {
+    if (current && Modules.isOpen("galaxy")) {
       const { data } = current;
       open(data.star, data.planet);
     }
