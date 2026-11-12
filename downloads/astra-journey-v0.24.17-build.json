@@ -1,0 +1,31 @@
+{
+  "tag": "v0.24.17",
+  "builds": [
+    {
+      "file": "astra-journey-v0.24.17-windows-amd64.exe",
+      "service": "cosmos",
+      "goos": "windows",
+      "goarch": "amd64",
+      "goamd64": "v1",
+      "cgo_enabled": false,
+      "source_ref": "HEAD",
+      "source_commit": "e9178f2fc27ccf8fa89c2cfa6883029640aa352f",
+      "source_dirty": false,
+      "compiler": "go version go1.27.3 linux/amd64",
+      "sha256": "6f7669fcc738b8075b2eb74c3bce642b7d27d4ab80321aec135dcc33989afc60"
+    },
+    {
+      "file": "astra-journey-v0.24.17-linux-amd64",
+      "service": "cosmos",
+      "goos": "linux",
+      "goarch": "amd64",
+      "goamd64": "v1",
+      "cgo_enabled": false,
+      "source_ref": "HEAD",
+      "source_commit": "e9178f2fc27ccf8fa89c2cfa6883029640aa352f",
+      "source_dirty": false,
+      "compiler": "go version go1.27.3 linux/amd64",
+      "sha256": "8776399bd2204dcf37829cbf4eef6b2bdfdaab650ba7a46597371ba4af77a978"
+    }
+  ]
+}
