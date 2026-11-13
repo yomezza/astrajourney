@@ -2,6 +2,7 @@ import { PlanetMode } from "./mode.js";
 import { refresh } from "../../core/snapshot-store.js";
 import { uuid } from "../../core/uuid.js";
 import { createController } from "./controller.js";
+import { livenessAction } from "./liveness.js";
 import { api } from "../../core/api.js";
 import { Session, RequestScope } from "../../core/session.js";
 import { I18n } from "../../core/i18n.js";
@@ -379,10 +380,12 @@ export async function openVisit(site) {
       const url = new URL("/planet/ws/v1", location.href);
       url.protocol = location.protocol === "https:" ? "wss:" : "ws:";
       const conn = new WebSocket(url);
-      const handshake = setTimeout(() => conn.close(), 5000);
+      const handshake = setTimeout(() => conn.close(), 12000);
       socket = conn;
       let fatal = false,
-        connectedAt = 0;
+        connectedAt = 0,
+        openedAt = 0,
+        lastProbeAt = 0;
       const current = () =>
         task.current() &&
         !returning &&
@@ -394,13 +397,34 @@ export async function openVisit(site) {
           conn.close();
           return;
         }
-        lastFrame = Date.now();
+        openedAt = lastFrame = Date.now();
         conn.send(
           JSON.stringify({ v: 1, type: "hello", seq: 1, payload: hello }),
         );
         hello = null;
         monitor = setInterval(async () => {
-          if (current() && Date.now() - lastFrame > 6000) conn.close();
+          if (current()) {
+            const now = Date.now();
+            const action = livenessAction(
+              now,
+              openedAt,
+              lastFrame,
+              !!welcome,
+              lastProbeAt,
+            );
+            if (action === "timeout") {
+              console.warn("Planet WS timed out", {
+                phase: welcome ? "stream" : "welcome",
+                silentMs: now - lastFrame,
+              });
+              conn.close(4000, "planet_timeout");
+              return;
+            }
+            if (action === "probe") {
+              lastProbeAt = now;
+              send("resync", { last_server_seq: serverSeq });
+            }
+          }
           if (current() && welcome && Date.now() - lastLabelRead > 15000) {
             lastLabelRead = Date.now();
             try {
@@ -640,10 +664,16 @@ export async function openVisit(site) {
           }
         }
       };
-      conn.onclose = () => {
+      conn.onclose = (event) => {
         clearTimeout(handshake);
         if (!task.current() || socket !== conn) return;
         clearInterval(monitor);
+        if (event.code !== 1000)
+          console.warn("Planet WS disconnected", {
+            code: event.code,
+            reason: event.reason || "no close reason",
+            welcomed: !!welcome,
+          });
         activeOffer = null;
         transitionPanel.hidden = true;
         viewGeneration++;
