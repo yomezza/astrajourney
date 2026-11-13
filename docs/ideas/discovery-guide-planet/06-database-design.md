@@ -71,7 +71,7 @@ Backfill:
 
 ## Оставшиеся SQL-review вопросы
 
-- Драфт 005 должен иметь строгий UNIQUE(surface_id,name_key), если владелец подтвердит уникальность имён колоний в пределах поверхности; простой индекс (name_key,colony_id) этого не даёт. Дополнить до применения.
+- Драфт 005 уже содержит UNIQUE(surface_id,name_key) и составной FK (colony_id,surface_id,sector_number) на planet_colonies(id,surface,sector); проверить их в реальной PostgreSQL, поведение при удалении поверхности и при наследовании исторического имени проекта.
 - Для строгой защиты от concurrent category move проверить транзакционную сериализацию + SQL trigger под реальным isolation, не только single-thread unit test.
 - Для world revisions проверить все writer-пути galaxies.data, включая admin galaxies и инкрементальное расширение. Всякий неверно обновлённый name mirror должен обнаруживаться consistency checker.
 - Чувствительные имена пользователя и audit retention: не показывать личную историю без политики приватности.
