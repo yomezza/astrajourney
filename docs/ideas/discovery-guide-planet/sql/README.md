@@ -10,6 +10,7 @@
 | 002-knowledge-base.review.sql | Категории/i18n, статьи, неизменяемые редакции, публикация по языку и связи | users |
 | 003-guide-media.review.sql | Метаданные изображений и связи с редакциями, builtin/uploaded | 002 |
 | 004-planet-return-authorizations.review.sql | Серверный proximity-proof с visit/epoch/fence, одноразовым UUID | users, Planet + Cosmic handlers |
+| 005-colony-names.review.sql | Отдельное имя готовой колонии и история, UNIQUE(surface_id,name_key), составной FK к planet_colonies | planet_colonies, users |
 
 ## Перед будущей интеграцией
 
