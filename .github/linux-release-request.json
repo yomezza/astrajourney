@@ -1,9 +1,9 @@
 {
-  "tag": "v0.25.3",
+  "tag": "v0.25.4",
   "platform": "linux-amd64",
   "services": [
     "cosmos",
     "planet"
   ],
-  "reason": "planet websocket reconnect loop caused by inherited HTTP deadlines"
+  "reason": "planet websocket lifecycle detached from HTTP request cancellation and structured transport diagnostics"
 }

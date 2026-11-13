@@ -1,4 +1,4 @@
-name: Publish Linux planetary connection fix
+name: Publish Linux Planet WebSocket stability fix
 on:
   push:
     branches: [main]
@@ -30,12 +30,13 @@ jobs:
           PY
           )"
           echo "RELEASE_TAG=$tag" >> "$GITHUB_ENV"
-      - name: Test planetary websocket deadline and browser liveness fixes
+      - name: Run targeted WebSocket lifecycle and client checks
         run: |
           set -euo pipefail
-          go test ./internal/planetserver ./internal/server -run '^(TestPlanetHTTPServerDoesNotExpireHijackedWebSockets|TestCosmicHTTPDeadlinesKeepProxiedWebSocketsAlive)$' -count=1
+          go test ./internal/planetserver ./internal/server -run '^(TestPlanetWebSocketLifetimeIgnoresHTTPRequestCancellation|TestPlanetWebSocketLifetimeReleaseCloses|TestPlanetHTTPServerDoesNotExpireHijackedWebSockets|TestCosmicHTTPDeadlinesKeepProxiedWebSocketsAlive)$' -count=1 -timeout=3m
+          node --check internal/server/web/features/planet/visit.js
           node --test tests/ui/planet-liveness.test.mjs
-      - name: Build Cosmic and Planet for Linux amd64
+      - name: Build Linux amd64 Cosmic and Planet from tested commit
         run: |
           set -euo pipefail
           python3 scripts/build-release.py "$RELEASE_TAG" --platform linux --service cosmos --service planet --source-ref "$GITHUB_SHA"
@@ -45,22 +46,23 @@ jobs:
                       "astra-journey-planet-$RELEASE_TAG-linux-amd64" \
                       "astra-journey-$RELEASE_TAG-build.json"
           ) > "$RUNNER_TEMP/SHA256SUMS"
-      - name: Publish Linux-only release
+      - name: Publish Linux release after successful tests
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
           cat > "$RUNNER_TEMP/release-notes.md" <<'EOF'
-          # Astra Journey 0.25.3 — исправление циклических переподключений Planet
+          # Astra Journey 0.25.4 — Planet WebSocket lifecycle и диагностика
 
-          - Planet: устранены HTTP read/write-дедлайны 10 секунд, унаследованные долгоживущими WebSocket после upgrade.
-          - Cosmic: проксируемые Planet и Chat WebSocket не ограничены 15-секундным HTTP-дедлайном; обычные HTTP-запросы по-прежнему ограничены.
-          - Браузер: учтена подготовка сцены до 60 секунд и введено контрольное resync перед отключением молчащего WebSocket.
-          - Добавлены адресные Go/JavaScript-тесты; миграций БД и изменений игровой механики нет.
-          - Собраны только Cosmic и Planet для Linux amd64. **Chat v0.25.2 остаётся актуальным**, обновлять его не требуется.
+          - Planet WS теперь не наследует отмену HTTP-запроса после upgrade; сохраняется остановка по жизненному циклу службы.
+          - Planet пишет в серверный журнал structured cause, длительность и epoch завершившейся WebSocket-сессии, чтобы диагностировать код 1006.
+          - Браузер различает ошибку обработки кадра и сетевой разрыв, пишет возраст соединения и локальную причину закрытия.
+          - CSP не ослаблялась; миграции БД и игровые правила не изменялись.
+          - Linux amd64 Cosmic и Planet собраны из одного коммита. Chat v0.25.2 остаётся совместимым.
 
-          Замените Cosmic и Planet одновременно, перезапустите службы и обновите страницу игры.
+          Обновите Cosmic и Planet, перезапустите обе службы и обновите страницу игры.
+          Если соединение всё ещё обрывается, пришлите серверные строки 'planet websocket ended' и объект 'Planet WS disconnected' из консоли браузера.
           EOF
           gh release create "$RELEASE_TAG" \
             "downloads/astra-journey-$RELEASE_TAG-linux-amd64" \
