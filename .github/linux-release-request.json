@@ -1,10 +1,9 @@
 {
-  "tag": "v0.25.2",
+  "tag": "v0.25.3",
   "platform": "linux-amd64",
   "services": [
     "cosmos",
-    "planet",
-    "chat"
+    "planet"
   ],
-  "reason": "shared TOML version skew"
+  "reason": "planet websocket reconnect loop caused by inherited HTTP deadlines"
 }

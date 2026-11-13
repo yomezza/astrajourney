@@ -1,4 +1,4 @@
-name: Publish Linux configuration compatibility release
+name: Publish Linux planetary connection fix
 on:
   push:
     branches: [main]
@@ -30,42 +30,41 @@ jobs:
           PY
           )"
           echo "RELEASE_TAG=$tag" >> "$GITHUB_ENV"
-      - name: Test shared TOML compatibility
+      - name: Test planetary websocket deadline and browser liveness fixes
         run: |
           set -euo pipefail
-          go test ./internal/platform/configuration
-      - name: Build all three Linux amd64 binaries from exact commit
+          go test ./internal/planetserver ./internal/server -run '^(TestPlanetHTTPServerDoesNotExpireHijackedWebSockets|TestCosmicHTTPDeadlinesKeepProxiedWebSocketsAlive)$' -count=1
+          node --test tests/ui/planet-liveness.test.mjs
+      - name: Build Cosmic and Planet for Linux amd64
         run: |
           set -euo pipefail
-          python3 scripts/build-release.py "$RELEASE_TAG" --platform linux --source-ref "$GITHUB_SHA"
+          python3 scripts/build-release.py "$RELEASE_TAG" --platform linux --service cosmos --service planet --source-ref "$GITHUB_SHA"
           (
             cd downloads
             sha256sum "astra-journey-$RELEASE_TAG-linux-amd64" \
                       "astra-journey-planet-$RELEASE_TAG-linux-amd64" \
-                      "astra-journey-chat-$RELEASE_TAG-linux-amd64" \
                       "astra-journey-$RELEASE_TAG-build.json"
           ) > "$RUNNER_TEMP/SHA256SUMS"
-      - name: Publish GitHub release with Linux binaries only
+      - name: Publish Linux-only release
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
           cat > "$RUNNER_TEMP/release-notes.md" <<'EOF'
-          # Astra Journey 0.25.2 — общая TOML-конфигурация
+          # Astra Journey 0.25.3 — исправление циклических переподключений Planet
 
-          - Cosmic, Planet и Chat пересобраны из одного исходного коммита для Linux amd64.
-          - Каждая служба пропускает неизвестные ключи других служб в общем CONFIG_FILE.
-          - Строгая проверка собственной секции, [database] и общих параметров [nats] сохранена.
-          - Исправлена несовместимость guide_media_dir и новых настроек Cosmic со старыми Planet/Chat.
-          - Никаких миграций PostgreSQL. Planet графика и WASD этим релизом не меняются.
+          - Planet: устранены HTTP read/write-дедлайны 10 секунд, унаследованные долгоживущими WebSocket после upgrade.
+          - Cosmic: проксируемые Planet и Chat WebSocket не ограничены 15-секундным HTTP-дедлайном; обычные HTTP-запросы по-прежнему ограничены.
+          - Браузер: учтена подготовка сцены до 60 секунд и введено контрольное resync перед отключением молчащего WebSocket.
+          - Добавлены адресные Go/JavaScript-тесты; миграций БД и изменений игровой механики нет.
+          - Собраны только Cosmic и Planet для Linux amd64. **Chat v0.25.2 остаётся актуальным**, обновлять его не требуется.
 
-          Замените все три Linux-бинарника согласованно и перезапустите службы.
+          Замените Cosmic и Planet одновременно, перезапустите службы и обновите страницу игры.
           EOF
           gh release create "$RELEASE_TAG" \
             "downloads/astra-journey-$RELEASE_TAG-linux-amd64" \
             "downloads/astra-journey-planet-$RELEASE_TAG-linux-amd64" \
-            "downloads/astra-journey-chat-$RELEASE_TAG-linux-amd64" \
             "downloads/astra-journey-$RELEASE_TAG-build.json" \
             "$RUNNER_TEMP/SHA256SUMS" \
             configs/cosmos.example.toml \
