@@ -39,8 +39,8 @@ async function requestScene(w, signal) {
   const response = await fetch(
     `/planet/api/v1/scene?visit=${encodeURIComponent(w.visit)}&epoch=${w.connection_epoch}`,
     // Planet can spend its full scene_load_timeout (20s by default) building
-    // a sector. Do not abort the client fetch after only 12 seconds.
-    { signal: AbortSignal.any([signal, AbortSignal.timeout(35000)]) },
+    // a sector. Do not abort the client fetch while a valid 60s scene load is running.
+    { signal: AbortSignal.any([signal, AbortSignal.timeout(75000)]) },
   );
   if (!response.ok) {
     const error = await response.json();
