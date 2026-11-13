@@ -66,7 +66,7 @@ func Run(ctx context.Context) error {
 	if addr == "" {
 		addr = "127.0.0.1:8080"
 	}
-	srv := &http.Server{Addr: addr, Handler: a.Handler(), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, WriteTimeout: 15 * time.Second, IdleTimeout: 60 * time.Second}
+	srv := newCosmicHTTPServer(addr, a.Handler())
 	run, cancelRun := context.WithCancel(ctx)
 	a.startNATS(run)
 	defer func() {
