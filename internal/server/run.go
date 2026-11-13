@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -36,11 +37,18 @@ func Run(ctx context.Context) error {
 	if dsn == "" {
 		return errors.New("configure database.url in TOML or DATABASE_URL with a PostgreSQL connection string")
 	}
-	check, cancel := context.WithTimeout(ctx, 15*time.Second)
-	defer cancel()
+	startupTimeout := 5 * time.Minute
+	if value := configuration.Getenv("COSMOS_STARTUP_TIMEOUT"); value != "" {
+		startupTimeout, err = time.ParseDuration(value)
+		if err != nil || startupTimeout <= 0 {
+			return errors.New("cosmos.startup_timeout / COSMOS_STARTUP_TIMEOUT must be a positive duration")
+		}
+	}
+	check, cancel := context.WithTimeout(ctx, startupTimeout)
 	db, err := initialization.OpenDatabase(check, dsn, configuration.Getenv("DB_SCHEMA"), Assets)
+	cancel()
 	if err != nil {
-		return err
+		return fmt.Errorf("Cosmic database initialization (startup timeout %s): %w", startupTimeout, err)
 	}
 	defer db.Close()
 	proxies, err := httpkit.ParseTrustedProxies(configuration.Getenv("TRUSTED_PROXIES"))

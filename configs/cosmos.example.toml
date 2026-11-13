@@ -5,6 +5,8 @@ url = 'postgres://cosmos:CHANGE_ME@127.0.0.1:5432/existing_database?sslmode=disa
 schema = 'astra_journey' # Новая установка; при обновлении сохраните прежнее имя схемы.
 
 [cosmos]
+# Общий срок миграций и загрузки мира; подключение PostgreSQL проверяется отдельно.
+startup_timeout = '5m'
 # Private guide images: back up together with PostgreSQL. Never a webroot.
 # guide_media_dir = 'D:\astrajourney\guide-media'
 http_addr = '0.0.0.0:8080'

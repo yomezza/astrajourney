@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/fs"
+	"log"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -20,7 +21,10 @@ import (
 )
 
 func OpenDatabase(ctx context.Context, dsn, schema string, schemas fs.ReadFileFS) (*pgxpool.Pool, error) {
-	db, schema, err := postgres.Open(ctx, dsn, schema)
+	started := time.Now()
+	connection, cancel := context.WithTimeout(ctx, 10*time.Second)
+	db, schema, err := postgres.Open(connection, dsn, schema)
+	cancel()
 	if err != nil {
 		return nil, err
 	}
@@ -35,9 +39,11 @@ func OpenDatabase(ctx context.Context, dsn, schema string, schemas fs.ReadFileFS
 		return nil, err
 	}
 	defer tx.Rollback(context.Background())
+	log.Print("Cosmic initialization: acquiring migration/world locks")
 	if _, err = tx.Exec(ctx, "SELECT pg_advisory_xact_lock(784216),pg_advisory_xact_lock(784218)"); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("acquire migration/world locks: %w", err)
 	}
+	log.Print("Cosmic initialization: applying database migrations")
 	var exists bool
 	if err = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM pg_catalog.pg_namespace WHERE nspname=$1)`, schema).Scan(&exists); err != nil {
 		return nil, err
@@ -356,8 +362,9 @@ func OpenDatabase(ctx context.Context, dsn, schema string, schemas fs.ReadFileFS
 	if err != nil {
 		return nil, err
 	}
+	log.Printf("Cosmic initialization: discovery registry (%d systems)", len(existing.Stars))
 	if err = discovery.Sync(ctx, tx, &existing); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("initialize discovery registry: %w", err)
 	}
 	raw, err = json.Marshal(existing)
 	if err != nil {
@@ -378,5 +385,6 @@ func OpenDatabase(ctx context.Context, dsn, schema string, schemas fs.ReadFileFS
 		return nil, err
 	}
 	ready = true
+	log.Printf("Cosmic initialization complete in %s", time.Since(started).Round(time.Millisecond))
 	return db, nil
 }

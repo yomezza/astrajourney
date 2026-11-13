@@ -37,6 +37,7 @@ func TestSourceSelection(t *testing.T) {
 url = 'file-db'
 [cosmos]
 chat_enabled = false
+startup_timeout = '8m'
 `)
 	source, err = configuration.Load(lookup(env), configuration.Cosmos)
 	if err != nil {
@@ -44,6 +45,9 @@ chat_enabled = false
 	}
 	if source.Getenv("DATABASE_URL") != "file-db" || source.Getenv("CHAT_ENABLED") != "false" || source.Getenv("HTTP_ADDR") != "" {
 		t.Fatal("file must be the exclusive source")
+	}
+	if source.Getenv("COSMOS_STARTUP_TIMEOUT") != "8m" {
+		t.Fatal("startup timeout was not loaded from TOML")
 	}
 	// An omitted secret must not be inherited from the service account environment.
 	env["ADMIN_PASSWORD"] = "stale-secret"

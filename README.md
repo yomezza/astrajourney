@@ -10,7 +10,7 @@ Astra Journey — браузерная космическая экономиче
 
 Сервер написан на Go, данные хранятся в PostgreSQL. Интерфейс работает в браузере на HTML, CSS, JavaScript и SVG. Для запуска не нужны Node.js и npm.
 
-**Версии служб:** Cosmic 0.25.0, Planet 0.25.0, Chat 0.24.14. [Первооткрыватели, база знаний Original C и Planet Mode](release-notes/v0.25.0.md).
+**Версии служб:** Cosmic 0.25.1, Planet 0.25.0, Chat 0.24.14. [Исправление запуска Cosmic](release-notes/v0.25.1.md). [Первооткрыватели, база знаний Original C и Planet Mode](release-notes/v0.25.0.md).
 
 Cosmic и Planet 0.25.0 обновляются вместе: новый возврат через посадочный модуль требует обеих служб и планетарной схемы 8. [Порядок обновления, медиа и права БД](docs/operations/discovery-guide-planet.ru.md).
 
