@@ -20,8 +20,8 @@ export function acceptWorld(data) {
   return data;
 }
 // Explicitly opt in only the galaxy metadata endpoint, never all GETs.
-export function loadWorld() {
-  if (world.data) return Promise.resolve(world.data);
+export function loadWorld(force = false) {
+  if (world.data && !force) return Promise.resolve(world.data);
   const epoch = Session.epoch;
   if (inFlight?.epoch === epoch) return inFlight.promise;
   const entry = { epoch, revision };
@@ -40,4 +40,18 @@ export function loadWorld() {
 window.addEventListener("signedout", () => {
   acceptWorld(null);
   inFlight = null;
+});
+
+window.addEventListener("gamedata", () => {
+  if (
+    Session.signedIn &&
+    world.data &&
+    Number(Session.data.workbench?.universe_revision) >
+      Number(world.data.revision || 0)
+  )
+    loadWorld(true)
+      .then((data) => {
+        if (data) window.dispatchEvent(new Event("universechange"));
+      })
+      .catch(() => {});
 });

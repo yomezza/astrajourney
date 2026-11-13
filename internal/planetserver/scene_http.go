@@ -47,6 +47,7 @@ func (a *App) sceneView(w http.ResponseWriter, r *http.Request) {
 	}
 	pin, err := a.scenes.Acquire(ctx, in.Key)
 	if err != nil {
+		_ = a.visits.DiagnoseSceneFailure(ctx, id, welcome, f, in.Key, err)
 		httpkit.Fail(w, 503, "scene_unavailable")
 		return
 	}
@@ -56,6 +57,7 @@ func (a *App) sceneView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// No ticket, seed or private geology in this DTO or URL.
+	_ = a.visits.ClearSceneDiagnosis(ctx, id, welcome)
 	public := pin.Scene().Public()
 	var hasSite bool
 	if err = a.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM planet_landing_sites WHERE surface=$1 AND sector=$2 AND enabled)`, in.Key.Surface, in.Key.Sector).Scan(&hasSite); err != nil {

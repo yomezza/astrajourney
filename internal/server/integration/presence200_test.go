@@ -132,5 +132,8 @@ func TestPlanetPresence200(t *testing.T) {
 	if left["actor"] != actor {
 		t.Fatal("wrong actor removed", left)
 	}
-	wait180(t, f, `SELECT count(*) FROM planet_visits WHERE user_id=$1 AND state='ended'`, 1, peerID)
+	wait180(t, f, `SELECT count(*) FROM planet_visits WHERE user_id=$1 AND state='disconnected'`, 1, peerID)
+	if f.integer(`SELECT count(*) FROM planet_transfer_controls WHERE user_id=$1 AND reserved_ship=$2`, peerID, peerShip) != 1 {
+		t.Fatal("session expiry released a ship from the surface")
+	}
 }

@@ -243,18 +243,17 @@ func TestPlanetLoad230(t *testing.T) {
 		loadParallel230(t, len(clients), func(i int) error { clients[i].close(); return nil })
 		waitConditionLoad230(t, 8*time.Second, func() bool { return f.integer(`SELECT count(*) FROM planet_visits WHERE state='active'`) == 0 })
 	}
-	returnClients := func() {
-		loadParallel230(t, len(clients), func(i int) error {
-			c := clients[i]
-			if e := c.send("leave", map[string]string{"operation": mustUUIDLoad230()}); e != nil {
-				return e
-			}
-			if _, e := c.wait("visit.ended", 10*time.Second); e != nil {
-				return e
-			}
-			c.close()
-			return nil
-		})
+	// Fixture-only administrative teardown between benchmark populations. This
+	// does not measure normal landing-module return (covered by TestPlanetReturnProof253).
+	releaseClients := func() {
+		closeClients()
+		for _, account := range accounts {
+			f.exec(`UPDATE planet_transfer_controls SET generation=generation+1,revoke_requested_at=clock_timestamp() WHERE user_id=$1 AND reserved_ship IS NOT NULL`, account.UID)
+		}
+		waitConditionLoad230(t, 8*time.Second, func() bool { return f.integer(`SELECT count(*) FROM planet_visits WHERE state<>'ended'`) == 0 })
+		if err := f.app.Transfer.Reconcile(f.ctx); err != nil {
+			t.Fatal(err)
+		}
 		waitConditionLoad230(t, 8*time.Second, func() bool {
 			return f.integer(`SELECT count(*) FROM planet_transfer_controls WHERE reserved_ship IS NOT NULL`) == 0
 		})
@@ -345,8 +344,8 @@ func TestPlanetLoad230(t *testing.T) {
 		})
 	})
 	phase("reconnect_storm", func() { connect(true, nil); checkPresence(50) })
-	phase("return_and_five_sector_landing", func() {
-		returnClients()
+	phase("fixture_release_and_five_sector_landing", func() {
+		releaseClients()
 		var sites []int64
 		rows, e := f.db.Query(f.ctx, `SELECT id FROM planet_landing_sites WHERE surface=$1 AND enabled ORDER BY sector`, surface)
 		if e != nil {
@@ -384,7 +383,7 @@ func TestPlanetLoad230(t *testing.T) {
 		}
 		checkPresence(10)
 	})
-	phase("return_to_common_sector", func() { returnClients(); connect(false, []int64{site}); checkPresence(50) })
+	phase("fixture_release_to_common_sector", func() { releaseClients(); connect(false, []int64{site}); checkPresence(50) })
 	var portal scene.Position
 	for _, p := range local[1].Portals() {
 		if p.Neighbor == 2 {
@@ -497,8 +496,8 @@ func TestPlanetLoad230(t *testing.T) {
 		}
 		checkPresence(50)
 	})
-	phase("final_return_and_eviction", func() {
-		returnClients()
+	phase("fixture_release_and_eviction", func() {
+		releaseClients()
 		waitConditionLoad230(t, 8*time.Second, func() bool {
 			m := requireLoad230(t, spaceURL, owner, "GET", "/planet/api/v1/metrics", nil, 200)
 			return numberMap230(m, "movement", "actors") == 0 && numberMap230(m, "scenes", "cached") == 0

@@ -170,9 +170,9 @@ test("surface cards locate shared landing infrastructure and reflect current acc
     .waitFor();
   await g.page.evaluate(() => window.__testApp.Modules.close("galaxy"));
   await g.open("notifications");
-  await g.page.locator(".notification-row").first().waitFor();
+  await g.page.locator(".notification-compact-row").first().waitFor();
   assert.match(
-    await g.page.locator(".notification-row").first().textContent(),
+    await g.page.locator(".notification-compact-row").first().textContent(),
     /Landing site ready.*Test surface.*Sector 2/,
   );
 });

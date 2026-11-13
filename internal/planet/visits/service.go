@@ -29,6 +29,9 @@ type Intent struct {
 	Key                    scene.Key
 }
 type Welcome struct {
+	LandingSector   int     `json:"landing_sector"`
+	LandingSurface  string  `json:"landing_surface"`
+	ReturnRadiusQ   int     `json:"return_radius_q"`
 	Actor           string  `json:"actor"`
 	Nickname        string  `json:"nickname"`
 	Time            int64   `json:"server_time"`
@@ -93,7 +96,7 @@ func (a *Service) locked(ctx context.Context, uid int64, f scenestore.Fence) (pg
 	}
 	if _, err = tx.Exec(ctx, `SELECT pg_advisory_xact_lock_shared(784218)`); err == nil {
 		var n int64
-		err = tx.QueryRow(ctx, `SELECT fence FROM planet_runtime_leases WHERE id=1 AND owner_id=$1 AND fence=$2 AND expires_at>clock_timestamp() AND EXISTS(SELECT 1 FROM planet_schema_state WHERE id=1 AND version=7) FOR SHARE`, f.Owner, f.Number).Scan(&n)
+		err = tx.QueryRow(ctx, `SELECT fence FROM planet_runtime_leases WHERE id=1 AND owner_id=$1 AND fence=$2 AND expires_at>clock_timestamp() AND EXISTS(SELECT 1 FROM planet_schema_state WHERE id=1 AND version=8) FOR SHARE`, f.Owner, f.Number).Scan(&n)
 		if errors.Is(err, pgx.ErrNoRows) {
 			err = scenestore.ErrFence
 		}
@@ -198,6 +201,9 @@ func (a *Service) Activate(ctx context.Context, id access.Identity, in Intent, s
 	w.Nickname = id.Nickname
 	w.Time = time.Now().UnixMilli()
 	w.Planet = site.Name
+	w.LandingSector = site.Sector
+	w.LandingSurface = fmtInt(site.Surface)
+	w.ReturnRadiusQ = access.ReturnRadiusQ
 	w.Surface = fmtInt(in.Key.Surface)
 	w.Sector = in.Key.Sector
 	return w, nil

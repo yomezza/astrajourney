@@ -86,11 +86,12 @@ func Run(ctx context.Context) error {
 			}
 		}()
 	}
-	workers.Add(4)
+	workers.Add(5)
 	go func() { defer workers.Done(); a.Simulation.Simulate(run) }()
 	go func() { defer workers.Done(); a.Colonies.RunLandingWorker(run) }()
 	go func() { defer workers.Done(); a.runTransfers(run) }()
 	go func() { defer workers.Done(); a.Corporations.RunChatCleanup(run) }()
+	go func() { defer workers.Done(); a.Knowledge.Run(run) }()
 	defer func() { cancelRun(); workers.Wait() }()
 	go func() {
 		<-run.Done()

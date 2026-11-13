@@ -14,6 +14,7 @@ func (a *Service) Commit(ctx context.Context, tx pgx.Tx) error {
 	err := tx.Commit(ctx)
 	if err == nil {
 		a.universe = nil
+		a.universeEpoch++
 	}
 	return err
 }

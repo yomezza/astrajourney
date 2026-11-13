@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 
@@ -72,19 +73,51 @@ func (a *Service) LoadFrom(ctx context.Context, q postgres.Querier) (*universe.G
 		return &g, nil
 	}
 
-	a.universeMu.Lock()
-	defer a.universeMu.Unlock()
-	if a.universe != nil {
-		return a.universe, nil
+	for {
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+		a.universeMu.Lock()
+		cached, epoch, checked := a.universe, a.universeEpoch, a.universeChecked
+		a.universeMu.Unlock()
+		if cached != nil && time.Since(checked) < 2*time.Second {
+			return cached, nil
+		}
+		// Never wait for a pool connection while holding the cache mutex: a writer
+		// may own the last connection and need that mutex to commit/invalidate.
+		if cached != nil {
+			var revision int64
+			if err := q.QueryRow(ctx, `SELECT COALESCE((data->>'revision')::bigint,0) FROM galaxies WHERE name='Edem'`).Scan(&revision); err != nil {
+				return nil, err
+			}
+			a.universeMu.Lock()
+			if epoch != a.universeEpoch || cached != a.universe {
+				a.universeMu.Unlock()
+				continue
+			}
+			if revision == cached.Revision {
+				a.universeChecked = time.Now()
+				a.universeMu.Unlock()
+				return cached, nil
+			}
+			a.universeMu.Unlock()
+		}
+		var raw []byte
+		if err := q.QueryRow(ctx, `SELECT data FROM galaxies WHERE name='Edem'`).Scan(&raw); err != nil {
+			return nil, err
+		}
+		var g universe.Galaxy
+		if err := json.Unmarshal(raw, &g); err != nil {
+			return nil, err
+		}
+		a.universeMu.Lock()
+		if epoch != a.universeEpoch || cached != a.universe {
+			a.universeMu.Unlock()
+			continue
+		}
+		a.universe = &g
+		a.universeChecked = time.Now()
+		a.universeMu.Unlock()
+		return &g, nil
 	}
-	var raw []byte
-	if err := q.QueryRow(ctx, `SELECT data FROM galaxies WHERE name='Edem'`).Scan(&raw); err != nil {
-		return nil, err
-	}
-	var g universe.Galaxy
-	if err := json.Unmarshal(raw, &g); err != nil {
-		return nil, err
-	}
-	a.universe = &g
-	return &g, nil
 }

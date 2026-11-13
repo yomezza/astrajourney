@@ -55,7 +55,7 @@ func (a *Service) reconcile(ctx context.Context, onlyUser int64) error {
 			if e != nil && !errors.Is(e, access.ErrAuth) {
 				return e
 			}
-			invalid = e != nil
+			invalid = e != nil && !live
 			_, e = access.Landing(ctx, tx, v.uid, v.site, *v.ship)
 			if e != nil && !errors.Is(e, access.ErrDenied) {
 				return e

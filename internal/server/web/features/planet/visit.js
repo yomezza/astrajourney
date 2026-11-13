@@ -1,3 +1,5 @@
+import { PlanetMode } from "./mode.js";
+import { refresh } from "../../core/snapshot-store.js";
 import { uuid } from "../../core/uuid.js";
 import { createController } from "./controller.js";
 import { api } from "../../core/api.js";
@@ -5,8 +7,7 @@ import { Session, RequestScope } from "../../core/session.js";
 import { I18n } from "../../core/i18n.js";
 import { UI, Modules } from "../../ui/runtime.js";
 import { notify } from "../../ui/feedback.js";
-const key = "planet-visit",
-  scope = new RequestScope();
+const scope = new RequestScope();
 let socket,
   renderer,
   polling,
@@ -36,7 +37,7 @@ function stop() {
 async function requestScene(w, signal) {
   const response = await fetch(
     `/planet/api/v1/scene?visit=${encodeURIComponent(w.visit)}&epoch=${w.connection_epoch}`,
-    { signal },
+    { signal: AbortSignal.any([signal, AbortSignal.timeout(12000)]) },
   );
   if (!response.ok) {
     const error = await response.json();
@@ -54,7 +55,8 @@ export async function openVisit(site) {
     if (label.length > 1) b.dataset.i18n = label;
     return b;
   };
-  const root = Modules.create(key, "Планетарная локация", 1000, 760);
+  const root = PlanetMode.host();
+  PlanetMode.loading("Подготовка планетарной высадки", () => connect());
   const status = UI.node("p", tr("Подключение к планетарной службе")),
     tools = UI.node("div", undefined, "visit-tools"),
     canvas = UI.node("canvas");
@@ -74,16 +76,20 @@ export async function openVisit(site) {
     button("Повторить графику", () => connect()),
   );
   root.classList.add("visit-content");
-  let welcome,
+  let landingSector = null,
+    landingSurface = null,
+    welcome,
     returning = false,
     connecting = false,
     canReturn = false,
-    finishLeave,
+    returnWaiter,
+    returnOperation = null,
     recoveryStart = 0,
     attempts = 0;
   let commandSeq = 1,
     serverSeq = 0,
     lastFrame = 0,
+    lastLabelRead = 0,
     lastState,
     lastPath,
     peers = new Map();
@@ -106,66 +112,125 @@ export async function openVisit(site) {
     recoveryStart = 0;
     return connect();
   });
-  const leave = button("Вернуться в космос", async () => {
-    leave.disabled = true;
+  async function finishReturn(state) {
+    const start = Date.now();
+    while (task.current()) {
+      if (state.state === "none") {
+        stop();
+        root.replaceChildren();
+        PlanetMode.leave();
+        await refresh(true);
+        return;
+      }
+      if (Date.now() - start > 30000)
+        throw Error(
+          tr("Возврат ещё подтверждается сервером. Повторите проверку."),
+        );
+      await new Promise((resolve) => {
+        const done = () => {
+          task.signal.removeEventListener("abort", done);
+          resolve();
+        };
+        polling = setTimeout(done, 1000);
+        task.signal.addEventListener("abort", done, { once: true });
+      });
+      if (!task.current()) return;
+      state = await api(
+        "planet/visit",
+        undefined,
+        AbortSignal.any([task.signal, AbortSignal.timeout(8000)]),
+      );
+    }
+  }
+  function showFailure(message) {
+    status.textContent = message;
+    resume.hidden = false;
+    if (recover.hidden) PlanetMode.failed(message, () => connect());
+    else PlanetMode.ready();
+  }
+  async function normalReturn() {
+    if (returning || !welcome || socket?.readyState !== WebSocket.OPEN) return;
     returning = true;
     clearTimeout(retryTimer);
-    renderer?.stop();
-    renderer = null;
+    PlanetMode.loading("Возвращение на корабль", () => connect());
     try {
-      if (socket?.readyState === WebSocket.OPEN && welcome) {
-        await new Promise((resolve) => {
-          const timer = setTimeout(resolve, 4000);
-          finishLeave = () => {
+      returnOperation ||= uuid();
+      await new Promise((resolve, reject) => {
+        const timer = setTimeout(() => {
+          returnWaiter = null;
+          reject(
+            Error(
+              tr("Разрешение на возврат не получено. Повторите подключение."),
+            ),
+          );
+        }, 8000);
+        returnWaiter = {
+          operation: returnOperation,
+          resolve: () => {
             clearTimeout(timer);
+            returnWaiter = null;
             resolve();
-          };
-          if (!send("leave", { operation: uuid() })) {
+          },
+          reject: (error) => {
             clearTimeout(timer);
-            resolve();
-          }
-        });
-      }
+            returnWaiter = null;
+            reject(error);
+          },
+        };
+        if (!send("return.prepare", { operation: returnOperation })) {
+          clearTimeout(timer);
+          returnWaiter = null;
+          reject(Error(tr("Нет соединения с планетарной службой")));
+        }
+      });
       const state = await api(
         "planet/return",
+        { operation: returnOperation, visit: welcome.visit },
+        AbortSignal.any([task.signal, AbortSignal.timeout(12000)]),
+      );
+      if (task.current()) await finishReturn(state);
+    } catch (error) {
+      if (task.current()) {
+        returning = false;
+        resume.hidden = false;
+        notify(error.message, "error");
+        showFailure(error.message);
+      }
+    }
+  }
+  const recover = button("Восстановить высадку", async () => {
+    if (returning) return;
+    returning = true;
+    PlanetMode.loading("Восстановление высадки", () => connect());
+    try {
+      const state = await api(
+        "planet/recover",
         { operation: uuid(), visit: welcome?.visit || "" },
         task.signal,
       );
-      if (!task.current()) return;
-      socket?.close();
-      socket = null;
-      canvas.hidden = true;
-      resume.hidden = true;
-      status.textContent = tr(
-        state.state === "none" ? "Возвращение завершено" : "Завершаем высадку",
-      );
-      clearInterval(polling);
-      if (state.state !== "none")
-        polling = setInterval(async () => {
-          try {
-            const v = await api("planet/visit", undefined, task.signal);
-            if (!task.current()) return;
-            if (v.state === "none") {
-              clearInterval(polling);
-              polling = null;
-              status.textContent = tr("Возвращение завершено");
-            }
-          } catch {}
-        }, 1500);
-    } catch (e) {
+      if (task.current()) await finishReturn(state);
+    } catch (error) {
       if (task.current()) {
-        notify(e.message, "error");
         returning = false;
-        leave.disabled = false;
-        resume.hidden = false;
+        showFailure(error.message);
       }
     }
   });
-  leave.disabled = true;
+  recover.hidden = true;
   resume.hidden = true;
   tools.append(
     resume,
-    leave,
+    recover,
+    button("Чат", () => Modules.open("chat")),
+    button("Полный экран", async () => {
+      try {
+        if (!document.fullscreenElement)
+          await document.documentElement.requestFullscreen?.();
+        else await document.exitFullscreen?.();
+      } catch {
+        notify("Полноэкранный режим недоступен", "warning");
+      }
+    }),
     button("−", () => renderer?.zoom(1 / 1.2)),
     button("+", () => renderer?.zoom(1.2)),
     button("К персонажу", () => renderer?.centre()),
@@ -184,6 +249,7 @@ export async function openVisit(site) {
       "Перейти в соседний сектор",
       () => {
         confirm.disabled = true;
+        PlanetMode.loading("Переход в соседний сектор", () => connect());
         if (!activeOffer.operation) activeOffer.operation = uuid();
         send("transition.confirm", {
           offer: offer.offer,
@@ -218,7 +284,7 @@ export async function openVisit(site) {
     artWarning,
     viewport,
   );
-  Modules.open(key);
+  PlanetMode.enter();
   function reconnect() {
     if (!task.current() || returning) return;
     if (!recoveryStart) recoveryStart = Date.now();
@@ -227,6 +293,7 @@ export async function openVisit(site) {
       status.textContent = tr(
         "Не удалось восстановить связь. Продолжите высадку вручную или вернитесь на корабль.",
       );
+      PlanetMode.ready();
       return;
     }
     const delay =
@@ -239,7 +306,10 @@ export async function openVisit(site) {
     retryTimer = setTimeout(() => connect(), delay);
   }
   async function connect() {
-    if (connecting || !task.current() || returning) return;
+    if (connecting || !task.current()) return;
+    returning = false;
+    returnOperation = null;
+    PlanetMode.loading("Подключение к планетарной службе", () => connect());
     connecting = true;
     clearTimeout(retryTimer);
     clearInterval(monitor);
@@ -267,11 +337,21 @@ export async function openVisit(site) {
       );
       if (!task.current()) return;
       canReturn = state.state !== "none";
+      recover.hidden = !state.recoverable;
       let hello;
       if (["active", "disconnected"].includes(state.state))
         hello = { resume_visit: state.visit };
-      else if (["legacy", "return_pending"].includes(state.state)) {
-        status.textContent = tr("Завершаем высадку");
+      else if (state.state === "return_pending") {
+        returning = true;
+        await finishReturn(state);
+        return;
+      } else if (state.state === "legacy") {
+        resume.hidden = false;
+        recover.hidden = !state.recoverable;
+        PlanetMode.ready();
+        status.textContent = tr(
+          "Для старой высадки доступно серверное восстановление",
+        );
         return;
       } else if (site || state.state === "pending") {
         const ticket = await api(
@@ -290,8 +370,8 @@ export async function openVisit(site) {
         } else if (ticket.visit) hello = { resume_visit: ticket.visit };
         else throw new Error(tr("Повторите подключение"));
       } else {
-        status.textContent = tr("Выберите доступную посадочную площадку");
-        resume.hidden = false;
+        PlanetMode.leave();
+        stop();
         return;
       }
       canReturn = true;
@@ -319,8 +399,26 @@ export async function openVisit(site) {
           JSON.stringify({ v: 1, type: "hello", seq: 1, payload: hello }),
         );
         hello = null;
-        monitor = setInterval(() => {
+        monitor = setInterval(async () => {
           if (current() && Date.now() - lastFrame > 6000) conn.close();
+          if (current() && welcome && Date.now() - lastLabelRead > 15000) {
+            lastLabelRead = Date.now();
+            try {
+              const v = await api(
+                "planet/visit",
+                undefined,
+                AbortSignal.any([task.signal, AbortSignal.timeout(8000)]),
+              );
+              if (!current()) return;
+              if (v.state === "none") {
+                returning = true;
+                await finishReturn(v);
+                return;
+              }
+              if (v.planet_name) welcome.planet = v.planet_name;
+              welcome.colony_name = v.colony_name || "";
+            } catch {}
+          }
         }, 1000);
       };
       conn.onmessage = async (event) => {
@@ -335,11 +433,27 @@ export async function openVisit(site) {
           }
           if (message.server_seq <= serverSeq) return;
           serverSeq = message.server_seq;
-          if (message.type === "visit.ended") {
-            finishLeave?.();
+          if (message.type === "return.authorized") {
+            if (
+              returnWaiter &&
+              welcome &&
+              message.visit === welcome.visit &&
+              message.connection_epoch === welcome.connection_epoch &&
+              message.payload.operation === returnWaiter.operation
+            )
+              returnWaiter.resolve();
             return;
           }
-          if (returning) return;
+          if (returning) {
+            if (message.type === "error")
+              returnWaiter?.reject(Error(tr(message.payload.code)));
+            return;
+          }
+          if (message.type === "visit.ended") {
+            connect();
+            return;
+          }
+
           if (
             welcome &&
             (message.visit !== welcome.visit ||
@@ -353,6 +467,7 @@ export async function openVisit(site) {
           const p = message.payload;
           if (message.type === "error") {
             status.textContent = tr(p.code);
+            PlanetMode.ready();
             renderer?.error(p.code, p.seq);
             if (terminalErrors.has(p.code)) {
               fatal = true;
@@ -365,6 +480,7 @@ export async function openVisit(site) {
             return;
           }
           if (message.type === "transition.cancelled") {
+            PlanetMode.ready();
             activeOffer = null;
             transitionPanel.hidden = true;
             if (!["move", "cancelled"].includes(p.reason))
@@ -383,11 +499,19 @@ export async function openVisit(site) {
               transitionPanel.hidden = true;
               peers = new Map();
               lastState = lastPath = null;
-            } else welcome = p;
+            } else {
+              welcome = p;
+              landingSector = p.landing_sector;
+              landingSurface = p.landing_surface;
+            }
             connectedAt = Date.now();
             resume.hidden = true;
             status.textContent =
-              welcome.planet + " · " + tr("Сектор") + " " + welcome.sector;
+              (welcome.colony_name || welcome.planet) +
+              " · " +
+              tr("Сектор") +
+              " " +
+              welcome.sector;
             locationAbort?.abort();
             locationAbort = new AbortController();
             const graphicsSignal = AbortSignal.any([
@@ -410,6 +534,41 @@ export async function openVisit(site) {
               assets: (missing) => {
                 if (locationCurrent()) artWarning.hidden = !missing.length;
               },
+              onInteract: (info, event) => {
+                if (info?.id !== "landing") return false;
+                const x = lastState?.x_q ?? welcome.x_q,
+                  y = lastState?.y_q ?? welcome.y_q;
+                const near =
+                  String(welcome.surface) === String(landingSurface) &&
+                  welcome.sector === landingSector &&
+                  scene.landing &&
+                  Math.hypot(
+                    x - scene.landing.SpawnX,
+                    y - scene.landing.SpawnY,
+                  ) <= 5120 &&
+                  !lastState?.moving;
+                UI.menu(
+                  [
+                    {
+                      label: "Подойти к модулю",
+                      action: () =>
+                        send("move", {
+                          x_q: scene.landing.SpawnX,
+                          y_q: scene.landing.SpawnY,
+                        }),
+                    },
+                    {
+                      label: "Вернуться на корабль",
+                      disabled: !near || returning || !!activeOffer,
+                      action: normalReturn,
+                    },
+                  ],
+                  event.clientX,
+                  event.clientY,
+                  { owner: canvas, theme: "chat" },
+                );
+                return true;
+              },
               onHover: (info) => {
                 if (!locationCurrent()) return;
                 objectInfo.hidden = !info;
@@ -423,7 +582,10 @@ export async function openVisit(site) {
               return;
             }
             renderer = controller;
+            canvas.dataset.ready = "true";
+            PlanetMode.ready();
             canvas.dataset.sector = String(welcome.sector);
+            canvas.dataset.connectionEpoch = String(welcome.connection_epoch);
             renderer?.actors([...peers.values()], true);
             if (lastState) renderer?.update(lastState);
             if (lastPath) renderer?.accepted(lastPath);
@@ -457,7 +619,7 @@ export async function openVisit(site) {
                     ? "Ожидаем подтверждения перехода"
                     : "Движение приостановлено: проверяем связь с сервером",
                 )
-              : welcome.planet +
+              : (welcome.colony_name || welcome.planet) +
                 " · " +
                 tr("Сектор") +
                 " " +
@@ -488,10 +650,11 @@ export async function openVisit(site) {
         locationAbort?.abort();
         renderer?.stop();
         renderer = null;
-        finishLeave?.();
+        returnWaiter?.reject(Error(tr("Соединение прервано")));
         if (returning) return;
         if (fatal) {
           resume.hidden = false;
+          showFailure(status.textContent);
           return;
         }
         reconnect();
@@ -501,14 +664,15 @@ export async function openVisit(site) {
           status.textContent = tr("Не удалось подключиться");
       };
     } catch (e) {
-      if (task.current() && !returning) {
+      if (task.current()) {
+        returning = false;
         status.textContent = e.message;
         if ([401, 403, 400, 409].includes(e.status)) resume.hidden = false;
         else reconnect();
+        showFailure(e.message);
       }
     } finally {
       connecting = false;
-      if (task.current()) leave.disabled = !canReturn;
     }
   }
   try {
@@ -518,9 +682,3 @@ export async function openVisit(site) {
   }
 }
 window.addEventListener("signedout", stop);
-window.addEventListener("moduleclose", (e) => {
-  if (e.detail === key) stop();
-});
-window.addEventListener("moduledestroy", (e) => {
-  if (e.detail === key) stop();
-});

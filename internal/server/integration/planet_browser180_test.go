@@ -20,7 +20,14 @@ import (
 
 func TestPlanetBrowser180(t *testing.T)            { planetBrowser210(t, false) }
 func TestPlanetTransitionsBrowser210(t *testing.T) { planetBrowser210(t, true) }
-func planetBrowser210(t *testing.T, transition bool) {
+func TestDiscoveryGuidePlanetBrowser250(t *testing.T) {
+	if os.Getenv("RUN_DISCOVERY_BROWSER") != "1" {
+		t.Skip("set RUN_DISCOVERY_BROWSER=1 with Node/Playwright")
+	}
+	t.Setenv("RUN_PLANET_BROWSER", "1")
+	planetBrowser210(t, false, "discovery-guide-planet-live.mjs")
+}
+func planetBrowser210(t *testing.T, transition bool, custom ...string) {
 	if os.Getenv("RUN_PLANET_BROWSER") != "1" {
 		t.Skip("set RUN_PLANET_BROWSER=1 with Node/Playwright")
 	}
@@ -70,6 +77,10 @@ func planetBrowser210(t *testing.T, transition bool) {
 	})
 	web.Start()
 	scriptName := "planet-live.mjs"
+	if len(custom) > 0 {
+		scriptName = custom[0]
+		f.exec(`UPDATE users SET role='admin' WHERE id=$1`, uid)
+	}
 	if transition {
 		scriptName = "planet-transition-live.mjs"
 	}

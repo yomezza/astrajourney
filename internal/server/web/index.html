@@ -13,6 +13,9 @@
     <link rel="stylesheet" href="styles/galaxy-admin.css" />
     <link rel="stylesheet" href="styles/chat.css" />
     <link rel="stylesheet" href="styles/notifications.css" />
+    <link rel="stylesheet" href="styles/guide.css" />
+    <link rel="stylesheet" href="styles/planet-mode.css" />
+    <link rel="stylesheet" href="styles/knowledge-admin.css" />
     <script type="module" src="bootstrap.js"></script>
   </head>
   <body>
@@ -46,7 +49,7 @@
     </div>
     <header>
       <a class="brand" href="/"
-        >◈ ASTRA JOURNEY <small>EDEM / 0.24.17</small></a
+        >◈ ASTRA JOURNEY <small>EDEM / 0.25.0</small></a
       >
       <div class="header-actions">
         <div
@@ -87,7 +90,7 @@
               <span data-i18n="Предложения игроков"
                 >Предложения игроков</span
               ></button
-            ><button data-open="users">
+            ><button data-open="guide-admin" data-i18n="Управление базой знаний">Управление базой знаний</button><button data-open="users">
               <span data-i18n="Пользователи">Пользователи</span>
             </button>
           </div>
@@ -398,7 +401,7 @@
     <footer>
       <span id="server-status" class="signal"
         ><span data-i18n="● СЕРВЕР ОНЛАЙН">● СЕРВЕР ОНЛАЙН</span></span
-      ><span>ASTRA JOURNEY · v0.24.17</span>
+      ><span>ASTRA JOURNEY · v0.25.0</span>
     </footer>
     <div id="toast" role="status" hidden></div>
     <div id="tooltip" role="tooltip" hidden></div>

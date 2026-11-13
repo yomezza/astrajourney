@@ -12,6 +12,8 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/platform/postgres"
 )
 
+const ReturnRadiusQ = 5 * 1024
+
 var ErrDenied = errors.New("access_denied")
 var ErrAuth = errors.New("auth_required")
 

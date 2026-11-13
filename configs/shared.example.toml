@@ -5,6 +5,8 @@ url = 'postgres://YOUR_DB_USER:YOUR_DB_PASSWORD@127.0.0.1:5432/YOUR_DATABASE?ssl
 schema = 'astra_journey' # Новая установка; при обновлении сохраните прежнее имя схемы.
 
 [cosmos]
+# Private guide images: back up together with PostgreSQL. Never a webroot.
+# guide_media_dir = 'D:\astrajourney\guide-media'
 http_addr = '0.0.0.0:8080'
 public_origin = 'http://192.168.111.44:8080'
 cookie_secure = false

@@ -27,6 +27,7 @@ func regionName(id int) string {
 }
 
 type Planet struct {
+	CatalogCode string   `json:"catalog_code,omitempty"`
 	ID          int      `json:"id"`
 	Name        string   `json:"name"`
 	Kind        string   `json:"kind"`
@@ -93,7 +94,7 @@ func Enrich(g *Galaxy) {
 					}
 				}
 			}
-			s.Planets = append(s.Planets, Planet{j + 1, s.Name + "-" + string(rune('b'+j)), kind, math.Round(au*100) / 100, math.Round(pm*100) / 100, math.Round(pm/(radius*radius)*100) / 100, temp, atm, ids})
+			s.Planets = append(s.Planets, Planet{ID: j + 1, Name: s.Name + "-" + string(rune('b'+j)), Kind: kind, AU: math.Round(au*100) / 100, Mass: math.Round(pm*100) / 100, Gravity: math.Round(pm/(radius*radius)*100) / 100, Temperature: temp, Atmosphere: atm, Resources: ids})
 		}
 	}
 	g.Version = 2

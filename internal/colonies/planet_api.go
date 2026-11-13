@@ -24,15 +24,19 @@ import (
 )
 
 type planetAction struct {
-	Action       string `json:"action"`
-	Request      string `json:"request"`
-	ID           int64  `json:"id"`
-	Surface      int64  `json:"surface"`
-	Sector       int    `json:"sector"`
-	Corporate    bool   `json:"corporate"`
-	Resource     string `json:"resource"`
-	Amount       int64  `json:"amount"`
-	Contribution int64  `json:"contribution"`
+	Name             string `json:"name"`
+	ExpectedRevision int64  `json:"expected_revision"`
+	Correction       bool   `json:"correction"`
+	Reason           string `json:"reason"`
+	Action           string `json:"action"`
+	Request          string `json:"request"`
+	ID               int64  `json:"id"`
+	Surface          int64  `json:"surface"`
+	Sector           int    `json:"sector"`
+	Corporate        bool   `json:"corporate"`
+	Resource         string `json:"resource"`
+	Amount           int64  `json:"amount"`
+	Contribution     int64  `json:"contribution"`
 }
 
 func (a *Service) ColonyAction(w http.ResponseWriter, r *http.Request) {
@@ -42,6 +46,10 @@ func (a *Service) ColonyAction(w http.ResponseWriter, r *http.Request) {
 	}
 	var in planetAction
 	if !httpkit.Decode(w, r, &in) {
+		return
+	}
+	if in.Action == "rename_colony" {
+		a.renameColony(w, r, u, in)
 		return
 	}
 	if len(in.Request) < 8 || len(in.Request) > 100 {
@@ -349,7 +357,7 @@ func (a *Service) ColonyList(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	rows, err := postgres.QueryMaps(r.Context(), a.DB, `SELECT p.id,p.surface,p.sector,p.status,p.progress,p.build_ticks,p.expires_at,s.star,s.planet,s.name,COALESCE(v.username,c.name) AS owner FROM planet_projects p JOIN planet_surfaces s ON s.id=p.surface LEFT JOIN users v ON v.id=p.owner_user LEFT JOIN companies c ON c.id=p.owner_company WHERE $2 OR p.owner_user=$1 OR p.owner_company=(SELECT company_id FROM users WHERE id=$1) OR EXISTS(SELECT 1 FROM planet_contributions x WHERE x.project=p.id AND x.actor=$1 AND NOT x.admin_grant) ORDER BY p.id DESC LIMIT 100`, u.ID, u.Role == "admin")
+	rows, err := postgres.QueryMaps(r.Context(), a.DB, `SELECT p.id,p.surface,p.sector,p.status,p.progress,p.build_ticks,p.expires_at,s.star,s.planet,s.name,pc.id AS colony_id,cn.current_name AS colony_name,COALESCE(cn.revision,0) AS name_revision,COALESCE(v.username,c.name) AS owner FROM planet_projects p JOIN planet_surfaces s ON s.id=p.surface LEFT JOIN planet_colonies pc ON pc.project=p.id LEFT JOIN aj_colony_names cn ON cn.colony_id=pc.id LEFT JOIN users v ON v.id=p.owner_user LEFT JOIN companies c ON c.id=p.owner_company WHERE $2 OR p.owner_user=$1 OR p.owner_company=(SELECT company_id FROM users WHERE id=$1) OR EXISTS(SELECT 1 FROM planet_contributions x WHERE x.project=p.id AND x.actor=$1 AND NOT x.admin_grant) ORDER BY p.id DESC LIMIT 100`, u.ID, u.Role == "admin")
 	if err != nil {
 		httpkit.Internal(w, err)
 		return
@@ -432,7 +440,12 @@ func (a *Service) ColonyView(w http.ResponseWriter, r *http.Request) {
 	if !full {
 		p.Received = nil
 	}
-	httpkit.Reply(w, 200, map[string]any{"project": p, "name": name, "star": star, "planet": planet, "owner": owner, "initiator_name": initiator, "contributions": contributions, "events": events, "can_manage": manage, "can_contribute": member, "land_reason": landReason, "server_time": time.Now()})
+	colonyNames, err := postgres.QueryMaps(ctx, tx, `SELECT c.id,COALESCE(n.current_name,'') AS name,COALESCE(n.revision,0) AS revision FROM planet_colonies c LEFT JOIN aj_colony_names n ON n.colony_id=c.id WHERE c.project=$1`, p.ID)
+	if err != nil {
+		httpkit.Internal(w, err)
+		return
+	}
+	httpkit.Reply(w, 200, map[string]any{"project": p, "colony_names": colonyNames, "name": name, "star": star, "planet": planet, "owner": owner, "initiator_name": initiator, "contributions": contributions, "events": events, "can_manage": manage, "can_contribute": member, "land_reason": landReason, "server_time": time.Now()})
 }
 
 func (a *Service) PlanetSettings(w http.ResponseWriter, r *http.Request) {

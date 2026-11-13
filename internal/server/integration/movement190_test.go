@@ -84,8 +84,12 @@ func TestPlanetMovement190(t *testing.T) {
 	command190(t, next, w2, 3, "move", map[string]int{"x_q": int(w2["x_q"].(float64)) - 1024, "y_q": y})
 	read190(t, next, "path.accepted")
 	last := read190(t, next, "state.delta")
-	command190(t, next, w2, 4, "leave", map[string]string{"operation": op180(t)})
-	read190(t, next, "visit.ended")
+	for last["moving"] == true {
+		last = read190(t, next, "state.delta")
+	}
+	operation := proof253(t, next, w2, 4)
+	f.req(c, "POST", "/api/planet/return", map[string]any{"operation": operation, "visit": w2["visit"]}, 200)
+	wait180(t, f, `SELECT count(*) FROM planet_visits WHERE user_id=$1 AND state='ended'`, 1, uid)
 	next.CloseNow()
 	if f.integer(`SELECT count(*) FROM planet_visits WHERE user_id=$1 AND state='ended'`, uid) != 1 {
 		t.Fatal("leave did not commit visit")

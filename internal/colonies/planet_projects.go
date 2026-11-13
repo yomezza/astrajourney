@@ -197,7 +197,7 @@ func (a *Service) PlanetState(w http.ResponseWriter, r *http.Request) {
 		httpkit.Internal(w, err)
 		return
 	}
-	claims, err := postgres.QueryMaps(ctx, tx, `SELECT p.id,p.sector,p.status,p.owner_user,p.owner_company,COALESCE(u.username,c.name) AS owner FROM planet_projects p LEFT JOIN users u ON u.id=p.owner_user LEFT JOIN companies c ON c.id=p.owner_company WHERE p.surface=$1 AND p.status IN('funding','building','complete')`, id)
+	claims, err := postgres.QueryMaps(ctx, tx, `SELECT p.id,p.sector,p.status,p.owner_user,p.owner_company,pc.id AS colony_id,cn.current_name AS colony_name,COALESCE(cn.revision,0) AS name_revision,COALESCE(u.username,c.name) AS owner FROM planet_projects p LEFT JOIN planet_colonies pc ON pc.project=p.id LEFT JOIN aj_colony_names cn ON cn.colony_id=pc.id LEFT JOIN users u ON u.id=p.owner_user LEFT JOIN companies c ON c.id=p.owner_company WHERE p.surface=$1 AND p.status IN('funding','building','complete')`, id)
 	if err != nil {
 		httpkit.Internal(w, err)
 		return

@@ -1,0 +1,203 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "key": "object/asteroids",
+      "path": "/object-asteroids.svg",
+      "sha256": "ce97a58d63fd61fd4c61e470f5c2bec8c05bb6fd9062718c0863aa5deee57d56",
+      "hologram_allowed": true
+    },
+    {
+      "key": "object/black-hole",
+      "path": "/object-black-hole.svg",
+      "sha256": "c9b0bdc5e3010aaeb6372521abb6cf0303da1364db902d0e64b11fd5fe801bfc",
+      "hologram_allowed": true
+    },
+    {
+      "key": "object/desert",
+      "path": "/object-desert.svg",
+      "sha256": "bbac2dc2ec9019a37efddd7a05a83a8a168d3fa8e738f7e3075993a779c42883",
+      "hologram_allowed": true
+    },
+    {
+      "key": "object/garden",
+      "path": "/object-garden.svg",
+      "sha256": "c710849802d9322c3f74f26584060c92d9411cdf63f856f69012eb4b389118a9",
+      "hologram_allowed": true
+    },
+    {
+      "key": "object/gas",
+      "path": "/object-gas.svg",
+      "sha256": "995d3770cda0d2186fbdc7b78258b4cc3e4f5c4d4ebf7f2c63a131175900a748",
+      "hologram_allowed": true
+    },
+    {
+      "key": "object/ice-field",
+      "path": "/object-ice-field.svg",
+      "sha256": "751ef440bc9e450fca4ce398470f10a9ef119c17ddd59b7c09fc405d163b8309",
+      "hologram_allowed": true
+    },
+    {
+      "key": "object/icy",
+      "path": "/object-icy.svg",
+      "sha256": "7b11ae735673f4ace4e4f4a122a1b13aff6e16f7ae24e2ba72d15370f725a854",
+      "hologram_allowed": true
+    },
+    {
+      "key": "object/lava",
+      "path": "/object-lava.svg",
+      "sha256": "ba102cf4bb73477c34f0b87ca688e635144d3f09ec57c3d36e366a29d0c2e405",
+      "hologram_allowed": true
+    },
+    {
+      "key": "object/rocky",
+      "path": "/object-rocky.svg",
+      "sha256": "3af5d59ad8c3ece7120f861c53fbbfb2a7bcc83f3381b67f82c1d21efcc82444",
+      "hologram_allowed": true
+    },
+    {
+      "key": "object/star-a",
+      "path": "/object-star-a.svg",
+      "sha256": "0a2a978eaa87710e231b5f83a32ba067014bcb3f1da43a71a1e299b594fb6474",
+      "hologram_allowed": true
+    },
+    {
+      "key": "object/star-b",
+      "path": "/object-star-b.svg",
+      "sha256": "6d4feb5bf2b5b51de582d81229d05bc90510e12b6f1dbcb2cf2243e25a1b7133",
+      "hologram_allowed": true
+    },
+    {
+      "key": "object/star-f",
+      "path": "/object-star-f.svg",
+      "sha256": "d3868704941222df2811e591738098818cb3d8d7e8f2a68bd3656e010a242efe",
+      "hologram_allowed": true
+    },
+    {
+      "key": "object/star-g",
+      "path": "/object-star-g.svg",
+      "sha256": "1f36cda7064e165923d16597cb05019de88213dfde369f802e64e425074c4146",
+      "hologram_allowed": true
+    },
+    {
+      "key": "object/star-k",
+      "path": "/object-star-k.svg",
+      "sha256": "c654655f1417caeb45ef1a46fd8ce98a5d7e0071d41baa8cc5376b2c3a540a70",
+      "hologram_allowed": true
+    },
+    {
+      "key": "object/star-m",
+      "path": "/object-star-m.svg",
+      "sha256": "1b05d7eabc62c5ba0cb98208429cd0b2adc77ab0308ac989987ff1fc608f863c",
+      "hologram_allowed": true
+    },
+    {
+      "key": "object/star-o",
+      "path": "/object-star-o.svg",
+      "sha256": "4546eee597578df1b09806ea2946e2e90f2a02a033d8a98324b4bf7c838cb0e7",
+      "hologram_allowed": true
+    },
+    {
+      "key": "object/station",
+      "path": "/object-station.svg",
+      "sha256": "6af2321d81efed83614a93484abeb2f68e6168d816fc74b16761939107d7bf1f",
+      "hologram_allowed": true
+    },
+    {
+      "key": "object/unknown",
+      "path": "/object-unknown.svg",
+      "sha256": "799a2b7fa8f4ef502765f06d0531f0e61c6f147d3e38ccb8092679187dcb5f0c",
+      "hologram_allowed": true
+    },
+    {
+      "key": "ship/argus",
+      "path": "/argus.svg",
+      "sha256": "df1d4445c5bce0c0edc8eae3c523c2570fb8a3c918cdc57c80acc5ac7554e41a",
+      "hologram_allowed": true
+    },
+    {
+      "key": "ship/ark",
+      "path": "/ark.svg",
+      "sha256": "d0b528ce42df5d106bae269c84cfac3bde10e003b7a2763650ab0d20601b80ae",
+      "hologram_allowed": true
+    },
+    {
+      "key": "ship/astra",
+      "path": "/astra.svg",
+      "sha256": "7c1bff371fe9b9a4f09d7dc78ab6e4f5d8b52a4f434a271c1b7b0a5a1464dbb8",
+      "hologram_allowed": true
+    },
+    {
+      "key": "ship/atlas",
+      "path": "/atlas.svg",
+      "sha256": "1f98bfc877e5f7286696b2839a11a451d12089822cc27734670581870129ad28",
+      "hologram_allowed": true
+    },
+    {
+      "key": "ship/crucible",
+      "path": "/crucible.svg",
+      "sha256": "1f89689eea2636e956948836c45198303a94e84054e4191c73c9e254579cef25",
+      "hologram_allowed": true
+    },
+    {
+      "key": "ship/forge",
+      "path": "/forge.svg",
+      "sha256": "f5164f3ade0ab9d5e1e54ccb2eddc6878700ea804e9e8f89bd2bacfc36e282fa",
+      "hologram_allowed": true
+    },
+    {
+      "key": "ship/hermes",
+      "path": "/hermes.svg",
+      "sha256": "b26975e45a217fe891163c6a2c5cdd13d21c8063893ddeaafbe01653c42601f7",
+      "hologram_allowed": true
+    },
+    {
+      "key": "ship/iris",
+      "path": "/iris.svg",
+      "sha256": "7bc249acc2deb52b9075bb3c04670b1323518134291b0a121c0f27b9ac30b3f6",
+      "hologram_allowed": true
+    },
+    {
+      "key": "ship/leviathan",
+      "path": "/leviathan.svg",
+      "sha256": "af1676701500cf0f37343a5d8e0f20820e8e13c8155816082adabee83ce1535b",
+      "hologram_allowed": true
+    },
+    {
+      "key": "ship/lightning",
+      "path": "/lightning.svg",
+      "sha256": "748c3521405ce14e6f87bba4324cb9ae212690d523b95d251df4be5172eecc2a",
+      "hologram_allowed": true
+    },
+    {
+      "key": "ship/pilgrim",
+      "path": "/pilgrim.svg",
+      "sha256": "d5c53be43c8716935a48dc83e355c5eca0ab0a92605edb02c5df5af1a2187918",
+      "hologram_allowed": true
+    },
+    {
+      "key": "ship/titan",
+      "path": "/titan.svg",
+      "sha256": "91c93957917ffff012c9ac8d215f22dee77d9096e42abaa465af65d0f7cfc878",
+      "hologram_allowed": true
+    },
+    {
+      "key": "ship/vesper",
+      "path": "/vesper.svg",
+      "sha256": "858bb2925e3431fc83d3a86e45121579f5a53550bd8020eeea09a9b0b16f1e21",
+      "hologram_allowed": true
+    },
+    {
+      "key": "ship/wanderer",
+      "path": "/wanderer.svg",
+      "sha256": "a40747337ea0ef475a8ef781fd56d328121ede07b2c3d1366e822b5c512d6d77",
+      "hologram_allowed": true
+    },
+    {
+      "key": "ship/zephyr",
+      "path": "/zephyr.svg",
+      "sha256": "8946d94e0ca72e200e4e2a7fe7d087fb395ba0ec69982008ba400202f6025b42",
+      "hologram_allowed": true
+    }
+  ]
+}

@@ -128,7 +128,15 @@ func TestPlanetTransitions210(t *testing.T) {
 		t.Fatal("neighbor requires or displays a nonexistent module", public)
 	}
 	command190(t, replacement, resumed, 2, "leave", map[string]string{"operation": op180(t)})
-	read190(t, replacement, "visit.ended")
+	denied := read190(t, replacement, "error")
+	if denied["code"] != "return_authorization_required" {
+		t.Fatal("neighbor return bypass", denied)
+	}
+	f.req(c, "POST", "/api/planet/return", map[string]any{"operation": op180(t), "visit": resumed["visit"]}, 403)
+	// Fixture-only administrative revocation after verifying the player cannot
+	// return from a neighboring sector without the original landing module.
+	f.exec(`UPDATE planet_transfer_controls SET generation=generation+1,revoke_requested_at=clock_timestamp() WHERE user_id=$1`, uid)
+	wait180(t, f, `SELECT count(*) FROM planet_visits WHERE user_id=$1 AND state='ended'`, 1, uid)
 	if err = f.app.Transfer.Reconcile(f.ctx); err != nil {
 		t.Fatal(err)
 	}

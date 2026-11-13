@@ -9,6 +9,7 @@ import (
 
 	"github.com/yomezza/cosmosimulator/internal/account"
 	"github.com/yomezza/cosmosimulator/internal/commands"
+	"github.com/yomezza/cosmosimulator/internal/discovery"
 	"github.com/yomezza/cosmosimulator/internal/events"
 	"github.com/yomezza/cosmosimulator/internal/fleet"
 	"github.com/yomezza/cosmosimulator/internal/universe"
@@ -98,6 +99,9 @@ func (a *Service) portalCommand(ctx context.Context, tx pgx.Tx, u account.User, 
 			universe.AssignGalaxyContent(&expanded, "asterion")
 			universe.RebuildGalaxyLanes(&expanded, "asterion", nil)
 			expanded.Revision++
+			if err = discovery.Sync(ctx, tx, &expanded); err != nil {
+				return err
+			}
 			raw, err = json.Marshal(expanded)
 			if err != nil {
 				return err

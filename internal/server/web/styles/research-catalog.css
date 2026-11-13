@@ -165,3 +165,9 @@
 .studies-content .studies-library > .pagination > span {
   margin: 0;
 }
+
+.studies-content .discovery-record {display:flex;flex-direction:column;gap:5px;border-top:1px solid #324652;padding:9px 0;}
+.studies-content .discovery-name-form,.colony-name-form {display:flex;flex-wrap:wrap;gap:6px;margin:7px 0;}
+.studies-content .discovery-name-form input {width:100%;min-width:0;}
+.module-window .colony-name-form {display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:8px 0;}
+.module-window .colony-name-form input {flex:1 1 180px;min-width:120px;}

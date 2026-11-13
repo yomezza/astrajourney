@@ -1,3 +1,4 @@
+import { uuid } from "../../core/uuid.js";
 import { openVisit } from "./visit.js";
 import { mountColonyCatalog, clearColonyCatalog } from "./colony-catalog.js";
 import { world, loadWorld } from "../../core/world-store.js";
@@ -963,6 +964,59 @@ export function initPlanet() {
     root.replaceChildren(
       n("h3", data.name + " · " + tr("Сектор") + " " + p.sector),
     );
+    for (const colony of data.colony_names || []) {
+      if (colony.name) root.prepend(n("h2", colony.name));
+      const admin = Session.data.state?.user.role === "admin";
+      if (data.can_manage || admin) {
+        const form = n("div", undefined, "colony-name-form"),
+          input = n("input"),
+          reason = n("input");
+        input.value = colony.name || "";
+        input.placeholder = tr("Название колонии");
+        input.setAttribute("aria-label", tr("Название колонии"));
+        input.maxLength = 512;
+        reason.placeholder = tr("Причина исправления");
+        reason.maxLength = 400;
+        let request = uuid();
+        input.oninput = reason.oninput = () => {
+          request = uuid();
+        };
+        async function rename(correction) {
+          for (const control of form.querySelectorAll("input,button"))
+            control.disabled = true;
+          try {
+            await api("planet/action", {
+              action: "rename_colony",
+              request,
+              id: colony.id,
+              name: input.value,
+              expected_revision: colony.revision,
+              ...(correction ? { correction: true, reason: reason.value } : {}),
+            });
+            if (epochAt !== epoch) return;
+            input.blur();
+            reason.blur();
+            await project(id);
+            notify("Название сохранено");
+          } catch (error) {
+            if (epochAt === epoch) notify(error.message, "error");
+          } finally {
+            if (epochAt === epoch)
+              for (const control of form.querySelectorAll("input,button"))
+                control.disabled = false;
+          }
+        }
+        form.append(input);
+        if (data.can_manage)
+          form.append(btn("Переименовать колонию", () => rename(false)));
+        if (admin)
+          form.append(
+            reason,
+            btn("Исправить название", () => rename(true)),
+          );
+        root.append(form);
+      }
+    }
     UI.row(root, "Владелец", data.owner);
     UI.row(root, "Статус", tr(statusName(p.status)));
     UI.row(root, "Инициатор", data.initiator_name || String(p.initiator));
@@ -1220,40 +1274,60 @@ export function initPlanet() {
   }
   let colonyRefresh = 0;
   async function manager(background = false) {
-    const session = Session.epoch, ticket = ++colonyRefresh;
+    const session = Session.epoch,
+      ticket = ++colonyRefresh;
     let data;
     try {
       data = await api("planet/projects");
       if (!world.data) await loadWorld().catch(() => null);
     } catch (error) {
-      if (Session.signedIn && session === Session.epoch && (!background || Modules.isOpen("colonies")))
+      if (
+        Session.signedIn &&
+        session === Session.epoch &&
+        (!background || Modules.isOpen("colonies"))
+      )
         notify(error.message, "error");
       return;
     }
-    if (!Session.signedIn || session !== Session.epoch || ticket !== colonyRefresh ||
-        (background && !Modules.isOpen("colonies"))) return;
+    if (
+      !Session.signedIn ||
+      session !== Session.epoch ||
+      ticket !== colonyRefresh ||
+      (background && !Modules.isOpen("colonies"))
+    )
+      return;
     const root = Modules.create("colonies", "Колонии", 950, 700);
     mountColonyCatalog(root, data, {
       language: () => I18n.language,
       assetBase: "",
-      revision: JSON.stringify([Session.data.workbench?.universe_revision,
-        Session.data.workbench?.known, Session.data.workbench?.research]),
-      starName: id => world.stars.get(Number(id))?.name || "",
-      translateKind: kind => tr(kind),
-      loadSystem: id => api("system?id=" + encodeURIComponent(id)),
-      resourceName: id => asset(id),
-      onProject: id => project(id).catch(error => {
-        if (Session.signedIn && session === Session.epoch) notify(error.message, "error");
-      }),
-      onSurface: (star, planet) => open(star, planet).catch(error => {
-        if (Session.signedIn && session === Session.epoch) notify(error.message, "error");
-      }),
-      onVisit: () => openVisit().catch(error => {
-        if (Session.signedIn && session === Session.epoch) notify(error.message, "error");
-      }),
-      onRefund: refund => send({action:"claim_refund",id:refund.id}).then(result => {
-        if (result) manager();
-      })
+      revision: JSON.stringify([
+        Session.data.workbench?.universe_revision,
+        Session.data.workbench?.known,
+        Session.data.workbench?.research,
+      ]),
+      starName: (id) => world.stars.get(Number(id))?.name || "",
+      translateKind: (kind) => tr(kind),
+      loadSystem: (id) => api("system?id=" + encodeURIComponent(id)),
+      resourceName: (id) => asset(id),
+      onProject: (id) =>
+        project(id).catch((error) => {
+          if (Session.signedIn && session === Session.epoch)
+            notify(error.message, "error");
+        }),
+      onSurface: (star, planet) =>
+        open(star, planet).catch((error) => {
+          if (Session.signedIn && session === Session.epoch)
+            notify(error.message, "error");
+        }),
+      onVisit: () =>
+        openVisit().catch((error) => {
+          if (Session.signedIn && session === Session.epoch)
+            notify(error.message, "error");
+        }),
+      onRefund: (refund) =>
+        send({ action: "claim_refund", id: refund.id }).then((result) => {
+          if (result) manager();
+        }),
     });
     if (!background) Modules.open("colonies");
   }
@@ -1362,7 +1436,9 @@ export function initPlanet() {
   });
   window.addEventListener("signedout", () => {
     colonyRefresh++;
-    const colonyRoot = document.querySelector("#window-colonies .module-content");
+    const colonyRoot = document.querySelector(
+      "#window-colonies .module-content",
+    );
     if (colonyRoot) clearColonyCatalog(colonyRoot);
     epoch++;
     close(false);

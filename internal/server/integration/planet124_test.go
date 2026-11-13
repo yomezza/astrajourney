@@ -209,7 +209,7 @@ func TestPlanetResetVisits124(t *testing.T) {
 	}
 	f.req(c, "POST", "/api/admin/planet/surface", input124(info, "regenerate", "visit-block-124"), 409)
 	_, stopPlanet := startPlanet150(t, f.db)
-	f.req(c, "POST", "/api/planet/return", map[string]any{"operation": "00000000-0000-4000-8000-000000000124"}, 200)
+	f.req(c, "POST", "/api/planet/recover", map[string]any{"operation": "00000000-0000-4000-8000-000000000124"}, 200)
 	deadline := time.Now().Add(4 * time.Second)
 	for f.integer(`SELECT count(*) FROM planet_visits WHERE state<>'ended'`) > 0 && time.Now().Before(deadline) {
 		time.Sleep(10 * time.Millisecond)

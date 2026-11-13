@@ -64,6 +64,15 @@ export function fixture() {
     },
   ];
   return {
+    "planet/visit": { state: "none" },
+    "guide/catalog": {
+      items: [],
+      categories: [],
+      count: 0,
+      next_cursor: "",
+      revision: 1,
+    },
+    "guide/assets": { items: [], revision: "synthetic-test" },
     state: {
       user: { id: 51, username: "test_pilot", role: "player" },
       date: "ЭД 001.001",

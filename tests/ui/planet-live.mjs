@@ -60,7 +60,7 @@ try {
     const { openVisit } = await import("/features/planet/visit.js");
     await openVisit(site);
   }, input.site);
-  const view = page.locator("#window-planet-visit");
+  const view = page.locator("#planet-host");
   try {
     await view
       .locator('canvas[data-ready="true"]')
@@ -183,24 +183,17 @@ try {
   // than automatically fighting the new controller through reconnect loops.
   const replacementPage = await context.newPage();
   await replacementPage.goto(base.href);
-  await replacementPage.locator("#game").waitFor({ state: "visible" });
-  await replacementPage.locator("#startup-screen").waitFor({ state: "hidden" });
-  await replacementPage.evaluate(async () => {
-    const { openVisit } = await import("/features/planet/visit.js");
-    await openVisit();
-  });
+  // The authoritative visit is restored automatically in the replacement tab.
   await replacementPage
     .locator('.visit-canvas[data-ready="true"]')
     .waitFor({ state: "visible" });
   await view
     .getByRole("button", { name: "Продолжить высадку", exact: true })
     .waitFor({ state: "visible" });
-  await view
-    .getByRole("button", { name: "Продолжить высадку", exact: true })
-    .click();
+  await page.locator("#startup-retry").click();
   await view.locator('canvas[data-ready="true"]').waitFor({ state: "visible" });
   await replacementPage
-    .locator("#window-planet-visit")
+    .locator("#planet-host")
     .getByRole("button", { name: "Продолжить высадку", exact: true })
     .waitFor({ state: "visible" });
   await replacementPage.close();
@@ -216,12 +209,6 @@ try {
   });
   assert.equal(first.state, "active");
   await page.reload();
-  await page.locator("#game").waitFor({ state: "visible" });
-  await page.locator("#startup-screen").waitFor({ state: "hidden" });
-  await page.evaluate(async () => {
-    const { openVisit } = await import("/features/planet/visit.js");
-    await openVisit();
-  });
   await view.locator('canvas[data-ready="true"]').waitFor({ state: "visible" });
   const second = await page.evaluate(async () => {
     const { api } = await import("/core/api.js");
@@ -235,10 +222,35 @@ try {
       ) < 3,
     goalX,
   );
-  await view
-    .getByRole("button", { name: "Вернуться в космос", exact: true })
+  const landing = await page.evaluate(async () => {
+    const { api } = await import("/core/api.js");
+    const visit = await api("planet/visit");
+    const epoch =
+      document.querySelector(".visit-canvas").dataset.connectionEpoch;
+    const response = await fetch(
+      `/planet/api/v1/scene?visit=${visit.visit}&epoch=${epoch}`,
+    );
+    if (!response.ok) throw Error("scene " + response.status);
+    return (await response.json()).landing;
+  });
+  const pos = await canvas.evaluate((c) => ({
+    x: Number(c.dataset.xq),
+    y: Number(c.dataset.yq),
+    zoom: Number(c.dataset.zoom),
+  }));
+  const returnedBox = await canvas.boundingBox();
+  await canvas.click({
+    position: {
+      x: returnedBox.width / 2 + ((landing.X - pos.x) / 1024) * pos.zoom,
+      y: returnedBox.height / 2 + ((landing.Y - pos.y) / 1024) * pos.zoom,
+    },
+  });
+  await page
+    .getByRole("menuitem", { name: "Вернуться на корабль", exact: true })
     .click();
-  await view.getByText("Возвращение завершено", { exact: true }).waitFor();
+  await page.waitForFunction(
+    () => !document.body.classList.contains("planet-mode"),
+  );
   await peerPage.waitForFunction(
     () => document.querySelector(".visit-canvas")?.dataset.actors === "1",
   );
