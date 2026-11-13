@@ -28,6 +28,21 @@ func RunStarted(ctx context.Context, onListening func()) error {
 	return RunConfig(ctx, config, onListening)
 }
 
+
+// WebSocket Accept hijacks the underlying TCP connection. net/http can leave
+ // absolute ReadTimeout/WriteTimeout deadlines on that connection after Hijack,
+ // silently terminating a healthy planetary visit about ten seconds later.
+ // Planet's HTTP endpoints are GET-only; ReadHeaderTimeout still bounds slow
+ // headers, and scene/auth/WS reads/writes use their own context deadlines.
+func newPlanetHTTPServer(handler http.Handler) *http.Server {
+	return &http.Server{
+		Handler:           handler,
+		ReadHeaderTimeout: 5 * time.Second,
+		IdleTimeout:       60 * time.Second,
+		MaxHeaderBytes:    16 << 10,
+	}
+}
+
 func RunConfig(ctx context.Context, config Config, onListening func()) error {
 	if ctx.Err() != nil {
 		return nil
@@ -117,7 +132,7 @@ func (a *App) Serve(ctx context.Context, listener net.Listener, onListening func
 	}()
 	scenesFinished := make(chan struct{})
 	go func() { defer close(scenesFinished); a.maintainScenes(run) }()
-	server := &http.Server{Handler: a.Handler(), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 10 * time.Second, WriteTimeout: 10 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 16 << 10}
+	server := newPlanetHTTPServer(a.Handler())
 	result := make(chan error, 1)
 	go func() { result <- server.Serve(listener) }()
 	a.logger.Info("planetary HTTP listener started", "address", listener.Addr().String(), "stage", Stage, "version", Version)
