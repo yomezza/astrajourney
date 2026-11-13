@@ -1,0 +1,31 @@
+{
+  "tag": "v0.25.7",
+  "builds": [
+    {
+      "file": "astra-journey-v0.25.7-linux-amd64",
+      "service": "cosmos",
+      "goos": "linux",
+      "goarch": "amd64",
+      "goamd64": "v1",
+      "cgo_enabled": false,
+      "source_ref": "c9471c6ac939df93bbebce0c1430a133b1c5ecd8",
+      "source_commit": "c9471c6ac939df93bbebce0c1430a133b1c5ecd8",
+      "source_dirty": false,
+      "compiler": "go version go1.27.3 linux/amd64",
+      "sha256": "84b25ec5401382553a6b6be7f568a67ad3c94dcc305fc498280b90d92cc3a08f"
+    },
+    {
+      "file": "astra-journey-planet-v0.25.7-linux-amd64",
+      "service": "planet",
+      "goos": "linux",
+      "goarch": "amd64",
+      "goamd64": "v1",
+      "cgo_enabled": false,
+      "source_ref": "c9471c6ac939df93bbebce0c1430a133b1c5ecd8",
+      "source_commit": "c9471c6ac939df93bbebce0c1430a133b1c5ecd8",
+      "source_dirty": false,
+      "compiler": "go version go1.27.3 linux/amd64",
+      "sha256": "e3b444df00af14fc9202e875aee680a0342398efdee99774ce030fe10ed5ef92"
+    }
+  ]
+}
