@@ -1,0 +1,77 @@
+name: Publish Linux configuration compatibility release
+on:
+  push:
+    branches: [main]
+    paths: ['.github/linux-release-request.json']
+permissions:
+  contents: write
+concurrency:
+  group: publish-linux-config-release
+  cancel-in-progress: false
+jobs:
+  release-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Validate requested tag
+        run: |
+          set -euo pipefail
+          tag="$(python3 - <<'PY'
+          import json,re
+          with open('.github/linux-release-request.json',encoding='utf-8') as stream:
+              request=json.load(stream)
+          tag=request['tag']
+          if not re.fullmatch(r'v[0-9]+\.[0-9]+\.[0-9]+',tag):
+              raise SystemExit('invalid version tag')
+          print(tag)
+          PY
+          )"
+          echo "RELEASE_TAG=$tag" >> "$GITHUB_ENV"
+      - name: Test shared TOML compatibility
+        run: |
+          set -euo pipefail
+          go test ./internal/platform/configuration
+      - name: Build all three Linux amd64 binaries from exact commit
+        run: |
+          set -euo pipefail
+          python3 scripts/build-release.py "$RELEASE_TAG" --platform linux --source-ref "$GITHUB_SHA"
+          (
+            cd downloads
+            sha256sum "astra-journey-$RELEASE_TAG-linux-amd64" \
+                      "astra-journey-planet-$RELEASE_TAG-linux-amd64" \
+                      "astra-journey-chat-$RELEASE_TAG-linux-amd64" \
+                      "astra-journey-$RELEASE_TAG-build.json"
+          ) > "$RUNNER_TEMP/SHA256SUMS"
+      - name: Publish GitHub release with Linux binaries only
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/release-notes.md" <<'EOF'
+          # Astra Journey 0.25.2 — общая TOML-конфигурация
+
+          - Cosmic, Planet и Chat пересобраны из одного исходного коммита для Linux amd64.
+          - Каждая служба пропускает неизвестные ключи других служб в общем CONFIG_FILE.
+          - Строгая проверка собственной секции, [database] и общих параметров [nats] сохранена.
+          - Исправлена несовместимость guide_media_dir и новых настроек Cosmic со старыми Planet/Chat.
+          - Никаких миграций PostgreSQL. Planet графика и WASD этим релизом не меняются.
+
+          Замените все три Linux-бинарника согласованно и перезапустите службы.
+          EOF
+          gh release create "$RELEASE_TAG" \
+            "downloads/astra-journey-$RELEASE_TAG-linux-amd64" \
+            "downloads/astra-journey-planet-$RELEASE_TAG-linux-amd64" \
+            "downloads/astra-journey-chat-$RELEASE_TAG-linux-amd64" \
+            "downloads/astra-journey-$RELEASE_TAG-build.json" \
+            "$RUNNER_TEMP/SHA256SUMS" \
+            configs/cosmos.example.toml \
+            configs/planet.example.toml \
+            configs/chat.example.toml \
+            configs/shared.example.toml \
+            --target "$GITHUB_SHA" \
+            --title "Astra Journey $RELEASE_TAG" \
+            --notes-file "$RUNNER_TEMP/release-notes.md"

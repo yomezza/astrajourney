@@ -1,0 +1,10 @@
+{
+  "tag": "v0.25.2",
+  "platform": "linux-amd64",
+  "services": [
+    "cosmos",
+    "planet",
+    "chat"
+  ],
+  "reason": "shared TOML version skew"
+}
