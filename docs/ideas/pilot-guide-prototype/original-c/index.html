@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="Astra Journey — оригинальный интерфейс C: База знаний пилота. Изолированный интерактивный прототип для разработчика.">
+  <title>Astra Journey · База знаний пилота · Original C</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script defer src="./fixtures.js"></script>
+  <script defer src="./hologram.js"></script>
+  <script defer src="./app.js"></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand"><span class="brand-symbol">✦</span><span>ASTRA <b>JOURNEY</b><small>ACADEMY OF EDEM / ORIGINAL C</small></span></div>
+    <div class="header-meta"><span class="status-light">●</span> АВТОНОМНЫЙ FRONTEND-ПРОТОТИП <span class="header-tag">DESIGN REFERENCE / C</span></div>
+  </header>
+  <main class="page">
+    <div class="intro">
+      <div><span class="eyebrow">FRONTEND HANDOFF / GUIDE INTERFACE / APPROVED REFERENCE</span><h1>База знаний пилота <em>— оригинальный вариант C</em></h1>
+      <p>Исходный двухпанельный интерфейс: поиск, категории, избранное, история и чтение. Сохранена композиция C; исправлены прокрутка и анимированные SVG.</p></div>
+      <div class="intro-tag"><b>C</b><span>ВЫБРАННЫЙ<br>ДИЗАЙН</span></div>
+    </div>
+    <div class="workspace">
+      <div class="toolbar">
+        <span><span class="dot">●</span> PRIVATE WORKSPACE / OFFLINE MOCK</span>
+        <div class="demo-controls"><label for="preset">Окно</label><select id="preset" aria-label="Размер демонстрационного окна"><option value="default">810 × 550</option><option value="compact">420 × 580</option><option value="wide">960 × 580</option><option value="short">760 × 340</option></select>
+        <label class="check"><input id="stress" type="checkbox"> 65 тем</label><label class="check"><input id="empty" type="checkbox"> Пустой каталог</label>
+        <button id="reset" type="button">↺ Сброс</button></div>
+      </div>
+      <div class="stage" id="stage">
+        <div class="grid-backdrop"></div><div class="stage-corner stage-corner-a">+</div><div class="stage-corner stage-corner-b">+</div>
+        <section id="guide-window" class="guide-window" data-preset="default" aria-label="Руководство пилота — макет игрового модуля">
+          <div class="titlebar" id="titlebar">
+            <div class="window-title"><span class="title-star">✦</span><strong>Руководство пилота</strong><span class="dot">●</span></div>
+            <div class="window-tools"><span id="topics-count">25 TOPICS</span><button id="minimize" type="button" title="Свернуть" aria-label="Свернуть">−</button><button id="maximize" type="button" title="Развернуть" aria-label="Развернуть">□</button><button id="close" type="button" title="Закрыть" aria-label="Закрыть">×</button></div>
+          </div>
+          <div class="window-body" id="window-body"></div>
+          <div class="window-footer"><span><span class="dot">●</span> ЛОКАЛЬНЫЕ ДАННЫЕ / БЕЗ API</span><span id="window-status" role="status" aria-live="polite">ГОТОВО К РАБОТЕ</span></div>
+        </section>
+        <div id="closed-panel" class="closed-panel" hidden><span>▧</span><b>Руководство закрыто</b><button id="reopen" type="button">Открыть руководство</button></div>
+        <span class="stage-note">DRAG TITLEBAR / RESIZE CORNER / NO PRODUCTION API</span>
+      </div>
+      <footer class="bottom"><span><i></i> ORIGINAL C · ПРОТОТИП ДЛЯ FRONTEND-РАЗРАБОТЧИКА</span><span>См. STYLE_GUIDE.md и HANDOFF.md</span></footer>
+    </div>
+    <p class="disclaimer">Демонстрационные статьи помечены как DEMO; отдельные тексты об объектах и стаже сверены с действующим руководством. Это не production-система окон.</p>
+  </main>
+</body>
+</html>
