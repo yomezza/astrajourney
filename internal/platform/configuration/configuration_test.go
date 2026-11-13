@@ -316,12 +316,17 @@ password='chat-test-only'
 			t.Fatal("plain required files", e)
 		}
 	}
-	for _, bad := range []string{
-		text + "\nmisspelled_password='do-not-print-this'",
-		"[nats]\nenabled=true\nusername='cosmos'\npassword='do-not-print-this'\n[nats.chat]\nusername='chat'",
-		"[nats]\nenabled=true\n[nats.chat]\nusername='chat'",
+	for _, tc := range []struct {
+		bad     string
+		service configuration.Service
+	}{
+		// An unknown key in Chat's NATS profile must fail for Chat itself,
+		// while other services may accept that profile from a newer release.
+		{text + "\nmisspelled_password='do-not-print-this'", configuration.Chat},
+		{"[nats]\nenabled=true\nusername='cosmos'\npassword='do-not-print-this'\n[nats.chat]\nusername='chat'", configuration.Cosmos},
+		{"[nats]\nenabled=true\n[nats.chat]\nusername='chat'", configuration.Cosmos},
 	} {
-		_, e := configuration.Load(lookup(map[string]string{configuration.FileVariable: file(t, bad)}), configuration.Cosmos)
+		_, e := configuration.Load(lookup(map[string]string{configuration.FileVariable: file(t, tc.bad)}), tc.service)
 		if e == nil || strings.Contains(e.Error(), "do-not-print-this") {
 			t.Fatal("invalid common config accepted or leaked")
 		}
