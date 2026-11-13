@@ -15,21 +15,21 @@ import (
 // Sync is called by every world writer, under the existing world transaction
 // lock. Existing names are authoritative; new records receive no invented owner.
 func Sync(ctx context.Context, tx pgx.Tx, g *universe.Galaxy) error {
-	rows, err := tx.Query(ctx, `SELECT kind,star_id,planet_id,current_name,name_key FROM aj_discovery_objects`)
+	rows, err := tx.Query(ctx, `SELECT kind,star_id,planet_id,current_name,name_key,COALESCE(protected_founder_key,''),claim_state FROM aj_discovery_objects`)
 	if err != nil {
 		return err
 	}
-	type oldName struct{ name, key string }
+	type oldName struct{ name, key, founder, state string }
 	old := map[string]oldName{}
 	key := func(kind string, s, p int) string { return fmt.Sprintf("%s/%d/%d", kind, s, p) }
 	for rows.Next() {
-		var k, n, nk string
+		var k, n, nk, founder, state string
 		var s, p int
-		if err = rows.Scan(&k, &s, &p, &n, &nk); err != nil {
+		if err = rows.Scan(&k, &s, &p, &n, &nk, &founder, &state); err != nil {
 			rows.Close()
 			return err
 		}
-		old[key(k, s, p)] = oldName{n, nk}
+		old[key(k, s, p)] = oldName{n, nk, founder, state}
 	}
 	err = rows.Err()
 	rows.Close()
@@ -59,6 +59,12 @@ func Sync(ctx context.Context, tx pgx.Tx, g *universe.Galaxy) error {
 		if !s.Deleted {
 			unique[scope] = true
 		}
+		// Names were overlaid and uniqueness checked above. Ordinary startup
+		// must not re-upsert every object or re-scan historical knowledge for it.
+		if prior, exists := old[key(kind, s.ID, p)]; exists &&
+			(!s.Deleted || prior.state == "retired") && (s.Founder == "" || prior.founder != "") {
+			return nil
+		}
 		records = append(records, map[string]any{"kind": kind, "star": s.ID, "planet": p, "galaxy": universe.GalaxyKey(s), "code": code, "original": original, "name": *name, "key": nk, "founder": s.Founder, "deleted": s.Deleted})
 		return nil
 	}
@@ -75,17 +81,21 @@ func Sync(ctx context.Context, tx pgx.Tx, g *universe.Galaxy) error {
 			}
 		}
 	}
+	if len(records) == 0 {
+		return nil
+	}
 	raw, err := json.Marshal(records)
 	if err != nil {
 		return err
 	}
-	_, err = tx.Exec(ctx, `INSERT INTO aj_discovery_objects(kind,star_id,planet_id,galaxy_key,catalog_code,original_name,current_name,name_key,claim_state,protected_founder_key)
+	_, err = tx.Exec(ctx, `WITH known AS MATERIALIZED (SELECT star FROM surveys GROUP BY star),
+ progress AS MATERIALIZED (SELECT star,max(scanned) AS scanned FROM research_jobs GROUP BY star)
+ INSERT INTO aj_discovery_objects(kind,star_id,planet_id,galaxy_key,catalog_code,original_name,current_name,name_key,claim_state,protected_founder_key)
  SELECT x.kind,x.star,x.planet,x.galaxy,x.code,x.original,x.name,x.key,
  CASE WHEN x.deleted THEN 'retired' WHEN x.founder<>'' THEN 'protected'
- WHEN EXISTS(SELECT 1 FROM surveys v WHERE v.star=x.star)
- OR (x.kind='planet' AND (EXISTS(SELECT 1 FROM research_jobs j WHERE j.star=x.star AND j.scanned>=x.planet)
- OR EXISTS(SELECT 1 FROM planet_surfaces ps WHERE ps.star=x.star AND ps.planet=x.planet))) THEN 'legacy_unattributed' ELSE 'unclaimed' END,NULLIF(x.founder,'')
+ WHEN k.star IS NOT NULL OR (x.kind='planet' AND (p.scanned>=x.planet OR ps.id IS NOT NULL)) THEN 'legacy_unattributed' ELSE 'unclaimed' END,NULLIF(x.founder,'')
  FROM jsonb_to_recordset($1) x(kind text,star int,planet int,galaxy text,code text,original text,name text,key text,founder text,deleted boolean)
+	 LEFT JOIN known k ON k.star=x.star LEFT JOIN progress p ON p.star=x.star LEFT JOIN planet_surfaces ps ON ps.star=x.star AND ps.planet=x.planet
  ON CONFLICT(kind,star_id,planet_id) DO UPDATE SET
  protected_founder_key=COALESCE(aj_discovery_objects.protected_founder_key,EXCLUDED.protected_founder_key),
  claim_state=CASE WHEN EXCLUDED.claim_state='retired' THEN 'retired' WHEN aj_discovery_objects.claim_state='unclaimed' AND EXCLUDED.protected_founder_key IS NOT NULL THEN 'protected' ELSE aj_discovery_objects.claim_state END`, raw)

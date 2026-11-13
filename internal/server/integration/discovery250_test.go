@@ -161,6 +161,10 @@ func TestDiscoveryPersonalCompletion250(t *testing.T) {
 	// Simulate seeding registry metadata for an already-known old world. Never
 	// infer its historical first player from a purchased survey or timestamps.
 	f.exec(`DELETE FROM aj_discovery_objects WHERE star_id=$1`, other)
+	var untouchedBefore, untouchedAfter string
+	if err := f.db.QueryRow(f.ctx, `SELECT xmin::text FROM aj_discovery_objects WHERE kind='system' AND star_id=$1`, s.ID).Scan(&untouchedBefore); err != nil {
+		t.Fatal(err)
+	}
 	tx, err := f.db.Begin(f.ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -174,6 +178,12 @@ func TestDiscoveryPersonalCompletion250(t *testing.T) {
 	}
 	if err != nil {
 		t.Fatal(err)
+	}
+	if err := f.db.QueryRow(f.ctx, `SELECT xmin::text FROM aj_discovery_objects WHERE kind='system' AND star_id=$1`, s.ID).Scan(&untouchedAfter); err != nil {
+		t.Fatal(err)
+	}
+	if untouchedBefore != untouchedAfter {
+		t.Fatal("registry sync rewrote an unchanged object")
 	}
 	if g.Stars[other-1].Founder == "" && f.integer(`SELECT count(*) FROM aj_discovery_objects WHERE star_id=$1 AND claim_state='legacy_unattributed' AND discoverer_id IS NULL`, other) != int64(1+len(g.Stars[other-1].Planets)) {
 		t.Fatal("legacy seeding invented an owner")

@@ -68,6 +68,7 @@ type document struct {
 		Schema string `toml:"schema"`
 	} `toml:"database"`
 	Cosmos struct {
+		StartupTimeout    string   `toml:"startup_timeout"`
 		GuideMediaDir     string   `toml:"guide_media_dir"`
 		HTTPAddr          string   `toml:"http_addr"`
 		PublicOrigin      string   `toml:"public_origin"`
@@ -134,6 +135,7 @@ func (d document) values(service Service) map[string]string {
 		"DATABASE_URL":                  d.Database.URL,
 		"DB_SCHEMA":                     d.Database.Schema,
 		"GUIDE_MEDIA_DIR":               d.Cosmos.GuideMediaDir,
+		"COSMOS_STARTUP_TIMEOUT":        d.Cosmos.StartupTimeout,
 		"HTTP_ADDR":                     d.Cosmos.HTTPAddr,
 		"PUBLIC_ORIGIN":                 d.Cosmos.PublicOrigin,
 		"COOKIE_SECURE":                 value(d.Cosmos.CookieSecure),
