@@ -19,7 +19,7 @@ Cosmic и Planet 0.25.0 обновляются вместе: новый возв
 названия игры; например, существующая `cosmosimulator` продолжает поддерживаться.
 [Переименование и переход на новые имена служб](docs/operations/astra-journey-rename.ru.md).
 
-В релизах публикуются сборки **Windows amd64 и Linux amd64**. [Запуск на Debian 13 и сборка обеих платформ](docs/operations/linux-amd64.ru.md).
+Новые релизы публикуются только для **Linux amd64** по решению владельца. Исторические Windows-сборки сохраняются. [Запуск на Debian 13](docs/operations/linux-amd64.ru.md).
 
 ## Чат · 0.24.0
 

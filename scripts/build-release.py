@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build versioned amd64 release binaries; both operating systems by default."""
+"""Build versioned amd64 release binaries; Linux by default."""
 import argparse
 import hashlib
 import json
@@ -47,7 +47,7 @@ def verify_binary(path, platform):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("tag", help="vMAJOR.MINOR.PATCH")
-    parser.add_argument("--platform", choices=["both", "linux", "windows"], default="both")
+    parser.add_argument("--platform", choices=["both", "linux", "windows"], default="linux")
     parser.add_argument("--service", choices=list(SERVICES), action="append")
     parser.add_argument("--source-ref", help="build an exact Git commit/tag instead of the working tree")
     args = parser.parse_args()
