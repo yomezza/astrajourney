@@ -382,7 +382,12 @@ export async function openVisit(site) {
       const url = new URL("/planet/ws/v1", location.href);
       url.protocol = location.protocol === "https:" ? "wss:" : "ws:";
       const conn = new WebSocket(url);
-      const handshake = setTimeout(() => conn.close(), 12000);
+      let localCloseReason = "",
+        lastPacketType = "";
+      const handshake = setTimeout(() => {
+        localCloseReason = "handshake_timeout";
+        conn.close();
+      }, 12000);
       socket = conn;
       let fatal = false,
         connectedAt = 0,
@@ -396,6 +401,7 @@ export async function openVisit(site) {
       conn.onopen = () => {
         clearTimeout(handshake);
         if (!current()) {
+          localCloseReason = "stale_connection";
           conn.close();
           return;
         }
@@ -419,6 +425,7 @@ export async function openVisit(site) {
                 phase: welcome ? "stream" : "welcome",
                 silentMs: now - lastFrame,
               });
+              localCloseReason = "client_liveness_timeout";
               conn.close(4000, "planet_timeout");
               return;
             }
@@ -452,9 +459,11 @@ export async function openVisit(site) {
         lastFrame = Date.now();
         try {
           const message = JSON.parse(event.data);
+          lastPacketType = message.type || "";
           if (message.v !== 1) {
             fatal = true;
-            conn.close();
+            localCloseReason = "unsupported_protocol_version";
+            conn.close(1002, "planet_protocol_version");
             return;
           }
           if (message.server_seq <= serverSeq) return;
@@ -661,8 +670,15 @@ export async function openVisit(site) {
           }
         } catch (e) {
           if (current()) {
+            // Without this log, a renderer/scene exception looks exactly like
+            // an unexplained network disconnect (1006) to the player.
+            console.error("Planet WS frame handling failed", {
+              frameType: lastPacketType,
+              error: e,
+            });
             status.textContent = e.message;
-            conn.close();
+            localCloseReason = "client_frame_handler_error";
+            conn.close(4002, "planet_frame_handler_error");
           }
         }
       };
@@ -675,6 +691,11 @@ export async function openVisit(site) {
             code: event.code,
             reason: event.reason || "no close reason",
             welcomed: !!welcome,
+            sceneReady: canvas.dataset.ready === "true",
+            connectionAgeMs: openedAt ? Date.now() - openedAt : null,
+            lastFrameAgeMs: lastFrame ? Date.now() - lastFrame : null,
+            lastPacketType,
+            localCloseReason: localCloseReason || "none",
           });
         activeOffer = null;
         transitionPanel.hidden = true;
