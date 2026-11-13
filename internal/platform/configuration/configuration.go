@@ -61,8 +61,18 @@ func Load(getenv func(string) string, service Service) (*Source, error) {
 		// report positions, never the raw error or the document's contents.
 		var strict *toml.StrictMissingError
 		if errors.As(err, &strict) && len(strict.Errors) > 0 {
-			row, column := strict.Errors[0].Position()
-			return nil, fmt.Errorf("unknown TOML configuration field at line %d, column %d", row, column)
+			// A shared CONFIG_FILE can be used by binaries released at different
+			// times. Ignore unknown keys belonging to OTHER services, but keep
+			// strict validation for our own section and all shared settings.
+			for _, field := range strict.Errors {
+				if inactiveServiceField(service, field.Key()) {
+					continue
+				}
+				row, column := field.Position()
+				return nil, fmt.Errorf("unknown TOML configuration field at line %d, column %d", row, column)
+			}
+			// All unknown fields were confined to inactive service sections.
+			err = nil
 		}
 		var decode *toml.DecodeError
 		if errors.As(err, &decode) {
@@ -111,6 +121,39 @@ func Load(getenv func(string) string, service Service) (*Source, error) {
 		}
 	}
 	return &Source{values: values}, nil
+}
+
+
+ // inactiveServiceField identifies a key under another service's TOML section.
+ // Top-level shared settings ([database], [nats]) remain strict for everyone.
+ // Admin settings are consumed by Cosmic only.
+func inactiveServiceField(service Service, key toml.Key) bool {
+	if len(key) == 0 {
+		return false
+	}
+	switch key[0] {
+	case "cosmos":
+		return service != Cosmos
+	case "planet":
+		return service != Planet
+	case "chat":
+		return service != Chat
+	case "admin":
+		return service != Cosmos
+	case "nats":
+		if len(key) < 2 {
+			return false
+		}
+		switch key[1] {
+		case "cosmos":
+			return service != Cosmos
+		case "planet":
+			return service != Planet
+		case "chat":
+			return service != Chat
+		}
+	}
+	return false
 }
 
 var active atomic.Pointer[Source]
