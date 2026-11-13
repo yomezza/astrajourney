@@ -383,7 +383,8 @@ export async function openVisit(site) {
       url.protocol = location.protocol === "https:" ? "wss:" : "ws:";
       const conn = new WebSocket(url);
       let localCloseReason = "",
-        lastPacketType = "";
+        lastPacketType = "",
+        lastServerErrorCode = "";
       const handshake = setTimeout(() => {
         localCloseReason = "handshake_timeout";
         conn.close();
@@ -501,12 +502,19 @@ export async function openVisit(site) {
             return;
           const p = message.payload;
           if (message.type === "error") {
+            lastServerErrorCode = String(p?.code || "unknown_error");
+            console.warn("Planet server error", {
+              code: lastServerErrorCode,
+              connectionEpoch: welcome?.connection_epoch ?? null,
+              sceneReady: canvas.dataset.ready === "true",
+            });
             status.textContent = tr(p.code);
             PlanetMode.ready();
             renderer?.error(p.code, p.seq);
             if (terminalErrors.has(p.code)) {
               fatal = true;
-              conn.close();
+              localCloseReason = "terminal_server_error";
+              conn.close(1008, "planet_terminal_error");
             }
             return;
           }
@@ -695,6 +703,7 @@ export async function openVisit(site) {
             connectionAgeMs: openedAt ? Date.now() - openedAt : null,
             lastFrameAgeMs: lastFrame ? Date.now() - lastFrame : null,
             lastPacketType,
+            lastServerErrorCode: lastServerErrorCode || "none",
             localCloseReason: localCloseReason || "none",
           });
         activeOffer = null;

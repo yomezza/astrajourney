@@ -277,6 +277,29 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 	var accepted, reported int64 = -1, -1
 	tokens, lastRefill := 20.0, time.Now()
 	var returnPrepared time.Time
+	var validationGrace visitCheckGrace
+	pauseForValidation := func(phase string, checkErr error) bool {
+		if retry, first := validationGrace.failed(time.Now(), checkErr); retry {
+			if first {
+				pilot.Freeze()
+				a.logger.Warn("planet visit check temporarily unavailable", "phase", phase, "error", checkErr)
+				if send("error", map[string]string{"code": "runtime_unavailable"}) != nil {
+					return false
+				}
+			}
+			return true
+		}
+		return false
+	}
+	resumeAfterValidation := func() {
+		if !validationGrace.recovered() {
+			return
+		}
+		if transition.offer == nil && returnPrepared.IsZero() {
+			pilot.Thaw()
+		}
+		a.logger.Info("planet visit check recovered", "connection_epoch", welcome.Epoch)
+	}
 	for {
 		select {
 		case <-run.Done():
@@ -377,11 +400,15 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 			err = a.visits.Check(check, id, welcome, f)
 			done()
 			if err != nil {
+				if pauseForValidation("command", err) {
+					continue
+				}
 				closeCause = "command_visit_check_failed"
 				closeError = err
 				_ = send("error", map[string]string{"code": publicError(err)})
 				return
 			}
+			resumeAfterValidation()
 			pilot.Permit(time.Now().Add(2 * time.Second))
 			if !returnPrepared.IsZero() && (msg.Type == "move" || msg.Type == "transition.confirm") {
 				_ = send("error", map[string]string{"code": "return_pending"})
@@ -551,11 +578,15 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 			err = a.visits.Check(check, id, welcome, f)
 			done()
 			if err != nil {
+				if pauseForValidation("heartbeat", err) {
+					continue
+				}
 				closeCause = "heartbeat_visit_check_failed"
 				closeError = err
 				_ = send("error", map[string]string{"code": publicError(err)})
 				return
 			}
+			resumeAfterValidation()
 			pilot.Permit(time.Now().Add(2 * time.Second))
 			offered, e := a.offerTransition(run, id, pilot, transition)
 			if e != nil {
