@@ -64,7 +64,7 @@ func readSource(ctx context.Context, q postgres.DBTX, key scene.Key) (*source, e
 }
 
 func checkFence(ctx context.Context, q postgres.DBTX, f Fence, lock bool) error {
-	sql := `SELECT fence FROM planet_runtime_leases WHERE id=1 AND owner_id=$1 AND fence=$2 AND expires_at>clock_timestamp() AND EXISTS(SELECT 1 FROM planet_schema_state WHERE id=1 AND version=7)`
+	sql := `SELECT fence FROM planet_runtime_leases WHERE id=1 AND owner_id=$1 AND fence=$2 AND expires_at>clock_timestamp() AND EXISTS(SELECT 1 FROM planet_schema_state WHERE id=1 AND version=8)`
 	if lock {
 		sql += ` FOR SHARE`
 	}

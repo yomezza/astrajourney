@@ -132,12 +132,13 @@ func (a *Service) sweepOne(ctx context.Context, uid int64, f scenestore.Fence) e
 		}
 	} else {
 		invalid := !valid || site == nil || ship == nil
+		sessionExpired := false
 		if !invalid {
 			_, e := access.Session(ctx, tx, session)
 			if e != nil && !errors.Is(e, access.ErrAuth) {
 				return e
 			}
-			invalid = e != nil
+			sessionExpired = errors.Is(e, access.ErrAuth)
 			_, e = access.Landing(ctx, tx, uid, *site, *ship)
 			if e != nil && !errors.Is(e, access.ErrDenied) {
 				return e
@@ -152,7 +153,7 @@ func (a *Service) sweepOne(ctx context.Context, uid int64, f scenestore.Fence) e
 		if invalid {
 			err = end(ctx, tx, uid, "control_or_access_revoked")
 			subject = gamesignal.VisitEndedSubject
-		} else if previousFence != f.Number {
+		} else if previousFence != f.Number || sessionExpired {
 			if state != "disconnected" {
 				subject = gamesignal.VisitDisconnectedSubject
 			}

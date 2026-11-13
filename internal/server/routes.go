@@ -19,6 +19,24 @@ var Assets embed.FS
 
 func (a *App) Handler() http.Handler {
 	m := http.NewServeMux()
+	m.HandleFunc("GET /api/guide/catalog", a.Knowledge.Catalog)
+	m.HandleFunc("GET /api/guide/articles/{id}", a.Knowledge.Article)
+	m.HandleFunc("GET /api/guide/assets", a.Knowledge.AssetsView)
+	m.HandleFunc("GET /api/guide/media/{id}", a.Knowledge.MediaView)
+	m.HandleFunc("GET /api/admin/guide/categories", a.Knowledge.Categories)
+	m.HandleFunc("POST /api/admin/guide/categories", a.Knowledge.Categories)
+	m.HandleFunc("GET /api/admin/guide/articles", a.Knowledge.Articles)
+	m.HandleFunc("POST /api/admin/guide/articles", a.Knowledge.Articles)
+	m.HandleFunc("POST /api/admin/guide/publish", a.Knowledge.Publish)
+	m.HandleFunc("POST /api/admin/guide/preview", a.Knowledge.Preview)
+	m.HandleFunc("GET /api/admin/guide/revisions", a.Knowledge.Revisions)
+	m.HandleFunc("GET /api/admin/guide/assets", a.Knowledge.AssetsView)
+	m.HandleFunc("GET /api/admin/guide/media", a.Knowledge.Media)
+	m.HandleFunc("POST /api/admin/guide/media", a.Knowledge.Media)
+	m.HandleFunc("POST /api/admin/guide/media/delete", a.Knowledge.DeleteMedia)
+
+	m.HandleFunc("POST /api/discovery/name", a.Discoveries.Rename)
+	m.HandleFunc("POST /api/admin/discovery/name", a.Discoveries.Rename)
 	m.HandleFunc("GET /api/admin/metrics", a.metricsView)
 	m.HandleFunc("POST /api/admin/chat/moderator", a.Administration.ChatModerator)
 	target, _ := planetEndpoint()
@@ -55,6 +73,7 @@ func (a *App) Handler() http.Handler {
 	m.HandleFunc("POST /api/planet/handoff", a.Transfer.Handoff)
 	m.HandleFunc("GET /api/planet/visit", a.Transfer.State)
 	m.HandleFunc("POST /api/planet/return", a.Transfer.Return)
+	m.HandleFunc("POST /api/planet/recover", a.Transfer.Recover)
 	m.HandleFunc("GET /api/planet/surface", a.Colonies.PlanetSurface)
 	m.HandleFunc("GET /api/planet/state", a.Colonies.PlanetState)
 	m.HandleFunc("GET /api/planet/projects", a.Colonies.ColonyList)
@@ -116,11 +135,12 @@ func (a *App) Handler() http.Handler {
 				httpkit.Fail(w, 403, "Недопустимый источник запроса")
 				return
 			}
-			if r.Header.Get("Content-Type") != "application/json" {
+			upload := r.URL.Path == "/api/admin/guide/media" && strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data;")
+			if r.Header.Get("Content-Type") != "application/json" && !upload {
 				httpkit.Fail(w, 415, "Ожидается application/json")
 				return
 			}
-			if !httpkit.BufferJSON(w, r) {
+			if !upload && !httpkit.BufferJSON(w, r) {
 				return
 			}
 		}

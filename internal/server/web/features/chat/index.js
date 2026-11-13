@@ -94,6 +94,8 @@ export function initChat() {
     searchTimer,
     reply = null,
     docked = false,
+    modeDocked = false,
+    modeDockVisible = true,
     loading = false,
     viewGeneration = 0,
     drafts = new Map(),
@@ -420,7 +422,7 @@ export function initChat() {
     Preferences.write("chat-settings:" + account, {
       opacity: Number(opacity.value),
       sounds: sounds.checked,
-      docked,
+      docked: modeDocked || docked,
       tab,
     });
     return client
@@ -428,13 +430,20 @@ export function initChat() {
         settings: {
           opacity: Number(opacity.value),
           sounds: sounds.checked,
-          docked,
+          docked: modeDocked || docked,
           tab,
         },
       })
       .catch(showError);
   }
-  function setDock(value) {
+  function setDock(value, persist = true) {
+    if (value && document.body.classList.contains("planet-mode")) {
+      modeDocked = true;
+      modeDockVisible = true;
+      value = false;
+      persist = false;
+    }
+    dock.disabled = document.body.classList.contains("planet-mode");
     docked = value;
     maxWindow.hidden = value;
     grid.hidden = !value;
@@ -454,7 +463,7 @@ export function initChat() {
     document
       .querySelector('#sidebar [data-open="chat"]')
       ?.classList.toggle("module-open", value || dialog.open);
-    saveSettings();
+    if (persist) saveSettings();
   }
   function select(value) {
     drafts.set(key(), { body: textarea.value, entities: [...entities] });
@@ -1351,11 +1360,28 @@ export function initChat() {
     grid.hidden = true;
     content.append(root);
     docked = false;
+    modeDocked = false;
+    dock.disabled = false;
     document.body.classList.remove("chat-docked");
   }
   window.addEventListener("gamedata", start);
   window.addEventListener("signedout", stop);
   window.addEventListener("sessionexpired", stop);
+  // Move the same reader/composer into its existing window while the home
+  // workspace is suspended. Keep the user's dock preference and transport.
+  window.addEventListener("planetmodechange", ({ detail: active }) => {
+    dock.disabled = active;
+    if (active && docked) {
+      modeDocked = true;
+      modeDockVisible = !grid.hidden;
+      setDock(false, false);
+      if (!modeDockVisible) Modules.close("chat");
+    } else if (!active && modeDocked) {
+      modeDocked = false;
+      setDock(true, false);
+      if (!modeDockVisible) grid.hidden = true;
+    }
+  });
   window.addEventListener("moduleopen", ({ detail }) => {
     if (detail === "chat") {
       start();

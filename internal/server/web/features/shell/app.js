@@ -10,6 +10,8 @@ import { notify, configureFeedback } from "../../ui/feedback.js";
 import { Modules } from "../../ui/runtime.js";
 import { world } from "../../core/world-store.js";
 
+import { Startup } from "../../ui/startup.js";
+
 export function initApp() {
   const $ = (id) => document.getElementById(id),
     t = (s) => I18n.t(s);
@@ -20,21 +22,32 @@ export function initApp() {
     previousBalance = null,
     balanceTimer;
 
+  const authStartup = Startup.acquire(
+    "auth",
+    "Подключение к серверу",
+    "Проверяем сессию и загружаем данные пилота…",
+    100,
+  );
   function startupStatus(failed = false) {
-    const title = failed ? "Не удалось подключиться" : "Подключение к серверу",
-      message = failed
+    authStartup.update(
+      failed ? "Не удалось подключиться" : "Подключение к серверу",
+      failed
         ? "Сервер пока не отвечает. Проверьте соединение и повторите попытку."
-        : "Проверяем сессию и загружаем данные пилота…";
-    $("startup-title").dataset.i18n = title;
-    $("startup-title").textContent = t(title);
-    $("startup-message").dataset.i18n = message;
-    $("startup-message").textContent = t(message);
-    $("startup-screen").classList.toggle("startup-failed", failed);
-    $("startup-retry").hidden = !failed;
+        : "Проверяем сессию и загружаем данные пилота…",
+    );
+    if (failed)
+      authStartup.fail(
+        "Сервер пока не отвечает. Проверьте соединение и повторите попытку.",
+        () => {
+          if (!starting || pending) return;
+          startupStatus();
+          refresh(true);
+        },
+      );
   }
   function finishStartup() {
     starting = false;
-    $("startup-screen").hidden = true;
+    authStartup.release();
   }
   function authMode(value) {
     mode = value;
@@ -196,11 +209,6 @@ export function initApp() {
   window.addEventListener("sessionexpired", ({ detail }) => {
     if (detail === Session.epoch) showAuth();
   });
-  $("startup-retry").onclick = () => {
-    if (!starting || pending) return;
-    startupStatus();
-    refresh(true);
-  };
   $("login-tab").onclick = () => authMode("login");
   $("register-tab").onclick = () => authMode("register");
   $("auth-form").onsubmit = async (e) => {

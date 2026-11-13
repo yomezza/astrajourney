@@ -24,12 +24,16 @@ type Service struct {
 	Enabled bool
 }
 type View struct {
-	Operation string `json:"operation,omitempty"`
-	Site      string `json:"landing_site,omitempty"`
-	State     string `json:"state"`
-	Visit     string `json:"visit,omitempty"`
-	Ship      string `json:"ship,omitempty"`
-	Endpoint  string `json:"endpoint"`
+	PlanetName     string `json:"planet_name,omitempty"`
+	ColonyName     string `json:"colony_name,omitempty"`
+	Recoverable    bool   `json:"recoverable"`
+	RecoveryReason string `json:"recovery_reason,omitempty"`
+	Operation      string `json:"operation,omitempty"`
+	Site           string `json:"landing_site,omitempty"`
+	State          string `json:"state"`
+	Visit          string `json:"visit,omitempty"`
+	Ship           string `json:"ship,omitempty"`
+	Endpoint       string `json:"endpoint"`
 }
 
 func view(ctx context.Context, q pgx.Tx, uid int64) (View, error) {
@@ -48,6 +52,13 @@ func view(ctx context.Context, q pgx.Tx, uid int64) (View, error) {
 	}
 	if ship != nil {
 		v.Ship = strconv.FormatInt(*ship, 10)
+	}
+	if err == nil {
+		v.RecoveryReason, err = recoveryDiagnosis(ctx, q, uid)
+		if err == nil {
+			err = q.QueryRow(ctx, `SELECT COALESCE(s.name,''),COALESCE(n.current_name,'') FROM users u LEFT JOIN planet_visits v ON v.user_id=u.id LEFT JOIN planet_surfaces s ON s.id=v.current_surface LEFT JOIN aj_colony_names n ON n.colony_id=v.colony WHERE u.id=$1`, uid).Scan(&v.PlanetName, &v.ColonyName)
+		}
+		v.Recoverable = v.RecoveryReason != ""
 	}
 	return v, err
 }
@@ -132,7 +143,7 @@ func (a *Service) Handoff(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var ready bool
-	err = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM planet_runtime_leases WHERE id=1 AND owner_id IS NOT NULL AND expires_at>clock_timestamp()) AND EXISTS(SELECT 1 FROM planet_schema_state WHERE id=1 AND version=7)`).Scan(&ready)
+	err = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM planet_runtime_leases WHERE id=1 AND owner_id IS NOT NULL AND expires_at>clock_timestamp()) AND EXISTS(SELECT 1 FROM planet_schema_state WHERE id=1 AND version=8)`).Scan(&ready)
 	if err != nil {
 		fail(w, err)
 		return
@@ -298,6 +309,10 @@ func (a *Service) Return(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if errors.Is(err, pgx.ErrNoRows) {
+		if err = consumeProof(ctx, tx, id.User, in.Operation, in.Visit); err != nil {
+			fail(w, err)
+			return
+		}
 		v, e := view(ctx, tx, id.User)
 		if e != nil {
 			fail(w, e)
@@ -329,7 +344,9 @@ func (a *Service) Return(w http.ResponseWriter, r *http.Request) {
 	a.State(w, r)
 }
 func fail(w http.ResponseWriter, err error) {
-	if errors.Is(err, access.ErrAuth) {
+	if errors.Is(err, errProof) {
+		httpkit.Fail(w, 403, err.Error())
+	} else if errors.Is(err, access.ErrAuth) {
 		httpkit.Fail(w, 401, err.Error())
 	} else if errors.Is(err, access.ErrDenied) {
 		httpkit.Fail(w, 403, err.Error())

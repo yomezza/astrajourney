@@ -29,6 +29,9 @@ func ParseTrustedProxies(value string) ([]netip.Prefix, error) {
 }
 
 func jsonBodyLimit(r *http.Request) int64 {
+	if r.Method == "POST" && (r.URL.Path == "/api/admin/guide/articles" || r.URL.Path == "/api/admin/guide/preview") {
+		return 1024 * 1024
+	}
 	if r.Method == "POST" && r.URL.Path == "/api/ideas" {
 		return 16 * 1024
 	}

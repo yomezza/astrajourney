@@ -283,7 +283,12 @@ export function initExpedition() {
     "services",
   ]);
   function renderVisible(force = false) {
-    if (!Session.signedIn || !d()) return;
+    if (
+      !Session.signedIn ||
+      !d() ||
+      document.body.classList.contains("planet-mode")
+    )
+      return;
     for (const [id, render] of Object.entries(renderers)) {
       if (!Modules.isOpen(id) || (!force && onDemand.has(id))) continue;
       const root = roots[id];

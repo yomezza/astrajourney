@@ -1,0 +1,57 @@
+{
+  "tag": "v0.25.0",
+  "builds": [
+    {
+      "file": "astra-journey-v0.25.0-windows-amd64.exe",
+      "service": "cosmos",
+      "goos": "windows",
+      "goarch": "amd64",
+      "goamd64": "v1",
+      "cgo_enabled": false,
+      "source_ref": "0f4accd352abfac944f637c25776b3c6f10a39c2",
+      "source_commit": "0f4accd352abfac944f637c25776b3c6f10a39c2",
+      "source_dirty": false,
+      "compiler": "go version go1.27.3 linux/amd64",
+      "sha256": "74f18df25949acef5269e57466b0b3a6b42399ed335e867c4b200e654d881ebc"
+    },
+    {
+      "file": "astra-journey-v0.25.0-linux-amd64",
+      "service": "cosmos",
+      "goos": "linux",
+      "goarch": "amd64",
+      "goamd64": "v1",
+      "cgo_enabled": false,
+      "source_ref": "0f4accd352abfac944f637c25776b3c6f10a39c2",
+      "source_commit": "0f4accd352abfac944f637c25776b3c6f10a39c2",
+      "source_dirty": false,
+      "compiler": "go version go1.27.3 linux/amd64",
+      "sha256": "b3c34fa81f5d5dbdfa5eb64af11f421752e4a1c8c706b491c1a8c23aec56920d"
+    },
+    {
+      "file": "astra-journey-planet-v0.25.0-windows-amd64.exe",
+      "service": "planet",
+      "goos": "windows",
+      "goarch": "amd64",
+      "goamd64": "v1",
+      "cgo_enabled": false,
+      "source_ref": "0f4accd352abfac944f637c25776b3c6f10a39c2",
+      "source_commit": "0f4accd352abfac944f637c25776b3c6f10a39c2",
+      "source_dirty": false,
+      "compiler": "go version go1.27.3 linux/amd64",
+      "sha256": "52aa368d5130c03bd6e215b00540d8c4f84490ef14b123117d75feb1f6694fdb"
+    },
+    {
+      "file": "astra-journey-planet-v0.25.0-linux-amd64",
+      "service": "planet",
+      "goos": "linux",
+      "goarch": "amd64",
+      "goamd64": "v1",
+      "cgo_enabled": false,
+      "source_ref": "0f4accd352abfac944f637c25776b3c6f10a39c2",
+      "source_commit": "0f4accd352abfac944f637c25776b3c6f10a39c2",
+      "source_dirty": false,
+      "compiler": "go version go1.27.3 linux/amd64",
+      "sha256": "a4e51a93c239015f2853504002013bfe2bd6b977776e421cef1139674471573c"
+    }
+  ]
+}

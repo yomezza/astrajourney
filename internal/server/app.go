@@ -3,7 +3,9 @@ package server
 
 import (
 	"context"
+	"github.com/yomezza/cosmosimulator/internal/knowledge"
 	"github.com/yomezza/cosmosimulator/internal/platform/natscore"
+	"io/fs"
 	"net/http"
 	"net/netip"
 	"sync/atomic"
@@ -17,6 +19,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/colonies"
 	"github.com/yomezza/cosmosimulator/internal/commerce"
 	"github.com/yomezza/cosmosimulator/internal/corporations"
+	"github.com/yomezza/cosmosimulator/internal/discovery"
 	"github.com/yomezza/cosmosimulator/internal/ideas"
 	"github.com/yomezza/cosmosimulator/internal/initialization"
 	"github.com/yomezza/cosmosimulator/internal/logistics"
@@ -30,7 +33,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/worldstore"
 )
 
-const Version = "0.24.17"
+const Version = "0.25.0"
 
 type Config struct {
 	Secure         bool
@@ -41,6 +44,8 @@ type Config struct {
 // App is the composition root, not a shared domain service. New does not run
 // migrations, seed data, register a second writer or start simulation goroutines.
 type App struct {
+	Knowledge      *knowledge.Service
+	Discoveries    *discovery.Service
 	nats           *natscore.SignalClient
 	natsInvalid    *atomic.Uint64
 	Transfer       *transfer.Service
@@ -67,7 +72,10 @@ func New(db *pgxpool.Pool, config Config) *App {
 	a := &App{DB: db, origin: config.Origin, startedAt: time.Now()}
 	a.Transfer = &transfer.Service{DB: db, Enabled: configuration.Getenv("PLANET_ENABLED") == "true"}
 	a.Auth = &account.Service{DB: db, Secure: config.Secure, TrustedProxies: config.TrustedProxies}
+	web, _ := fs.Sub(Assets, "web")
+	a.Knowledge = knowledge.New(db, a.Auth, web)
 	a.World = &worldstore.Service{DB: db, Auth: a.Auth}
+	a.Discoveries = &discovery.Service{DB: db, Auth: a.Auth, World: a.World}
 	a.Commerce = &commerce.Service{DB: db, Auth: a.Auth, World: a.World}
 	a.Corporations = &corporations.Service{DB: db, Auth: a.Auth, World: a.World}
 	a.Navigation = &navigation.Service{DB: db, Auth: a.Auth, World: a.World}

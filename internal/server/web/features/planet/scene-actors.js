@@ -86,6 +86,9 @@ export function createSceneSprites(scene, art) {
       }
       return hover
         ? {
+            id: hover.id,
+            x: hover.x,
+            y: hover.y,
             name: I18n.t(titles[hover.name] || hover.name),
             text: I18n.t(
               hover.name === "landing"

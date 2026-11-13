@@ -257,8 +257,9 @@ func TestN6NativeThreeServices(t *testing.T) {
 	}
 	conn, w = ws180(t, planet, owner, map[string]any{"resume_visit": w["visit"]})
 	n6Event(t, events, gamesignal.VisitResumedSubject)
-	command190(t, conn, w, 2, "leave", map[string]any{"operation": op180(t)})
-	read190(t, conn, "visit.ended")
+	returnOp := proof253(t, conn, w, 2)
+	n6API(t, cosmic, "/api/planet/return", owner, map[string]any{"operation": returnOp, "visit": w["visit"]}, 200)
+	wait180(t, f, `SELECT count(*) FROM planet_visits WHERE visit_id=$1 AND state='ended'`, 1, w["visit"])
 	n6Event(t, events, gamesignal.VisitEndedSubject)
 	wire.Publish(started.Subject, started.Data)
 	wire.FlushTimeout(time.Second)
@@ -338,8 +339,9 @@ func TestN6NativeThreeServices(t *testing.T) {
 	offlineConn.CloseNow()
 	wait180(t, f, `SELECT count(*) FROM planet_visits WHERE user_id=$1 AND state='disconnected'`, 1, uid)
 	offlineConn, offlineWelcome = ws180(t, planet, owner, map[string]any{"resume_visit": offlineWelcome["visit"]})
-	command190(t, offlineConn, offlineWelcome, 2, "leave", map[string]any{"operation": op180(t)})
-	read190(t, offlineConn, "visit.ended")
+	offlineReturn := proof253(t, offlineConn, offlineWelcome, 2)
+	n6API(t, cosmic, "/api/planet/return", owner, map[string]any{"operation": offlineReturn, "visit": offlineWelcome["visit"]}, 200)
+	wait180(t, f, `SELECT count(*) FROM planet_visits WHERE visit_id=$1 AND state='ended'`, 1, offlineWelcome["visit"])
 	if n5Presence(t, chat, cosmic, owner) != 0 {
 		t.Fatal("offline lifecycle fallback")
 	}

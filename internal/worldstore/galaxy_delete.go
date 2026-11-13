@@ -7,6 +7,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
+	"github.com/yomezza/cosmosimulator/internal/discovery"
 	"github.com/yomezza/cosmosimulator/internal/platform/httpkit"
 	"github.com/yomezza/cosmosimulator/internal/platform/idempotency"
 	"github.com/yomezza/cosmosimulator/internal/universe"
@@ -131,6 +132,10 @@ func (a *Service) DeleteGalaxy(w http.ResponseWriter, r *http.Request) {
 		httpkit.Internal(w, err)
 		return
 	}
+	if err = discovery.Sync(ctx, tx, &g); err != nil {
+		httpkit.Internal(w, err)
+		return
+	}
 	raw, _ = json.Marshal(&g)
 	if _, err = tx.Exec(ctx, `UPDATE galaxies SET data=$1 WHERE name='Edem'`, raw); err != nil {
 		httpkit.Internal(w, err)
@@ -141,12 +146,7 @@ func (a *Service) DeleteGalaxy(w http.ResponseWriter, r *http.Request) {
 		httpkit.Internal(w, err)
 		return
 	}
-	a.universeMu.Lock()
-	err = tx.Commit(ctx)
-	if err == nil {
-		a.universe = &g
-	}
-	a.universeMu.Unlock()
+	err = a.Commit(ctx, tx)
 	if err != nil {
 		httpkit.Internal(w, err)
 		return

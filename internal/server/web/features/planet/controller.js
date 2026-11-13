@@ -8,7 +8,7 @@ export async function createController(
   canvas,
   scene,
   w,
-  { current, target, signal, assets, onHover },
+  { current, target, signal, assets, onHover, onInteract },
 ) {
   const peers = new Map();
   const interpolate = (previous, latest, now) => {
@@ -128,6 +128,11 @@ export async function createController(
   const down = (e) => {
     if (e.button === 0) {
       const p = world(e);
+      if (onInteract?.(sprites.hit(p), e)) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
       const edge = (scene.exits || []).find(
         (e) =>
           Math.hypot(p.x - e.x_q / 1024, p.y - e.y_q / 1024) <

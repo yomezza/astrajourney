@@ -156,9 +156,10 @@ func TestPlanetHandoff180(t *testing.T) {
 	if f.integer(`SELECT count(*) FROM planet_visits WHERE user_id=$1 AND state='active'`, uid) != 1 {
 		t.Fatal("old disconnect replaced new controller")
 	}
+	returnOperation := proof253(t, second, w2, 2)
 	second.CloseNow()
 	wait180(t, f, `SELECT count(*) FROM planet_visits WHERE user_id=$1 AND state='disconnected'`, 1, uid)
-	f.req(c, "POST", "/api/planet/return", map[string]any{"operation": op180(t), "visit": visit}, 200)
+	f.req(c, "POST", "/api/planet/return", map[string]any{"operation": returnOperation, "visit": visit}, 200)
 	wait180(t, f, `SELECT count(*) FROM planet_visits WHERE user_id=$1 AND state='ended'`, 1, uid)
 	if err = f.app.Transfer.Reconcile(f.ctx); err != nil {
 		t.Fatal(err)
@@ -235,7 +236,7 @@ func TestPlanetTicketRecovery180(t *testing.T) {
 	recovered.CloseNow()
 	stopReplacement()
 	wait180(t, f, `SELECT count(*) FROM planet_runtime_leases WHERE owner_id IS NULL OR expires_at<=clock_timestamp()`, 1)
-	f.req(c, "POST", "/api/planet/return", map[string]any{"operation": op180(t), "visit": w["visit"]}, 200)
+	f.req(c, "POST", "/api/planet/recover", map[string]any{"operation": op180(t), "visit": w["visit"]}, 200)
 	if f.integer(`SELECT count(*) FROM planet_transfer_controls WHERE reserved_ship=$1`, ship) != 0 {
 		t.Fatal("offline fenced return locked ship")
 	}
@@ -261,12 +262,21 @@ func TestPlanetAccessRevocation180(t *testing.T) {
 		t.Fatal(w)
 	}
 	f.req(c, "POST", "/api/logout", map[string]any{}, 200)
+	wait180(t, f, `SELECT count(*) FROM planet_visits WHERE user_id=$1 AND state='disconnected'`, 1, uid)
+	if err := f.app.Transfer.Reconcile(f.ctx); err != nil {
+		t.Fatal(err)
+	}
+	if f.integer(`SELECT count(*) FROM planet_transfer_controls WHERE reserved_ship=$1`, ship) != 1 {
+		t.Fatal("logout bypassed landing-only return")
+	}
+	// A genuinely revoked landing permission still ends the visit safely.
+	f.exec(`UPDATE planet_landing_sites SET enabled=false WHERE id=$1`, site)
 	wait180(t, f, `SELECT count(*) FROM planet_visits WHERE user_id=$1 AND state='ended'`, 1, uid)
 	if err := f.app.Transfer.Reconcile(f.ctx); err != nil {
 		t.Fatal(err)
 	}
 	if f.integer(`SELECT count(*) FROM planet_transfer_controls WHERE reserved_ship=$1`, ship) != 0 {
-		t.Fatal("logout did not release ship")
+		t.Fatal("revoked landing did not release ship")
 	}
 }
 
@@ -364,6 +374,7 @@ func TestPlanetRestrictedRole180(t *testing.T) {
 	f.exec(`GRANT SELECT(user_id,star) ON surveys TO ` + quoted)
 	f.exec(`GRANT UPDATE(owner_id,fence,expires_at) ON planet_runtime_leases TO ` + quoted)
 	f.exec(`GRANT SELECT,INSERT ON planet_transition_receipts TO ` + quoted)
+	f.exec(`GRANT SELECT,INSERT,UPDATE ON aj_planet_return_authorizations TO ` + quoted)
 	f.exec(`GRANT INSERT,DELETE ON planet_local_locations,planet_handoff_uses TO ` + quoted)
 	f.exec(`GRANT INSERT,UPDATE ON planet_characters,planet_visits TO ` + quoted)
 	cfg := f.db.Config().Copy()
@@ -391,6 +402,7 @@ func TestPlanetRestrictedRole180(t *testing.T) {
 			t.Fatal("role boundary failed", query)
 		}
 	}
-	f.req(c, "POST", "/api/planet/return", map[string]any{"operation": op180(t), "visit": w["visit"]}, 200)
+	returnOperation := proof253(t, conn, w, 2)
+	f.req(c, "POST", "/api/planet/return", map[string]any{"operation": returnOperation, "visit": w["visit"]}, 200)
 	wait180(t, f, `SELECT count(*) FROM planet_visits WHERE user_id=$1 AND state='ended'`, 1, uid)
 }

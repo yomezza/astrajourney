@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/yomezza/cosmosimulator/internal/discovery"
 	"github.com/yomezza/cosmosimulator/internal/events"
 	"github.com/yomezza/cosmosimulator/internal/fleet"
 	"github.com/yomezza/cosmosimulator/internal/universe"
@@ -21,7 +22,7 @@ func (a *Service) AdvancePlayer(ctx context.Context, uid int64, g *universe.Gala
 	if _, err = tx.Exec(ctx, `SELECT pg_advisory_xact_lock(784218)`); err != nil {
 		return err
 	}
-	g, err = a.World.Load(ctx)
+	g, err = a.World.LoadFrom(ctx, tx)
 	if err != nil {
 		return err
 	}
@@ -57,12 +58,21 @@ func (a *Service) AdvancePlayer(ctx context.Context, uid int64, g *universe.Gala
 	for _, j := range jobs {
 		steps := 1 + int(time.Since(j.at).Seconds())/j.sec
 		n := min(j.total, j.n+steps)
+		if j.star < 1 || j.star > len(g.Stars) {
+			return fmt.Errorf("invalid scan star")
+		}
+		if err = discovery.ClaimScan(ctx, tx, uid, g.Stars[j.star-1], j.n, n, false); err != nil {
+			return err
+		}
 		if n == j.total {
 			tag, e := tx.Exec(ctx, `INSERT INTO surveys(user_id,star,source) VALUES($1,$2,'survey') ON CONFLICT DO NOTHING`, uid, j.star)
 			if e != nil {
 				return e
 			}
 			if tag.RowsAffected() > 0 {
+				if err = discovery.ClaimScan(ctx, tx, uid, g.Stars[j.star-1], n, n, true); err != nil {
+					return err
+				}
 				if _, err = tx.Exec(ctx, `UPDATE users SET xp=xp+10 WHERE id=$1`, uid); err != nil {
 					return err
 				}

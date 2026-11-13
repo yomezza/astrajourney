@@ -1,0 +1,82 @@
+/* Changing mode hides cosmic presentation without destroying its DOM/layout. */
+body.planet-mode {
+  overflow: hidden;
+}
+body.planet-mode > header,
+body.planet-mode #sidebar,
+body.planet-mode #game,
+body.planet-mode > footer,
+body.planet-mode .module-window:not(#window-chat) {
+  visibility: hidden;
+  pointer-events: none;
+}
+#planet-host {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  padding: 8px;
+  background: #10191f;
+  color: #dce5ed;
+  box-sizing: border-box;
+}
+#planet-host[hidden] {
+  display: none;
+}
+#planet-host .visit-tools {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+#planet-host .visit-tools button {
+  border-radius: 0;
+  min-height: 25px;
+  padding: 3px 9px;
+  font-size: 11px;
+}
+#planet-host > p {
+  margin: 3px 0 6px;
+  font-size: 11px;
+}
+#planet-host .visit-viewport {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+}
+#planet-host .visit-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+#planet-host .visit-canvas[hidden] {
+  display: none;
+}
+#planet-host .visit-object-info {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  max-width: 80%;
+  pointer-events: none;
+  background: #14242de8;
+  border: 1px solid #405966;
+  padding: 7px 10px;
+  font-size: 11px;
+}
+#planet-host .visit-object-info[hidden] {
+  display: none;
+}
+body.planet-mode #window-chat {
+  z-index: 6000 !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  #planet-host {
+    scroll-behavior: auto;
+  }
+}

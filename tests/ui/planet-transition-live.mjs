@@ -30,15 +30,8 @@ try {
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(base.href);
-  await page.locator("#game").waitFor({ state: "visible" });
-  await page.locator("#startup-screen").waitFor({ state: "hidden" });
-  const open = () =>
-    page.evaluate(async () => {
-      const { openVisit } = await import("/features/planet/visit.js");
-      await openVisit();
-    });
-  await open();
-  const root = page.locator("#window-planet-visit"),
+  // The fixture already owns a live visit: Planet Mode restores it automatically.
+  const root = page.locator("#planet-host"),
     canvas = root.locator("canvas");
   await root.getByText("Соседняя локация готова", { exact: true }).waitFor();
   assert.equal(await canvas.getAttribute("data-sector"), "1");
@@ -63,20 +56,36 @@ try {
   if (process.env.PLANET_TEST_SCREENSHOT)
     await root.screenshot({ path: process.env.PLANET_TEST_SCREENSHOT });
   await page.reload();
-  await page.locator("#game").waitFor({ state: "visible" });
-  await page.locator("#startup-screen").waitFor({ state: "hidden" });
-  await open();
+
   await page.waitForFunction(() => {
     const c = document.querySelector(".visit-canvas");
     return c?.dataset.ready === "true" && c.dataset.sector === "2";
   });
-  await root
-    .getByRole("button", { name: "Вернуться в космос", exact: true })
-    .click();
-  await root.getByText("Возвращение завершено", { exact: true }).waitFor();
+  assert.equal(
+    await root
+      .getByRole("button", { name: "Вернуться в космос", exact: true })
+      .count(),
+    0,
+  );
+  const denied = await page.evaluate(async () => {
+    const { api } = await import("/core/api.js");
+    const { uuid } = await import("/core/uuid.js");
+    const visit = await api("planet/visit");
+    const response = await fetch("/api/planet/return", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ operation: uuid(), visit: visit.visit }),
+    });
+    return {
+      status: response.status,
+      state: (await api("planet/visit")).state,
+    };
+  });
+  assert.equal(denied.status, 403);
+  assert.equal(denied.state, "active");
   assert.deepEqual(errors, []);
   console.log(
-    "PASS: browser crossing offer, cancel, explicit reselect, confirm, scene swap, reload in sector without module, return; no page errors",
+    "PASS: browser crossing offer, cancel, explicit reselect, confirm, scene swap, reload in sector without original module, arbitrary return blocked; no page errors",
   );
   await context.close();
 } finally {

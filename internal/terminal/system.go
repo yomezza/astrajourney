@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/yomezza/cosmosimulator/internal/discovery"
 	"github.com/yomezza/cosmosimulator/internal/mining"
 	"github.com/yomezza/cosmosimulator/internal/platform/httpkit"
 	"github.com/yomezza/cosmosimulator/internal/research"
@@ -74,7 +75,18 @@ func (a *Service) SystemView(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+	planets := []int{}
+	for _, site := range sites {
+		if site.Details != nil {
+			planets = append(planets, site.Planet)
+		}
+	}
+	discoveries, err := discovery.Metadata(r.Context(), a.DB, u.ID, id, planets)
+	if err != nil {
+		httpkit.Internal(w, err)
+		return
+	}
 	s = universe.PublicStar(s)
 	s.Planets = nil
-	httpkit.Reply(w, 200, map[string]any{"star": s, "region": g.RegionName(s.Region), "surveyed": scanned, "sites": sites})
+	httpkit.Reply(w, 200, map[string]any{"star": s, "region": g.RegionName(s.Region), "surveyed": scanned, "sites": sites, "discoveries": discoveries})
 }

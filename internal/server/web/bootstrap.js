@@ -25,6 +25,7 @@ import { initNavigation } from "./features/shell/navigation.js";
 import { initLogistics } from "./features/inventory/logistics.js";
 import { initIdeas } from "./features/feedback/ideas.js";
 import { initExpedition } from "./features/workspace/index.js";
+import { initKnowledgeAdmin } from "./features/administration/guide/index.js";
 import { initStudies } from "./features/research/index.js";
 import { initGalaxy } from "./features/maps/galaxy.js";
 
@@ -48,6 +49,7 @@ const app = initApp();
 initGalaxyAdmin();
 initScheduler();
 initAdminResources();
+initKnowledgeAdmin();
 initLogistics();
 initIdeas();
 initExpedition();

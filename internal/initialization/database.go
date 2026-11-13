@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/yomezza/cosmosimulator/internal/chatintegration"
+	"github.com/yomezza/cosmosimulator/internal/discovery"
 	"github.com/yomezza/cosmosimulator/internal/fleet"
 	"github.com/yomezza/cosmosimulator/internal/platform/configuration"
 	"github.com/yomezza/cosmosimulator/internal/platform/postgres"
@@ -34,7 +35,7 @@ func OpenDatabase(ctx context.Context, dsn, schema string, schemas fs.ReadFileFS
 		return nil, err
 	}
 	defer tx.Rollback(context.Background())
-	if _, err = tx.Exec(ctx, "SELECT pg_advisory_xact_lock(784216)"); err != nil {
+	if _, err = tx.Exec(ctx, "SELECT pg_advisory_xact_lock(784216),pg_advisory_xact_lock(784218)"); err != nil {
 		return nil, err
 	}
 	var exists bool
@@ -207,6 +208,16 @@ func OpenDatabase(ctx context.Context, dsn, schema string, schemas fs.ReadFileFS
 		}
 	}
 
+	for _, file := range []string{"schema250.sql", "schema251.sql", "schema252.sql", "schema253.sql", "schema254.sql"} {
+		upgrade, e := schemas.ReadFile(file)
+		if e != nil {
+			return nil, e
+		}
+		if _, e = tx.Exec(ctx, string(upgrade)); e != nil {
+			return nil, fmt.Errorf("upgrade %s: %w", file, e)
+		}
+	}
+
 	var galaxyExists bool
 	if err = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM galaxies WHERE name='Edem')`).Scan(&galaxyExists); err != nil {
 		return nil, err
@@ -341,6 +352,28 @@ func OpenDatabase(ctx context.Context, dsn, schema string, schemas fs.ReadFileFS
 			return nil, err
 		}
 	}
+	beforeNames, err := json.Marshal(existing)
+	if err != nil {
+		return nil, err
+	}
+	if err = discovery.Sync(ctx, tx, &existing); err != nil {
+		return nil, err
+	}
+	raw, err = json.Marshal(existing)
+	if err != nil {
+		return nil, err
+	}
+	if string(beforeNames) != string(raw) {
+		existing.Revision++
+		raw, err = json.Marshal(existing)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if _, err = tx.Exec(ctx, `UPDATE galaxies SET data=$1 WHERE name='Edem'`, raw); err != nil {
+		return nil, err
+	}
+
 	if err = tx.Commit(ctx); err != nil {
 		return nil, err
 	}

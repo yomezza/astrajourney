@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -75,21 +74,36 @@ func TestColdCacheSaturatedPool(t *testing.T) {
 	}
 	defer held.Release()
 	store := &Service{DB: db}
+	entered := make(chan struct{}, 1)
 	done := make(chan error, 1)
-	go func() { _, e := store.Load(ctx); done <- e }()
-	for store.universeMu.TryLock() {
-		store.universeMu.Unlock()
-		runtime.Gosched()
-		if ctx.Err() != nil {
-			t.Fatal(ctx.Err())
-		}
+	go func() { _, e := store.LoadFrom(ctx, cacheSignalQuery{db: db, entered: entered}); done <- e }()
+	select {
+	case <-entered:
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
 	}
 	g, err := store.LoadFrom(ctx, tx)
 	if err != nil || len(g.Stars) != 1 {
 		t.Fatalf("transactional world read: %v", err)
 	}
+	if err = store.Commit(ctx, tx); err != nil {
+		t.Fatal("commit while cache reader waits for pool", err)
+	}
 	held.Release()
 	if err = <-done; err != nil {
 		t.Fatal(err)
 	}
+}
+
+type cacheSignalQuery struct {
+	db      postgres.Querier
+	entered chan struct{}
+}
+
+func (q cacheSignalQuery) QueryRow(ctx context.Context, sql string, args ...any) pgx.Row {
+	select {
+	case q.entered <- struct{}{}:
+	default:
+	}
+	return q.db.QueryRow(ctx, sql, args...)
 }

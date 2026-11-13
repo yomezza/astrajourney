@@ -60,10 +60,11 @@ jobs:
           go-version-file: go.mod
       - name: Terminal browser against real Go and PostgreSQL
         working-directory: .
-        run: go test ./internal/server/integration -run '^(TestTerminalBrowser|TestPlanetBrowser180|TestPlanetTransitionsBrowser210|TestChat240FiftyConnections|TestGalaxyEditorBrowser|TestNotificationsCompactBrowser)$' -count=1 -timeout=5m -v
+        run: go test ./internal/server/integration -run '^(TestTerminalBrowser|TestPlanetBrowser180|TestPlanetTransitionsBrowser210|TestDiscoveryGuidePlanetBrowser250|TestChat240FiftyConnections|TestGalaxyEditorBrowser|TestNotificationsCompactBrowser)$' -count=1 -timeout=5m -v
         env:
           RUN_TERMINAL_BROWSER: '1'
           RUN_PLANET_BROWSER: '1'
+          RUN_DISCOVERY_BROWSER: '1'
           RUN_CHAT_BROWSER: '1'
           RUN_GALAXY_EDITOR_BROWSER: '1'
           RUN_NOTIFICATIONS_BROWSER: '1'

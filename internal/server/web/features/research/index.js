@@ -1,3 +1,4 @@
+import { discoveryPanel } from "./names.js";
 import { pager } from "../../ui/pager.js";
 import { mountSystemLineup } from "./system-view.js";
 import { objectHologram } from "../objects/presentation.js";
@@ -23,6 +24,7 @@ export function initStudies() {
     page = 1,
     selectedStar = null,
     viewHandle = null,
+    discoveryView = null,
     sideKey = "",
     entriesKey = "";
   const ship = () => Session.data.expedition?.ship;
@@ -361,6 +363,20 @@ export function initStudies() {
     } else actions.append(b("На карте", () => showMap(selectedStar)));
     actions.append(b("Подробнее", () => showSystem(selectedStar)));
     side.append(actions);
+    if (
+      !discoveryView ||
+      discoveryView.element.dataset.star !== String(selectedStar)
+    ) {
+      discoveryView?.close();
+      discoveryView = discoveryPanel(selectedStar);
+    }
+    const discoveryKey = JSON.stringify([survey, job?.scanned]);
+    if (discoveryView.dataKey !== discoveryKey) {
+      discoveryView.dataKey = discoveryKey;
+      discoveryView.refresh();
+    }
+    side.append(discoveryView.element);
+
     const active = n("section", undefined, "studies-active");
     active.append(n("h3", tr("Текущие экспедиции")));
     for (const j of jobs()) {
@@ -379,7 +395,13 @@ export function initStudies() {
     side.scrollTop = scroll;
   }
   function render() {
-    if (!Session.signedIn || !ship() || !Modules.isOpen("studies")) return;
+    if (
+      !Session.signedIn ||
+      !ship() ||
+      !Modules.isOpen("studies") ||
+      document.body.classList.contains("planet-mode")
+    )
+      return;
     layout();
     if (
       selectedStar !== ship().star &&
@@ -407,6 +429,7 @@ export function initStudies() {
   window.addEventListener("moduleopen", async (event) => {
     if (event.detail !== "studies" || !Session.signedIn) return;
     render();
+    discoveryView?.refresh();
     try {
       await loadWorld();
       render();
@@ -415,9 +438,17 @@ export function initStudies() {
     }
   });
   window.addEventListener("gamedata", render);
+  window.addEventListener("universechange", () => {
+    discoveryView?.close();
+    discoveryView = null;
+    sideKey = "";
+    render();
+  });
   window.addEventListener("languagechange", () => {
     const detailStar = viewHandle?.element.dataset.star;
     viewHandle?.close();
+    discoveryView?.close();
+    discoveryView = null;
     root.replaceChildren();
     sideKey = entriesKey = "";
     render();
@@ -425,6 +456,8 @@ export function initStudies() {
   });
   window.addEventListener("signedout", () => {
     viewHandle?.close();
+    discoveryView?.close();
+    discoveryView = null;
     selectedStar = null;
     query = "";
     scope = "all";

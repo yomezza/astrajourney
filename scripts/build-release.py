@@ -82,6 +82,8 @@ def main():
             version = re.search(r'const Version = "([^"]+)"', (source / SERVICES[service][1]).read_text())
             if not version or version[1] != args.tag[1:]:
                 parser.error(f"{service} source version does not match {args.tag}")
+        if "cosmos" in services:
+            subprocess.run(["go", "run", "./cmd/astra-guide-assets", "-check"], cwd=source, check=True)
         compiler = capture("go", "version", cwd=source)
         for service, platform, target in targets:
             environment = os.environ.copy()

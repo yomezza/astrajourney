@@ -14,6 +14,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
+	"github.com/yomezza/cosmosimulator/internal/discovery"
 	"github.com/yomezza/cosmosimulator/internal/fleet"
 	"github.com/yomezza/cosmosimulator/internal/platform/httpkit"
 	resourcecatalog "github.com/yomezza/cosmosimulator/internal/resources"
@@ -450,6 +451,10 @@ func (a *Service) AdminGalaxies(w http.ResponseWriter, r *http.Request) {
 		httpkit.Internal(w, err)
 		return
 	}
+	if err = discovery.Sync(ctx, tx, next); err != nil {
+		httpkit.Internal(w, err)
+		return
+	}
 	raw, _ = json.Marshal(next)
 	if _, err = tx.Exec(ctx, `UPDATE galaxies SET data=$1 WHERE name='Edem'`, raw); err != nil {
 		httpkit.Internal(w, err)
@@ -460,12 +465,7 @@ func (a *Service) AdminGalaxies(w http.ResponseWriter, r *http.Request) {
 		httpkit.Internal(w, err)
 		return
 	}
-	a.universeMu.Lock()
-	err = tx.Commit(ctx)
-	if err == nil {
-		a.universe = next
-	}
-	a.universeMu.Unlock()
+	err = a.Commit(ctx, tx)
 	if err != nil {
 		httpkit.Internal(w, err)
 		return

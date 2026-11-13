@@ -231,3 +231,54 @@ test("chat follows v13 spacing, shared header and compact menus for click and ri
     false,
   );
 });
+
+test("Planet Mode reuses a docked chat, draft and transport, then restores home docking", async (t) => {
+  const g = await chat(t),
+    root = g.page.locator(".chat-root");
+  let additionalSockets = 0;
+  g.page.on("websocket", () => additionalSockets++);
+  const element = await root.elementHandle();
+  await root.locator("textarea").fill("Черновик до высадки");
+  await root.getByRole("button", { name: "На главную", exact: true }).click();
+  assert.equal(await g.page.locator("#chat-home-slot .chat-root").count(), 1);
+  await g.page.evaluate(async () => {
+    const { PlanetMode } = await import("/features/planet/mode.js");
+    PlanetMode.enter();
+  });
+  assert.equal(await g.page.locator("#window-chat .chat-root").count(), 1);
+  assert.equal(
+    await g.page.evaluate(
+      (root) => document.querySelector("#window-chat").contains(root),
+      element,
+    ),
+    true,
+  );
+  assert.equal(
+    await root.locator("textarea").inputValue(),
+    "Черновик до высадки",
+  );
+  assert.equal(
+    await root
+      .getByRole("button", { name: "На главную", exact: true })
+      .isDisabled(),
+    true,
+  );
+  await g.page.evaluate(async () => {
+    const { PlanetMode } = await import("/features/planet/mode.js");
+    PlanetMode.leave();
+  });
+  assert.equal(await g.page.locator("#chat-home-slot .chat-root").count(), 1);
+  assert.equal(
+    await root.locator("textarea").inputValue(),
+    "Черновик до высадки",
+  );
+  assert.equal(
+    await g.page.evaluate(async () => {
+      const { Preferences } = await import("/core/preferences.js");
+      return Preferences.read("chat-settings:51", {}).docked;
+    }),
+    true,
+  );
+  assert.equal(await g.page.locator(".chat-root").count(), 1);
+  assert.equal(additionalSockets, 0);
+});

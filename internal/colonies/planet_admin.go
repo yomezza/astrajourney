@@ -90,6 +90,13 @@ func resetInfo(ctx context.Context, q pgx.Tx, star, planet int, name string) (Su
 	} else if v.PendingRefunds > 0 {
 		v.Blocked = "Есть неполученные возвраты. Сначала получите их в разделе Колонии."
 	}
+	var named bool
+	if err = q.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM aj_colony_names WHERE surface_id=$1)`, v.Surface).Scan(&named); err != nil {
+		return v, err
+	}
+	if named {
+		v.Blocked = "На поверхности есть именованные колонии. Удаление запрещено, чтобы сохранить историю названий и владения."
+	}
 	// State has json:"-": include it explicitly in the optimistic confirmation token.
 	v.Token = idempotency.Digest(struct {
 		Info  SurfaceResetInfo

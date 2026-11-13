@@ -382,7 +382,11 @@ export function initWindows() {
       switcher();
       window.dispatchEvent(new CustomEvent("moduledestroy", { detail: id }));
     },
-    open: (id) => windows.get(id)?.show(),
+    open: (id) => {
+      if (document.body.classList.contains("planet-mode") && id !== "chat")
+        return;
+      return windows.get(id)?.show();
+    },
     focus: (id) => {
       const w = windows.get(id);
       if (w?.dialog.open) {

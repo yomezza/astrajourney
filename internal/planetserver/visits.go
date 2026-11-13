@@ -32,7 +32,7 @@ func message(kind string, payload any) map[string]any {
 }
 func publicError(err error) string {
 	switch {
-	case errors.Is(err, visits.ErrOffer), errors.Is(err, visits.ErrOperation), errors.Is(err, access.ErrAuth), errors.Is(err, access.ErrDenied), errors.Is(err, visits.ErrUsed), errors.Is(err, visits.ErrExpired), errors.Is(err, visits.ErrReplaced), errors.Is(err, visits.ErrVisit):
+	case errors.Is(err, visits.ErrLandingDistance), errors.Is(err, visits.ErrReturnOperation), errors.Is(err, visits.ErrOffer), errors.Is(err, visits.ErrOperation), errors.Is(err, access.ErrAuth), errors.Is(err, access.ErrDenied), errors.Is(err, visits.ErrUsed), errors.Is(err, visits.ErrExpired), errors.Is(err, visits.ErrReplaced), errors.Is(err, visits.ErrVisit):
 		return err.Error()
 	default:
 		return "runtime_unavailable"
@@ -137,6 +137,11 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		pin, e := a.scenes.Acquire(prepare, in.Key)
 		err = e
+		if err != nil && in.Visit != "" {
+			if fence, fenceErr := a.sceneFence(); fenceErr == nil {
+				_ = a.visits.DiagnoseSceneFailure(prepare, id, visits.Welcome{Visit: in.Visit}, fence, in.Key, err)
+			}
+		}
 		if err == nil {
 			pinRelease = pin.Release
 			f, e := a.sceneFence()
@@ -231,6 +236,7 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 	var seq int64 = 1
 	var accepted, reported int64 = -1, -1
 	tokens, lastRefill := 20.0, time.Now()
+	var returnPrepared time.Time
 	for {
 		select {
 		case <-run.Done():
@@ -326,6 +332,10 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			pilot.Permit(time.Now().Add(2 * time.Second))
+			if !returnPrepared.IsZero() && (msg.Type == "move" || msg.Type == "transition.confirm") {
+				_ = send("error", map[string]string{"code": "return_pending"})
+				continue
+			}
 			switch msg.Type {
 			case "move":
 				var goal struct {
@@ -432,7 +442,7 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 				if out.snapshot(pilot) != nil {
 					return
 				}
-			case "leave":
+			case "return.prepare":
 				var input struct {
 					Operation string `json:"operation"`
 				}
@@ -440,25 +450,44 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 					_ = send("error", map[string]string{"code": "invalid_return"})
 					continue
 				}
+				if transition.offer != nil || pilot.Snapshot().Moving {
+					_ = send("error", map[string]string{"code": "return_stop_required"})
+					continue
+				}
 				save, done := context.WithTimeout(run, a.config.DBTimeout)
+				var proof visits.ReturnProof
 				if err = takeGate(save, gate); err == nil {
 					pilot.Freeze()
-					err = a.saveMotion(save, id, pilot, f, true)
+					err = a.saveMotion(save, id, pilot, f, false)
+					if err == nil {
+						stamp := pilot.Stamp()
+						proof, err = a.visits.PrepareReturn(save, id, visits.Welcome{Visit: stamp.Visit, Epoch: stamp.Epoch, Generation: stamp.Generation, PositionVersion: stamp.Version}, f, pilot.Scene(), input.Operation)
+					}
 					<-gate
 				}
 				done()
 				if err != nil {
-					_ = send("error", map[string]string{"code": "save_failed"})
+					pilot.Thaw()
+					_ = send("error", map[string]string{"code": publicError(err)})
+					continue
+				}
+				returnPrepared = proof.Expires
+				if send("return.authorized", proof) != nil {
 					return
 				}
-				ended = true
-				_ = send("visit.ended", map[string]any{"operation": input.Operation, "reason": "return"})
-				return
+			case "leave":
+				// The old command must never be an unrestricted alternate return route.
+				_ = send("error", map[string]string{"code": "return_authorization_required"})
+
 			default:
 				_ = send("error", map[string]string{"code": "unsupported_command"})
 				return
 			}
 		case <-tick.C:
+			if !returnPrepared.IsZero() && time.Now().After(returnPrepared) {
+				returnPrepared = time.Time{}
+				pilot.Thaw()
+			}
 			if transition.offer != nil && time.Now().After(transition.offer.Expires) {
 				transition.blocked = transition.offer.Neighbor
 				transition.close()
