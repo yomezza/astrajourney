@@ -5,6 +5,10 @@
 -- This migration is additive and does NOT mutate galaxies JSON or grant discovery to historical players.
 -- Application MUST atomically update this registry and galaxies.data through World.Commit for renames.
 -- Historical backfill is deliberately conservative; human review may refine before adoption.
+-- IMPORTANT: on a BRAND-NEW DB, OpenDatabase runs schema upgrades BEFORE it
+-- inserts the initial galaxies JSON. The backfill below then inserts ZERO rows.
+-- Future Go integration MUST seed this registry atomically after initial world
+-- generation (and after adding any new stars/planets), otherwise no claims work.
 
 CREATE TABLE IF NOT EXISTS aj_discovery_objects (
   kind text NOT NULL CHECK(kind IN('system','planet')),
