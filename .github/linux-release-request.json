@@ -1,9 +1,9 @@
 {
-  "tag": "v0.25.4",
+  "tag": "v0.25.5",
   "platform": "linux-amd64",
   "services": [
     "cosmos",
     "planet"
   ],
-  "reason": "planet websocket lifecycle detached from HTTP request cancellation and structured transport diagnostics"
+  "reason": "bounded PostgreSQL deadline grace on planet visit check and server error code telemetry"
 }

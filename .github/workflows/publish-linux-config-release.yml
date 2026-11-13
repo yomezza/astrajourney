@@ -1,4 +1,4 @@
-name: Publish Linux Planet WebSocket stability fix
+name: Publish Linux Planet visit-check resilience fix
 on:
   push:
     branches: [main]
@@ -30,10 +30,10 @@ jobs:
           PY
           )"
           echo "RELEASE_TAG=$tag" >> "$GITHUB_ENV"
-      - name: Run targeted WebSocket lifecycle and client checks
+      - name: Run targeted Planet validation and frontend tests
         run: |
           set -euo pipefail
-          go test ./internal/planetserver ./internal/server -run '^(TestPlanetWebSocketLifetimeIgnoresHTTPRequestCancellation|TestPlanetWebSocketLifetimeReleaseCloses|TestPlanetHTTPServerDoesNotExpireHijackedWebSockets|TestCosmicHTTPDeadlinesKeepProxiedWebSocketsAlive)$' -count=1 -timeout=3m
+          go test ./internal/planetserver ./internal/server -run '^(TestVisitCheckGraceRetriesDatabaseTimeoutOnly|TestVisitCheckGraceNeverRetriesAuthorizationFailure|TestPlanetWebSocketLifetimeIgnoresHTTPRequestCancellation|TestPlanetWebSocketLifetimeReleaseCloses|TestPlanetHTTPServerDoesNotExpireHijackedWebSockets|TestCosmicHTTPDeadlinesKeepProxiedWebSocketsAlive)$' -count=1 -timeout=3m
           node --check internal/server/web/features/planet/visit.js
           node --test tests/ui/planet-liveness.test.mjs
       - name: Build Linux amd64 Cosmic and Planet from tested commit
@@ -53,16 +53,15 @@ jobs:
         run: |
           set -euo pipefail
           cat > "$RUNNER_TEMP/release-notes.md" <<'EOF'
-          # Astra Journey 0.25.4 — Planet WebSocket lifecycle и диагностика
+          # Astra Journey 0.25.5 — стабилизация Planet при временных ошибках PostgreSQL
 
-          - Planet WS теперь не наследует отмену HTTP-запроса после upgrade; сохраняется остановка по жизненному циклу службы.
-          - Planet пишет в серверный журнал structured cause, длительность и epoch завершившейся WebSocket-сессии, чтобы диагностировать код 1006.
-          - Браузер различает ошибку обработки кадра и сетевой разрыв, пишет возраст соединения и локальную причину закрытия.
-          - CSP не ослаблялась; миграции БД и игровые правила не изменялись.
-          - Linux amd64 Cosmic и Planet собраны из одного коммита. Chat v0.25.2 остаётся совместимым.
+          - Planet при временном таймауте проверки визита больше не разрывает WebSocket с первой попытки.
+          - Пока повторная серверная проверка не завершена, движение игрока приостановлено. В течение ограниченного периода выполняется восстановление; настоящие ошибки доступа/смены сессии остаются терминальными.
+          - Браузерный журнал теперь включает lastServerErrorCode и отдельное сообщение Planet server error, позволяя отличить проблемы БД от истечения сессии или конфликтов эпох.
+          - Изменений PostgreSQL-схемы, gameplay и Chat нет.
+          - Linux amd64: обновить Cosmic и Planet; Chat v0.25.2 совместим.
 
-          Обновите Cosmic и Planet, перезапустите обе службы и обновите страницу игры.
-          Если соединение всё ещё обрывается, пришлите серверные строки 'planet websocket ended' и объект 'Planet WS disconnected' из консоли браузера.
+          Если соединение продолжит обрываться, приложите значение lastServerErrorCode и серверную строку planet websocket ended. Не отправляйте cookie или токены.
           EOF
           gh release create "$RELEASE_TAG" \
             "downloads/astra-journey-$RELEASE_TAG-linux-amd64" \
