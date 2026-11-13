@@ -78,7 +78,13 @@ func (c *Coordinator) set(fence int64, reason string) {
 func (c *Coordinator) Step(ctx context.Context) {
 	old, _ := c.Current()
 	if reason := CheckSchema(ctx, c.db); reason != "" {
-		c.set(0, reason)
+		// An unavailable DB cannot prove ownership was lost. Keep the fence for
+		// a conditional renewal; Ready and every visit still check DB validity.
+		fence := int64(0)
+		if reason == "database_unavailable" {
+			fence = old.Fence
+		}
+		c.set(fence, reason)
 		return
 	}
 	var fence int64
@@ -90,14 +96,17 @@ func (c *Coordinator) Step(ctx context.Context) {
 	}
 	if err != nil {
 		reason := "database_unavailable"
+		retained := old.Fence
 		if errors.Is(err, pgx.ErrNoRows) {
+			retained = 0 // The DB confirmed expiry or a different owner/fence.
 			if old.Fence == 0 {
 				reason = "lease_in_use"
 			} else {
 				reason = "lease_lost"
 			}
 		}
-		c.set(0, reason)
+		c.log.Warn("planetary lease update failed", "phase", "lease_renewal", "fence", old.Fence, "reason", reason, "error", err)
+		c.set(retained, reason)
 		return
 	}
 	c.set(fence, "")

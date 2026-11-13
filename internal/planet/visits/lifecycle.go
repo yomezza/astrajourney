@@ -3,6 +3,7 @@ package visits
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/jackc/pgx/v5"
 	"github.com/yomezza/cosmosimulator/internal/planet/access"
 	"github.com/yomezza/cosmosimulator/internal/planet/scene"
@@ -28,7 +29,7 @@ func (a *Service) Check(ctx context.Context, id access.Identity, w Welcome, f sc
 }
 func check(ctx context.Context, tx pgx.Tx, id access.Identity, w Welcome, f scenestore.Fence) error {
 	if _, err := access.Session(ctx, tx, id.Session); err != nil {
-		return err
+		return fmt.Errorf("visit session check: %w", err)
 	}
 	var site, ship int64
 	var valid bool
@@ -37,16 +38,19 @@ func check(ctx context.Context, tx pgx.Tx, id access.Identity, w Welcome, f scen
 		return ErrReplaced
 	}
 	if err != nil {
-		return err
+		return fmt.Errorf("visit control check: %w", err)
 	}
 	if !valid {
 		return ErrVisit
 	}
 	_, err = access.Landing(ctx, tx, id.User, site, ship)
 	if err != nil {
-		return err
+		return fmt.Errorf("visit landing check: %w", err)
 	}
-	return sectorCheck(ctx, tx, id.User)
+	if err = sectorCheck(ctx, tx, id.User); err != nil {
+		return fmt.Errorf("visit sector check: %w", err)
+	}
+	return nil
 }
 func (a *Service) Disconnect(ctx context.Context, id access.Identity, w Welcome, f scenestore.Fence) error {
 	tx, err := a.locked(ctx, id.User, f)

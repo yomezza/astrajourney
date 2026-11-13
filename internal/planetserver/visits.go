@@ -31,12 +31,15 @@ func message(kind string, payload any) map[string]any {
 	return map[string]any{"v": 1, "type": kind, "payload": payload}
 }
 func publicError(err error) string {
-	switch {
-	case errors.Is(err, visits.ErrLandingDistance), errors.Is(err, visits.ErrReturnOperation), errors.Is(err, visits.ErrOffer), errors.Is(err, visits.ErrOperation), errors.Is(err, access.ErrAuth), errors.Is(err, access.ErrDenied), errors.Is(err, visits.ErrUsed), errors.Is(err, visits.ErrExpired), errors.Is(err, visits.ErrReplaced), errors.Is(err, visits.ErrVisit):
-		return err.Error()
-	default:
-		return "runtime_unavailable"
+	if errors.Is(err, scenestore.ErrFence) {
+		return "runtime_fence_lost"
 	}
+	for _, known := range []error{visits.ErrLandingDistance, visits.ErrReturnOperation, visits.ErrOffer, visits.ErrOperation, access.ErrAuth, access.ErrDenied, visits.ErrUsed, visits.ErrExpired, visits.ErrReplaced, visits.ErrVisit} {
+		if errors.Is(err, known) {
+			return known.Error()
+		}
+	}
+	return "runtime_unavailable"
 }
 func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 	a.wsMu.Lock()
@@ -278,12 +281,13 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 	tokens, lastRefill := 20.0, time.Now()
 	var returnPrepared time.Time
 	var validationGrace visitCheckGrace
+	var lastOfferError string
 	pauseForValidation := func(phase string, checkErr error) bool {
 		if retry, first := validationGrace.failed(time.Now(), checkErr); retry {
 			if first {
 				pilot.Freeze()
 				a.logger.Warn("planet visit check temporarily unavailable", "phase", phase, "error", checkErr)
-				if send("error", map[string]string{"code": "runtime_unavailable"}) != nil {
+				if send("error", map[string]string{"code": "runtime_unavailable", "phase": phase}) != nil {
 					return false
 				}
 			}
@@ -405,7 +409,7 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 				}
 				closeCause = "command_visit_check_failed"
 				closeError = err
-				_ = send("error", map[string]string{"code": publicError(err)})
+				_ = send("error", map[string]string{"code": publicError(err), "phase": closeCause})
 				return
 			}
 			resumeAfterValidation()
@@ -583,17 +587,22 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 				}
 				closeCause = "heartbeat_visit_check_failed"
 				closeError = err
-				_ = send("error", map[string]string{"code": publicError(err)})
+				_ = send("error", map[string]string{"code": publicError(err), "phase": closeCause})
 				return
 			}
 			resumeAfterValidation()
 			pilot.Permit(time.Now().Add(2 * time.Second))
 			offered, e := a.offerTransition(run, id, pilot, transition)
 			if e != nil {
-				if send("error", map[string]string{"code": publicError(e)}) != nil {
+				if lastOfferError != e.Error() {
+					a.logger.Warn("planet transition check failed", "phase", "transition_offer", "connection_epoch", welcome.Epoch, "fence", f.Number, "error", e)
+					lastOfferError = e.Error()
+				}
+				if send("error", map[string]string{"code": publicError(e), "phase": "transition_offer"}) != nil {
 					return
 				}
 			} else if offered {
+				lastOfferError = ""
 				if send("transition.offer", transition.offer) != nil {
 					return
 				}

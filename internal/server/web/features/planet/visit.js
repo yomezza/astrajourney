@@ -505,6 +505,7 @@ export async function openVisit(site) {
             lastServerErrorCode = String(p?.code || "unknown_error");
             console.warn("Planet server error", {
               code: lastServerErrorCode,
+              phase: p?.phase || "unspecified",
               connectionEpoch: welcome?.connection_epoch ?? null,
               sceneReady: canvas.dataset.ready === "true",
             });

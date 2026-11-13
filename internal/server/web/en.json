@@ -2105,5 +2105,6 @@
   "Выше": "Move up",
   "Ниже": "Move down",
   "pending": "Processing",
-  "ready": "Ready"
+  "ready": "Ready",
+  "runtime_fence_lost": "Planet runtime lease changed. Restoring the visit."
 }

@@ -4,6 +4,7 @@ package visits
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/yomezza/cosmosimulator/internal/planet/access"
@@ -94,7 +95,9 @@ func (a *Service) locked(ctx context.Context, uid int64, f scenestore.Fence) (pg
 	if err != nil {
 		return nil, err
 	}
+	phase := "world_lock"
 	if _, err = tx.Exec(ctx, `SELECT pg_advisory_xact_lock_shared(784218)`); err == nil {
+		phase = "runtime_fence"
 		var n int64
 		err = tx.QueryRow(ctx, `SELECT fence FROM planet_runtime_leases WHERE id=1 AND owner_id=$1 AND fence=$2 AND expires_at>clock_timestamp() AND EXISTS(SELECT 1 FROM planet_schema_state WHERE id=1 AND version=8) FOR SHARE`, f.Owner, f.Number).Scan(&n)
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -102,11 +105,12 @@ func (a *Service) locked(ctx context.Context, uid int64, f scenestore.Fence) (pg
 		}
 	}
 	if err == nil {
+		phase = "user_gate"
 		_, err = tx.Exec(ctx, `SELECT pg_advisory_xact_lock(784219,$1)`, int32(uid))
 	}
 	if err != nil {
 		tx.Rollback(ctx)
-		return nil, err
+		return nil, fmt.Errorf("visit %s: %w", phase, err)
 	}
 	return tx, nil
 }
