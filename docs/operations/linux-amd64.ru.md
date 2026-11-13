@@ -45,10 +45,10 @@ CONFIG_FILE=/etc/astra-journey/config.toml ./astra-journey-v0.24.13-linux-amd64
 python3 scripts/build-release.py v0.24.13
 ```
 
-Скрипт собирает все три службы для Windows amd64 и Linux amd64, сохраняет их
+Скрипт по умолчанию собирает все три службы только для Linux amd64, сохраняет их
 в downloads и обновляет SHA256SUMS/build.json. Для обновления только Chat:
 `python3 scripts/build-release.py v0.24.14 --service chat` (после изменения Version).
-По умолчанию собираются обе платформы; готовые файлы скрипт не перезаписывает.
+По решению владельца новые Windows-сборки больше не выпускаются. Исторические файлы сохранены; готовые файлы скрипт не перезаписывает.
 Каталоги команд: cmd/astra-journey, cmd/astra-journey-planet, cmd/astra-journey-chat.
 Go module и адрес GitHub остаются github.com/yomezza/cosmosimulator.
 
