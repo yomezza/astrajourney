@@ -72,14 +72,14 @@ func Load(getenv func(string) string, service Service) (*Source, error) {
 				return nil, fmt.Errorf("unknown TOML configuration field at line %d, column %d", row, column)
 			}
 			// All unknown fields were confined to inactive service sections.
-			err = nil
+		} else {
+			var decode *toml.DecodeError
+			if errors.As(err, &decode) {
+				row, column := decode.Position()
+				return nil, fmt.Errorf("invalid TOML configuration at line %d, column %d (check syntax and value types)", row, column)
+			}
+			return nil, errors.New("invalid TOML configuration")
 		}
-		var decode *toml.DecodeError
-		if errors.As(err, &decode) {
-			row, column := decode.Position()
-			return nil, fmt.Errorf("invalid TOML configuration at line %d, column %d (check syntax and value types)", row, column)
-		}
-		return nil, errors.New("invalid TOML configuration")
 	}
 	base, err := filepath.Abs(filepath.Dir(path))
 	if err != nil {
@@ -124,7 +124,7 @@ func Load(getenv func(string) string, service Service) (*Source, error) {
 }
 
 
- // inactiveServiceField identifies a key under another service's TOML section.
+// inactiveServiceField identifies a key under another service's TOML section.
  // Top-level shared settings ([database], [nats]) remain strict for everyone.
  // Admin settings are consumed by Cosmic only.
 func inactiveServiceField(service Service, key toml.Key) bool {
