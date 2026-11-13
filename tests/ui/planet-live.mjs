@@ -41,6 +41,11 @@ try {
   });
   page.on("pageerror", (e) => errors.push(e.message));
   page.on("console", (m) => {
+    if (
+      m.type() === "error" &&
+      m.text().includes("Planet WS frame handling failed")
+    )
+      errors.push(m.text());
     if (m.type() !== "log") console.log("Browser:", m.type(), m.text());
   });
   page.on("response", async (r) => {

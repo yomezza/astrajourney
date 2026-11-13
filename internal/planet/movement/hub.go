@@ -151,6 +151,14 @@ func (m *Member) Freeze() State {
 	}
 	return m.snapshot(time.Now())
 }
+
+// Pause stops simulation during temporary server validation without discarding
+// the accepted route. Freeze remains the cancellation boundary for handoff/exit.
+func (m *Member) Pause() {
+	m.hub.mu.Lock()
+	defer m.hub.mu.Unlock()
+	m.frozen = true
+}
 func (m *Member) Thaw() {
 	m.hub.mu.Lock()
 	defer m.hub.mu.Unlock()

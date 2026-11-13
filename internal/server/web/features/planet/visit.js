@@ -464,7 +464,7 @@ export async function openVisit(site) {
           if (message.v !== 1) {
             fatal = true;
             localCloseReason = "unsupported_protocol_version";
-            conn.close(1002, "planet_protocol_version");
+            conn.close(4003, "planet_protocol_version");
             return;
           }
           if (message.server_seq <= serverSeq) return;
@@ -515,7 +515,7 @@ export async function openVisit(site) {
             if (terminalErrors.has(p.code)) {
               fatal = true;
               localCloseReason = "terminal_server_error";
-              conn.close(1008, "planet_terminal_error");
+              conn.close(4001, "planet_terminal_error");
             }
             return;
           }
