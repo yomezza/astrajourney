@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="Изолированный интерактивный прототип уведомлений Astra Journey — три оформления и mock-данные.">
+  <title>Astra Journey · Уведомления — UI-прототип</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./fixtures.js" defer></script>
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <div class="lab-shell">
+    <header class="lab-header">
+      <a class="lab-brand" href="./index.html" aria-label="Astra Journey — открыть начало прототипа">
+        <span class="brand-mark" aria-hidden="true">✧</span>
+        <span>ASTRA <span class="brand-slim">JOURNEY</span><small>FRONTEND LABORATORY</small></span>
+      </a>
+      <span class="lab-flag"><span class="flag-dot" aria-hidden="true"></span> ИЗОЛИРОВАННЫЙ UI · MOCK</span>
+    </header>
+
+    <main class="lab-main">
+      <div class="lab-intro">
+        <div class="eyebrow">UI / 03 · COMMUNICATION SYSTEMS</div>
+        <h1>Уведомления <span>/ новая компоновка</span></h1>
+        <p>Три компактных интерфейса, один набор тестовых событий. Поведение работает локально: никаких игровых API и подключений к службам.</p>
+      </div>
+
+      <div class="lab-layout">
+        <aside class="lab-controls" aria-label="Управление демонстрацией">
+          <section class="control-block">
+            <div class="control-caption"><span>01</span> ВИЗУАЛЬНЫЙ ПОДХОД</div>
+            <div class="variants" role="tablist" aria-label="Выберите оформление уведомлений">
+              <button class="variant-choice selected" type="button" id="variant-a" role="tab" aria-selected="true" aria-controls="design-preview" data-variant="a">
+                <span class="variant-index">A</span><span class="variant-info"><strong>Compact Chat Style</strong><small>Плотная лента, почти как чат</small></span><span class="variant-check" aria-hidden="true">✓</span>
+              </button>
+              <button class="variant-choice" type="button" id="variant-b" role="tab" aria-selected="false" aria-controls="design-preview" data-variant="b" tabindex="-1">
+                <span class="variant-index">B</span><span class="variant-info"><strong>Notification Console</strong><small>События, метки и технический ритм</small></span><span class="variant-check" aria-hidden="true">✓</span>
+              </button>
+              <button class="variant-choice" type="button" id="variant-c" role="tab" aria-selected="false" aria-controls="design-preview" data-variant="c" tabindex="-1">
+                <span class="variant-index">C</span><span class="variant-info"><strong>Minimal Activity Feed</strong><small>Чистые строки без лишних рамок</small></span><span class="variant-check" aria-hidden="true">✓</span>
+              </button>
+            </div>
+            <p id="variant-description" class="variant-description">Рекомендуемый вариант: привычные 34-пиксельный заголовок, плотность и цветовая система чата.</p>
+            <span class="recommendation">A · РЕКОМЕНДУЕТСЯ</span>
+          </section>
+
+          <section class="control-block">
+            <div class="control-caption"><span>02</span> ТЕСТОВЫЕ СЦЕНАРИИ</div>
+            <div class="scenario-grid">
+              <button type="button" id="reset-data">↺ <span>Сбросить данные</span></button>
+              <button type="button" id="new-event">＋ <span>Новое событие</span></button>
+              <button type="button" id="empty-data">∅ <span>Пустой список</span></button>
+              <button type="button" id="long-data">☷ <span>40 событий</span></button>
+            </div>
+            <div class="scenario-stats" aria-live="polite">
+              <span>ПОКАЗАНО <strong id="stat-total">0</strong></span>
+              <span>НЕПРОЧИТАННЫХ <strong id="stat-unread">0</strong></span>
+            </div>
+          </section>
+
+          <section class="control-block">
+            <div class="control-caption"><span>03</span> РАЗМЕР ОКНА</div>
+            <div class="size-choices" role="group" aria-label="Размер окна">
+              <button type="button" data-size="compact" aria-pressed="false">Компактный</button>
+              <button type="button" data-size="regular" aria-pressed="true">Обычный</button>
+            </div>
+            <p class="control-hint">Окно также можно перемещать за заголовок и изменять за правый нижний угол. При фокусе заголовка — стрелки.</p>
+          </section>
+          <p id="demo-status" class="demo-status" role="status" aria-live="polite">Готово · тестовые уведомления загружены.</p>
+        </aside>
+
+        <section class="preview-card" id="design-preview" aria-label="Предпросмотр уведомлений" role="tabpanel" aria-labelledby="variant-a">
+          <div class="preview-top">
+            <div class="preview-top-title"><span class="preview-led" aria-hidden="true"></span> ТЕРМИНАЛ ПИЛОТА <span class="preview-dim">/ ОКНО УВЕДОМЛЕНИЙ</span></div>
+            <div class="preview-top-meta">LOCAL · 127.0.0.1 НЕ ТРЕБУЕТСЯ</div>
+          </div>
+          <div class="preview-stage" id="preview-stage">
+            <div class="stage-watermark" aria-hidden="true"><span>AJ</span><small>PERSONAL TERMINAL / DEMO</small></div>
+            <button id="reopen-window" class="reopen-window" type="button" hidden>Открыть уведомления</button>
+            <section class="notice-window" id="notice-window" data-variant="a" data-size="regular" aria-label="Уведомления, интерактивная демонстрация">
+              <div class="notice-titlebar" id="window-drag-handle" tabindex="0" aria-label="Заголовок окна. Для перемещения используйте стрелки">
+                <div class="notice-appname">
+                  <span class="notice-status-led" aria-hidden="true"></span>
+                  <strong>Уведомления</strong>
+                  <span class="notice-unread-count" id="notice-count" aria-label="Непрочитанных: 0">0</span>
+                </div>
+                <div class="notice-window-actions">
+                  <span class="notice-demo-label">DEMO</span>
+                  <button class="window-control" id="minimize-window" type="button" aria-label="Свернуть содержимое уведомлений" title="Свернуть">−</button>
+                  <button class="window-control" id="close-window" type="button" aria-label="Закрыть окно уведомлений" title="Закрыть">×</button>
+                </div>
+              </div>
+              <div class="notice-body" id="notice-body">
+                <div class="notice-statusbar">
+                  <span id="notice-statusline">Лента событий</span>
+                  <span class="statusbar-mark">● <span id="notice-total-label">0</span> событий</span>
+                </div>
+                <div class="notice-scroll" id="notice-scroll" tabindex="0" role="region" aria-label="Список уведомлений">
+                  <div id="notice-list" class="notice-list"></div>
+                </div>
+                <div class="notice-footer">
+                  <div class="notice-filter" role="group" aria-label="Фильтр уведомлений">
+                    <button type="button" id="filter-all" class="filter-choice active" aria-pressed="true">Все</button>
+                    <button type="button" id="filter-unread" class="filter-choice" aria-pressed="false">Непрочитанные</button>
+                  </div>
+                  <button type="button" id="mark-all" class="mark-all" title="Отметить все уведомления прочитанными">✓ <span>Прочитать всё</span></button>
+                </div>
+              </div>
+              <div class="notice-detail-backdrop" id="notice-detail" hidden>
+                <section class="notice-detail-panel" role="dialog" aria-modal="true" aria-labelledby="detail-title" aria-describedby="detail-text">
+                  <div class="detail-heading">
+                    <span id="detail-category" class="detail-category">СИСТЕМА</span>
+                    <button type="button" id="detail-close" class="window-control" aria-label="Закрыть подробности">×</button>
+                  </div>
+                  <h3 id="detail-title"></h3>
+                  <time id="detail-time"></time>
+                  <div id="detail-text" class="detail-text"></div>
+                  <div class="detail-actions">
+                    <button type="button" id="detail-mark-read">✓ Отметить прочитанным</button>
+                    <button type="button" id="detail-done">Закрыть</button>
+                  </div>
+                </section>
+              </div>
+            </section>
+          </div>
+          <div class="preview-bottom">
+            <span>ИНТЕРАКТИВНАЯ ПРОБА / ИГРОВЫЕ ДЕЙСТВИЯ ОТКЛЮЧЕНЫ</span>
+            <span id="preview-variant">STYLE A · COMPACT CHAT</span>
+          </div>
+        </section>
+      </div>
+      <footer class="lab-footer">ASTRA JOURNEY · FRONTEND CONCEPT <span>Никаких запросов к игровым серверам</span></footer>
+    </main>
+  </div>
+</body>
+</html>
