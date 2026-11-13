@@ -281,11 +281,13 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 	tokens, lastRefill := 20.0, time.Now()
 	var returnPrepared time.Time
 	var validationGrace visitCheckGrace
+	var checkpointGrace visitCheckGrace
+	var checkpointPending bool
 	var lastOfferError string
 	pauseForValidation := func(phase string, checkErr error) bool {
 		if retry, first := validationGrace.failed(time.Now(), checkErr); retry {
 			if first {
-				pilot.Freeze()
+				pilot.Pause()
 				a.logger.Warn("planet visit check temporarily unavailable", "phase", phase, "error", checkErr)
 				if send("error", map[string]string{"code": "runtime_unavailable", "phase": phase}) != nil {
 					return false
@@ -299,10 +301,37 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 		if !validationGrace.recovered() {
 			return
 		}
-		if transition.offer == nil && returnPrepared.IsZero() {
+		if !checkpointPending && transition.offer == nil && returnPrepared.IsZero() {
 			pilot.Thaw()
 		}
 		a.logger.Info("planet visit check recovered", "connection_epoch", welcome.Epoch)
+	}
+	saveCheckpoint := func() error {
+		save, done := context.WithTimeout(run, a.config.DBTimeout)
+		defer done()
+		if err := takeGate(save, gate); err != nil {
+			return err
+		}
+		defer func() { <-gate }()
+		return a.saveMotion(save, id, pilot, f, false)
+	}
+	retryCheckpoint := func(saveErr error) bool {
+		if errors.Is(saveErr, visits.ErrCheckpointCommit) {
+			return false
+		}
+		retry, first := checkpointGrace.failed(time.Now(), saveErr)
+		if !retry {
+			return false
+		}
+		checkpointPending = true
+		pilot.Pause()
+		if first {
+			a.logger.Warn("planet checkpoint temporarily unavailable", "phase", "checkpoint", "connection_epoch", welcome.Epoch, "error", saveErr)
+			if send("error", map[string]string{"code": "runtime_unavailable", "phase": "checkpoint_retry"}) != nil {
+				return false
+			}
+		}
+		return true
 	}
 	for {
 		select {
@@ -566,6 +595,22 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		case <-tick.C:
+			if checkpointPending {
+				if saveErr := saveCheckpoint(); saveErr != nil {
+					if retryCheckpoint(saveErr) {
+						continue
+					}
+					closeCause, closeError = "checkpoint_retry_failed", saveErr
+					_ = send("error", map[string]string{"code": publicError(saveErr), "phase": closeCause})
+					return
+				}
+				checkpointPending = false
+				checkpointGrace.recovered()
+				if validationGrace.since.IsZero() && transition.offer == nil && returnPrepared.IsZero() {
+					pilot.Thaw()
+				}
+				a.logger.Info("planet checkpoint recovered", "connection_epoch", welcome.Epoch)
+			}
 			if !returnPrepared.IsZero() && time.Now().After(returnPrepared) {
 				returnPrepared = time.Time{}
 				pilot.Thaw()
@@ -608,16 +653,17 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		case <-checkpoint.C:
-			save, done := context.WithTimeout(run, a.config.DBTimeout)
-			if err = takeGate(save, gate); err == nil {
-				err = a.saveMotion(save, id, pilot, f, false)
-				<-gate
+			if checkpointPending {
+				continue
 			}
-			done()
+			err = saveCheckpoint()
 			if err != nil {
+				if retryCheckpoint(err) {
+					continue
+				}
 				closeCause = "checkpoint_failed"
 				closeError = err
-				_ = send("error", map[string]string{"code": "save_failed"})
+				_ = send("error", map[string]string{"code": publicError(err), "phase": closeCause})
 				return
 			}
 		}

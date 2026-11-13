@@ -20,6 +20,7 @@ import (
 
 func TestPlanetBrowser180(t *testing.T)            { planetBrowser210(t, false) }
 func TestPlanetTransitionsBrowser210(t *testing.T) { planetBrowser210(t, true) }
+func TestPlanetWalkingBrowser257(t *testing.T)     { planetBrowser210(t, false, "planet-walking-live.mjs") }
 func TestDiscoveryGuidePlanetBrowser250(t *testing.T) {
 	if os.Getenv("RUN_DISCOVERY_BROWSER") != "1" {
 		t.Skip("set RUN_DISCOVERY_BROWSER=1 with Node/Playwright")
@@ -33,6 +34,15 @@ func planetBrowser210(t *testing.T, transition bool, custom ...string) {
 	}
 	f, c, uid, surface, site, _ := prepare180(t)
 	peer, _, _ := peer200(t, f, uid, surface)
+	if len(custom) > 0 && custom[0] == "planet-walking-live.mjs" {
+		// One real PostgreSQL checkpoint exceeds the normal 2s DB budget.
+		// The sequence survives the rolled-back UPDATE, so only the first save is delayed.
+		f.exec(`CREATE SEQUENCE walking_save_fault;
+ CREATE FUNCTION walking_save_delay() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN
+ IF (NEW.x_q<>OLD.x_q OR NEW.y_q<>OLD.y_q) AND nextval('walking_save_fault')=1 THEN PERFORM pg_sleep(3); END IF;
+ RETURN NEW; END $$;
+ CREATE TRIGGER walking_save_delay BEFORE UPDATE ON planet_characters FOR EACH ROW EXECUTE FUNCTION walking_save_delay()`)
+	}
 	if transition {
 		company := f.integer(`SELECT company_id FROM users WHERE id=$1`, uid)
 		addColony160(f, uid, surface, 2, &company, false)
@@ -43,7 +53,11 @@ func planetBrowser210(t *testing.T, transition bool, custom ...string) {
 	base := "http://" + web.Listener.Addr().String()
 	cfg := planetserver.DefaultConfig()
 	cfg.AllowedOrigins = []string{base, "http://127.0.0.1:8080"}
-	app, err := planetserver.New(f.db, cfg, slog.New(slog.NewTextHandler(io.Discard, nil)))
+	var logOutput io.Writer = io.Discard
+	if len(custom) > 0 && custom[0] == "planet-walking-live.mjs" {
+		logOutput = os.Stderr
+	}
+	app, err := planetserver.New(f.db, cfg, slog.New(slog.NewTextHandler(logOutput, nil)))
 	if err != nil {
 		t.Fatal(err)
 	}

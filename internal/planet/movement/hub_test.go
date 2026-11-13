@@ -113,6 +113,43 @@ func TestLatestGoalAndPermit(t *testing.T) {
 	}
 }
 
+func TestTemporaryPauseResumesAcceptedRoute(t *testing.T) {
+	s, x, y := scenery(t)
+	h := New(context.Background(), 4, 24000)
+	defer h.Close()
+	m, err := h.Join(Stamp{User: 1, Epoch: 1}, s, x, y)
+	if err != nil {
+		t.Fatal(err)
+	}
+	m.Permit(time.Now().Add(3 * time.Second))
+	if err = m.Move(2, x+1024, y); err != nil {
+		t.Fatal(err)
+	}
+	deadline := time.Now().Add(time.Second)
+	for len(m.Snapshot().Path) == 0 && time.Now().Before(deadline) {
+		time.Sleep(time.Millisecond)
+	}
+	m.Pause()
+	before := m.Snapshot()
+	if len(before.Path) == 0 {
+		t.Fatal("pause discarded the accepted route")
+	}
+	time.Sleep(110 * time.Millisecond)
+	after := m.Snapshot()
+	if after.X != before.X || after.Y != before.Y || !after.Suspended {
+		t.Fatal("paused character moved")
+	}
+	m.Thaw()
+	for time.Now().Before(deadline) {
+		after = m.Snapshot()
+		if after.X == x+1024 && !after.Moving {
+			return
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	t.Fatal("route did not resume without another move command", after)
+}
+
 func TestSectorPresenceCoalesces(t *testing.T) {
 	s, x, y := scenery(t)
 	h := New(context.Background(), 4, 24000)

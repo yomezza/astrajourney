@@ -13,6 +13,11 @@ import (
 )
 
 func fmtInt(v int64) string { return strconv.FormatInt(v, 10) }
+
+// A failed COMMIT can have an unknown outcome. Resume must reload its version;
+// only failures before attempting COMMIT can safely retry the rolled-back save.
+var ErrCheckpointCommit = errors.New("checkpoint_commit_uncertain")
+
 func (a *Service) Check(ctx context.Context, id access.Identity, w Welcome, f scenestore.Fence) error {
 	tx, err := a.locked(ctx, id.User, f)
 	if err != nil {
@@ -222,7 +227,7 @@ func (a *Service) Checkpoint(ctx context.Context, id access.Identity, w Welcome,
 		}
 	}
 	if err = tx.Commit(ctx); err != nil {
-		return 0, err
+		return 0, fmt.Errorf("%w: %w", ErrCheckpointCommit, err)
 	}
 	if finish {
 		a.lifecycleCommitted(gamesignal.VisitEndedSubject, endedSignal)
