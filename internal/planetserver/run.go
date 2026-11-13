@@ -28,12 +28,11 @@ func RunStarted(ctx context.Context, onListening func()) error {
 	return RunConfig(ctx, config, onListening)
 }
 
-
 // WebSocket Accept hijacks the underlying TCP connection. net/http can leave
- // absolute ReadTimeout/WriteTimeout deadlines on that connection after Hijack,
- // silently terminating a healthy planetary visit about ten seconds later.
- // Planet's HTTP endpoints are GET-only; ReadHeaderTimeout still bounds slow
- // headers, and scene/auth/WS reads/writes use their own context deadlines.
+// absolute ReadTimeout/WriteTimeout deadlines on that connection after Hijack,
+// silently terminating a healthy planetary visit about ten seconds later.
+// Planet's HTTP endpoints are GET-only; ReadHeaderTimeout still bounds slow
+// headers, and scene/auth/WS reads/writes use their own context deadlines.
 func newPlanetHTTPServer(handler http.Handler) *http.Server {
 	return &http.Server{
 		Handler:           handler,
