@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Astra Journey · Командный терминал — 5 концепций</title>
+  <meta name="description" content="Изолированный интерактивный прототип пяти компоновок главной страницы Astra Journey. Без API и игровых серверов.">
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="fixtures.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <div class="demo-topline"><span class="demo-led"></span><span>ASTRA JOURNEY <b>/ FRONTEND LAB</b></span><span class="demo-isolated">● АВТОНОМНЫЙ ПРОТОТИП · БЕЗ СЕРВЕРА</span></div>
+  <div class="demo-toolbar" aria-label="Управление сравнением дизайнов">
+    <div class="variant-selector" role="tablist" aria-label="Варианты оформления">
+      <button type="button" class="variant active" role="tab" aria-selected="true" data-variant="a"><b>A</b><span>Mission Control</span></button>
+      <button type="button" class="variant" role="tab" aria-selected="false" data-variant="b"><b>B</b><span>Minimal</span></button>
+      <button type="button" class="variant" role="tab" aria-selected="false" data-variant="c"><b>C</b><span>Personal</span></button>
+      <button type="button" class="variant" role="tab" aria-selected="false" data-variant="d"><b>D</b><span>Holographic</span></button>
+      <button type="button" class="variant" role="tab" aria-selected="false" data-variant="e"><b>E</b><span>Modular</span></button>
+    </div>
+    <div class="demo-scenarios"><span class="control-caption">ОКНА</span>
+      <button type="button" data-scene="empty" class="scene-button active" title="Ни одного окна">0</button>
+      <button type="button" data-scene="one" class="scene-button" title="Открыта галактическая карта">1</button>
+      <button type="button" data-scene="multi" class="scene-button" title="Открыто три модуля">3</button>
+      <button id="demo-refresh" type="button" class="refresh-button" title="Изменить локальные данные пилота"><span>↻</span> <span class="refresh-label">Обновить данные</span></button>
+    </div>
+  </div>
+  <div class="shell">
+    <header class="game-header"><a class="brand" href="index.html" aria-label="Astra Journey · главный терминал"><span class="brand-icon">✧</span><span>ASTRA <b>JOURNEY</b><small>EXPLORATION NETWORK</small></span></a>
+      <div class="header-right"><div class="header-time"><span class="pulse-dot"></span> <span>ЕДИНАЯ СЕТЬ / ДЕМО</span></div><button type="button" class="account-button" data-open="profile" title="Демонстрационный профиль"><span class="avatar-small">A</span><span data-bind="pilot">ASTRA-07</span><span class="down">⌄</span></button></div>
+    </header>
+    <aside class="game-sidebar" aria-label="Панель модулей"><div class="sidebar-caption">NAV / 01</div>
+      <button type="button" class="nav-item selected" data-open="galaxy" title="Галактическая карта"><span class="nav-glyph">✦</span><span class="nav-name">Карта</span></button>
+      <button type="button" class="nav-item" data-open="ship" title="Корабль"><span class="nav-glyph">◇</span><span class="nav-name">Корабль</span></button>
+      <button type="button" class="nav-item" data-open="cargo" title="Трюм"><span class="nav-glyph">▦</span><span class="nav-name">Трюм</span></button>
+      <button type="button" class="nav-item" data-open="studies" title="Исследования"><span class="nav-glyph">⌾</span><span class="nav-name">Атлас</span></button>
+      <div class="sidebar-line"></div>
+      <button type="button" class="nav-item" data-open="notifications" title="Уведомления"><span class="nav-glyph">▤</span><span class="nav-name">События</span></button>
+      <button type="button" class="nav-item" data-open="tasks" title="Планировщик задач"><span class="nav-glyph">≡</span><span class="nav-name">Задачи</span></button>
+      <button type="button" class="nav-item chat-bottom" data-open="chat" title="Чат"><span class="nav-glyph">▧</span><span class="nav-name">Чат</span></button>
+    </aside>
+    <main class="game-main"><div class="view-frame" id="view-frame" data-variant="a"><div class="main-content" id="main-content" role="tabpanel" aria-live="off"></div></div>
+      <footer class="game-footer"><span><i class="status-dot"></i> <span data-bind="updated">Данные обновлены: 09:42:17</span></span><span>ACADEMY OF EDEN <span class="footer-separator">/</span> TERMINAL INTERFACE · MOCK</span></footer>
+    </main>
+    <div id="window-layer" class="window-layer" aria-live="off"></div>
+  </div>
+  <div id="toast" role="status" aria-live="polite" class="toast" hidden></div>
+  <dialog id="sim-dialog" class="sim-dialog"><div class="sim-dialog-head"><b id="sim-dialog-title">Сценарий</b><button type="button" id="sim-dialog-close" aria-label="Закрыть">×</button></div><div id="sim-dialog-text"></div><button type="button" class="dialog-ok" id="sim-dialog-ok">Понятно</button></dialog>
+</body>
+</html>
