@@ -1,7 +1,7 @@
-// The Planet server can take up to scene_load_timeout (20s by default)
+// The Planet server can take up to scene_load_timeout (20s by default, up to 60s)
 // before sending its first welcome. A 6s client-side watchdog incorrectly
 // tore down valid connections and reopened the startup overlay repeatedly.
-export const WELCOME_GRACE_MS = 35_000;
+export const WELCOME_GRACE_MS = 75_000;
 export const STREAM_PROBE_MS = 12_000;
 export const STREAM_TIMEOUT_MS = 30_000;
 
