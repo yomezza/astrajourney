@@ -48,12 +48,6 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 	a.wsWG.Add(1)
 	a.wsMu.Unlock()
 	defer a.wsWG.Done()
-	connection, cancelConnection := context.WithCancel(r.Context())
-	stopConnection := context.AfterFunc(a.runContext, cancelConnection)
-	defer stopConnection()
-	defer cancelConnection()
-	r = r.WithContext(connection)
-
 	if a.scenes == nil || a.stopping.Load() {
 		a.health(w, 503, "runtime_unavailable")
 		return
@@ -101,14 +95,50 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-	defer c.CloseNow()
+	// The HTTP request context may be canceled on or after a proxy's
+	// WebSocket upgrade. Keep the socket alive until the peer disconnects or
+	// the Planet service shuts down, rather than inheriting that cancellation.
+	connection, cancelConnection := planetWebSocketContext(r.Context(), a.runContext)
+	defer cancelConnection()
+	r = r.WithContext(connection)
+	openedAt := time.Now()
+	closeCause := "handler_exit"
+	var closeError error
+	var epochForLog int64
+	var established bool
+	defer func() {
+		_ = c.CloseNow()
+		if a.logger == nil {
+			return
+		}
+		if a.runContext.Err() != nil {
+			closeCause = "service_shutdown"
+		}
+		fields := []any{
+			"cause", closeCause,
+			"connected", established,
+			"connection_epoch", epochForLog,
+			"duration_ms", time.Since(openedAt).Milliseconds(),
+		}
+		if closeError != nil {
+			fields = append(fields, "error", closeError.Error())
+		}
+		if closeCause == "service_shutdown" ||
+			(closeCause == "read_error" &&
+				websocket.CloseStatus(closeError) == websocket.StatusNormalClosure) {
+			a.logger.Debug("planet websocket ended", fields...)
+		} else {
+			a.logger.Warn("planet websocket ended", fields...)
+		}
+	}()
 	c.SetReadLimit(4096)
 	auth, done := context.WithTimeout(r.Context(), 5*time.Second)
 	var hello frame
 	err = wsjson.Read(auth, c, &hello)
 	done()
 	if err != nil || hello.V != 1 || hello.Type != "hello" || hello.Seq != 1 {
-		c.CloseNow()
+		closeCause = "hello_failed"
+		closeError = err
 		return
 	}
 	var input struct {
@@ -116,7 +146,7 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 		Resume string `json:"resume_visit"`
 	}
 	if json.Unmarshal(hello.Payload, &input) != nil || (input.Ticket == "") == (input.Resume == "") || len(input.Ticket) > 64 {
-		c.CloseNow()
+		closeCause = "invalid_hello_payload"
 		return
 	}
 	prepare, finish := context.WithTimeout(r.Context(), a.config.SceneLoadTimeout)
@@ -192,16 +222,26 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 	}
 	send := out.send
 	if err != nil {
+		closeCause = "visit_activation_failed"
+		closeError = err
 		_ = send("error", map[string]string{"code": publicError(err)})
-		c.CloseNow()
 		return
 	}
+	epochForLog = welcome.Epoch
 	f := activeFence
 	ended := false
 	defer func() { a.disconnectMotion(id, welcome, f, pilot, gate, &ended) }()
-	if send("welcome", welcome) != nil || out.snapshot(pilot) != nil {
+	if err = send("welcome", welcome); err != nil {
+		closeCause = "welcome_write_failed"
+		closeError = err
 		return
 	}
+	if err = out.snapshot(pilot); err != nil {
+		closeCause = "snapshot_write_failed"
+		closeError = err
+		return
+	}
+	established = true
 	run, stop := context.WithCancel(r.Context())
 	defer stop()
 	received := make(chan frame, 1)
@@ -240,10 +280,15 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 	for {
 		select {
 		case <-run.Done():
+			closeCause = "connection_context_canceled"
+			closeError = run.Err()
 			return
-		case <-readErrors:
+		case readErr := <-readErrors:
+			closeCause = "read_error"
+			closeError = readErr
 			return
 		case <-pilot.Done():
+			closeCause = "session_replaced"
 			_ = send("error", map[string]string{"code": "session_replaced"})
 			return
 		case state := <-pilot.Updates():
@@ -276,7 +321,9 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		case world := <-pilot.Presence():
-			if out.delta(pilot, world) != nil {
+			if err = out.delta(pilot, world); err != nil {
+				closeCause = "stream_write_failed"
+				closeError = err
 				return
 			}
 		case <-ping.C:
@@ -284,6 +331,8 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 			err := c.Ping(ctx)
 			done()
 			if err != nil {
+				closeCause = "ping_failed"
+				closeError = err
 				return
 			}
 		case msg := <-received:
@@ -317,7 +366,7 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 				continue
 			}
 			if msg.V != 1 || msg.Visit != welcome.Visit || msg.Epoch != welcome.Epoch {
-				c.CloseNow()
+				closeCause = "invalid_frame_epoch"
 				return
 			}
 			if msg.Seq <= seq {
@@ -328,6 +377,8 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 			err = a.visits.Check(check, id, welcome, f)
 			done()
 			if err != nil {
+				closeCause = "command_visit_check_failed"
+				closeError = err
 				_ = send("error", map[string]string{"code": publicError(err)})
 				return
 			}
@@ -500,6 +551,8 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 			err = a.visits.Check(check, id, welcome, f)
 			done()
 			if err != nil {
+				closeCause = "heartbeat_visit_check_failed"
+				closeError = err
 				_ = send("error", map[string]string{"code": publicError(err)})
 				return
 			}
@@ -522,6 +575,8 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 			}
 			done()
 			if err != nil {
+				closeCause = "checkpoint_failed"
+				closeError = err
 				_ = send("error", map[string]string{"code": "save_failed"})
 				return
 			}
