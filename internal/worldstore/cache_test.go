@@ -2,7 +2,6 @@ package worldstore
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -14,6 +13,7 @@ import (
 
 	"github.com/yomezza/cosmosimulator/internal/platform/postgres"
 	"github.com/yomezza/cosmosimulator/internal/universe"
+	"github.com/yomezza/cosmosimulator/internal/universestore"
 )
 
 // A transactional reader must use its own connection while a normal cache
@@ -44,13 +44,6 @@ func TestColdCacheSaturatedPool(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer admin.Exec(context.Background(), "DROP SCHEMA "+quoted+" CASCADE")
-	if _, err = admin.Exec(ctx, "CREATE TABLE "+quoted+".galaxies(name text PRIMARY KEY,data jsonb NOT NULL)"); err != nil {
-		t.Fatal(err)
-	}
-	raw, _ := json.Marshal(universe.Generate(1, 99))
-	if _, err = admin.Exec(ctx, "INSERT INTO "+quoted+".galaxies VALUES('Edem',$1)", raw); err != nil {
-		t.Fatal(err)
-	}
 	config, _, err = postgres.Config(dsn, schema)
 	if err != nil {
 		t.Fatal(err)
@@ -61,6 +54,23 @@ func TestColdCacheSaturatedPool(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+	txSeed, e := db.Begin(ctx)
+	if e != nil {
+		t.Fatal(e)
+	}
+	if _, e = txSeed.Exec(ctx, universestore.Schema); e != nil {
+		t.Fatal(e)
+	}
+	gSeed := universe.Generate(1, 99)
+	gSeed.Catalog = []universe.GalaxyDefinition{{ID: "edem", Name: "Edem"}}
+	gSeed.Stars[0].Galaxy = "edem"
+	if e = universestore.Save(ctx, txSeed, &gSeed); e != nil {
+		t.Fatal(e)
+	}
+	if e = txSeed.Commit(ctx); e != nil {
+		t.Fatal(e)
+	}
+
 	ctx, cancel = context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 	tx, err := db.Begin(ctx)
@@ -106,4 +116,8 @@ func (q cacheSignalQuery) QueryRow(ctx context.Context, sql string, args ...any)
 	default:
 	}
 	return q.db.QueryRow(ctx, sql, args...)
+}
+
+func (q cacheSignalQuery) Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
+	return q.db.(universestore.Reader).Query(ctx, sql, args...)
 }

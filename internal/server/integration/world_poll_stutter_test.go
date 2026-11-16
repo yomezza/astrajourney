@@ -16,7 +16,7 @@ import (
 type worldFetchCounter struct{ full atomic.Int64 }
 
 func (c *worldFetchCounter) TraceQueryStart(ctx context.Context, _ *pgx.Conn, d pgx.TraceQueryStartData) context.Context {
-	if strings.HasPrefix(d.SQL, "SELECT data") && strings.Contains(d.SQL, "FROM galaxies") {
+	if strings.HasPrefix(d.SQL, "SELECT") && (strings.Contains(d.SQL, "FROM star_systems") || strings.Contains(d.SQL, "FROM system_planets") || strings.Contains(d.SQL, "FROM galaxies")) {
 		c.full.Add(1)
 	}
 	return ctx

@@ -197,10 +197,27 @@ try {
     path: new URL("./artifacts/galaxy-editor/narrow.png", import.meta.url)
       .pathname,
   });
+  // Existing naming UI sends the permanent object UUID to the real service.
+  await page.setViewportSize({width:1440,height:1000});
+  let renameRequest;
+  page.on("request",r=>{if(r.url().includes("/api/admin/discovery/name"))renameRequest=r.postDataJSON()});
+  await page.evaluate(async()=>{
+    (await import("/ui/runtime.js")).Modules.close("galaxies");
+    const panel=(await import("/features/research/names.js")).discoveryPanel(1);
+    panel.element.id="tabular-naming-check";document.querySelector("#game").append(panel.element);
+  });
+  const record=page.locator("#tabular-naming-check .discovery-record").first();
+  await record.getByRole("textbox",{name:"Новое название",exact:true}).fill("Browser UUID System");
+  await record.getByPlaceholder("Причина исправления").fill("Tabular UUID browser verification");
+  const renamed=page.waitForResponse(r=>r.url().includes("/api/admin/discovery/name"));
+  await record.getByRole("button",{name:"Исправить название",exact:true}).click();
+  assert.equal((await renamed).status(),200);
+  assert.match(renameRequest.object.uuid,/^[0-9a-f-]{36}$/i);
+  const named=await api("system?id=1");assert.equal(named.star.name,"Browser UUID System");
   assert.deepEqual(errors, []);
   assert.deepEqual(failed, []);
   console.log(
-    "PASS: real UI preview/apply creates one ring galaxy; valid resource keys, zero weights, preserved draft, preview invalidation, desktop/narrow, no JS or HTTP errors",
+    "PASS: real UI preview/apply creates one ring galaxy; valid resource keys, zero weights, preserved draft, preview invalidation, desktop/narrow, naming UI sends stable UUID, no JS or HTTP errors",
   );
 } finally {
   await browser.close();

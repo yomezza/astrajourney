@@ -125,7 +125,7 @@ func TestFounderSettlementMigrationPreservesProperty(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	f.exec(`UPDATE galaxies SET data=$1 WHERE name='Edem'`, raw)
+	f.stageLegacy(raw)
 	credits := f.integer(`SELECT credits FROM users WHERE id=$1`, uid)
 	var schema string
 	if err = f.db.QueryRow(f.ctx, `SELECT current_schema()`).Scan(&schema); err != nil {
@@ -138,9 +138,7 @@ func TestFounderSettlementMigrationPreservesProperty(t *testing.T) {
 			t.Fatal(e)
 		}
 		db.Close()
-		if err = f.db.QueryRow(f.ctx, `SELECT data FROM galaxies WHERE name='Edem'`).Scan(&raw); err != nil {
-			t.Fatal(err)
-		}
+		raw = f.worldJSON()
 		var upgraded universe.Galaxy
 		if err = json.Unmarshal(raw, &upgraded); err != nil {
 			t.Fatal(err)

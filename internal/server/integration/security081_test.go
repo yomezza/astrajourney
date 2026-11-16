@@ -133,7 +133,7 @@ func Test081DiscoveryUpgradePreservesObservedObjects(t *testing.T) {
 	before := universe.SystemSites(legacy.Stars[41])
 	unknown := legacy.Stars[42].Planets
 	raw, _ = json.Marshal(legacy)
-	f.exec(`UPDATE galaxies SET data=$1 WHERE name='Edem'`, raw)
+	f.stageLegacy(raw)
 	var schema string
 	f.db.QueryRow(f.ctx, `SELECT current_schema()`).Scan(&schema)
 	db, err := openDatabase(f.ctx, f.db.Config().ConnString(), schema)
@@ -141,9 +141,7 @@ func Test081DiscoveryUpgradePreservesObservedObjects(t *testing.T) {
 		t.Fatal(err)
 	}
 	db.Close()
-	if err = f.db.QueryRow(f.ctx, `SELECT data FROM galaxies WHERE name='Edem'`).Scan(&raw); err != nil {
-		t.Fatal(err)
-	}
+	raw = f.worldJSON()
 	var secured universe.Galaxy
 	json.Unmarshal(raw, &secured)
 	if !reflect.DeepEqual(before, universe.SystemSites(secured.Stars[41])) {
@@ -158,7 +156,7 @@ func Test081DiscoveryUpgradePreservesObservedObjects(t *testing.T) {
 		t.Fatal(err)
 	}
 	db.Close()
-	f.db.QueryRow(f.ctx, `SELECT data FROM galaxies WHERE name='Edem'`).Scan(&raw)
+	raw = f.worldJSON()
 	if !bytes.Equal(first, raw) {
 		t.Fatal("restart rerandomized private world")
 	}

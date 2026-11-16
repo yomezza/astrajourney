@@ -27,6 +27,7 @@ func regionName(id int) string {
 }
 
 type Planet struct {
+	UUID        string   `json:"uuid,omitempty"`
 	CatalogCode string   `json:"catalog_code,omitempty"`
 	ID          int      `json:"id"`
 	Name        string   `json:"name"`

@@ -21,7 +21,7 @@ func TestGalaxyEditorBrowser(t *testing.T) {
 	f := newFixture033(t)
 	cookie, uid := f.signup("galaxy_editor")
 	f.exec(`UPDATE users SET role='admin' WHERE id=$1`, uid)
-	initial := f.integer(`SELECT jsonb_array_length(data->'stars') FROM galaxies WHERE name='Edem'`)
+	initial := f.integer(`SELECT count(*) FROM star_systems`)
 	nonce := fmt.Sprintf("terminal-test-%d", time.Now().UnixNano())
 	web := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Cosmos-Test-Run", nonce)
@@ -43,7 +43,7 @@ func TestGalaxyEditorBrowser(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got := f.integer(`SELECT jsonb_array_length(data->'stars') FROM galaxies WHERE name='Edem'`); got != initial+50 {
+	if got := f.integer(`SELECT count(*) FROM star_systems`); got != initial+50 {
 		t.Fatalf("galaxy was not created exactly once: %d != %d", got, initial+50)
 	}
 }

@@ -86,6 +86,7 @@ export function discoveryPanel(star) {
                   operation,
                   object: {
                     kind: item.kind,
+                    ...(item.uuid ? {uuid:item.uuid}: {}),
                     star_id: item.star_id,
                     planet_id: item.planet_id,
                   },

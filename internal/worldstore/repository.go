@@ -2,7 +2,6 @@ package worldstore
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 	"strconv"
 	"time"
@@ -12,6 +11,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/platform/httpkit"
 	"github.com/yomezza/cosmosimulator/internal/platform/postgres"
 	"github.com/yomezza/cosmosimulator/internal/universe"
+	"github.com/yomezza/cosmosimulator/internal/universestore"
 )
 
 func (a *Service) Galaxy(w http.ResponseWriter, r *http.Request) {
@@ -62,15 +62,8 @@ func (a *Service) LoadFrom(ctx context.Context, q postgres.Querier) (*universe.G
 	// must not wait for a cache mutex held by an ordinary pool reader that itself
 	// might be waiting for one of these transactions to release a connection.
 	if _, transactional := q.(pgx.Tx); transactional {
-		var raw []byte
-		if err := q.QueryRow(ctx, `SELECT data FROM galaxies WHERE name='Edem'`).Scan(&raw); err != nil {
-			return nil, err
-		}
-		var g universe.Galaxy
-		if err := json.Unmarshal(raw, &g); err != nil {
-			return nil, err
-		}
-		return &g, nil
+		g, _, err := universestore.Snapshot(ctx, q)
+		return g, err
 	}
 	return a.loadCached(ctx, q, false)
 }
@@ -78,8 +71,8 @@ func (a *Service) LoadFrom(ctx context.Context, q postgres.Querier) (*universe.G
 // LoadReadOnly validates a shared immutable snapshot using the caller's own
 // connection. Writers must use LoadFrom: its transaction-local copy can be
 // mutated without publishing uncommitted changes into the shared cache.
-// xmin changes with a row update and is read without fetching/decompressing the
-// large JSON value. Under the world lock this validates the exact current world.
+// A small storage-version row validates the cached tabular snapshot. Under
+// the world lock this validates the exact current world without scanning tables.
 func (a *Service) LoadReadOnly(ctx context.Context, q postgres.Querier) (*universe.Galaxy, error) {
 	return a.loadCached(ctx, q, true)
 }
@@ -101,7 +94,7 @@ func (a *Service) loadCached(ctx context.Context, q postgres.Querier, validate b
 		// may own the last connection and need that mutex to commit/invalidate.
 		if cached != nil {
 			var currentVersion string
-			if err := q.QueryRow(ctx, `SELECT xmin::text FROM galaxies WHERE name='Edem'`).Scan(&currentVersion); err != nil {
+			if err := q.QueryRow(ctx, `SELECT storage_version::text FROM universe_state WHERE id=1 AND format_version=1`).Scan(&currentVersion); err != nil {
 				return nil, err
 			}
 			a.universeMu.Lock()
@@ -120,29 +113,24 @@ func (a *Service) loadCached(ctx context.Context, q postgres.Querier, validate b
 			}
 			a.universeMu.Unlock()
 		}
-		var raw []byte
-		var rowVersion string
-		if err := q.QueryRow(ctx, `SELECT data,xmin::text FROM galaxies WHERE name='Edem'`).Scan(&raw, &rowVersion); err != nil {
-			return nil, err
-		}
-		var g universe.Galaxy
-		if err := json.Unmarshal(raw, &g); err != nil {
+		g, rowVersion, err := universestore.Snapshot(ctx, q)
+		if err != nil {
 			return nil, err
 		}
 		// A cold or changed transactional snapshot can include the caller's own
 		// writes, or old MVCC data. Never publish it into the process-wide cache.
 		if transactional {
-			return &g, nil
+			return g, nil
 		}
 		a.universeMu.Lock()
 		if epoch != a.universeEpoch || cached != a.universe {
 			a.universeMu.Unlock()
 			continue
 		}
-		a.universe = &g
+		a.universe = g
 		a.universeRowVersion = rowVersion
 		a.universeChecked = time.Now()
 		a.universeMu.Unlock()
-		return &g, nil
+		return g, nil
 	}
 }

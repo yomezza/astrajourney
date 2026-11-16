@@ -71,7 +71,7 @@ func TestSystemAndPortNamesStayConsistent(t *testing.T) {
 	f := newFixture033(t)
 	c, _ := f.signup("names034")
 	f.req(c, "GET", "/api/workbench", nil, 200)
-	f.exec(`UPDATE galaxies SET data=jsonb_set(jsonb_set(data,'{naming_version}','0'),'{stars,0,name}','"ED-0001"') WHERE name='Edem'`)
+	f.exec(`UPDATE universe_state SET naming_version=0,storage_version=storage_version+1 WHERE id=1; UPDATE star_systems SET name='ED-0001' WHERE id=1`)
 	f.exec(`UPDATE stations SET name=CASE WHEN object_id='station' THEN 'ED-0001 · PORT 1' ELSE 'Custom port' END WHERE star=1`)
 	config := f.db.Config()
 	var actual string

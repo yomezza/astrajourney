@@ -2,7 +2,6 @@ package navigation
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 
 	"github.com/jackc/pgx/v5"
@@ -13,6 +12,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/events"
 	"github.com/yomezza/cosmosimulator/internal/fleet"
 	"github.com/yomezza/cosmosimulator/internal/universe"
+	"github.com/yomezza/cosmosimulator/internal/universestore"
 	"github.com/yomezza/cosmosimulator/internal/wallet"
 )
 
@@ -83,14 +83,11 @@ func (a *Service) portalCommand(ctx context.Context, tx pgx.Tx, u account.User, 
 		return err
 	}
 	if contributed+in.Amount >= required {
-		var raw []byte
-		if err = tx.QueryRow(ctx, `SELECT data FROM galaxies WHERE name='Edem' FOR UPDATE`).Scan(&raw); err != nil {
+		loaded, err := universestore.Load(ctx, tx)
+		if err != nil {
 			return err
 		}
-		var expanded universe.Galaxy
-		if err = json.Unmarshal(raw, &expanded); err != nil {
-			return err
-		}
+		expanded := *loaded
 		if !expanded.Definition("asterion").Opened {
 			if err = universe.AppendGalaxySystems(&expanded, "asterion", 1000); err != nil {
 				return err
@@ -102,11 +99,7 @@ func (a *Service) portalCommand(ctx context.Context, tx pgx.Tx, u account.User, 
 			if err = discovery.Sync(ctx, tx, &expanded); err != nil {
 				return err
 			}
-			raw, err = json.Marshal(expanded)
-			if err != nil {
-				return err
-			}
-			if _, err = tx.Exec(ctx, `UPDATE galaxies SET data=$1 WHERE name='Edem'`, raw); err != nil {
+			if err = universestore.Save(ctx, tx, &expanded); err != nil {
 				return err
 			}
 		}

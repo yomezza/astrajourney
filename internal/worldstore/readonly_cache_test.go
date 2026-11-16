@@ -2,7 +2,6 @@ package worldstore
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -13,6 +12,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/yomezza/cosmosimulator/internal/platform/postgres"
 	"github.com/yomezza/cosmosimulator/internal/universe"
+	"github.com/yomezza/cosmosimulator/internal/universestore"
 )
 
 func readonlyCacheFixture(t *testing.T) (*Service, context.Context) {
@@ -40,13 +40,6 @@ func readonlyCacheFixture(t *testing.T) (*Service, context.Context) {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { admin.Exec(context.Background(), "DROP SCHEMA "+quoted+" CASCADE"); admin.Close() })
-	if _, err = admin.Exec(ctx, "CREATE TABLE "+quoted+".galaxies(name text PRIMARY KEY,data jsonb NOT NULL)"); err != nil {
-		t.Fatal(err)
-	}
-	raw, _ := json.Marshal(universe.Generate(1, 99))
-	if _, err = admin.Exec(ctx, "INSERT INTO "+quoted+".galaxies VALUES('Edem',$1)", raw); err != nil {
-		t.Fatal(err)
-	}
 	cfg, _, err = postgres.Config(dsn, schema)
 	if err != nil {
 		t.Fatal(err)
@@ -57,6 +50,23 @@ func readonlyCacheFixture(t *testing.T) (*Service, context.Context) {
 		t.Fatal(err)
 	}
 	t.Cleanup(db.Close)
+	txSeed, e := db.Begin(ctx)
+	if e != nil {
+		t.Fatal(e)
+	}
+	if _, e = txSeed.Exec(ctx, universestore.Schema); e != nil {
+		t.Fatal(e)
+	}
+	gSeed := universe.Generate(1, 99)
+	gSeed.Catalog = []universe.GalaxyDefinition{{ID: "edem", Name: "Edem"}}
+	gSeed.Stars[0].Galaxy = "edem"
+	if e = universestore.Save(ctx, txSeed, &gSeed); e != nil {
+		t.Fatal(e)
+	}
+	if e = txSeed.Commit(ctx); e != nil {
+		t.Fatal(e)
+	}
+
 	return &Service{DB: db}, ctx
 }
 
@@ -83,7 +93,7 @@ func TestReadOnlyWorldCacheTracksCommittedAndPrivateSnapshots(t *testing.T) {
 	if cached.Revision == 999 {
 		t.Fatal("writer modified shared world before commit")
 	}
-	if _, err = tx.Exec(ctx, `UPDATE galaxies SET data=jsonb_set(data,'{revision}','23') WHERE name='Edem'`); err != nil {
+	if _, err = tx.Exec(ctx, `UPDATE universe_state SET revision=23,storage_version=storage_version+1 WHERE id=1`); err != nil {
 		t.Fatal(err)
 	}
 	uncommitted, err := s.LoadReadOnly(ctx, tx)
@@ -103,7 +113,7 @@ func TestReadOnlyWorldCacheTracksCommittedAndPrivateSnapshots(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer external.Close()
-	if _, err = external.Exec(ctx, `UPDATE galaxies SET data=jsonb_set(data,'{revision}','24') WHERE name='Edem'`); err != nil {
+	if _, err = external.Exec(ctx, `UPDATE universe_state SET revision=24,storage_version=storage_version+1 WHERE id=1`); err != nil {
 		t.Fatal(err)
 	}
 	s.universeChecked = time.Time{}
@@ -124,7 +134,7 @@ func TestReadOnlyWorldCacheTracksCommittedAndPrivateSnapshots(t *testing.T) {
 	if !s.universeChecked.Equal(checked) {
 		t.Fatal("transaction extended ordinary cache freshness")
 	}
-	if _, err = external.Exec(ctx, `UPDATE galaxies SET data=jsonb_set(data,'{revision}','25') WHERE name='Edem'`); err != nil {
+	if _, err = external.Exec(ctx, `UPDATE universe_state SET revision=25,storage_version=storage_version+1 WHERE id=1`); err != nil {
 		t.Fatal(err)
 	}
 	s.universeChecked = time.Time{}

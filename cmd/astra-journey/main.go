@@ -13,6 +13,9 @@ import (
 func runConsole() error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+	if len(os.Args) == 2 && os.Args[1] == "--check-universe" {
+		return server.CheckUniverse(ctx, os.Stdout)
+	}
 	return server.Run(ctx)
 }
 

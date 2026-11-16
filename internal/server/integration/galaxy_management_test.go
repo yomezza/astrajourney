@@ -61,7 +61,7 @@ func TestManagedGalaxyPreviewAndApply(t *testing.T) {
 	if preview.Preview == "" || preview.After.Systems != 3012 {
 		t.Fatal("invalid preview")
 	}
-	if f.integer(`SELECT jsonb_array_length(data->'stars') FROM galaxies WHERE name='Edem'`) != 3000 || f.integer(`SELECT count(*) FROM admin_log WHERE action='galaxy_update'`) != 0 {
+	if f.integer(`SELECT count(*) FROM star_systems`) != 3000 || f.integer(`SELECT count(*) FROM admin_log WHERE action='galaxy_update'`) != 0 {
 		t.Fatal("preview mutated world")
 	}
 	f.req(admin, "POST", "/api/admin/galaxies/apply", in, 409)

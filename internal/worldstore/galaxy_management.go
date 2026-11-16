@@ -19,6 +19,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/platform/httpkit"
 	resourcecatalog "github.com/yomezza/cosmosimulator/internal/resources"
 	"github.com/yomezza/cosmosimulator/internal/universe"
+	"github.com/yomezza/cosmosimulator/internal/universestore"
 )
 
 func protectedTravelLanes(ctx context.Context, tx pgx.Tx, g *universe.Galaxy) ([]universe.Lane, error) {
@@ -375,20 +376,12 @@ func (a *Service) AdminGalaxies(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	var raw []byte
-	sql := `SELECT data FROM galaxies WHERE name='Edem'`
-	if apply {
-		sql += " FOR UPDATE"
-	}
-	if err = tx.QueryRow(ctx, sql).Scan(&raw); err != nil {
+	loaded, err := universestore.Load(ctx, tx)
+	if err != nil {
 		httpkit.Internal(w, err)
 		return
 	}
-	var g universe.Galaxy
-	if err = json.Unmarshal(raw, &g); err != nil {
-		httpkit.Internal(w, err)
-		return
-	}
+	g := *loaded
 	if r.Method == "GET" {
 		ports, e := protectedPorts(ctx, tx)
 		if e != nil {
@@ -455,8 +448,7 @@ func (a *Service) AdminGalaxies(w http.ResponseWriter, r *http.Request) {
 		httpkit.Internal(w, err)
 		return
 	}
-	raw, _ = json.Marshal(next)
-	if _, err = tx.Exec(ctx, `UPDATE galaxies SET data=$1 WHERE name='Edem'`, raw); err != nil {
+	if err = universestore.Save(ctx, tx, next); err != nil {
 		httpkit.Internal(w, err)
 		return
 	}

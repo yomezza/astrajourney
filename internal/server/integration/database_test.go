@@ -75,7 +75,7 @@ func TestDatabaseSchemaIsolation(t *testing.T) {
 			c.Release()
 		}
 	}
-	if _, err = first.Exec(ctx, `UPDATE galaxies SET data=jsonb_set(data,'{seed}','123') WHERE name='Edem'`); err != nil {
+	if _, err = first.Exec(ctx, `UPDATE universe_state SET seed=123,storage_version=storage_version+1 WHERE id=1`); err != nil {
 		t.Fatal(err)
 	}
 	// Existing schemas and their data survive repeated startup.
@@ -85,7 +85,7 @@ func TestDatabaseSchemaIsolation(t *testing.T) {
 	}
 	defer again.Close()
 	var seed int64
-	if err = again.QueryRow(ctx, `SELECT (data->>'seed')::bigint FROM galaxies WHERE name='Edem'`).Scan(&seed); err != nil || seed != 123 {
+	if err = again.QueryRow(ctx, `SELECT seed FROM universe_state WHERE id=1`).Scan(&seed); err != nil || seed != 123 {
 		t.Fatal("galaxy regenerated on restart", err)
 	}
 	var count int

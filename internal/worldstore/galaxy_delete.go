@@ -11,6 +11,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/platform/httpkit"
 	"github.com/yomezza/cosmosimulator/internal/platform/idempotency"
 	"github.com/yomezza/cosmosimulator/internal/universe"
+	"github.com/yomezza/cosmosimulator/internal/universestore"
 )
 
 func deletionBlockers(ctx context.Context, tx pgx.Tx, ids []int) (map[string]int, error) {
@@ -71,16 +72,12 @@ func (a *Service) DeleteGalaxy(w http.ResponseWriter, r *http.Request) {
 		httpkit.Fail(w, 403, "Требуется роль администратора")
 		return
 	}
-	var raw []byte
-	if err = tx.QueryRow(ctx, `SELECT data FROM galaxies WHERE name='Edem' FOR UPDATE`).Scan(&raw); err != nil {
+	loaded, err := universestore.Load(ctx, tx)
+	if err != nil {
 		httpkit.Internal(w, err)
 		return
 	}
-	var g universe.Galaxy
-	if err = json.Unmarshal(raw, &g); err != nil {
-		httpkit.Internal(w, err)
-		return
-	}
+	g := *loaded
 	d := g.Definition(in.ID)
 	if d == nil || d.Deleted || in.ID == "edem" || in.ID == "asterion" {
 		httpkit.Fail(w, 400, "Удалять можно только галактики, созданные администратором")
@@ -136,8 +133,7 @@ func (a *Service) DeleteGalaxy(w http.ResponseWriter, r *http.Request) {
 		httpkit.Internal(w, err)
 		return
 	}
-	raw, _ = json.Marshal(&g)
-	if _, err = tx.Exec(ctx, `UPDATE galaxies SET data=$1 WHERE name='Edem'`, raw); err != nil {
+	if err = universestore.Save(ctx, tx, &g); err != nil {
 		httpkit.Internal(w, err)
 		return
 	}

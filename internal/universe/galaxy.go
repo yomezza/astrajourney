@@ -7,6 +7,7 @@ import (
 )
 
 type Star struct {
+	UUID            string                        `json:"uuid,omitempty"`
 	CatalogCode     string                        `json:"catalog_code,omitempty"`
 	DiscoverySeed   string                        `json:"discovery_seed,omitempty"`
 	ResourceRolls   map[string]map[string]float64 `json:"resource_rolls,omitempty"`

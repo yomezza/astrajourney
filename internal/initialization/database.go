@@ -3,6 +3,7 @@ package initialization
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/fs"
 	"log"
@@ -17,6 +18,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/platform/configuration"
 	"github.com/yomezza/cosmosimulator/internal/platform/postgres"
 	"github.com/yomezza/cosmosimulator/internal/universe"
+	"github.com/yomezza/cosmosimulator/internal/universestore"
 	"github.com/yomezza/cosmosimulator/internal/worldstore"
 )
 
@@ -224,36 +226,46 @@ func OpenDatabase(ctx context.Context, dsn, schema string, schemas fs.ReadFileFS
 		}
 	}
 
-	var galaxyExists bool
-	if err = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM galaxies WHERE name='Edem')`).Scan(&galaxyExists); err != nil {
-		return nil, err
+	if _, err = tx.Exec(ctx, universestore.Schema); err != nil {
+		return nil, fmt.Errorf("tabular universe schema: %w", err)
 	}
-	if !galaxyExists {
-		data, err := json.Marshal(universe.Generate(1000, 20261026))
-		if err != nil {
-			return nil, err
-		}
-		if _, err = tx.Exec(ctx, `INSERT INTO galaxies(name,data) VALUES('Edem',$1)`, data); err != nil {
-			return nil, err
-		}
-	}
-	var raw []byte
-	if err = tx.QueryRow(ctx, `SELECT data FROM galaxies WHERE name='Edem'`).Scan(&raw); err != nil {
+	relational, err := universestore.Installed(ctx, tx)
+	if err != nil {
 		return nil, err
 	}
 	var existing universe.Galaxy
-	if err = json.Unmarshal(raw, &existing); err != nil {
-		return nil, err
+	var raw []byte
+	if relational {
+		loaded, e := universestore.Load(ctx, tx)
+		if e != nil {
+			return nil, e
+		}
+		existing = *loaded
+	} else {
+		err = tx.QueryRow(ctx, `SELECT data FROM galaxies WHERE name='Edem'`).Scan(&raw)
+		if errors.Is(err, pgx.ErrNoRows) {
+			existing = universe.Generate(1000, 20261026)
+		} else if err != nil {
+			return nil, err
+		} else if err = json.Unmarshal(raw, &existing); err != nil {
+			return nil, err
+		}
+		if existing.Name == "" || len(existing.Stars) == 0 {
+			return nil, errors.New("legacy universe is empty or corrupt; refusing to regenerate it")
+		}
+		for i, star := range existing.Stars {
+			if star.ID != i+1 {
+				return nil, errors.New("legacy universe has missing/duplicate IDs; explicit repair required")
+			}
+		}
 	}
+	legacyRaw := append([]byte(nil), raw...)
 	if existing.Version < 3 {
 		universe.Enrich(&existing)
 		universe.UpgradeGeology(&existing)
 		existing.Regions = universe.Regions
 		raw, err = json.Marshal(existing)
 		if err != nil {
-			return nil, err
-		}
-		if _, err = tx.Exec(ctx, `UPDATE galaxies SET data=$1 WHERE name='Edem'`, raw); err != nil {
 			return nil, err
 		}
 	}
@@ -277,16 +289,10 @@ func OpenDatabase(ctx context.Context, dsn, schema string, schemas fs.ReadFileFS
 		if err != nil {
 			return nil, err
 		}
-		if _, err = tx.Exec(ctx, `UPDATE galaxies SET data=$1 WHERE name='Edem'`, raw); err != nil {
-			return nil, err
-		}
 	}
 	if universe.ArrangeFrontierRings(&existing) {
 		raw, err = json.Marshal(existing)
 		if err != nil {
-			return nil, err
-		}
-		if _, err = tx.Exec(ctx, `UPDATE galaxies SET data=$1 WHERE name='Edem'`, raw); err != nil {
 			return nil, err
 		}
 	}
@@ -297,9 +303,6 @@ func OpenDatabase(ctx context.Context, dsn, schema string, schemas fs.ReadFileFS
 		if err != nil {
 			return nil, err
 		}
-		if _, err = tx.Exec(ctx, `UPDATE galaxies SET data=$1 WHERE name='Edem'`, raw); err != nil {
-			return nil, err
-		}
 	}
 	if changed, e := worldstore.UpgradeFounderSettlements(ctx, tx, &existing); e != nil {
 		return nil, e
@@ -308,18 +311,12 @@ func OpenDatabase(ctx context.Context, dsn, schema string, schemas fs.ReadFileFS
 		if err != nil {
 			return nil, err
 		}
-		if _, err = tx.Exec(ctx, `UPDATE galaxies SET data=$1 WHERE name='Edem'`, raw); err != nil {
-			return nil, err
-		}
 	}
 	if changed, e := worldstore.SecureDiscovery(ctx, tx, &existing); e != nil {
 		return nil, e
 	} else if changed {
 		raw, err = json.Marshal(existing)
 		if err != nil {
-			return nil, err
-		}
-		if _, err = tx.Exec(ctx, `UPDATE galaxies SET data=$1 WHERE name='Edem'`, raw); err != nil {
 			return nil, err
 		}
 	}
@@ -377,10 +374,21 @@ func OpenDatabase(ctx context.Context, dsn, schema string, schemas fs.ReadFileFS
 			return nil, err
 		}
 	}
-	if _, err = tx.Exec(ctx, `UPDATE galaxies SET data=$1 WHERE name='Edem'`, raw); err != nil {
-		return nil, err
+	if err = universestore.Save(ctx, tx, &existing); err != nil {
+		return nil, fmt.Errorf("save tabular universe: %w", err)
+	}
+	if !relational {
+		if err = universestore.PreserveLegacyExtras(ctx, tx, legacyRaw); err != nil {
+			return nil, err
+		}
+		if err = universestore.Verify(ctx, tx, &existing, legacyRaw); err != nil {
+			return nil, fmt.Errorf("verify tabular migration: %w", err)
+		}
 	}
 
+	if err = universestore.InstallReferences(ctx, tx); err != nil {
+		return nil, err
+	}
 	if err = tx.Commit(ctx); err != nil {
 		return nil, err
 	}

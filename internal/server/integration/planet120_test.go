@@ -80,7 +80,7 @@ func setupPlanet120(t *testing.T) (*fixture033, *http.Cookie, int64, int64, []in
 	p.Temperature = 290
 	p.Resources = []string{"iron", "water"}
 	raw, _ := json.Marshal(g)
-	f.exec(`UPDATE galaxies SET data=$1 WHERE name='Edem'`, raw)
+	f.writeWorld(raw)
 	f.exec(`INSERT INTO surveys(user_id,star) VALUES($1,1) ON CONFLICT DO NOTHING`, uid)
 	r := f.req(c, "GET", fmt.Sprintf("/api/planet/surface?star=1&planet=%d", p.ID), nil, 200)
 	var result struct {

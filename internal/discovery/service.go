@@ -15,12 +15,10 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/platform/idempotency"
 	"github.com/yomezza/cosmosimulator/internal/platform/identifiers"
 	"github.com/yomezza/cosmosimulator/internal/platform/naming"
-	"github.com/yomezza/cosmosimulator/internal/platform/postgres"
-	"github.com/yomezza/cosmosimulator/internal/universe"
+	"github.com/yomezza/cosmosimulator/internal/universestore"
 )
 
 type World interface {
-	LoadFrom(context.Context, postgres.Querier) (*universe.Galaxy, error)
 	Commit(context.Context, pgx.Tx) error
 }
 type Service struct {
@@ -29,6 +27,7 @@ type Service struct {
 	World World
 }
 type Object struct {
+	UUID   string `json:"uuid,omitempty"`
 	Kind   string `json:"kind"`
 	Star   int    `json:"star_id"`
 	Planet int    `json:"planet_id"`
@@ -54,7 +53,7 @@ func (a *Service) Rename(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	admin := strings.HasPrefix(r.URL.Path, "/api/admin/")
-	if !identifiers.ValidUUID(in.Operation) || in.Object.Star < 1 || !((in.Object.Kind == "system" && in.Object.Planet == 0) || (in.Object.Kind == "planet" && in.Object.Planet > 0)) {
+	if !identifiers.ValidUUID(in.Operation) || (in.Object.UUID != "" && !identifiers.ValidUUID(in.Object.UUID)) || !((in.Object.Kind == "system" && in.Object.Planet == 0) || (in.Object.Kind == "planet" && (in.Object.Planet > 0 || in.Object.UUID != ""))) || (in.Object.Star < 1 && in.Object.UUID == "") {
 		httpkit.Fail(w, 400, "Некорректный объект или идентификатор операции")
 		return
 	}
@@ -105,15 +104,21 @@ func (a *Service) Rename(w http.ResponseWriter, r *http.Request) {
 		httpkit.Internal(w, err)
 		return
 	}
-	g, err := a.World.LoadFrom(ctx, tx)
+	identity, err := universestore.Resolve(ctx, tx, in.Object.Kind, in.Object.UUID, in.Object.Star, in.Object.Planet)
+	if errors.Is(err, pgx.ErrNoRows) {
+		httpkit.Fail(w, 404, "Объект не найден")
+		return
+	}
 	if err != nil {
 		httpkit.Internal(w, err)
 		return
 	}
-	if in.Object.Star > len(g.Stars) || g.Stars[in.Object.Star-1].Deleted {
-		httpkit.Fail(w, 404, "Объект не найден")
+	if (in.Object.Star > 0 && in.Object.Star != identity.Star) || (in.Object.Planet > 0 && in.Object.Planet != identity.Planet) {
+		httpkit.Fail(w, 400, "UUID не соответствует указанному объекту")
 		return
 	}
+	in.Object.Star = identity.Star
+	in.Object.Planet = identity.Planet
 	var owner *int64
 	var used bool
 	var state, old, code, protected string
@@ -127,7 +132,7 @@ func (a *Service) Rename(w http.ResponseWriter, r *http.Request) {
 		httpkit.Internal(w, err)
 		return
 	}
-	if !admin && (state != "claimed" || owner == nil || *owner != u.ID || protected != "" || g.Stars[in.Object.Star-1].Founder != "") {
+	if !admin && (state != "claimed" || owner == nil || *owner != u.ID || protected != "" || identity.Founder != "") {
 		httpkit.Fail(w, 403, "Нет права переименования")
 		return
 	}
@@ -140,35 +145,19 @@ func (a *Service) Rename(w http.ResponseWriter, r *http.Request) {
 		conflict(w, err)
 		return
 	}
-	star := &g.Stars[in.Object.Star-1]
-	found := in.Object.Kind == "system"
-	if found {
-		star.Name = name
-	} else {
-		for i := range star.Planets {
-			if star.Planets[i].ID == in.Object.Planet {
-				star.Planets[i].Name = name
-				found = true
-			}
-		}
-	}
-	if !found {
-		httpkit.Fail(w, 404, "Планета не найдена")
-		return
-	}
-	g.Revision++
-	raw, _ := json.Marshal(g)
-	if _, err = tx.Exec(ctx, `UPDATE galaxies SET data=$1 WHERE name='Edem'`, raw); err != nil {
+	worldRevision, err := universestore.Rename(ctx, tx, identity, name)
+	if err != nil {
 		httpkit.Internal(w, err)
 		return
 	}
+	in.Object.UUID = identity.UUID
 	if in.Object.Kind == "planet" {
 		if _, err = tx.Exec(ctx, `UPDATE planet_surfaces SET name=$3 WHERE star=$1 AND planet=$2`, in.Object.Star, in.Object.Planet, name); err != nil {
 			httpkit.Internal(w, err)
 			return
 		}
 	}
-	response := map[string]any{"operation": in.Operation, "object": in.Object, "name": name, "catalog_code": code, "name_revision": revision + 1, "world_revision": g.Revision, "rename_available": false}
+	response := map[string]any{"operation": in.Operation, "object": in.Object, "name": name, "catalog_code": code, "name_revision": revision + 1, "world_revision": worldRevision, "rename_available": false}
 	result, _ = json.Marshal(response)
 	source := "discoverer"
 	if admin {

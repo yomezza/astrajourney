@@ -37,7 +37,7 @@ func TestCatalogProductionBrowser(t *testing.T) {
 		g.Stars[i].Class = string("OBAFGKM"[i%7])
 	}
 	raw, _ := json.Marshal(g)
-	f.exec(`UPDATE galaxies SET data=$1 WHERE name='Edem'`, raw)
+	f.writeWorld(raw)
 	f.exec(`INSERT INTO surveys(user_id,star,source) SELECT $1,n,CASE WHEN n%2=0 THEN 'purchased' ELSE 'survey' END FROM generate_series(1,18) n ON CONFLICT(user_id,star) DO UPDATE SET source=EXCLUDED.source`, uid)
 	create := func(index int) int64 {
 		r := f.req(cookie, "POST", "/api/planet/action", map[string]any{"action": "create", "surface": surface, "sector": sectors[index], "request": fmt.Sprintf("catalog-create-%d", index)}, 200)

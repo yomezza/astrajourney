@@ -98,7 +98,9 @@ func TestFrontierRingsUpgrade(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	f.exec(`UPDATE galaxies SET data=$1 WHERE name='Edem'`, raw)
+	f.stageLegacy(raw)
+	// This fixture represents a pre-discovery-registry world, with different historical galaxy membership.
+	f.exec(`TRUNCATE aj_discovery_name_history,aj_discovery_objects`)
 	f.exec(`UPDATE portal SET active=TRUE`)
 	f.exec(`UPDATE ships SET star=1001,destination=1005,departure=now(),arrival=now()+interval '1 hour',travel_path='[1001,1005]',cargo='{"iron":4}' WHERE user_id=$1`, uid)
 	f.exec(`INSERT INTO surveys(user_id,star) VALUES($1,1001)`, uid)
@@ -111,9 +113,7 @@ func TestFrontierRingsUpgrade(t *testing.T) {
 			t.Fatal(err)
 		}
 		db.Close()
-		if err = f.db.QueryRow(f.ctx, `SELECT data FROM galaxies WHERE name='Edem'`).Scan(&raw); err != nil {
-			t.Fatal(err)
-		}
+		raw = f.worldJSON()
 		var g universe.Galaxy
 		if err = json.Unmarshal(raw, &g); err != nil {
 			t.Fatal(err)
