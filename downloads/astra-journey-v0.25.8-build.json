@@ -1,0 +1,89 @@
+{
+  "tag": "v0.25.8",
+  "builds": [
+    {
+      "file": "astra-journey-v0.25.8-windows-amd64.exe",
+      "service": "cosmos",
+      "goos": "windows",
+      "goarch": "amd64",
+      "goamd64": "v1",
+      "cgo_enabled": false,
+      "source_ref": "1c3472c",
+      "source_commit": "1c3472ced58ce0d25076aa474c618f50dc2cdeda",
+      "source_dirty": false,
+      "compiler": "go version go1.26.11 linux/amd64",
+      "build_label": "v0.25.8",
+      "sha256": "430ea4bf3549f2bc62b28faa495c7f794cea134ff72310c6f768a1b127304e50"
+    },
+    {
+      "file": "astra-journey-v0.25.8-linux-amd64",
+      "service": "cosmos",
+      "goos": "linux",
+      "goarch": "amd64",
+      "goamd64": "v1",
+      "cgo_enabled": false,
+      "source_ref": "1c3472c",
+      "source_commit": "1c3472ced58ce0d25076aa474c618f50dc2cdeda",
+      "source_dirty": false,
+      "compiler": "go version go1.26.11 linux/amd64",
+      "build_label": "v0.25.8",
+      "sha256": "1f54c0c21b7bc06e20c90f3106b20ff805711abc3f41510e61b3625f99e6e390"
+    },
+    {
+      "file": "astra-journey-planet-v0.25.8-windows-amd64.exe",
+      "service": "planet",
+      "goos": "windows",
+      "goarch": "amd64",
+      "goamd64": "v1",
+      "cgo_enabled": false,
+      "source_ref": "1c3472c",
+      "source_commit": "1c3472ced58ce0d25076aa474c618f50dc2cdeda",
+      "source_dirty": false,
+      "compiler": "go version go1.26.11 linux/amd64",
+      "build_label": "v0.25.8",
+      "sha256": "46283f5f3efd2bc5707efe74a5077a46b1e5bb690df7d35224621488340ea8ba"
+    },
+    {
+      "file": "astra-journey-planet-v0.25.8-linux-amd64",
+      "service": "planet",
+      "goos": "linux",
+      "goarch": "amd64",
+      "goamd64": "v1",
+      "cgo_enabled": false,
+      "source_ref": "1c3472c",
+      "source_commit": "1c3472ced58ce0d25076aa474c618f50dc2cdeda",
+      "source_dirty": false,
+      "compiler": "go version go1.26.11 linux/amd64",
+      "build_label": "v0.25.8",
+      "sha256": "ce1e960b7e50ae3f277662ebf9d30a23ab88fa15bd595fafdbf43a070ca59263"
+    },
+    {
+      "file": "astra-journey-chat-v0.25.8-windows-amd64.exe",
+      "service": "chat",
+      "goos": "windows",
+      "goarch": "amd64",
+      "goamd64": "v1",
+      "cgo_enabled": false,
+      "source_ref": "1c3472c",
+      "source_commit": "1c3472ced58ce0d25076aa474c618f50dc2cdeda",
+      "source_dirty": false,
+      "compiler": "go version go1.26.11 linux/amd64",
+      "build_label": "v0.25.8",
+      "sha256": "dbf2f7ef45b94e2f384a1e6f686f3fe3018c2b25bf3c03cdb7999ede50c90111"
+    },
+    {
+      "file": "astra-journey-chat-v0.25.8-linux-amd64",
+      "service": "chat",
+      "goos": "linux",
+      "goarch": "amd64",
+      "goamd64": "v1",
+      "cgo_enabled": false,
+      "source_ref": "1c3472c",
+      "source_commit": "1c3472ced58ce0d25076aa474c618f50dc2cdeda",
+      "source_dirty": false,
+      "compiler": "go version go1.26.11 linux/amd64",
+      "build_label": "v0.25.8",
+      "sha256": "84d5a2063c61d0e084b087adeaa85739c4f0b635e33b0e1f075c0774fc2d120d"
+    }
+  ]
+}
