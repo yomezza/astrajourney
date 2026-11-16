@@ -1,10 +1,10 @@
 {
   "project": "Astra Journey UI Mirror v2",
-  "release": "v0.25.9",
-  "source_commit": "v0.25.9",
+  "release": "v0.25.10",
+  "source_commit": "v0.25.10",
   "expected_original_web_files": 404,
-  "expected_original_web_size": 14929495,
-  "status": "current source assets; source tag v0.25.9",
+  "expected_original_web_size": 14936517,
+  "status": "current source assets; source tag v0.25.10",
   "assets": {
     "ships": [
       "argus.svg",

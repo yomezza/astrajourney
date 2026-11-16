@@ -65,7 +65,7 @@ try {
  await page.evaluate(()=>{delete document.hidden;document.dispatchEvent(new Event('visibilitychange'))});await page.keyboard.up('s');
  // Mouse route is still available in keyboard mode and cancels the held direction.
  const current=await canvas.evaluate(c=>({x:+c.dataset.xq,y:+c.dataset.yq,zoom:+c.dataset.zoom})),box=await canvas.boundingBox();
- await canvas.click({position:{x:box.width/2-1*current.zoom,y:box.height/2}});
+ await canvas.click({position:{x:box.width/2-1*current.zoom,y:box.height/2},modifiers:["Shift"]});
  await page.waitForTimeout(350);assert.equal(await canvas.getAttribute('data-control'),'mouse');
  await page.keyboard.down('s');await page.waitForTimeout(100);await page.keyboard.up('s');await settled();
  assert.equal(await canvas.getAttribute('data-control'),'keyboard');
@@ -82,7 +82,7 @@ try {
  // Reach a real inflated obstacle through A*, then walk against it with WASD.
  const obstacle=input.obstacle;
  const beforeObstacle=await canvas.evaluate(c=>({x:+c.dataset.xq,y:+c.dataset.yq,zoom:+c.dataset.zoom})), obstacleBox=await canvas.boundingBox();
- await canvas.click({position:{x:obstacleBox.width/2+(obstacle.x-beforeObstacle.x)/1024*beforeObstacle.zoom,y:obstacleBox.height/2+(obstacle.y-beforeObstacle.y)/1024*beforeObstacle.zoom}});
+ await canvas.click({position:{x:obstacleBox.width/2+(obstacle.x-beforeObstacle.x)/1024*beforeObstacle.zoom,y:obstacleBox.height/2+(obstacle.y-beforeObstacle.y)/1024*beforeObstacle.zoom},modifiers:["Shift"]});
  await page.waitForFunction(o=>{const c=document.querySelector('#planet-host canvas');return Math.hypot(+c.dataset.xq-o.x,+c.dataset.yq-o.y)<220},obstacle);
  await settled();const wallStart=pos(),wallKey=obstacle.dx===1?'d':obstacle.dx===-1?'a':obstacle.dy===1?'s':'w';
  await canvas.focus();await page.keyboard.down(wallKey);await page.waitForTimeout(900);

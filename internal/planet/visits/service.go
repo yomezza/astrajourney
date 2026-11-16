@@ -100,7 +100,7 @@ func (a *Service) locked(ctx context.Context, uid int64, f scenestore.Fence) (pg
 	if _, err = tx.Exec(telemetry.Phase(ctx, "world_lock"), `SELECT pg_advisory_xact_lock_shared(784218)`); err == nil {
 		phase = "runtime_fence"
 		var n int64
-		err = tx.QueryRow(telemetry.Phase(ctx, "runtime_fence"), `SELECT fence FROM planet_runtime_leases WHERE id=1 AND owner_id=$1 AND fence=$2 AND expires_at>clock_timestamp() AND EXISTS(SELECT 1 FROM planet_schema_state WHERE id=1 AND version=9) FOR SHARE`, f.Owner, f.Number).Scan(&n)
+		err = tx.QueryRow(telemetry.Phase(ctx, "runtime_fence"), `SELECT fence FROM planet_runtime_leases WHERE id=1 AND owner_id=$1 AND fence=$2 AND expires_at>clock_timestamp() AND EXISTS(SELECT 1 FROM planet_schema_state WHERE id=1 AND version=10) FOR SHARE`, f.Owner, f.Number).Scan(&n)
 		if errors.Is(err, pgx.ErrNoRows) {
 			err = scenestore.ErrFence
 		}

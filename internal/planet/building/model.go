@@ -83,12 +83,13 @@ type Object struct {
 	Mine     bool   `json:"mine,omitempty"`
 }
 type Snapshot struct {
+	Removed []string `json:"removed"`
 	Version int64    `json:"version"`
 	Objects []Object `json:"objects"`
 }
 
 func (s Snapshot) Public(uid int64) Snapshot {
-	p := Snapshot{Version: s.Version, Objects: make([]Object, len(s.Objects))}
+	p := Snapshot{Removed: append([]string{}, s.Removed...), Version: s.Version, Objects: make([]Object, len(s.Objects))}
 	for i, o := range s.Objects {
 		o.Mine = o.Owner == uid
 		o.Owner = 0

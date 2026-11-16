@@ -46,7 +46,7 @@ try{
  // Mouse A* refuses the new solid object, using the authoritative grid.
  await panel.getByRole('button',{name:'Закрыть строительство',exact:true}).click();
  await canvas.click({position:{x:point.px,y:point.py}});await page.waitForTimeout(350);
- assert.ok(frames.some(f=>f.type==='error'&&f.payload.code==='target_blocked'),'new collision absent from mouse checks');
+ await page.getByRole('menuitem',{name:'Убрать',exact:true}).waitFor({state:'visible'});await page.keyboard.press('Escape');
  await page.getByRole('button',{name:'Строить',exact:true}).click();
  const initial=states.at(-1);await canvas.focus();await page.keyboard.down('d');await page.waitForTimeout(300);await page.keyboard.up('d');const after=states.at(-1);assert.ok(Math.hypot(after.x_q-initial.x_q,after.y_q-initial.y_q)<20,'building mode moved player');
  await panel.locator('input[type=search]').fill('бак');assert.equal(await panel.locator('.planet-build-card').count(),1);await panel.locator('input[type=search]').fill('');
@@ -55,9 +55,8 @@ try{
  // A full client re-entry must load the committed objects from the scene endpoint.
  scene=null;await page.evaluate(async()=>{const{openVisit}=await import('/features/planet/visit.js');await openVisit()});await canvas.waitFor({state:'visible'});await page.waitForTimeout(300);
  assert.equal(scene.building.snapshot.objects.length,2);assert.equal(scene.building.snapshot.objects[0].rotation,1);
- await page.getByRole('button',{name:'Строить',exact:true}).click();await panel.getByRole('button',{name:'Убрать своё',exact:true}).click();
- await canvas.click({position:{x:point.px,y:point.py}});await page.waitForFunction(()=>document.querySelector('#planet-host canvas').dataset.buildCount==='1');
- await page.waitForTimeout(350);await canvas.click({position:{x:point.px,y:point.py}});await page.waitForFunction(()=>document.querySelector('#planet-host canvas').dataset.buildCount==='0');
+ await canvas.click({position:{x:point.px,y:point.py},button:'right'});await page.getByRole('menuitem',{name:'Убрать',exact:true}).click();await page.waitForFunction(()=>document.querySelector('#planet-host canvas').dataset.buildCount==='1');
+ await page.waitForTimeout(350);await canvas.click({position:{x:point.px,y:point.py},button:'right'});await page.getByRole('menuitem',{name:'Убрать',exact:true}).click();await page.waitForFunction(()=>document.querySelector('#planet-host canvas').dataset.buildCount==='0');
  await peerPage.waitForFunction(()=>document.querySelector('#planet-host canvas').dataset.buildCount==='0');assert.deepEqual(peerErrors,[]);await peerContext.close();
  assert.deepEqual(errors,[]);console.log('PASS: 34 original objects / 5 categories, preview, R rotation, floor + obstacle layering, server collision, no movement in build mode, search, persistence across re-entry, shared updates for two real accounts, own removal; no page errors');
  await context.close();

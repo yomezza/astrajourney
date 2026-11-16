@@ -85,3 +85,22 @@ func (a *App) joinBuildings(ctx context.Context, stamp movement.Stamp, s *scene.
 	}
 	return a.motion.Join(stamp, s, x, y, state)
 }
+
+func (a *App) activateBuildings(ctx context.Context, id access.Identity, in visits.Intent, base *scene.Scene, f scenestore.Fence) (visits.Welcome, *movement.Member, error) {
+	var w visits.Welcome
+	if err := takeGate(ctx, a.buildGate); err != nil {
+		return w, nil, err
+	}
+	defer func() { <-a.buildGate }()
+	state, err := building.Load(ctx, a.db, base.Key())
+	if err != nil {
+		return w, nil, err
+	}
+	w, err = a.visits.Activate(ctx, id, in, base.WithoutObjects(state.Removed), f)
+	if err != nil {
+		return w, nil, err
+	}
+	w.Speed = a.config.MoveSpeed
+	m, err := a.motion.Join(movement.Stamp{Actor: w.Actor, Nickname: w.Nickname, User: id.User, Visit: w.Visit, Epoch: w.Epoch, Generation: w.Generation, Version: w.PositionVersion}, base, w.X, w.Y, state)
+	return w, m, err
+}

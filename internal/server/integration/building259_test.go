@@ -133,3 +133,61 @@ func TestBuildingPersistenceOwnershipAndConcurrentPlacement259(t *testing.T) {
 		t.Fatal("fresh load", s, e)
 	}
 }
+
+func TestNaturalClearingPersistence2510(t *testing.T) {
+	f, _, uid, surface, _, _ := prepare180(t)
+	_, stop := startPlanet150(t, f.db)
+	defer stop()
+	var fence scenestore.Fence
+	if err := f.db.QueryRow(f.ctx, `SELECT owner_id,fence FROM planet_runtime_leases WHERE id=1`).Scan(&fence.Owner, &fence.Number); err != nil {
+		t.Fatal(err)
+	}
+	base, e := scenestore.New(f.db).Load(f.ctx, scene.Key{Surface: surface, Sector: 1}, fence)
+	if e != nil {
+		t.Fatal(e)
+	}
+	var target scene.Object
+	for _, o := range base.Metadata().Objects {
+		if o.RX > 0 {
+			target = o
+			break
+		}
+	}
+	if target.ID == "" {
+		t.Fatal("no decor")
+	}
+	apply := func(id string) (building.Snapshot, error) {
+		tx, e := f.db.Begin(f.ctx)
+		if e != nil {
+			return building.Snapshot{}, e
+		}
+		defer tx.Rollback(f.ctx)
+		s, e := building.Apply(f.ctx, tx, uid, base, building.Command{Action: "clear", Object: building.Object{ID: id}}, nil, pathing.FromQ(target.Position.X, target.Position.Y))
+		if e == nil {
+			e = tx.Commit(f.ctx)
+		}
+		return s, e
+	}
+	s, e := apply(target.ID)
+	if e != nil || len(s.Removed) != 1 {
+		t.Fatal("clear failed", s, e)
+	}
+	again, e := apply(target.ID)
+	if e != nil || again.Version != s.Version {
+		t.Fatal("duplicate clear", e)
+	}
+	if _, e = apply("landing"); e == nil {
+		t.Fatal("deleted landing")
+	}
+	if _, e = apply("arbitrary"); e == nil {
+		t.Fatal("unknown ID")
+	}
+	saved, e := building.Load(f.ctx, f.db, base.Key())
+	if e != nil || len(saved.Removed) != 1 || saved.Removed[0] != target.ID {
+		t.Fatal("not persisted", e)
+	}
+	p := pathing.FromQ(target.Position.X, target.Position.Y)
+	if pathing.Clear(base, p) || !pathing.Clear(base.WithoutObjects(saved.Removed), p) {
+		t.Fatal("clearing collision incorrect")
+	}
+}

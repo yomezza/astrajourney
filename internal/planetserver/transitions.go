@@ -137,7 +137,7 @@ func (a *App) commitCrossing(ctx context.Context, id access.Identity, w visits.W
 	w.Generation = stamp.Generation
 	w.PositionVersion = stamp.Version
 	pos := m.Snapshot()
-	next, err := a.visits.Transition(ctx, id, w, f, m.Scene(), o.pin.Scene(), pos.X, pos.Y, o.ID, operation)
+	next, err := a.visits.Transition(ctx, id, w, f, m.Terrain(), o.pin.Scene(), pos.X, pos.Y, o.ID, operation)
 	if err != nil {
 		return m, w, err
 	}

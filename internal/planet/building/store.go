@@ -18,16 +18,19 @@ func Allowed(ctx context.Context, q postgres.Querier, uid int64, k scene.Key) (b
 	return allowed, err
 }
 func Load(ctx context.Context, q postgres.Querier, k scene.Key) (Snapshot, error) {
-	s := Snapshot{Objects: []Object{}}
-	var raw []byte
-	err := q.QueryRow(ctx, `SELECT version,objects FROM planet_sector_buildings WHERE surface=$1 AND sector=$2 AND revision=$3`, k.Surface, k.Sector, k.Revision).Scan(&s.Version, &raw)
+	s := Snapshot{Objects: []Object{}, Removed: []string{}}
+	var raw, removed []byte
+	err := q.QueryRow(ctx, `SELECT version,objects,removed_objects FROM planet_sector_buildings WHERE surface=$1 AND sector=$2 AND revision=$3`, k.Surface, k.Sector, k.Revision).Scan(&s.Version, &raw, &removed)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return s, nil
 	}
 	if err != nil {
 		return s, err
 	}
-	err = json.Unmarshal(raw, &s.Objects)
+	if err = json.Unmarshal(raw, &s.Objects); err != nil {
+		return s, err
+	}
+	err = json.Unmarshal(removed, &s.Removed)
 	return s, err
 }
 
@@ -48,7 +51,7 @@ func Apply(ctx context.Context, tx pgx.Tx, uid int64, base *scene.Scene, c Comma
 	if !allowed {
 		return empty, ErrDenied
 	}
-	if !access.ValidUUID(c.Object.ID) || (c.Action != "place" && c.Action != "remove") {
+	if (c.Action != "clear" && !access.ValidUUID(c.Object.ID)) || (c.Action != "place" && c.Action != "remove" && c.Action != "clear") {
 		return empty, ErrPlacement
 	}
 	_, err = tx.Exec(ctx, `INSERT INTO planet_sector_buildings(surface,sector,revision) VALUES($1,$2,$3) ON CONFLICT DO NOTHING`, k.Surface, k.Sector, k.Revision)
@@ -70,7 +73,29 @@ func Apply(ctx context.Context, tx pgx.Tx, uid int64, base *scene.Scene, c Comma
 			break
 		}
 	}
-	if c.Action == "remove" {
+	if c.Action == "clear" {
+		var target *scene.Object
+		for _, o := range base.Metadata().Objects {
+			if o.ID == c.Object.ID {
+				copy := o
+				target = &copy
+				break
+			}
+		}
+		if target == nil {
+			return empty, ErrPlacement
+		}
+		p := pathing.FromQ(target.Position.X, target.Position.Y)
+		if (p.X-builder.X)*(p.X-builder.X)+(p.Y-builder.Y)*(p.Y-builder.Y) > Reach*Reach {
+			return empty, errors.New("build_too_far")
+		}
+		for _, id := range s.Removed {
+			if id == target.ID {
+				return s, nil
+			}
+		}
+		s.Removed = append(s.Removed, target.ID)
+	} else if c.Action == "remove" {
 		if found < 0 {
 			return s, nil
 		}
@@ -115,7 +140,7 @@ func Apply(ctx context.Context, tx pgx.Tx, uid int64, base *scene.Scene, c Comma
 		if e != nil {
 			return empty, e
 		}
-		if err = Validate(base, s.Objects, o, people, builder); err != nil {
+		if err = Validate(base.WithoutObjects(s.Removed), s.Objects, o, people, builder); err != nil {
 			return empty, err
 		}
 		s.Objects = append(s.Objects, o)
@@ -124,7 +149,11 @@ func Apply(ctx context.Context, tx pgx.Tx, uid int64, base *scene.Scene, c Comma
 	if err != nil {
 		return empty, err
 	}
+	removedRaw, err := json.Marshal(s.Removed)
+	if err != nil {
+		return empty, err
+	}
 	s.Version++
-	_, err = tx.Exec(ctx, `UPDATE planet_sector_buildings SET version=$4,objects=$5 WHERE surface=$1 AND sector=$2 AND revision=$3`, k.Surface, k.Sector, k.Revision, s.Version, raw)
+	_, err = tx.Exec(ctx, `UPDATE planet_sector_buildings SET version=$4,objects=$5,removed_objects=$6 WHERE surface=$1 AND sector=$2 AND revision=$3`, k.Surface, k.Sector, k.Revision, s.Version, raw, removedRaw)
 	return s, err
 }

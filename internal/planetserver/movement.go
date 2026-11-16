@@ -33,7 +33,7 @@ func (a *App) saveMotion(ctx context.Context, id access.Identity, m *movement.Me
 	}
 	w := visits.Welcome{Visit: stamp.Visit, Epoch: stamp.Epoch, Generation: stamp.Generation, PositionVersion: stamp.Version}
 	began := time.Now()
-	version, err := a.visits.Checkpoint(ctx, id, w, f, m.Scene(), state.X, state.Y, finish)
+	version, err := a.visits.Checkpoint(ctx, id, w, f, m.Terrain(), state.X, state.Y, finish)
 	a.checkpoints.Observe(time.Since(began))
 	if err != nil {
 		a.checkpointErrors.Add(1)

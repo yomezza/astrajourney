@@ -204,15 +204,13 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 						return err
 					}
 					var e error
-					welcome, e = a.visits.Activate(commit, id, in, localScene, f)
+					welcome, pilot, e = a.activateBuildings(commit, id, in, localScene, f)
 					if e != nil {
 						if old != nil {
 							old.Thaw()
 						}
 						return e
 					}
-					welcome.Speed = a.config.MoveSpeed
-					pilot, e = a.joinBuildings(commit, movement.Stamp{Actor: welcome.Actor, Nickname: welcome.Nickname, User: id.User, Visit: welcome.Visit, Epoch: welcome.Epoch, Generation: welcome.Generation, Version: welcome.PositionVersion}, localScene, welcome.X, welcome.Y)
 					if e == nil {
 						pilot.Permit(time.Now().Add(2 * time.Second))
 					}
@@ -642,7 +640,7 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 					err = a.saveMotion(save, id, pilot, f, false)
 					if err == nil {
 						stamp := pilot.Stamp()
-						proof, err = a.visits.PrepareReturn(save, id, visits.Welcome{Visit: stamp.Visit, Epoch: stamp.Epoch, Generation: stamp.Generation, PositionVersion: stamp.Version}, f, pilot.Scene(), input.Operation)
+						proof, err = a.visits.PrepareReturn(save, id, visits.Welcome{Visit: stamp.Visit, Epoch: stamp.Epoch, Generation: stamp.Generation, PositionVersion: stamp.Version}, f, pilot.Terrain(), input.Operation)
 					}
 					<-gate
 				}

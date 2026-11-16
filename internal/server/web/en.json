@@ -2177,5 +2177,9 @@
   "Пень": "Stump",
   "Препятствие · 1 клетка": "Obstacle · 1 cell",
   "Проходимый объект · 1 клетка": "Walkable object · 1 cell",
-  "Опавшие листья": "Fallen leaves"
+  "Опавшие листья": "Fallen leaves",
+  "Нет прав на удаление этого объекта": "You cannot remove this object",
+  "Подойдите ближе к объекту": "Move closer to the object",
+  "Объект недоступен": "Object unavailable",
+  "Постройка": "Placed object"
 }

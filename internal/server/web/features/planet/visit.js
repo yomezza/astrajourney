@@ -27,7 +27,14 @@ const terminalErrors = new Set([
   "unsupported_version",
 ]);
 function stop() {
- trace("planet_resources_disposed", { sessionEpoch: Session.epoch, renderer: !!renderer, socket: !!socket, monitor: !!monitor, polling: !!polling, retry: !!retryTimer });
+  trace("planet_resources_disposed", {
+    sessionEpoch: Session.epoch,
+    renderer: !!renderer,
+    socket: !!socket,
+    monitor: !!monitor,
+    polling: !!polling,
+    retry: !!retryTimer,
+  });
   scope.invalidate();
   clearTimeout(retryTimer);
   clearInterval(monitor);
@@ -53,7 +60,7 @@ async function requestScene(w, signal) {
 }
 export async function openVisit(site) {
   if (busy) return;
-  trace("planet_visit_open", {sessionEpoch: Session.epoch});
+  trace("planet_visit_open", { sessionEpoch: Session.epoch });
   busy = true;
   stop();
   const task = scope.begin();
@@ -206,8 +213,13 @@ export async function openVisit(site) {
       }
     }
   }
-  const settingsKey = Preferences.key("planet-controls", { account: Session.data.state?.user?.id, version: 1 });
-  let controlMode = Preferences.read(settingsKey, "mouse", value => ["mouse", "keyboard"].includes(value));
+  const settingsKey = Preferences.key("planet-controls", {
+    account: Session.data.state?.user?.id,
+    version: 1,
+  });
+  let controlMode = Preferences.read(settingsKey, "mouse", (value) =>
+    ["mouse", "keyboard"].includes(value),
+  );
   const settings = UI.node("dialog");
   settings.id = "planet-settings";
   settings.className = "planet-settings";
@@ -218,21 +230,50 @@ export async function openVisit(site) {
     controlSelect = UI.node("select");
   controlSelect.id = "planet-control-method";
   controlLabel.htmlFor = controlSelect.id;
-  for (const [value, title] of [["mouse", "Мышь"], ["keyboard", "Клавиатура (WASD)"]]) {
-    const option = UI.node("option", tr(title)); option.value = value; controlSelect.append(option);
+  for (const [value, title] of [
+    ["mouse", "Мышь"],
+    ["keyboard", "Клавиатура (WASD)"],
+  ]) {
+    const option = UI.node("option", tr(title));
+    option.value = value;
+    controlSelect.append(option);
   }
   controlSelect.value = controlMode;
   controlSelect.onchange = () => {
-    renderer?.resetInput(); controlMode = controlSelect.value;
+    renderer?.resetInput();
+    controlMode = controlSelect.value;
     Preferences.write(settingsKey, controlMode);
     canvas.dataset.controlMethod = controlMode;
   };
-  settings.append(settingsTitle, controlLabel, controlSelect,
-    UI.node("p", tr("WASD поддерживает русскую раскладку. Клик задаёт маршрут; WASD отменяет его. При вводе текста движение отключено.")),
-    button("Закрыть", () => { settings.close(); canvas.focus({preventScroll:true}); }));
-  const buildButton=button("Строить");buildButton.disabled=true;
- const settingsButton = button("Настройки", () => { renderer?.resetInput(); settings.showModal(); controlSelect.focus(); });
-  task.signal.addEventListener("abort", () => { if(settings.open) settings.close(); }, {once:true});
+  settings.append(
+    settingsTitle,
+    controlLabel,
+    controlSelect,
+    UI.node(
+      "p",
+      tr(
+        "WASD поддерживает русскую раскладку. Клик задаёт маршрут; WASD отменяет его. При вводе текста движение отключено.",
+      ),
+    ),
+    button("Закрыть", () => {
+      settings.close();
+      canvas.focus({ preventScroll: true });
+    }),
+  );
+  const buildButton = button("Строить");
+  buildButton.disabled = true;
+  const settingsButton = button("Настройки", () => {
+    renderer?.resetInput();
+    settings.showModal();
+    controlSelect.focus();
+  });
+  task.signal.addEventListener(
+    "abort",
+    () => {
+      if (settings.open) settings.close();
+    },
+    { once: true },
+  );
   const recover = button("Восстановить высадку", async () => {
     if (returning) return;
     returning = true;
@@ -317,7 +358,11 @@ export async function openVisit(site) {
     status,
     tools,
     settings,
-    UI.node("p", tr("WASD — ходить · ЛКМ — маршрут · Колесо — масштаб · ПКМ — обзор"), "muted"),
+    UI.node(
+      "p",
+      tr("WASD — ходить · ЛКМ — маршрут · Колесо — масштаб · ПКМ — обзор"),
+      "muted",
+    ),
     transitionPanel,
     artWarning,
     viewport,
@@ -341,7 +386,12 @@ export async function openVisit(site) {
       tr("Восстанавливаем соединение с планетарной службой") +
       ` · ${attempts}/8`;
     clearTimeout(retryTimer);
-    trace("planet_reconnect_scheduled", {visit: welcome?.visit || "", connectionEpoch: welcome?.connection_epoch || 0, attempt: attempts, delayMs: Math.round(delay)});
+    trace("planet_reconnect_scheduled", {
+      visit: welcome?.visit || "",
+      connectionEpoch: welcome?.connection_epoch || 0,
+      attempt: attempts,
+      delayMs: Math.round(delay),
+    });
     retryTimer = setTimeout(() => connect(), delay);
   }
   async function connect() {
@@ -418,10 +468,11 @@ export async function openVisit(site) {
       const url = new URL("/planet/ws/v1", location.href);
       url.protocol = location.protocol === "https:" ? "wss:" : "ws:";
       const requestId = requestID();
- url.searchParams.set("request_id", requestId);
- trace("planet_ws_created", { requestId, sessionEpoch: Session.epoch });
- const conn = new WebSocket(url);
- let traceVisit = "", traceEpoch = 0;
+      url.searchParams.set("request_id", requestId);
+      trace("planet_ws_created", { requestId, sessionEpoch: Session.epoch });
+      const conn = new WebSocket(url);
+      let traceVisit = "",
+        traceEpoch = 0;
       let localCloseReason = "",
         lastPacketType = "",
         lastServerErrorCode = "";
@@ -440,7 +491,7 @@ export async function openVisit(site) {
         socket === conn &&
         conn.readyState === WebSocket.OPEN;
       conn.onopen = () => {
- trace("planet_ws_open", { requestId, current: current() });
+        trace("planet_ws_open", { requestId, current: current() });
         clearTimeout(handshake);
         if (!current()) {
           localCloseReason = "stale_connection";
@@ -544,7 +595,13 @@ export async function openVisit(site) {
           const p = message.payload;
           if (message.type === "error") {
             lastServerErrorCode = String(p?.code || "unknown_error");
- trace("planet_server_error", {requestId, visit: traceVisit, connectionEpoch: traceEpoch, code: lastServerErrorCode, phase: p?.phase || "unspecified"});
+            trace("planet_server_error", {
+              requestId,
+              visit: traceVisit,
+              connectionEpoch: traceEpoch,
+              code: lastServerErrorCode,
+              phase: p?.phase || "unspecified",
+            });
             console.warn("Planet server error", {
               code: lastServerErrorCode,
               phase: p?.phase || "unspecified",
@@ -590,8 +647,13 @@ export async function openVisit(site) {
               landingSector = p.landing_sector;
               landingSurface = p.landing_surface;
             }
-            traceVisit = welcome.visit; traceEpoch = welcome.connection_epoch;
- trace("planet_welcome", { requestId, visit: traceVisit, connectionEpoch: traceEpoch });
+            traceVisit = welcome.visit;
+            traceEpoch = welcome.connection_epoch;
+            trace("planet_welcome", {
+              requestId,
+              visit: traceVisit,
+              connectionEpoch: traceEpoch,
+            });
             connectedAt = Date.now();
             resume.hidden = true;
             status.textContent =
@@ -619,15 +681,50 @@ export async function openVisit(site) {
               current: locationCurrent,
               target: (x, y) => send("move", { x_q: x, y_q: y }),
               buildButton,
-              build: payload => send("build",payload),
+              build: (payload) => send("build", payload),
               steer: (dx, dy) => send("steer", { dx, dy }),
-              keyboardEnabled: () => controlMode === "keyboard" && !settings.open,
+              keyboardEnabled: () =>
+                controlMode === "keyboard" && !settings.open,
               signal: graphicsSignal,
               assets: (missing) => {
                 if (locationCurrent()) artWarning.hidden = !missing.length;
               },
               onInteract: (info, event) => {
-                if (info?.id !== "landing") return false;
+                if (!info) return false;
+                if (info.id !== "landing") {
+                  const near =
+                    Math.hypot(
+                      (lastState?.x_q ?? welcome.x_q) / 1024 - info.x,
+                      (lastState?.y_q ?? welcome.y_q) / 1024 - info.y,
+                    ) <= 32;
+                  const allowed =
+                    scene.building?.allowed && (!info.placed || info.mine);
+                  UI.menu(
+                    [
+                      { heading: info.name },
+                      {
+                        label: "Убрать",
+                        danger: true,
+                        disabled:
+                          !allowed || !near || !!activeOffer || returning,
+                        reason: !allowed
+                          ? tr("Нет прав на удаление этого объекта")
+                          : !near
+                            ? tr("Подойдите ближе к объекту")
+                            : undefined,
+                        action: () =>
+                          send("build", {
+                            action: info.placed ? "remove" : "clear",
+                            object: { id: info.id },
+                          }),
+                      },
+                    ],
+                    event.clientX,
+                    event.clientY,
+                    { owner: canvas, theme: "chat" },
+                  );
+                  return true;
+                }
                 const x = lastState?.x_q ?? welcome.x_q,
                   y = lastState?.y_q ?? welcome.y_q;
                 const near =
@@ -676,21 +773,49 @@ export async function openVisit(site) {
             renderer = controller;
             canvas.dataset.controlMethod = controlMode;
             canvas.dataset.ready = "true";
- trace("planet_scene_ready", {requestId, visit: traceVisit, connectionEpoch: traceEpoch});
+            trace("planet_scene_ready", {
+              requestId,
+              visit: traceVisit,
+              connectionEpoch: traceEpoch,
+            });
             PlanetMode.ready();
             canvas.dataset.sector = String(welcome.sector);
             canvas.dataset.connectionEpoch = String(welcome.connection_epoch);
             renderer?.actors([...peers.values()], true);
             if (lastState) renderer?.update(lastState);
             if (lastPath) renderer?.accepted(lastPath);
-            if(lastBuildings)renderer?.buildings(lastBuildings);
+            if (lastBuildings) renderer?.buildings(lastBuildings);
             return;
           }
           if (!welcome) return;
-          if(message.type==="buildings.snapshot"){lastBuildings=p;renderer?.buildings(p);return}
-          if(message.type==="build.result"){renderer?.buildResult(p);return}
+          if (message.type === "buildings.snapshot") {
+            lastBuildings = p;
+            renderer?.buildings(p);
+            return;
+          }
+          if (message.type === "build.result") {
+            renderer?.buildResult(p);
+            if (!p.ok)
+              notify(
+                tr(
+                  {
+                    build_access_denied: "Нет прав на удаление этого объекта",
+                    build_too_far: "Подойдите ближе к объекту",
+                    build_invalid_place: "Объект недоступен",
+                    build_rate_limited:
+                      "Подождите немного перед следующей установкой.",
+                  }[p.code] ||
+                    "Не удалось сохранить объект. Повторите после проверки связи.",
+                ),
+                "warning",
+              );
+            return;
+          }
           if (message.type === "sector.snapshot") {
- if(p.buildings){lastBuildings=p.buildings;renderer?.buildings(p.buildings)}
+            if (p.buildings) {
+              lastBuildings = p.buildings;
+              renderer?.buildings(p.buildings);
+            }
             peers = new Map(p.actors.map((a) => [a.actor, a]));
             renderer?.actors(p.actors, true);
             lastState = p.self;
@@ -746,7 +871,16 @@ export async function openVisit(site) {
         }
       };
       conn.onclose = (event) => {
- trace("planet_ws_close", {requestId, visit: traceVisit, connectionEpoch: traceEpoch, code: event.code, wasClean: event.wasClean, phase: localCloseReason || "transport_or_server", current: task.current() && socket === conn, initiator: localCloseReason ? "browser" : "unknown"});
+        trace("planet_ws_close", {
+          requestId,
+          visit: traceVisit,
+          connectionEpoch: traceEpoch,
+          code: event.code,
+          wasClean: event.wasClean,
+          phase: localCloseReason || "transport_or_server",
+          current: task.current() && socket === conn,
+          initiator: localCloseReason ? "browser" : "unknown",
+        });
         clearTimeout(handshake);
         if (!task.current() || socket !== conn) return;
         clearInterval(monitor);

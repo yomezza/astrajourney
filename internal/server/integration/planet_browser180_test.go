@@ -25,6 +25,9 @@ import (
 )
 
 func TestPlanetModeWithCosmicWorkers(t *testing.T) { planetBrowser210(t, false, "planet-mode-workers") }
+func TestPlanetObjectMenuBrowser2510(t *testing.T) {
+	planetBrowser210(t, false, "planet-object-menu-live.mjs")
+}
 func TestPlanetBuildingBrowser259(t *testing.T) {
 	planetBrowser210(t, false, "planet-building-live.mjs")
 }

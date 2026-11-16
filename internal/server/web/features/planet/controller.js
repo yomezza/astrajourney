@@ -160,6 +160,7 @@ export async function createController(
   );
   construction = createBuildingMode(canvas, scene.building, art, {
     button: buildButton,
+    naturalObjects: scene.objects,
     current,
     position: () => latest,
     people: () => [latest, ...[...peers.values()].map((p) => p.latest)],
@@ -168,6 +169,8 @@ export async function createController(
     reset: () => keyboard.reset(),
   });
   if (canvas.closest("#planet-host")) canvas.focus({ preventScroll: true });
+  const hit = (p) => construction.hit(p) || sprites.hit(p);
+  sprites.removed(scene.building?.snapshot?.removed);
   const down = (e) => {
     if (e.button === 0) {
       keyboard.mouse();
@@ -177,7 +180,10 @@ export async function createController(
         e.preventDefault();
         return;
       }
-      if (onInteract?.(sprites.hit(p), e)) {
+      if (!e.shiftKey && onInteract?.(hit(p), e)) {
+        route = [];
+        goal = null;
+        steer?.(0, 0);
         e.preventDefault();
         e.stopPropagation();
         return;
@@ -198,7 +204,14 @@ export async function createController(
       goalBlocked = false;
     } else if (e.button === 2 || e.button === 1) {
       e.preventDefault();
-      drag = { x: e.clientX, y: e.clientY, cx: cam.x, cy: cam.y };
+      drag = {
+        x: e.clientX,
+        y: e.clientY,
+        cx: cam.x,
+        cy: cam.y,
+        button: e.button,
+        moved: false,
+      };
       follow = false;
       canvas.setPointerCapture(e.pointerId);
     }
@@ -206,15 +219,33 @@ export async function createController(
   const move = (e) => {
     if (!drag) {
       if (construction.pointer(world(e))) onHover?.(null);
-      else onHover?.(sprites.hit(world(e)));
+      else onHover?.(hit(world(e)));
     }
-    if (drag)
+    if (drag) {
+      if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 4)
+        drag.moved = true;
       cam = {
         x: drag.cx - (e.clientX - drag.x) / zoom,
         y: drag.cy - (e.clientY - drag.y) / zoom,
       };
+    }
   };
-  const up = () => {
+  const up = (event) => {
+    if (
+      event.type !== "pointercancel" &&
+      drag?.button === 2 &&
+      !drag.moved &&
+      !construction.active
+    ) {
+      const info = hit(world(event));
+      if (info) {
+        keyboard.mouse();
+        steer?.(0, 0);
+        route = [];
+        goal = null;
+        onInteract?.(info, event);
+      }
+    }
     drag = null;
   };
   const context = (e) => e.preventDefault();
@@ -350,6 +381,8 @@ export async function createController(
     },
     buildings(value) {
       construction.update(value);
+      sprites.removed(value?.removed);
+      onHover?.(null);
     },
     buildResult(value) {
       construction.result(value);

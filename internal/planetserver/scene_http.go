@@ -14,10 +14,11 @@ import (
 )
 
 type buildingView struct {
-	Catalog  []building.Definition `json:"catalog"`
-	Snapshot building.Snapshot     `json:"snapshot"`
-	Allowed  bool                  `json:"allowed"`
-	Cells    []byte                `json:"cells"`
+	Catalog      []building.Definition `json:"catalog"`
+	Snapshot     building.Snapshot     `json:"snapshot"`
+	Allowed      bool                  `json:"allowed"`
+	TerrainCells []byte                `json:"terrain_cells"`
+	Cells        []byte                `json:"cells"`
 }
 
 func (a *App) sceneView(w http.ResponseWriter, r *http.Request) {
@@ -113,9 +114,14 @@ func (a *App) sceneView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	cells := make([]byte, 256*256)
+	terrainCells := make([]byte, 256*256)
+	effective := pin.Scene().WithoutObjects(builds.Removed)
 	for y := 0; y < 256; y++ {
 		for x := 0; x < 256; x++ {
-			if pin.Scene().Walkable(x, y) && !pin.Scene().Water(x, y) && !pin.Scene().Reserved(x, y) {
+			if pin.Scene().TerrainWalkable(x, y) && !pin.Scene().Reserved(x, y) {
+				terrainCells[y*256+x] = 1
+			}
+			if effective.Walkable(x, y) && !effective.Water(x, y) && !effective.Reserved(x, y) {
 				cells[y*256+x] = 1
 			}
 		}
@@ -125,5 +131,5 @@ func (a *App) sceneView(w http.ResponseWriter, r *http.Request) {
 		Building  buildingView               `json:"building"`
 		Exits     []map[string]any           `json:"exits"`
 		Materials []scenestore.MaterialPoint `json:"materials"`
-	}{Public: public, Exits: exits, Materials: materials, Building: buildingView{building.Catalog, builds.Public(id.User), canBuild, cells}})
+	}{Public: public, Exits: exits, Materials: materials, Building: buildingView{building.Catalog, builds.Public(id.User), canBuild, terrainCells, cells}})
 }

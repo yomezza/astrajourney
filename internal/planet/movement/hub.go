@@ -54,6 +54,7 @@ type actor struct {
 	grid      pathing.Grid
 	editing   int
 	scene     *scene.Scene
+	terrain   *scene.Scene
 	cancel    context.CancelFunc
 	members   map[int64]*Member
 }
@@ -104,7 +105,7 @@ func (h *Hub) Join(stamp Stamp, s *scene.Scene, x, y int, builds ...building.Sna
 		return nil, ErrSuspended
 	}
 	p := pathing.FromQ(x, y)
-	if !pathing.Clear(s, p) {
+	if !pathing.Valid(p) {
 		return nil, pathing.ErrBlocked
 	}
 	if old := h.members[stamp.User]; old != nil {
@@ -115,11 +116,22 @@ func (h *Hub) Join(stamp Stamp, s *scene.Scene, x, y int, builds ...building.Sna
 	}
 	a := h.actors[s.Key()]
 	if a == nil {
+		navigation := s
+		if len(builds) > 0 {
+			navigation = s.WithoutObjects(builds[0].Removed)
+		}
+		grid := building.NewGrid(navigation, nil)
+		if len(builds) > 0 {
+			grid = building.NewGrid(navigation, builds[0].Objects)
+		}
+		if !pathing.Clear(grid, p) {
+			return nil, pathing.ErrBlocked
+		}
 		ctx, cancel := context.WithCancel(h.ctx)
-		a = &actor{scene: s, grid: s, cancel: cancel, members: map[int64]*Member{}}
+		a = &actor{scene: s, terrain: navigation, grid: grid, cancel: cancel, members: map[int64]*Member{}}
 		if len(builds) > 0 {
 			a.buildings = builds[0]
-			a.grid = building.NewGrid(s, builds[0].Objects)
+			a.grid = grid
 		}
 		h.actors[s.Key()] = a
 		h.wg.Add(1)
@@ -137,7 +149,15 @@ func (h *Hub) Current(user int64) *Member { h.mu.Lock(); defer h.mu.Unlock(); re
 func (m *Member) Done() <-chan struct{}   { return m.done }
 func (m *Member) Updates() <-chan State   { return m.updates }
 func (m *Member) Stamp() Stamp            { m.hub.mu.Lock(); defer m.hub.mu.Unlock(); return m.stamp }
-func (m *Member) Scene() *scene.Scene     { return m.actor.scene }
+func (m *Member) Terrain() *scene.Scene {
+	m.hub.mu.Lock()
+	defer m.hub.mu.Unlock()
+	if m.actor.terrain == nil {
+		return m.actor.scene
+	}
+	return m.actor.terrain
+}
+func (m *Member) Scene() *scene.Scene { return m.actor.scene }
 func (m *Member) snapshot(now time.Time) State {
 	x, y := m.pos.Quantized()
 	moving := (len(m.path) > 0 || (m.steering != (pathing.Point{}) && now.Before(m.steeringUntil) && !m.steeringBlocked)) && !m.frozen && m.actor.editing == 0 && now.Before(m.permit)
@@ -473,7 +493,8 @@ func (h *Hub) EditSector(k scene.Key) ([]pathing.Point, func(*building.Snapshot)
 			return
 		}
 		a.buildings = *s
-		a.grid = building.NewGrid(a.scene, s.Objects)
+		a.terrain = a.scene.WithoutObjects(s.Removed)
+		a.grid = building.NewGrid(a.terrain, s.Objects)
 		for _, m := range a.members {
 			m.path = nil
 			m.steering = pathing.Point{}

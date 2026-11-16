@@ -40,7 +40,7 @@ export function createBuildingMode(
   canvas,
   data,
   art,
-  { button, current, position, people, send, reset },
+  { button, current, position, people, send, reset, naturalObjects = [] },
 ) {
   let snapshot = data?.snapshot || { version: 0, objects: [] },
     selected = data?.catalog?.[0],
@@ -53,9 +53,28 @@ export function createBuildingMode(
     showGrid = true;
   const definitions = new Map((data?.catalog || []).map((d) => [d.id, d]));
   const objects = () => snapshot.objects || [];
+  const terrainCells = data?.terrain_cells
+    ? Uint8Array.from(atob(data.terrain_cells), (c) => c.charCodeAt(0))
+    : null;
   const cells = data?.cells
     ? Uint8Array.from(atob(data.cells), (c) => c.charCodeAt(0))
     : null;
+  function updateCells() {
+    if (!terrainCells || !cells) return;
+    cells.set(terrainCells);
+    const removed = new Set(snapshot.removed || []);
+    for (const o of naturalObjects) {
+      if (removed.has(o.id) || !o.RX) continue;
+      const rx = Math.ceil(o.RX / 1024 + 0.625 + Math.SQRT2 / 2),
+        ry = Math.ceil(o.RY / 1024 + 0.625 + Math.SQRT2 / 2),
+        cx = Math.floor(o.position.X / 1024),
+        cy = Math.floor(o.position.Y / 1024);
+      for (let y = Math.max(0, cy - ry); y <= Math.min(255, cy + ry); y++)
+        for (let x = Math.max(0, cx - rx); x <= Math.min(255, cx + rx); x++)
+          cells[y * 256 + x] = 0;
+    }
+  }
+  updateCells();
   const node = (tag, text, cls) => {
     const e = document.createElement(tag);
     if (text) e.textContent = tr(text);
@@ -322,12 +341,32 @@ export function createBuildingMode(
   refreshInfo();
   renderCatalog();
   return {
+    hit(p) {
+      const o = [...objects()]
+        .reverse()
+        .find(
+          (o) =>
+            o.x === Math.floor(p.x / TILE) && o.y === Math.floor(p.y / TILE),
+        );
+      if (!o) return null;
+      return {
+        id: o.id,
+        x: o.x * TILE + 2,
+        y: o.y * TILE + 2,
+        name: tr(definitions.get(o.kind)?.title || o.kind),
+        text: tr("Постройка"),
+        placed: true,
+        mine: !!o.mine,
+      };
+    },
     get active() {
       return active;
     },
     update(value) {
       if (value && value.version >= snapshot.version) {
         snapshot = value;
+        updateCells();
+        canvas.dataset.removedCount = String(value.removed?.length || 0);
         canvas.dataset.buildCount = String(objects().length);
       }
     },

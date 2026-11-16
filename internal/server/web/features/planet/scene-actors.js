@@ -63,22 +63,42 @@ export function createSceneSprites(scene, art) {
     });
   objects.sort((a, b) => a.y - b.y);
   const dust = [];
-  let hover = null;
+  let hover = null,
+    removed = new Set(),
+    masks = new Map();
   return {
+    removed(ids) {
+      removed = new Set(ids || []);
+      if (hover && removed.has(hover.id)) hover = null;
+    },
     hit(p) {
       hover = null;
       for (let i = objects.length - 1; i >= 0; i--) {
         const o = objects[i],
-          s = spriteSpecs[o.name];
-        if (!s) continue;
-        // Select the ground contact, so an invisible PNG margin cannot intercept.
-        if (
-          Math.hypot(p.x - o.x, (p.y - o.y) * 1.7) <
-          (o.name === "landing" ? 7 : 2.2)
-        ) {
-          hover = o;
-          break;
+          spec = spriteSpecs[o.name],
+          image = art.get(o.name);
+        if (removed.has(o.id) || !spec || !image) continue;
+        const w = spec[0] / 16,
+          h = (w * image.height) / image.width,
+          left = o.x - w * spec[1],
+          top = o.y - h * spec[2];
+        const x = Math.floor(((p.x - left) / w) * image.width),
+          y = Math.floor(((p.y - top) / h) * image.height);
+        if (x < 0 || y < 0 || x >= image.width || y >= image.height) continue;
+        let alpha = masks.get(o.name);
+        if (!alpha) {
+          const c = document.createElement("canvas");
+          c.width = image.width;
+          c.height = image.height;
+          const cc = c.getContext("2d", { willReadFrequently: true });
+          cc.drawImage(image, 0, 0);
+          alpha = cc.getImageData(0, 0, c.width, c.height).data;
+          masks.set(o.name, alpha);
+          c.width = c.height = 0;
         }
+        if (alpha[(y * image.width + x) * 4 + 3] < 32) continue;
+        hover = o;
+        break;
       }
       return hover
         ? {
@@ -91,6 +111,7 @@ export function createSceneSprites(scene, art) {
                 ? "Площадка высадки и возврата к кораблю"
                 : "Природный объект · препятствия учитывает сервер",
             ),
+            placed: false,
           }
         : null;
     },
@@ -99,7 +120,7 @@ export function createSceneSprites(scene, art) {
         Math.abs(o.x - view.cx) < view.worldW / 2 + 25 &&
         Math.abs(o.y - view.cy) < view.worldH / 2 + 25;
       const own = people[0],
-        render = objects.filter(visible);
+        render = objects.filter((o) => !removed.has(o.id) && visible(o));
       render.push(...people.filter(visible), ...placed.filter(visible));
       render.sort((a, b) => a.y - b.y);
       for (const step of dust) {
@@ -168,6 +189,7 @@ export function createSceneSprites(scene, art) {
     },
     stop() {
       dust.length = 0;
+      masks.clear();
       hover = null;
     },
   };
