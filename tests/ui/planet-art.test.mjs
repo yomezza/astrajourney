@@ -39,7 +39,7 @@ test("local art uses saved masks, global texture UV, one atlas and server-facing
   const g = await game(t, { signedIn: true });
   await g.ready();
   assert.equal(
-    g.assets.some((p) => p.includes("/planet-art/")),
+    g.assets.some((p) => p.includes("/planet-pixelart-v1/")),
     false,
   );
   const scene = localArtScene();
@@ -49,7 +49,7 @@ test("local art uses saved masks, global texture UV, one atlas and server-facing
   assert.equal(await canvas.getAttribute("data-art"), "ready");
   assert.equal(await canvas.getAttribute("data-landing"), "true");
   assert.equal(
-    g.assets.filter((p) => p.endsWith("colonist_8dir_atlas.png")).length,
+    g.assets.filter((p) => p.endsWith("player_suit_7x8_896x1024.png")).length,
     1,
   );
   assert.equal(
@@ -145,7 +145,7 @@ test("local art uses saved masks, global texture UV, one atlas and server-facing
 test("missing atlas degrades explicitly, releases leases and retries without stale renderer", async (t) => {
   const g = await game(t, { signedIn: true });
   await g.ready();
-  await g.context.route("**/colonist_8dir_atlas.png", (r) => r.abort());
+  await g.context.route("**/player_*_7x8_896x1024.png*", (r) => r.abort());
   await open(g, localArtScene());
   assert.equal(
     await g.page.locator(".visit-canvas").getAttribute("data-art"),
@@ -155,7 +155,7 @@ test("missing atlas degrades explicitly, releases leases and retries without sta
     window.__testApp.artAbort.abort();
     window.__testApp.artController.stop();
   });
-  await g.context.unroute("**/colonist_8dir_atlas.png");
+  await g.context.unroute("**/player_*_7x8_896x1024.png*");
   await open(g, localArtScene());
   assert.equal(
     await g.page.locator(".visit-canvas").getAttribute("data-art"),

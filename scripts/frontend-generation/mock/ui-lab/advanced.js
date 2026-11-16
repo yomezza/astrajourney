@@ -117,7 +117,7 @@ function makeScene() {
   return {
     objects: plantObjects.map(o => ({
       id: o.id,
-      asset: '/planet-art/' + o.name + '.png',
+      asset: 'nature/' + o.name + '.png',
       position: { X: Math.round(o.x * 1024), Y: Math.round(o.y * 1024) }
     })),
     landing: {X: 68 * 1024, Y: 66 * 1024}
@@ -249,7 +249,7 @@ function terrainDemo(item,host) {
     for(const kind of ['Садовый мир','Ледяная','Пустынная','Лавовая']){
       const opt=$('option',kind);opt.value=kind;select.append(opt);
     }
-    const detail=$('small','Загружает оригинальные surface-ground-*.png и строит raster штатным terrain().');
+    const detail=$('small','Загружает оригинальные pixelart v1 terrain PNG и строит raster штатным terrain().');
     host.append(group(select),canvas,detail,status(host,'Ожидание рендера…'));
     let raster=null,serial=0;
     const paint=()=>{

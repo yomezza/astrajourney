@@ -1,3 +1,4 @@
+import { ART_PATHS } from "./art-pack.js";
 import { uuid } from "../../core/uuid.js";
 import { openVisit } from "./visit.js";
 import { mountColonyCatalog, clearColonyCatalog } from "./colony-catalog.js";
@@ -472,7 +473,7 @@ export function initPlanet() {
         );
       if (site) {
         const image = n("img");
-        image.src = "planet-landing-core.png";
+        image.src = ART_PATHS.landing;
         image.alt = tr("Посадочная площадка");
         image.className = "landing-site-preview";
         panel.append(image);

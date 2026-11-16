@@ -3,7 +3,7 @@
 [diagnostics]
 # Separate cosmos.jsonl, planet.jsonl, chat.jsonl; also mirrored to stderr.
 # Directory must be writable by each service account. No credentials/SQL values.
-directory = '/var/lib/astra-journey/diagnostics'
+directory = 'logs' # Relative to the services working directory.
 enabled = true # Set false after collecting the incident to stop detailed tracing.
 
 [database]
@@ -27,7 +27,7 @@ chat_internal_url = 'http://127.0.0.1:8082'
 [planet]
 http_addr = '127.0.0.1:8081'
 allowed_origins = ['http://192.168.111.44:8080']
-log_file = '/var/lib/astra-journey/planet.log'
+log_file = 'logs/planet.log'
 move_speed = 4.0
 path_budget = 24000
 db_timeout = '2s'
@@ -43,7 +43,7 @@ http_addr = '127.0.0.1:8082'
 cosmic_internal_url = 'http://127.0.0.1:8080'
 planet_internal_url = 'http://127.0.0.1:8081'
 allowed_origins = ['http://192.168.111.44:8080']
-erasure_journal = '/var/lib/astra-journey/chat-erasure.log'
+erasure_journal = 'data/chat-erasure.log' # Keep the existing journal when updating.
 # Для NATS переключить на 'b1' и включить [nats] ниже.
 dispatcher_mode = 'a1'
 fallback_poll_interval = '10s'

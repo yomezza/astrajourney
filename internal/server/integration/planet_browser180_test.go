@@ -5,6 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/yomezza/cosmosimulator/internal/chat"
+	"github.com/yomezza/cosmosimulator/internal/chatserver"
+	"github.com/yomezza/cosmosimulator/internal/planet/pathing"
+	"github.com/yomezza/cosmosimulator/internal/planet/scene"
+	"github.com/yomezza/cosmosimulator/internal/planet/scenestore"
 	"github.com/yomezza/cosmosimulator/internal/planetserver"
 	"io"
 	"log/slog"
@@ -20,6 +25,10 @@ import (
 )
 
 func TestPlanetModeWithCosmicWorkers(t *testing.T) { planetBrowser210(t, false, "planet-mode-workers") }
+func TestPlanetPixelKeyboardBrowser258(t *testing.T) {
+	t.Setenv("CHAT_ENABLED", "true")
+	planetBrowser210(t, false, "planet-pixel-keyboard-live.mjs")
+}
 func TestPlanetBrowser180(t *testing.T)            { planetBrowser210(t, false) }
 func TestPlanetTransitionsBrowser210(t *testing.T) { planetBrowser210(t, true) }
 func TestPlanetWalkingBrowser257(t *testing.T)     { planetBrowser210(t, false, "planet-walking-live.mjs") }
@@ -95,6 +104,27 @@ func planetBrowser210(t *testing.T, transition bool, custom ...string) {
 		wait180(t, f, `SELECT count(*) FROM planet_visits WHERE user_id=$1 AND state='disconnected'`, 1, uid)
 	}
 	t.Setenv("PLANET_INTERNAL_URL", "http://"+listener.Addr().String())
+	var chatApp *chatserver.App
+	var chatListener net.Listener
+	if len(custom) > 0 && custom[0] == "planet-pixel-keyboard-live.mjs" {
+		t.Setenv("CHAT_ENABLED", "true")
+		service := &chat.Service{DB: f.db}
+		journal, e := chat.OpenJournal(f.ctx, service, filepath.Join(t.TempDir(), "erasure.log"))
+		if e != nil {
+			t.Fatal(e)
+		}
+		defer journal.Close()
+		service.Journal = journal
+		chatListener, e = net.Listen("tcp", "127.0.0.1:0")
+		if e != nil {
+			t.Fatal(e)
+		}
+		t.Setenv("CHAT_INTERNAL_URL", "http://"+chatListener.Addr().String())
+		chatApp, e = chatserver.New(service, chatserver.Config{Addr: chatListener.Addr().String(), DatabaseURL: "configured", Journal: "configured", CosmicURL: base, PlanetURL: "http://" + listener.Addr().String(), Origins: []string{base}})
+		if e != nil {
+			t.Fatal(e)
+		}
+	}
 	nonce := fmt.Sprintf("terminal-test-%d", time.Now().UnixNano())
 	handler := f.app.Handler()
 	web.Config.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -102,6 +132,20 @@ func planetBrowser210(t *testing.T, transition bool, custom ...string) {
 		handler.ServeHTTP(w, r)
 	})
 	web.Start()
+	if chatApp != nil {
+		chatRun, chatCancel := context.WithCancel(f.ctx)
+		chatDone := make(chan error, 1)
+		chatStarted := make(chan struct{})
+		go func() { chatDone <- chatApp.Serve(chatRun, chatListener, func() { close(chatStarted) }) }()
+		defer func() {
+			chatCancel()
+			if e := <-chatDone; e != nil {
+				t.Error(e)
+			}
+		}()
+		<-chatStarted
+	}
+
 	scriptName := "planet-live.mjs"
 	if len(custom) > 0 {
 		scriptName = custom[0]
@@ -120,7 +164,44 @@ func planetBrowser210(t *testing.T, transition bool, custom ...string) {
 	ctx, stop := context.WithTimeout(f.ctx, 90*time.Second)
 	defer stop()
 	cmd := exec.CommandContext(ctx, "node", script)
-	input, _ := json.Marshal(map[string]any{"cookie": c.Value, "peer_cookie": peer.Value, "site": fmt.Sprint(site)})
+	payload := map[string]any{"cookie": c.Value, "peer_cookie": peer.Value, "site": fmt.Sprint(site)}
+	if len(custom) > 0 && custom[0] == "planet-pixel-keyboard-live.mjs" {
+		var fence scenestore.Fence
+		if e := f.db.QueryRow(f.ctx, `SELECT owner_id,fence FROM planet_runtime_leases WHERE id=1`).Scan(&fence.Owner, &fence.Number); e != nil {
+			t.Fatal(e)
+		}
+		local, e := scenestore.New(f.db).Load(f.ctx, scene.Key{Surface: surface, Sector: 1}, fence)
+		if e != nil {
+			t.Fatal(e)
+		}
+		landing := local.Metadata().Landing
+		found := false
+		for radius := 2; radius <= 20 && !found; radius++ {
+			for dy := -radius; dy <= radius && !found; dy++ {
+				for dx := -radius; dx <= radius && !found; dx++ {
+					x, y := landing.SpawnX/1024+dx, landing.SpawnY/1024+dy
+					if !local.Walkable(x, y) {
+						continue
+					}
+					for _, d := range [][2]int{{1, 0}, {-1, 0}, {0, 1}, {0, -1}} {
+						if local.Walkable(x+d[0], y+d[1]) {
+							continue
+						}
+						if _, e := pathing.Find(f.ctx, local, pathing.FromQ(landing.SpawnX, landing.SpawnY), pathing.Point{X: float64(x) + .5, Y: float64(y) + .5}, 24000); e != nil {
+							continue
+						}
+						payload["obstacle"] = map[string]int{"x": x*1024 + 512, "y": y*1024 + 512, "dx": d[0], "dy": d[1]}
+						found = true
+						break
+					}
+				}
+			}
+		}
+		if !found {
+			t.Fatal("fixture has no reachable collision boundary")
+		}
+	}
+	input, _ := json.Marshal(payload)
 	cmd.Stdin = bytes.NewReader(input)
 	cmd.Env = append(os.Environ(), "TERMINAL_TEST_URL="+web.URL, "TERMINAL_TEST_NONCE="+nonce)
 	out, err := cmd.CombinedOutput()

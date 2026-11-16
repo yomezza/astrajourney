@@ -7,8 +7,8 @@ TARGET=BASE/'original-web'
 MANIFEST=json.loads((BASE/'graphics-inventory.json').read_text('utf-8'))
 REVISION=MANIFEST['source_commit']
 ARCHIVES=[
-    f'https://codeload.github.com/yomezza/cosmosimulator/zip/{REVISION}',
-    f'https://github.com/yomezza/cosmosimulator/archive/{REVISION}.zip',
+    f'https://codeload.github.com/yomezza/astrajourney/zip/{REVISION}',
+    f'https://github.com/yomezza/astrajourney/archive/{REVISION}.zip',
 ]
 PREFIX='internal/server/web/'
 

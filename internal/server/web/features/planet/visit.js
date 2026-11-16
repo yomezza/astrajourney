@@ -1,3 +1,4 @@
+import { Preferences } from "../../core/preferences.js";
 import { requestID, trace } from "../../core/diagnostics.js";
 import { PlanetMode } from "./mode.js";
 import { refresh } from "../../core/snapshot-store.js";
@@ -204,6 +205,32 @@ export async function openVisit(site) {
       }
     }
   }
+  const settingsKey = Preferences.key("planet-controls", { account: Session.data.state?.user?.id, version: 1 });
+  let controlMode = Preferences.read(settingsKey, "mouse", value => ["mouse", "keyboard"].includes(value));
+  const settings = UI.node("dialog");
+  settings.id = "planet-settings";
+  settings.className = "planet-settings";
+  settings.setAttribute("aria-labelledby", "planet-settings-title");
+  const settingsTitle = UI.node("h2", tr("Настройки планетарного режима"));
+  settingsTitle.id = "planet-settings-title";
+  const controlLabel = UI.node("label", tr("Способ управления")),
+    controlSelect = UI.node("select");
+  controlSelect.id = "planet-control-method";
+  controlLabel.htmlFor = controlSelect.id;
+  for (const [value, title] of [["mouse", "Мышь"], ["keyboard", "Клавиатура (WASD)"]]) {
+    const option = UI.node("option", tr(title)); option.value = value; controlSelect.append(option);
+  }
+  controlSelect.value = controlMode;
+  controlSelect.onchange = () => {
+    renderer?.resetInput(); controlMode = controlSelect.value;
+    Preferences.write(settingsKey, controlMode);
+    canvas.dataset.controlMethod = controlMode;
+  };
+  settings.append(settingsTitle, controlLabel, controlSelect,
+    UI.node("p", tr("WASD поддерживает русскую раскладку. Клик задаёт маршрут; WASD отменяет его. При вводе текста движение отключено.")),
+    button("Закрыть", () => { settings.close(); canvas.focus({preventScroll:true}); }));
+  const settingsButton = button("Настройки", () => { renderer?.resetInput(); settings.showModal(); controlSelect.focus(); });
+  task.signal.addEventListener("abort", () => { if(settings.open) settings.close(); }, {once:true});
   const recover = button("Восстановить высадку", async () => {
     if (returning) return;
     returning = true;
@@ -227,6 +254,7 @@ export async function openVisit(site) {
   tools.append(
     resume,
     recover,
+    settingsButton,
     button("Чат", () => Modules.open("chat")),
     button("Полный экран", async () => {
       try {
@@ -285,7 +313,8 @@ export async function openVisit(site) {
   root.replaceChildren(
     status,
     tools,
-    UI.node("p", tr("ЛКМ — идти · Колесо — масштаб · ПКМ — обзор"), "muted"),
+    settings,
+    UI.node("p", tr("WASD — ходить · ЛКМ — маршрут · Колесо — масштаб · ПКМ — обзор"), "muted"),
     transitionPanel,
     artWarning,
     viewport,
@@ -586,6 +615,8 @@ export async function openVisit(site) {
             const controller = await createController(canvas, scene, welcome, {
               current: locationCurrent,
               target: (x, y) => send("move", { x_q: x, y_q: y }),
+              steer: (dx, dy) => send("steer", { dx, dy }),
+              keyboardEnabled: () => controlMode === "keyboard" && !settings.open,
               signal: graphicsSignal,
               assets: (missing) => {
                 if (locationCurrent()) artWarning.hidden = !missing.length;
@@ -638,6 +669,7 @@ export async function openVisit(site) {
               return;
             }
             renderer = controller;
+            canvas.dataset.controlMethod = controlMode;
             canvas.dataset.ready = "true";
  trace("planet_scene_ready", {requestId, visit: traceVisit, connectionEpoch: traceEpoch});
             PlanetMode.ready();

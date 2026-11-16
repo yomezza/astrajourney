@@ -27,7 +27,7 @@ try {
     { name: "session", value: input.cookie, url: base.href },
   ]);
   let liveRoute, liveServer;
-  await context.routeWebSocket("**/planet/ws/v1", (route) => {
+  await context.routeWebSocket("**/planet/ws/v1*", (route) => {
     liveRoute = route;
     liveServer = route.connectToServer();
   });
@@ -36,8 +36,8 @@ try {
   const errors = [],
     artRequests = [];
   page.on("request", (r) => {
-    if (new URL(r.url()).pathname.startsWith("/planet-art/"))
-      artRequests.push(r.url());
+    if (new URL(r.url()).pathname.startsWith("/planet-pixelart-v1/"))
+      artRequests.push(new URL(r.url()).pathname);
   });
   page.on("pageerror", (e) => errors.push(e.message));
   page.on("console", (m) => {
@@ -124,7 +124,7 @@ try {
   assert.equal(await canvas.getAttribute("data-ground"), "textured");
   assert.equal(await canvas.getAttribute("data-landing"), "true");
   assert.equal(
-    artRequests.filter((p) => p.endsWith("colonist_8dir_atlas.png")).length,
+    artRequests.filter((p) => p.endsWith("player_suit_7x8_896x1024.png")).length,
     1,
   );
   const start = await canvas.evaluate((c) => ({

@@ -1,3 +1,4 @@
+import { ART_PATHS } from "./art-pack.js";
 import { AssetCache } from "../../core/asset-cache.js";
 const textureCache = new AssetCache(6);
 export function texture(name) {
@@ -8,19 +9,19 @@ export function texture(name) {
         const image = new Image();
         image.onload = () => {
           try {
-            if (image.naturalWidth !== 512 || image.naturalHeight !== 512)
+            if (image.naturalWidth !== 32 || image.naturalHeight !== 32)
               throw Error("Invalid surface texture dimensions");
             const canvas = document.createElement("canvas");
-            canvas.width = canvas.height = 512;
+            canvas.width = canvas.height = 32;
             const ctx = canvas.getContext("2d", { willReadFrequently: true });
             ctx.drawImage(image, 0, 0);
-            resolve(ctx.getImageData(0, 0, 512, 512).data);
+            resolve(ctx.getImageData(0, 0, 32, 32).data);
           } catch (error) {
             reject(error);
           }
         };
         image.onerror = () => reject(Error("Surface texture unavailable"));
-        image.src = `surface-ground-${name}.png`;
+        image.src = ART_PATHS["ground_" + name];
       }),
   );
 }
@@ -101,29 +102,9 @@ function biomeMasks(g) {
 }
 function sampleMaterial(pixels, x, y, rgb, weight) {
   if (!pixels || weight <= 0) return 0;
-  // All tiles share a four-world-unit period. Neither hex boundaries nor
-  // camera pan/zoom restart UV coordinates. Last row/column duplicate the first.
-  const u = ((((x / 4) % 1) + 1) % 1) * 511,
-    v = ((((y / 4) % 1) + 1) % 1) * 511,
-    ix = Math.floor(u),
-    iy = Math.floor(v),
-    fx = u - ix,
-    fy = v - iy,
-    a = (iy * 512 + ix) * 4,
-    b = a + 4,
-    c = a + 512 * 4,
-    d = c + 4,
-    wa = (1 - fx) * (1 - fy),
-    wb = fx * (1 - fy),
-    wc = (1 - fx) * fy,
-    wd = fx * fy;
-  for (let channel = 0; channel < 3; channel++)
-    rgb[channel] +=
-      weight *
-      (pixels[a + channel] * wa +
-        pixels[b + channel] * wb +
-        pixels[c + channel] * wc +
-        pixels[d + channel] * wd);
+  const ix = Math.floor(((x / 4 % 1 + 1) % 1) * 32),
+    iy = Math.floor(((y / 4 % 1 + 1) % 1) * 32), at = (iy * 32 + ix) * 4;
+  for(let c=0;c<3;c++) rgb[c] += weight * pixels[at+c];
   return weight;
 }
 export function terrain(g, kind, textures = null) {

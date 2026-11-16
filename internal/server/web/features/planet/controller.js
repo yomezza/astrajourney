@@ -1,3 +1,4 @@
+import { keyboardMovement } from "./keyboard.js";
 import { I18n } from "../../core/i18n.js";
 import { acquireArt, drawSprite } from "./scene-art.js";
 import { makeGround, groundKeys } from "./scene-ground.js";
@@ -8,7 +9,7 @@ export async function createController(
   canvas,
   scene,
   w,
-  { current, target, signal, assets, onHover, onInteract },
+  { current, target, signal, assets, onHover, onInteract, steer, keyboardEnabled = () => true },
 ) {
   const peers = new Map();
   const interpolate = (previous, latest, now) => {
@@ -43,16 +44,19 @@ export async function createController(
       ),
       ...groundKeys(scene),
       "atlas",
+      ...(!/Холод|Ледя|Камен|Вулкан|Лав|Пустын/.test(scene.biome) ? ["atlas_casual"] : []),
+      "landing_pad",
       ...(scene.landing ? ["landing"] : []),
       "water_deep",
       "water_shallow",
       "shore_wet",
-      "water_ripple_overlay",
+      "ripple_0", "ripple_1", "ripple_2", "ripple_3",
       "move_target",
       "move_blocked",
       "selection_ring",
       "sector_boundary",
       "footstep_dust",
+      "hover_highlight",
     ],
     signal,
   );
@@ -125,8 +129,12 @@ export async function createController(
     e.preventDefault();
     setZoom(zoom * Math.exp(-e.deltaY * 0.0015), e);
   };
+  canvas.tabIndex = 0;
+ const keyboard = keyboardMovement(canvas, () => !stopped && current() && keyboardEnabled(), (dx,dy) => {route=[];goal=null;return steer?.(dx,dy);});
+ if(canvas.closest("#planet-host")) canvas.focus({preventScroll:true});
   const down = (e) => {
     if (e.button === 0) {
+ keyboard.mouse();canvas.focus({preventScroll:true});
       const p = world(e);
       if (onInteract?.(sprites.hit(p), e)) {
         e.preventDefault();
@@ -195,6 +203,7 @@ export async function createController(
     ctx.clearRect(0, 0, width, height);
     ctx.translate(width / 2 - cam.x * zoom, height / 2 - cam.y * zoom);
     ctx.scale(zoom, zoom);
+    ctx.imageSmoothingEnabled = false;
     const view = {
       cx: cam.x,
       cy: cam.y,
@@ -230,11 +239,7 @@ export async function createController(
     for (const edge of scene.exits || []) {
       const x = edge.x_q / 1024,
         y = edge.y_q / 1024;
-      if (!drawSprite(ctx, art, "sector_boundary", x, y, 0.8)) {
-        ctx.strokeStyle = "#d6bd85";
-        ctx.lineWidth = 1 / zoom;
-        ctx.strokeRect(x - 1, y - 1, 2, 2);
-      }
+      drawSprite(ctx, art, "sector_boundary", x, y, 0.8);
       ctx.fillStyle = "#e5c47f";
       ctx.font = `${11 / zoom}px sans-serif`;
       ctx.textAlign = "center";
@@ -250,22 +255,9 @@ export async function createController(
       )
         goal = null;
       else {
-        if (
-          !drawSprite(
-            ctx,
-            art,
-            goalBlocked ? "move_blocked" : "move_target",
-            goal.x,
-            goal.y,
-            reduced.matches ? 1 : 0.8 + Math.sin(now * 0.005) * 0.15,
-          )
-        ) {
-          ctx.strokeStyle = goalBlocked ? "#db9490" : "#dfc892";
-          ctx.lineWidth = 1.3 / zoom;
-          ctx.beginPath();
-          ctx.arc(goal.x, goal.y, 0.7, 0, Math.PI * 2);
-          ctx.stroke();
-        }
+        drawSprite(ctx, art, goalBlocked ? "move_blocked" : "move_target", goal.x, goal.y,
+          reduced.matches ? 1 : 0.8 + Math.sin(now * 0.005) * 0.15);
+
       }
     }
     canvas.dataset.animation = String(frame?.col || 0);
@@ -292,6 +284,7 @@ export async function createController(
     );
   }
   return {
+    resetInput() { keyboard.reset(); },
     actors(list, replace = false) {
       if (replace) peers.clear();
       for (const a of list) {
@@ -370,6 +363,7 @@ export async function createController(
     },
     stop() {
       if (stopped) return;
+      keyboard.stop();
       stopped = true;
       cancelAnimationFrame(raf);
       observer.disconnect();

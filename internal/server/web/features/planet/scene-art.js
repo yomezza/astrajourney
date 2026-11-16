@@ -1,30 +1,6 @@
 // Public images only. Decoded bitmaps are leased by renderers; idle entries are
 // evicted in LRU order. A closed renderer never retains a decoding request.
-const paths = {
-  atlas: "/planet-art/colonist_8dir_atlas.png",
-  landing: "/planet-landing-core.png",
-};
-for (const name of ["grass", "dry", "sand", "rock", "snow", "volcanic"])
-  paths["ground_" + name] = "/surface-ground-" + name + ".png";
-for (const name of [
-  "tree_old",
-  "tree_young",
-  "bush_sparse",
-  "grass_tuft",
-  "rock_flat",
-  "rock_large_cracked",
-  "grass_dry",
-  "water_deep",
-  "water_shallow",
-  "shore_wet",
-  "water_ripple_overlay",
-  "move_target",
-  "move_blocked",
-  "selection_ring",
-  "sector_boundary",
-  "footstep_dust",
-])
-  paths[name] = "/planet-art/" + name + ".png";
+import { ART_PATHS as paths } from "./art-pack.js";
 const entries = new Map(),
   MAX_BYTES = 24 * 1024 * 1024,
   MAX_IDLE = 20;
@@ -60,6 +36,7 @@ function entry(key) {
   e.promise = (async () => {
     const response = await fetch(paths[key], {
       signal: AbortSignal.any([e.abort.signal, AbortSignal.timeout(8000)]),
+      cache: "force-cache",
     });
     if (!response.ok) throw Error("image unavailable");
     const bitmap = await createImageBitmap(await response.blob());
@@ -130,20 +107,22 @@ export function artCacheStats() {
   };
 }
 export const spriteSpecs = {
-  tree_old: [280, 0.5, 0.77],
-  tree_young: [190, 0.5, 0.79],
+  tree_old: [280, 0.5, 0.94],
+  tree_young: [190, 0.5, 0.94],
   bush_sparse: [88, 0.5, 0.76],
   grass_tuft: [57, 0.5, 0.76],
-  rock_flat: [98, 0.5, 0.64],
-  rock_large_cracked: [168, 0.5, 0.7],
-  grass_dry: [63, 0.5, 0.67],
+  rock_flat: [98, 0.5, 0.85],
+  rock_large_cracked: [168, 0.5, 0.87],
+  grass_dry: [63, 0.5, 0.75],
   // Platform footprint is centred on its apron, not on empty PNG padding.
-  landing: [352, 0.5, 0.57],
+  landing: [320, 0.5, 0.76],
+  landing_pad: [320, 0.5, 0.76],
   atlas: [96, 0.5, 115 / 128],
   move_target: [80, 0.5, 84 / 128],
   move_blocked: [80, 0.5, 84 / 128],
   selection_ring: [64, 0.5, 84 / 128],
   sector_boundary: [72, 80 / 128, 100 / 128],
+  hover_highlight: [100, 0.5, 0.7],
   footstep_dust: [48, 0.5, 70 / 128],
 };
 export function drawSprite(ctx, art, name, x, y, alpha = 1) {
@@ -152,8 +131,9 @@ export function drawSprite(ctx, art, name, x, y, alpha = 1) {
   if (!image || !s) return false;
   ctx.save();
   ctx.globalAlpha *= alpha;
+  ctx.imageSmoothingEnabled = false;
   const size = s[0] / 16;
-  ctx.drawImage(image, x - size * s[1], y - size * s[2], size, size);
+  ctx.drawImage(image, x - size * s[1], y - size * (image.height / image.width) * s[2], size, size * image.height / image.width);
   ctx.restore();
   return true;
 }

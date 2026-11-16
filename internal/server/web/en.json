@@ -2106,5 +2106,11 @@
   "Ниже": "Move down",
   "pending": "Processing",
   "ready": "Ready",
-  "runtime_fence_lost": "Planet runtime lease changed. Restoring the visit."
+  "runtime_fence_lost": "Planet runtime lease changed. Restoring the visit.",
+  "Настройки планетарного режима": "Planet settings",
+  "Способ управления": "Control method",
+  "Мышь": "Mouse",
+  "Клавиатура (WASD)": "Keyboard (WASD)",
+  "WASD поддерживает русскую раскладку. Клик задаёт маршрут; WASD отменяет его. При вводе текста движение отключено.": "WASD works with Russian keyboard layouts. Click to set a route; WASD cancels it. Movement is disabled while typing.",
+  "WASD — ходить · ЛКМ — маршрут · Колесо — масштаб · ПКМ — обзор": "WASD — walk · Left click — route · Wheel — zoom · Right click — pan"
 }

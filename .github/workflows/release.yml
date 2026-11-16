@@ -25,7 +25,7 @@ jobs:
           test "$found" = true
         env:
           RELEASE_TAG: ${{ github.ref_name }}
-      - name: Publish Linux amd64 binaries and checksums
+      - name: Publish amd64 binaries and checksums
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -37,6 +37,10 @@ jobs:
             linux="downloads/astra-journey${suffix}-${RELEASE_TAG}-linux-amd64"
             if test -f "$linux"; then
               executables+=("$linux")
+            fi
+            windows="downloads/astra-journey${suffix}-${RELEASE_TAG}-windows-amd64.exe"
+            if test -f "$windows"; then
+              executables+=("$windows")
             fi
           done
           if test -f "downloads/astra-journey-${RELEASE_TAG}-build.json"; then

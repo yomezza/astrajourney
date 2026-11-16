@@ -80,3 +80,10 @@ body.planet-mode #window-chat {
     scroll-behavior: auto;
   }
 }
+
+#planet-host canvas, .landing-site-preview { image-rendering: pixelated; }
+
+.planet-settings { max-width: min(440px, 90vw); padding: 22px; color: var(--text, #e3eee8); background: #14282d; border: 1px solid #4c898b; border-radius: 10px; }
+.planet-settings::backdrop { background: #0009; }
+.planet-settings select { display: block; width: 100%; height: auto; min-height: 38px; line-height: 1.4; margin: 12px 0; padding: 9px; }
+.planet-settings p { line-height: 1.5; }

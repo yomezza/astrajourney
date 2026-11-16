@@ -451,11 +451,35 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 			}
 			resumeAfterValidation()
 			pilot.Permit(time.Now().Add(2 * time.Second))
-			if !returnPrepared.IsZero() && (msg.Type == "move" || msg.Type == "transition.confirm") {
+			if !returnPrepared.IsZero() && (msg.Type == "move" || msg.Type == "steer" || msg.Type == "transition.confirm") {
 				_ = send("error", map[string]string{"code": "return_pending"})
 				continue
 			}
 			switch msg.Type {
+			case "steer":
+				var input struct {
+					DX int `json:"dx"`
+					DY int `json:"dy"`
+				}
+				decoder := json.NewDecoder(bytes.NewReader(msg.Payload))
+				decoder.DisallowUnknownFields()
+				if decoder.Decode(&input) != nil || input.DX < -1 || input.DX > 1 || input.DY < -1 || input.DY > 1 {
+					_ = send("error", map[string]string{"code": "invalid_direction"})
+					continue
+				}
+				if transition.offer != nil && (input.DX != 0 || input.DY != 0) {
+					transition.blocked = transition.offer.Neighbor
+					transition.close()
+					pilot.Thaw()
+					if send("transition.cancelled", map[string]string{"reason": "move"}) != nil {
+						return
+					}
+				}
+				if err = pilot.Steer(seq, input.DX, input.DY); err != nil {
+					if send("error", map[string]any{"code": err.Error(), "seq": seq}) != nil {
+						return
+					}
+				}
 			case "move":
 				var goal struct {
 					X int `json:"x_q"`

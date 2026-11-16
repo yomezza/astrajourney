@@ -89,7 +89,7 @@ def main():
             environment = os.environ.copy()
             environment.update(GOOS=platform, GOARCH="amd64", GOAMD64="v1", CGO_ENABLED="0")
             binary = temporary / target.name
-            subprocess.run(["go", "build", "-buildvcs=false", "-trimpath", "-ldflags=-s -w", "-o", str(binary), "./cmd/" + SERVICES[service][0]], cwd=source, env=environment, check=True)
+            subprocess.run(["go", "build", "-buildvcs=false", "-trimpath", f"-ldflags=-s -w -X github.com/yomezza/cosmosimulator/internal/platform/telemetry.BuildLabel={args.tag}", "-o", str(binary), "./cmd/" + SERVICES[service][0]], cwd=source, env=environment, check=True)
             verify_binary(binary, platform)
             # Copy through the destination filesystem, then rename atomically.
             staged = target.with_suffix(target.suffix + ".partial")
@@ -100,7 +100,7 @@ def main():
             finally:
                 staged.unlink(missing_ok=True)
             digest = hashlib.sha256(target.read_bytes()).hexdigest()
-            additions.append({"file": target.name, "service": service, "goos": platform, "goarch": "amd64", "goamd64": "v1", "cgo_enabled": False, "source_ref": args.source_ref, "source_commit": source_commit, "source_dirty": dirty, "compiler": compiler, "sha256": digest})
+            additions.append({"file": target.name, "service": service, "goos": platform, "goarch": "amd64", "goamd64": "v1", "cgo_enabled": False, "source_ref": args.source_ref, "source_commit": source_commit, "source_dirty": dirty, "compiler": compiler, "build_label": args.tag, "sha256": digest})
             print(f"{target.name}  {digest}", flush=True)
     manifest["builds"].extend(additions)
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")

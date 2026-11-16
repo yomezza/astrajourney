@@ -26,18 +26,13 @@ function character(ctx, art, p, visual, latest, now, dust, reduced) {
       visual.dust = 0;
     }
   }
-  const atlas = art.get("atlas");
-  if (!atlas) {
-    ctx.fillStyle = "#a9bdb4";
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, 0.55, 0, Math.PI * 2);
-    ctx.fill();
-    return;
-  }
+  const atlas = art.get("atlas_casual") || art.get("atlas");
+  if (!atlas) return;
   const facing = Number.isInteger(latest.facing) ? latest.facing : 0,
     col = moving ? 1 + (Math.floor(visual.phase) % 6) : 0;
   const s = spriteSpecs.atlas,
     size = s[0] / 16;
+  ctx.imageSmoothingEnabled = false;
   ctx.drawImage(
     atlas,
     col * 128,
@@ -113,6 +108,7 @@ export function createSceneSprites(scene, art) {
       }
       while (dust.length && (now - dust[0].born > 420 || dust.length > 96))
         dust.shift();
+      if(scene.landing) drawSprite(ctx,art,"landing_pad",scene.landing.X/1024,scene.landing.Y/1024);
       let selfFrame;
       for (const o of render) {
         if (o.visual) {
@@ -155,23 +151,7 @@ export function createSceneSprites(scene, art) {
             own.y > o.y - size * 0.7 &&
             Math.abs(own.x - o.x) < size * 0.27;
           drawSprite(ctx, art, o.name, o.x, o.y, occludes ? 0.43 : 1);
-          if (o === hover) {
-            ctx.save();
-            ctx.strokeStyle = "#d8c797";
-            ctx.lineWidth = 1 / view.zoom;
-            ctx.beginPath();
-            ctx.ellipse(
-              o.x,
-              o.y,
-              o.name === "landing" ? 7 : 1.8,
-              o.name === "landing" ? 4 : 1,
-              0,
-              0,
-              Math.PI * 2,
-            );
-            ctx.stroke();
-            ctx.restore();
-          }
+          if (o === hover) drawSprite(ctx, art, "hover_highlight", o.x, o.y);
         }
       }
       return selfFrame;

@@ -129,10 +129,12 @@ export function makeGround(scene, art) {
     }
   const mask = document.createElement("canvas");
   mask.width = mask.height = N;
+  ctx.imageSmoothingEnabled = false;
   const mc = mask.getContext("2d"),
     layer = document.createElement("canvas");
   layer.width = layer.height = canvas.width;
   const lc = layer.getContext("2d");
+ lc.imageSmoothingEnabled = false;
   const transform = new DOMMatrix()
     .translate(-origin.x * 128 * RES, -origin.y * 128 * RES)
     .scale(RES / 16);
@@ -147,27 +149,9 @@ export function makeGround(scene, art) {
   hex.closePath();
   ctx.save();
   ctx.clip(hex);
-  ctx.fillStyle = "#485447";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
   for (const name of [...names, "shore_wet", "water_deep", "water_shallow"]) {
     const image = art.get(names.includes(name) ? "ground_" + name : name);
     if (!image) continue;
-    // Source water has a dark padded border despite matching edge pixels.
-    // A mirrored inner patch avoids drawing that border as a grid. PNG stays intact.
-    let tile = null;
-    if (name === "water_deep" || name === "water_shallow") {
-      tile = document.createElement("canvas");
-      tile.width = tile.height = 768;
-      const t = tile.getContext("2d");
-      for (let y = 0; y < 2; y++)
-        for (let x = 0; x < 2; x++) {
-          t.save();
-          t.translate(x ? 768 : 0, y ? 768 : 0);
-          t.scale(x ? -1 : 1, y ? -1 : 1);
-          t.drawImage(image, 64, 64, 384, 384, 0, 0, 384, 384);
-          t.restore();
-        }
-    }
     const pixels = masks[name];
     for (let i = 0; i < pixels.length; i += 4) {
       pixels[i] = pixels[i + 1] = pixels[i + 2] = 255;
@@ -175,14 +159,13 @@ export function makeGround(scene, art) {
     mc.putImageData(new ImageData(pixels, N, N), 0, 0);
     lc.clearRect(0, 0, layer.width, layer.height);
     lc.globalCompositeOperation = "source-over";
-    const pattern = lc.createPattern(tile || image, "repeat");
+    const pattern = lc.createPattern(image, "repeat");
     pattern.setTransform(transform);
     lc.fillStyle = pattern;
     lc.fillRect(0, 0, layer.width, layer.height);
     lc.globalCompositeOperation = "destination-in";
     lc.drawImage(mask, 0, 0, layer.width, layer.height);
     ctx.drawImage(layer, 0, 0);
-    if (tile) tile.width = tile.height = 0;
   }
   ctx.restore();
   layer.width = layer.height = 0;
@@ -197,19 +180,7 @@ export function makeGround(scene, art) {
     data[i * 4 + 3] = (cells[i] & 3) === 3 ? 255 : 0;
   }
   wc.putImageData(new ImageData(data, N, N), 0, 0);
-  const ripple = document.createElement("canvas");
-  ripple.width = ripple.height = 256;
-  const rc = ripple.getContext("2d"),
-    rippleArt = art.get("water_ripple_overlay");
-  if (rippleArt) {
-    rc.drawImage(rippleArt, 0, 0, 256, 256);
-    rc.globalCompositeOperation = "destination-in";
-    const fade = rc.createRadialGradient(128, 128, 60, 128, 128, 128);
-    fade.addColorStop(0, "white");
-    fade.addColorStop(1, "transparent");
-    rc.fillStyle = fade;
-    rc.fillRect(0, 0, 256, 256);
-  }
+  const ripples = [0,1,2,3].map(i => art.get("ripple_"+i));
   const hasWater = cells.some((v) => (v & 3) === 3);
   const fx = document.createElement("canvas"),
     fc = fx.getContext("2d");
@@ -219,7 +190,8 @@ export function makeGround(scene, art) {
     wetDistance,
     draw(ctx, view, now, animate) {
       ctx.drawImage(canvas, 0, 0, N, N);
-      if (!rippleArt || !animate || !hasWater) return;
+      const ripple = ripples[Math.floor(now/180)%4];
+      if (!ripple || !animate || !hasWater) return;
       const width = Math.min(1600, Math.ceil(view.width)),
         height = Math.min(1000, Math.ceil(view.height));
       if (fx.width !== width || fx.height !== height) {
@@ -228,6 +200,7 @@ export function makeGround(scene, art) {
       }
       const sx = width / view.worldW,
         sy = height / view.worldH;
+      fc.imageSmoothingEnabled = false;
       fc.setTransform(sx, 0, 0, sy, -view.x * sx, -view.y * sy);
       fc.clearRect(view.x, view.y, view.worldW, view.worldH);
       fc.globalCompositeOperation = "source-over";
@@ -235,8 +208,8 @@ export function makeGround(scene, art) {
       p.setTransform(
         new DOMMatrix()
           .translate(
-            -origin.x * 128 + now * 0.00015,
-            -origin.y * 128 + now * 0.00006,
+            -origin.x * 128,
+            -origin.y * 128,
           )
           .scale(1 / 16),
       );
@@ -245,12 +218,12 @@ export function makeGround(scene, art) {
       fc.globalCompositeOperation = "destination-in";
       fc.drawImage(water, 0, 0, N, N);
       ctx.save();
-      ctx.globalAlpha = 0.18;
+      ctx.globalAlpha = 0.35;
       ctx.drawImage(fx, view.x, view.y, view.worldW, view.worldH);
       ctx.restore();
     },
     stop() {
-      for (const c of [canvas, water, ripple, fx]) c.width = c.height = 0;
+      for (const c of [canvas, water, fx]) c.width = c.height = 0;
     },
   };
 }

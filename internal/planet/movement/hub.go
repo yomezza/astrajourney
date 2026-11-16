@@ -61,6 +61,9 @@ type Member struct {
 	pos             pathing.Point
 	saved           pathing.Point
 	path            []pathing.Point
+	steering        pathing.Point
+	steeringUntil   time.Time
+	steeringBlocked bool
 	generation, seq int64
 	error           string
 	permit          time.Time
@@ -125,7 +128,7 @@ func (m *Member) Stamp() Stamp            { m.hub.mu.Lock(); defer m.hub.mu.Unlo
 func (m *Member) Scene() *scene.Scene     { return m.actor.scene }
 func (m *Member) snapshot(now time.Time) State {
 	x, y := m.pos.Quantized()
-	moving := len(m.path) > 0 && !m.frozen && now.Before(m.permit)
+	moving := (len(m.path) > 0 || (m.steering != (pathing.Point{}) && now.Before(m.steeringUntil) && !m.steeringBlocked)) && !m.frozen && now.Before(m.permit)
 	return State{Facing: m.facing, Remaining: len(m.path), X: x, Y: y, Moving: moving, Suspended: m.frozen || !now.Before(m.permit), Generation: m.generation, Seq: m.seq, Time: now.UnixMilli(), Path: append([]pathing.Point(nil), m.path...), Error: m.error}
 }
 func (m *Member) Snapshot() State {
@@ -145,6 +148,8 @@ func (m *Member) Freeze() State {
 	defer m.hub.mu.Unlock()
 	m.frozen = true
 	m.path = nil
+	m.steering = pathing.Point{}
+	m.steeringUntil = time.Time{}
 	m.generation++
 	if m.cancelPath != nil {
 		m.cancelPath()
@@ -199,6 +204,8 @@ func (m *Member) Move(seq int64, x, y int) error {
 		return ErrRate
 	}
 	m.tokens--
+	m.steering = pathing.Point{}
+	m.steeringUntil = time.Time{}
 	target := pathing.FromQ(x, y)
 	if !pathing.Clear(m.actor.scene, target) {
 		return pathing.ErrBlocked
@@ -293,7 +300,13 @@ func (h *Hub) run(ctx context.Context, a *actor) {
 			emit++
 			for _, m := range a.members {
 				if !m.closed && !m.frozen && now.Before(m.permit) {
-					m.advance(dt * h.speed)
+					if m.steering != (pathing.Point{}) {
+						if now.Before(m.steeringUntil) {
+							m.advanceSteering(dt * h.speed)
+						}
+					} else {
+						m.advance(dt * h.speed)
+					}
 				}
 				if emit%2 == 0 {
 					h.publish(m, now)
@@ -365,3 +378,52 @@ func (h *Hub) Close() {
 	h.wg.Wait()
 }
 func (h *Hub) Count() int { h.mu.Lock(); defer h.mu.Unlock(); return len(h.actors) }
+
+// Steer accepts a direction, never client coordinates or speed. The short input
+// lease stops a lost key-up/connection; browsers renew it at 4 Hz, not every frame.
+func (m *Member) Steer(seq int64, dx, dy int) error {
+	h := m.hub
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if m.closed || h.members[m.stamp.User] != m || seq <= m.seq {
+		return ErrStale
+	}
+	if dx < -1 || dx > 1 || dy < -1 || dy > 1 {
+		return errors.New("invalid_direction")
+	}
+	now := time.Now()
+	if (dx != 0 || dy != 0) && (m.frozen || !now.Before(m.permit)) {
+		return ErrSuspended
+	}
+	direction := pathing.Point{X: float64(dx), Y: float64(dy)}
+	if length := math.Hypot(direction.X, direction.Y); length > 0 {
+		direction.X /= length
+		direction.Y /= length
+	}
+	if direction != m.steering || len(m.path) > 0 || m.cancelPath != nil {
+		m.generation++
+		m.path = nil
+		if m.cancelPath != nil {
+			m.cancelPath()
+			m.cancelPath = nil
+		}
+	}
+	m.steering = direction
+	m.steeringUntil = now.Add(750 * time.Millisecond)
+	m.steeringBlocked = false
+	m.seq = seq
+	m.error = ""
+	h.publish(m, now)
+	return nil
+}
+func (m *Member) advanceSteering(distance float64) {
+	next := pathing.Point{X: m.pos.X + m.steering.X*distance, Y: m.pos.Y + m.steering.Y*distance}
+	m.steeringBlocked = !pathing.Segment(m.actor.scene, m.pos, next)
+	if m.steeringBlocked {
+		m.error = pathing.ErrBlocked.Error()
+		return
+	}
+	m.error = ""
+	m.pos = next
+	m.facing = (int(math.Round(math.Atan2(m.steering.Y, m.steering.X)/(math.Pi/4))) + 14) % 8
+}
