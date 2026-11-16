@@ -16,7 +16,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-const SchemaVersion = 8
+const SchemaVersion = 9
 
 type Lease struct {
 	Owner string

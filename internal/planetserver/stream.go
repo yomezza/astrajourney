@@ -25,6 +25,8 @@ type stream struct {
 	visit           string
 	epoch, sequence int64
 	sectorSequence  int64
+	buildVersion    int64
+	user            int64
 	known           map[string]movement.PublicActor
 }
 
@@ -62,8 +64,10 @@ func (s *stream) batch(messages []packet) error {
 }
 func (s *stream) snapshot(m *movement.Member) error {
 	v := m.Sector()
-	err := s.send("sector.snapshot", map[string]any{"surface": fmtSurface(v.Key.Surface), "sector": v.Key.Sector, "revision": v.Key.Revision, "server_time": v.Time, "actors": v.Actors, "self": m.Snapshot()})
+	s.user = m.Stamp().User
+	err := s.send("sector.snapshot", map[string]any{"surface": fmtSurface(v.Key.Surface), "sector": v.Key.Sector, "revision": v.Key.Revision, "server_time": v.Time, "actors": v.Actors, "self": m.Snapshot(), "buildings": v.Buildings.Public(s.user)})
 	if err == nil {
+		s.buildVersion = v.Buildings.Version
 		s.known = actorSet(v)
 		s.sectorSequence = v.Sequence
 	}
@@ -85,6 +89,9 @@ func (s *stream) delta(m *movement.Member, v movement.Sector) error {
 	}
 	next := actorSet(v)
 	messages := make([]packet, 0)
+	if s.buildVersion != v.Buildings.Version {
+		messages = append(messages, packet{"buildings.snapshot", v.Buildings.Public(s.user)})
+	}
 	for id := range s.known {
 		if _, ok := next[id]; !ok {
 			messages = append(messages, packet{"actor.leave", map[string]string{"actor": id, "reason": "disconnected"}})
@@ -112,6 +119,7 @@ func (s *stream) delta(m *movement.Member, v movement.Sector) error {
 	if err := s.batch(messages); err != nil {
 		return err
 	}
+	s.buildVersion = v.Buildings.Version
 	s.known = next
 	s.sectorSequence = v.Sequence
 	return nil

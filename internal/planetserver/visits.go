@@ -9,6 +9,7 @@ import (
 	"github.com/coder/websocket/wsjson"
 	"github.com/yomezza/cosmosimulator/internal/account"
 	"github.com/yomezza/cosmosimulator/internal/planet/access"
+	"github.com/yomezza/cosmosimulator/internal/planet/building"
 	"github.com/yomezza/cosmosimulator/internal/planet/movement"
 	"github.com/yomezza/cosmosimulator/internal/planet/scene"
 	"github.com/yomezza/cosmosimulator/internal/planet/scenestore"
@@ -16,6 +17,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/platform/httpkit"
 	"github.com/yomezza/cosmosimulator/internal/platform/telemetry"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -210,7 +212,7 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 						return e
 					}
 					welcome.Speed = a.config.MoveSpeed
-					pilot, e = a.motion.Join(movement.Stamp{Actor: welcome.Actor, Nickname: welcome.Nickname, User: id.User, Visit: welcome.Visit, Epoch: welcome.Epoch, Generation: welcome.Generation, Version: welcome.PositionVersion}, localScene, welcome.X, welcome.Y)
+					pilot, e = a.joinBuildings(commit, movement.Stamp{Actor: welcome.Actor, Nickname: welcome.Nickname, User: id.User, Visit: welcome.Visit, Epoch: welcome.Epoch, Generation: welcome.Generation, Version: welcome.PositionVersion}, localScene, welcome.X, welcome.Y)
 					if e == nil {
 						pilot.Permit(time.Now().Add(2 * time.Second))
 					}
@@ -282,6 +284,7 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 	ping := time.NewTicker(15 * time.Second)
 	defer ping.Stop()
 	var lastResync time.Time
+	var lastBuild time.Time
 	transition := &crossing{}
 	defer transition.close()
 	var seq int64 = 1
@@ -451,11 +454,43 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 			}
 			resumeAfterValidation()
 			pilot.Permit(time.Now().Add(2 * time.Second))
-			if !returnPrepared.IsZero() && (msg.Type == "move" || msg.Type == "steer" || msg.Type == "transition.confirm") {
+			if !returnPrepared.IsZero() && (msg.Type == "move" || msg.Type == "steer" || msg.Type == "build" || msg.Type == "transition.confirm") {
 				_ = send("error", map[string]string{"code": "return_pending"})
 				continue
 			}
 			switch msg.Type {
+			case "build":
+				if transition.offer != nil {
+					_ = send("build.result", map[string]any{"ok": false, "code": "transition_pending"})
+					continue
+				}
+				var command building.Command
+				decoder := json.NewDecoder(bytes.NewReader(msg.Payload))
+				decoder.DisallowUnknownFields()
+				if decoder.Decode(&command) != nil {
+					_ = send("build.result", map[string]any{"ok": false, "code": "build_invalid_place"})
+					continue
+				}
+				// Building has a separate cadence; it never consumes per-frame input.
+				if time.Since(lastBuild) < 300*time.Millisecond {
+					_ = send("build.result", map[string]any{"ok": false, "code": "build_rate_limited"})
+					continue
+				}
+				lastBuild = time.Now()
+				if err = a.editBuildings(run, id, welcome, f, pilot, command); err != nil {
+					logger.Warn("planet build refused", "failure", telemetry.ErrorFields(err))
+					code := err.Error()
+					if !strings.HasPrefix(code, "build_") {
+						code = "runtime_unavailable"
+					}
+					if send("build.result", map[string]any{"ok": false, "code": code}) != nil {
+						return
+					}
+				} else {
+					if send("build.result", map[string]any{"ok": true}) != nil {
+						return
+					}
+				}
 			case "steer":
 				var input struct {
 					DX int `json:"dx"`

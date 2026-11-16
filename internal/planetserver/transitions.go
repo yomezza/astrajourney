@@ -147,7 +147,7 @@ func (a *App) commitCrossing(ctx context.Context, id access.Identity, w visits.W
 		k := m.Scene().Key()
 		a.publisher.enqueue(gamesignal.SectorChange{UserID: strconv.FormatInt(id.User, 10), VisitID: next.Visit, Generation: strconv.FormatInt(next.Generation, 10), Epoch: strconv.FormatInt(next.Epoch, 10), RuntimeFence: strconv.FormatInt(f.Number, 10), SurfaceID: strconv.FormatInt(k.Surface, 10), From: k.Sector, To: next.Sector, Revision: strconv.FormatInt(k.Revision, 10), Operation: operation})
 	}
-	replacement, err := a.motion.Join(movement.Stamp{User: id.User, Actor: stamp.Actor, Nickname: stamp.Nickname, Visit: next.Visit, Epoch: next.Epoch, Generation: next.Generation, Version: next.PositionVersion}, o.pin.Scene(), next.X, next.Y)
+	replacement, err := a.joinBuildings(ctx, movement.Stamp{User: id.User, Actor: stamp.Actor, Nickname: stamp.Nickname, Visit: next.Visit, Epoch: next.Epoch, Generation: next.Generation, Version: next.PositionVersion}, o.pin.Scene(), next.X, next.Y)
 	if err != nil {
 		m.Close()
 		return m, next, err

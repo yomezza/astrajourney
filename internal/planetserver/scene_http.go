@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/yomezza/cosmosimulator/internal/planet/access"
+	"github.com/yomezza/cosmosimulator/internal/planet/building"
 	"github.com/yomezza/cosmosimulator/internal/planet/scene"
 	"github.com/yomezza/cosmosimulator/internal/planet/scenestore"
 	"github.com/yomezza/cosmosimulator/internal/planet/visits"
@@ -11,6 +12,13 @@ import (
 	"net/http"
 	"strconv"
 )
+
+type buildingView struct {
+	Catalog  []building.Definition `json:"catalog"`
+	Snapshot building.Snapshot     `json:"snapshot"`
+	Allowed  bool                  `json:"allowed"`
+	Cells    []byte                `json:"cells"`
+}
 
 func (a *App) sceneView(w http.ResponseWriter, r *http.Request) {
 	if a.scenes == nil || a.stopping.Load() {
@@ -94,9 +102,28 @@ func (a *App) sceneView(w http.ResponseWriter, r *http.Request) {
 		httpkit.Fail(w, 403, publicError(err))
 		return
 	}
+	builds, err := building.Load(ctx, a.db, in.Key)
+	if err != nil {
+		httpkit.Fail(w, 503, "runtime_unavailable")
+		return
+	}
+	canBuild, err := building.Allowed(ctx, a.db, id.User, in.Key)
+	if err != nil {
+		httpkit.Fail(w, 503, "runtime_unavailable")
+		return
+	}
+	cells := make([]byte, 256*256)
+	for y := 0; y < 256; y++ {
+		for x := 0; x < 256; x++ {
+			if pin.Scene().Walkable(x, y) && !pin.Scene().Water(x, y) && !pin.Scene().Reserved(x, y) {
+				cells[y*256+x] = 1
+			}
+		}
+	}
 	httpkit.Reply(w, 200, struct {
 		scene.Public
+		Building  buildingView               `json:"building"`
 		Exits     []map[string]any           `json:"exits"`
 		Materials []scenestore.MaterialPoint `json:"materials"`
-	}{public, exits, materials})
+	}{Public: public, Exits: exits, Materials: materials, Building: buildingView{building.Catalog, builds.Public(id.User), canBuild, cells}})
 }

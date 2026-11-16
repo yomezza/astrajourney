@@ -1,3 +1,4 @@
+import { buildingKeys, createBuildingMode } from "./building.js";
 import { keyboardMovement } from "./keyboard.js";
 import { I18n } from "../../core/i18n.js";
 import { acquireArt, drawSprite } from "./scene-art.js";
@@ -9,7 +10,18 @@ export async function createController(
   canvas,
   scene,
   w,
-  { current, target, signal, assets, onHover, onInteract, steer, keyboardEnabled = () => true },
+  {
+    current,
+    target,
+    signal,
+    assets,
+    onHover,
+    onInteract,
+    steer,
+    keyboardEnabled = () => true,
+    buildButton,
+    build,
+  },
 ) {
   const peers = new Map();
   const interpolate = (previous, latest, now) => {
@@ -43,14 +55,20 @@ export async function createController(
         scene.objects.map((o) => o.asset.split("/").pop().replace(".png", "")),
       ),
       ...groundKeys(scene),
+      ...buildingKeys(scene.building),
       "atlas",
-      ...(!/Холод|Ледя|Камен|Вулкан|Лав|Пустын/.test(scene.biome) ? ["atlas_casual"] : []),
+      ...(!/Холод|Ледя|Камен|Вулкан|Лав|Пустын/.test(scene.biome)
+        ? ["atlas_casual"]
+        : []),
       "landing_pad",
       ...(scene.landing ? ["landing"] : []),
       "water_deep",
       "water_shallow",
       "shore_wet",
-      "ripple_0", "ripple_1", "ripple_2", "ripple_3",
+      "ripple_0",
+      "ripple_1",
+      "ripple_2",
+      "ripple_3",
       "move_target",
       "move_blocked",
       "selection_ring",
@@ -129,13 +147,36 @@ export async function createController(
     e.preventDefault();
     setZoom(zoom * Math.exp(-e.deltaY * 0.0015), e);
   };
+  let construction;
   canvas.tabIndex = 0;
- const keyboard = keyboardMovement(canvas, () => !stopped && current() && keyboardEnabled(), (dx,dy) => {route=[];goal=null;return steer?.(dx,dy);});
- if(canvas.closest("#planet-host")) canvas.focus({preventScroll:true});
+  const keyboard = keyboardMovement(
+    canvas,
+    () => !stopped && current() && keyboardEnabled() && !construction?.active,
+    (dx, dy) => {
+      route = [];
+      goal = null;
+      return steer?.(dx, dy);
+    },
+  );
+  construction = createBuildingMode(canvas, scene.building, art, {
+    button: buildButton,
+    current,
+    position: () => latest,
+    people: () => [latest, ...[...peers.values()].map((p) => p.latest)],
+    send: (type, payload) =>
+      type === "steer" ? steer?.(payload.dx, payload.dy) : build?.(payload),
+    reset: () => keyboard.reset(),
+  });
+  if (canvas.closest("#planet-host")) canvas.focus({ preventScroll: true });
   const down = (e) => {
     if (e.button === 0) {
- keyboard.mouse();canvas.focus({preventScroll:true});
+      keyboard.mouse();
+      canvas.focus({ preventScroll: true });
       const p = world(e);
+      if (construction.pointer(p, true)) {
+        e.preventDefault();
+        return;
+      }
       if (onInteract?.(sprites.hit(p), e)) {
         e.preventDefault();
         e.stopPropagation();
@@ -163,7 +204,10 @@ export async function createController(
     }
   };
   const move = (e) => {
-    if (!drag) onHover?.(sprites.hit(world(e)));
+    if (!drag) {
+      if (construction.pointer(world(e))) onHover?.(null);
+      else onHover?.(sprites.hit(world(e)));
+    }
     if (drag)
       cam = {
         x: drag.cx - (e.clientX - drag.x) / zoom,
@@ -174,7 +218,10 @@ export async function createController(
     drag = null;
   };
   const context = (e) => e.preventDefault();
-  const out = () => onHover?.(null);
+  const out = () => {
+    construction.leave();
+    onHover?.(null);
+  };
   canvas.addEventListener("wheel", wheel, { passive: false });
   canvas.addEventListener("pointerdown", down);
   canvas.addEventListener("pointermove", move);
@@ -235,7 +282,15 @@ export async function createController(
         nickname: p.nickname,
         colour: colour(id),
       });
-    const frame = sprites.draw(ctx, view, people, now, reduced.matches);
+    construction.ground(ctx);
+    const frame = sprites.draw(
+      ctx,
+      view,
+      people,
+      now,
+      reduced.matches,
+      construction.placed(),
+    );
     for (const edge of scene.exits || []) {
       const x = edge.x_q / 1024,
         y = edge.y_q / 1024;
@@ -255,11 +310,17 @@ export async function createController(
       )
         goal = null;
       else {
-        drawSprite(ctx, art, goalBlocked ? "move_blocked" : "move_target", goal.x, goal.y,
-          reduced.matches ? 1 : 0.8 + Math.sin(now * 0.005) * 0.15);
-
+        drawSprite(
+          ctx,
+          art,
+          goalBlocked ? "move_blocked" : "move_target",
+          goal.x,
+          goal.y,
+          reduced.matches ? 1 : 0.8 + Math.sin(now * 0.005) * 0.15,
+        );
       }
     }
+    construction.draw(ctx, view);
     canvas.dataset.animation = String(frame?.col || 0);
     canvas.dataset.facing = String(frame?.facing || 0);
     canvas.dataset.art = art.missing.length ? "partial" : "ready";
@@ -284,7 +345,15 @@ export async function createController(
     );
   }
   return {
-    resetInput() { keyboard.reset(); },
+    resetInput() {
+      keyboard.reset();
+    },
+    buildings(value) {
+      construction.update(value);
+    },
+    buildResult(value) {
+      construction.result(value);
+    },
     actors(list, replace = false) {
       if (replace) peers.clear();
       for (const a of list) {
@@ -363,6 +432,7 @@ export async function createController(
     },
     stop() {
       if (stopped) return;
+      construction.stop();
       keyboard.stop();
       stopped = true;
       cancelAnimationFrame(raf);

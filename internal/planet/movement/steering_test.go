@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/yomezza/cosmosimulator/internal/planet/building"
 	"github.com/yomezza/cosmosimulator/internal/planet/pathing"
 )
 
@@ -112,5 +113,37 @@ func TestSteeringReplacesMouseAndMouseReplacesSteering(t *testing.T) {
 	m.Freeze()
 	if m.Snapshot().Moving {
 		t.Fatal("freeze retained movement")
+	}
+}
+
+func TestBuildingEditSurvivesControllerReplacement(t *testing.T) {
+	s, x, y := scenery(t)
+	h := New(context.Background(), 4, 24000)
+	defer h.Close()
+	m, e := h.Join(Stamp{User: 1, Epoch: 1}, s, x, y)
+	if e != nil {
+		t.Fatal(e)
+	}
+	_, finish := h.EditSector(s.Key())
+	m.Close()
+	replacement, e := h.Join(Stamp{User: 1, Epoch: 2}, s, x, y)
+	if e != nil {
+		t.Fatal(e)
+	}
+	replacement.Permit(time.Now().Add(time.Second))
+	if !replacement.Snapshot().Suspended {
+		t.Fatal("replacement moved during sector edit")
+	}
+	state := building.Snapshot{Version: 3, Objects: []building.Object{}}
+	finish(&state)
+	if replacement.Snapshot().Suspended {
+		t.Fatal("sector did not resume")
+	}
+	if replacement.Sector().Buildings.Version != 3 {
+		t.Fatal("replacement lost committed build state")
+	}
+	replacement.Close()
+	if h.Count() != 0 {
+		t.Fatal("empty sector retained")
 	}
 }

@@ -1,6 +1,7 @@
 package movement
 
 import (
+	"github.com/yomezza/cosmosimulator/internal/planet/building"
 	"sort"
 	"time"
 
@@ -21,10 +22,11 @@ type PublicActor struct {
 	Time      int64  `json:"server_time"`
 }
 type Sector struct {
-	Key      scene.Key
-	Sequence int64
-	Time     int64
-	Actors   []PublicActor
+	Buildings building.Snapshot
+	Key       scene.Key
+	Sequence  int64
+	Time      int64
+	Actors    []PublicActor
 }
 
 func (m *Member) Presence() <-chan Sector { return m.presence }
@@ -34,10 +36,10 @@ func (m *Member) Sector() Sector {
 	return m.hub.sector(m.actor, time.Now())
 }
 func (h *Hub) sector(a *actor, now time.Time) Sector {
-	v := Sector{Key: a.scene.Key(), Sequence: a.sequence, Time: now.UnixMilli(), Actors: make([]PublicActor, 0, len(a.members))}
+	v := Sector{Buildings: a.buildings, Key: a.scene.Key(), Sequence: a.sequence, Time: now.UnixMilli(), Actors: make([]PublicActor, 0, len(a.members))}
 	for _, m := range a.members {
 		x, y := m.pos.Quantized()
-		v.Actors = append(v.Actors, PublicActor{Facing: m.facing, ID: m.stamp.Actor, Nickname: m.stamp.Nickname, Sprite: "colonist", X: x, Y: y, Moving: len(m.path) > 0 && !m.frozen && now.Before(m.permit), Suspended: m.frozen || !now.Before(m.permit), Time: v.Time})
+		v.Actors = append(v.Actors, PublicActor{Facing: m.facing, ID: m.stamp.Actor, Nickname: m.stamp.Nickname, Sprite: "colonist", X: x, Y: y, Moving: m.snapshot(now).Moving, Suspended: m.frozen || !now.Before(m.permit), Time: v.Time})
 	}
 	sort.Slice(v.Actors, func(i, j int) bool { return v.Actors[i].ID < v.Actors[j].ID })
 	return v

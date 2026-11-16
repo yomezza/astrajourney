@@ -260,3 +260,32 @@ func sectorCheck(ctx context.Context, tx pgx.Tx, uid int64) error {
 	_, err := access.Sector(ctx, tx, uid, k)
 	return err
 }
+
+var ErrEditCommit = errors.New("sector edit commit uncertain")
+
+// Edit runs a sector mutation under the same session, visit, lease and user locks
+// as movement checkpoints. The callback commits atomically with these checks.
+func (a *Service) Edit(ctx context.Context, id access.Identity, w Welcome, f scenestore.Fence, key scene.Key, edit func(pgx.Tx) error) error {
+	tx, err := a.locked(ctx, id.User, f)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(context.Background())
+	if err = check(ctx, tx, id, w, f); err != nil {
+		return err
+	}
+	var actual scene.Key
+	if err = tx.QueryRow(ctx, `SELECT current_surface,current_sector,revision FROM planet_visits WHERE user_id=$1`, id.User).Scan(&actual.Surface, &actual.Sector, &actual.Revision); err != nil {
+		return err
+	}
+	if actual != key {
+		return ErrReplaced
+	}
+	if err = edit(tx); err != nil {
+		return err
+	}
+	if err = tx.Commit(ctx); err != nil {
+		return errors.Join(ErrEditCommit, err)
+	}
+	return nil
+}

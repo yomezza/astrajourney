@@ -143,7 +143,7 @@ func (a *Service) Handoff(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var ready bool
-	err = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM planet_runtime_leases WHERE id=1 AND owner_id IS NOT NULL AND expires_at>clock_timestamp()) AND EXISTS(SELECT 1 FROM planet_schema_state WHERE id=1 AND version=8)`).Scan(&ready)
+	err = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM planet_runtime_leases WHERE id=1 AND owner_id IS NOT NULL AND expires_at>clock_timestamp()) AND EXISTS(SELECT 1 FROM planet_schema_state WHERE id=1 AND version=9)`).Scan(&ready)
 	if err != nil {
 		fail(w, err)
 		return

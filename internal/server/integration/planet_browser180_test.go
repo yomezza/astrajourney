@@ -25,6 +25,9 @@ import (
 )
 
 func TestPlanetModeWithCosmicWorkers(t *testing.T) { planetBrowser210(t, false, "planet-mode-workers") }
+func TestPlanetBuildingBrowser259(t *testing.T) {
+	planetBrowser210(t, false, "planet-building-live.mjs")
+}
 func TestPlanetPixelKeyboardBrowser258(t *testing.T) {
 	t.Setenv("CHAT_ENABLED", "true")
 	planetBrowser210(t, false, "planet-pixel-keyboard-live.mjs")

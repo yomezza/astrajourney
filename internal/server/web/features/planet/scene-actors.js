@@ -1,3 +1,4 @@
+import { drawBuilding } from "./building.js";
 import { drawSprite, spriteSpecs } from "./scene-art.js";
 import { I18n } from "../../core/i18n.js";
 const titles = {
@@ -93,13 +94,13 @@ export function createSceneSprites(scene, art) {
           }
         : null;
     },
-    draw(ctx, view, people, now, reduced) {
+    draw(ctx, view, people, now, reduced, placed = []) {
       const visible = (o) =>
         Math.abs(o.x - view.cx) < view.worldW / 2 + 25 &&
         Math.abs(o.y - view.cy) < view.worldH / 2 + 25;
       const own = people[0],
         render = objects.filter(visible);
-      render.push(...people.filter(visible));
+      render.push(...people.filter(visible), ...placed.filter(visible));
       render.sort((a, b) => a.y - b.y);
       for (const step of dust) {
         const age = (now - step.born) / 420;
@@ -108,7 +109,14 @@ export function createSceneSprites(scene, art) {
       }
       while (dust.length && (now - dust[0].born > 420 || dust.length > 96))
         dust.shift();
-      if(scene.landing) drawSprite(ctx,art,"landing_pad",scene.landing.X/1024,scene.landing.Y/1024);
+      if (scene.landing)
+        drawSprite(
+          ctx,
+          art,
+          "landing_pad",
+          scene.landing.X / 1024,
+          scene.landing.Y / 1024,
+        );
       let selfFrame;
       for (const o of render) {
         if (o.visual) {
@@ -142,6 +150,8 @@ export function createSceneSprites(scene, art) {
             ctx.fillText(o.nickname, o.x, o.y - 5, 140 / view.zoom);
             ctx.restore();
           }
+        } else if (o.building) {
+          drawBuilding(ctx, art, o.building, o.definition);
         } else {
           const s = spriteSpecs[o.name],
             size = (s?.[0] || 0) / 16;

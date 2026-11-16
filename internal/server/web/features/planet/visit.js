@@ -99,6 +99,7 @@ export async function openVisit(site) {
     lastLabelRead = 0,
     lastState,
     lastPath,
+    lastBuildings,
     peers = new Map();
   const send = (type, payload) => {
     if (socket?.readyState !== WebSocket.OPEN || !welcome) return false;
@@ -229,7 +230,8 @@ export async function openVisit(site) {
   settings.append(settingsTitle, controlLabel, controlSelect,
     UI.node("p", tr("WASD поддерживает русскую раскладку. Клик задаёт маршрут; WASD отменяет его. При вводе текста движение отключено.")),
     button("Закрыть", () => { settings.close(); canvas.focus({preventScroll:true}); }));
-  const settingsButton = button("Настройки", () => { renderer?.resetInput(); settings.showModal(); controlSelect.focus(); });
+  const buildButton=button("Строить");buildButton.disabled=true;
+ const settingsButton = button("Настройки", () => { renderer?.resetInput(); settings.showModal(); controlSelect.focus(); });
   task.signal.addEventListener("abort", () => { if(settings.open) settings.close(); }, {once:true});
   const recover = button("Восстановить высадку", async () => {
     if (returning) return;
@@ -255,6 +257,7 @@ export async function openVisit(site) {
     resume,
     recover,
     settingsButton,
+    buildButton,
     button("Чат", () => Modules.open("chat")),
     button("Полный экран", async () => {
       try {
@@ -581,7 +584,7 @@ export async function openVisit(site) {
               activeOffer = null;
               transitionPanel.hidden = true;
               peers = new Map();
-              lastState = lastPath = null;
+              lastState = lastPath = lastBuildings = null;
             } else {
               welcome = p;
               landingSector = p.landing_sector;
@@ -615,6 +618,8 @@ export async function openVisit(site) {
             const controller = await createController(canvas, scene, welcome, {
               current: locationCurrent,
               target: (x, y) => send("move", { x_q: x, y_q: y }),
+              buildButton,
+              build: payload => send("build",payload),
               steer: (dx, dy) => send("steer", { dx, dy }),
               keyboardEnabled: () => controlMode === "keyboard" && !settings.open,
               signal: graphicsSignal,
@@ -678,10 +683,14 @@ export async function openVisit(site) {
             renderer?.actors([...peers.values()], true);
             if (lastState) renderer?.update(lastState);
             if (lastPath) renderer?.accepted(lastPath);
+            if(lastBuildings)renderer?.buildings(lastBuildings);
             return;
           }
           if (!welcome) return;
+          if(message.type==="buildings.snapshot"){lastBuildings=p;renderer?.buildings(p);return}
+          if(message.type==="build.result"){renderer?.buildResult(p);return}
           if (message.type === "sector.snapshot") {
+ if(p.buildings){lastBuildings=p.buildings;renderer?.buildings(p.buildings)}
             peers = new Map(p.actors.map((a) => [a.actor, a]));
             renderer?.actors(p.actors, true);
             lastState = p.self;

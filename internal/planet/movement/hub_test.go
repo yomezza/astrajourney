@@ -25,7 +25,7 @@ func scenery(t *testing.T) (*scene.Scene, int, int) {
 func TestMovementDistanceAndLifecycle(t *testing.T) {
 	s, x, y := scenery(t)
 	p := pathing.FromQ(x, y)
-	raw := &Member{actor: &actor{scene: s}, pos: p, path: []pathing.Point{{X: p.X + 2, Y: p.Y}}}
+	raw := &Member{actor: &actor{scene: s, grid: s}, pos: p, path: []pathing.Point{{X: p.X + 2, Y: p.Y}}}
 	raw.advance(.2)
 	if math.Abs(math.Hypot(raw.pos.X-p.X, raw.pos.Y-p.Y)-.2) > 1e-8 {
 		t.Fatal("distance not server step")
@@ -209,7 +209,7 @@ func TestAuthoritativeFacing220(t *testing.T) {
 		dx, dy float64
 		facing int
 	}{{0, 1, 0}, {-1, 1, 1}, {-1, 0, 2}, {-1, -1, 3}, {0, -1, 4}, {1, -1, 5}, {1, 0, 6}, {1, 1, 7}} {
-		m := &Member{actor: &actor{scene: s}, pos: start, path: []pathing.Point{{X: start.X + c.dx, Y: start.Y + c.dy}}}
+		m := &Member{actor: &actor{scene: s, grid: s}, pos: start, path: []pathing.Point{{X: start.X + c.dx, Y: start.Y + c.dy}}}
 		m.advance(.1)
 		if m.facing != c.facing {
 			t.Fatalf("direction %v,%v => %d, expected %d", c.dx, c.dy, m.facing, c.facing)

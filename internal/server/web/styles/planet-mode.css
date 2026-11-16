@@ -81,9 +81,205 @@ body.planet-mode #window-chat {
   }
 }
 
-#planet-host canvas, .landing-site-preview { image-rendering: pixelated; }
+#planet-host canvas,
+.landing-site-preview {
+  image-rendering: pixelated;
+}
 
-.planet-settings { max-width: min(440px, 90vw); padding: 22px; color: var(--text, #e3eee8); background: #14282d; border: 1px solid #4c898b; border-radius: 10px; }
-.planet-settings::backdrop { background: #0009; }
-.planet-settings select { display: block; width: 100%; height: auto; min-height: 38px; line-height: 1.4; margin: 12px 0; padding: 9px; }
-.planet-settings p { line-height: 1.5; }
+.planet-settings {
+  max-width: min(440px, 90vw);
+  padding: 22px;
+  color: var(--text, #e3eee8);
+  background: #14282d;
+  border: 1px solid #4c898b;
+  border-radius: 10px;
+}
+.planet-settings::backdrop {
+  background: #0009;
+}
+.planet-settings select {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: 38px;
+  line-height: 1.4;
+  margin: 12px 0;
+  padding: 9px;
+}
+.planet-settings p {
+  line-height: 1.5;
+}
+
+/* Sector workshop. The world stays visible while the palette is open. */
+.planet-build-panel {
+  position: absolute;
+  z-index: 4;
+  top: 12px;
+  right: 12px;
+  bottom: 12px;
+  width: 320px;
+  max-width: calc(100% - 24px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  background: #10272af5;
+  color: #e3eeed;
+  border: 1px solid #497b79;
+  border-radius: 12px;
+  box-shadow: 0 14px 45px #0007;
+  overflow: auto;
+}
+.planet-build-panel[hidden] {
+  display: none;
+}
+.planet-build-heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 8px;
+}
+.planet-build-heading h2 {
+  margin: 0 0 5px;
+  font-size: 19px;
+}
+.planet-build-free {
+  display: inline-block;
+  font-size: 11px;
+  color: #88e5bd;
+  background: #244d42;
+  padding: 3px 7px;
+  border-radius: 12px;
+}
+.planet-build-panel .planet-build-close {
+  max-width: 112px;
+  min-height: 30px;
+  font-size: 10px;
+}
+.planet-build-intro,
+.planet-build-help {
+  margin: 0;
+  color: #9db7b9;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.planet-build-panel input[type="search"] {
+  width: 100%;
+  min-height: 32px;
+}
+.planet-build-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.planet-build-tabs button {
+  min-height: 25px;
+  padding: 4px 7px;
+  font-size: 10px;
+}
+.planet-build-tabs button[aria-pressed="true"] {
+  color: #b8fff1;
+  border-color: #6ad5bf;
+  background: #25524e;
+}
+.planet-build-catalog {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  overflow-y: auto;
+  min-height: 100px;
+  max-height: 38vh;
+  flex: 1;
+  align-content: start;
+}
+.planet-build-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 3px;
+  min-height: 94px;
+  background: #1b373c;
+  border: 1px solid #3e5960;
+}
+.planet-build-card[aria-pressed="true"] {
+  border-color: #7be6c1;
+  background: #294d47;
+  box-shadow: inset 0 0 0 1px #7be6c1;
+}
+.planet-build-card img {
+  width: 62px;
+  height: 54px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+.planet-build-card span {
+  font-size: 10px;
+  line-height: 1.2;
+}
+.planet-build-selection {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 9px;
+  border: 1px solid #3c6164;
+  border-radius: 6px;
+}
+.planet-build-selection span {
+  color: #9db7b9;
+  font-size: 11px;
+}
+.planet-build-rotation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.planet-build-rotation[hidden] {
+  display: none;
+}
+.planet-build-rotation button {
+  font-size: 20px;
+  width: 38px;
+}
+.planet-build-rotation span {
+  color: #a9c1c2;
+  font-size: 11px;
+}
+.planet-build-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+}
+.planet-build-actions button[aria-pressed="true"] {
+  color: #ffd198;
+  border-color: #d59e58;
+  background: #654729;
+}
+.planet-build-grid-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+.planet-build-feedback {
+  min-height: 32px;
+  margin: 0;
+  color: #a0ebd2;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.planet-build-feedback[data-error="true"] {
+  color: #ffb9ad;
+}
+@media (max-width: 650px) {
+  .planet-build-panel {
+    width: 240px;
+    padding: 10px;
+  }
+  .planet-build-catalog {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

@@ -4,6 +4,7 @@ package movement
 import (
 	"context"
 	"errors"
+	"github.com/yomezza/cosmosimulator/internal/planet/building"
 	"github.com/yomezza/cosmosimulator/internal/planet/pathing"
 	"github.com/yomezza/cosmosimulator/internal/planet/scene"
 	"math"
@@ -48,10 +49,13 @@ type Hub struct {
 	wg      sync.WaitGroup
 }
 type actor struct {
-	sequence int64
-	scene    *scene.Scene
-	cancel   context.CancelFunc
-	members  map[int64]*Member
+	sequence  int64
+	buildings building.Snapshot
+	grid      pathing.Grid
+	editing   int
+	scene     *scene.Scene
+	cancel    context.CancelFunc
+	members   map[int64]*Member
 }
 type Member struct {
 	hub             *Hub
@@ -81,6 +85,7 @@ type job struct {
 	generation    int64
 	start, target pathing.Point
 	queued        time.Time
+	grid          pathing.Grid
 }
 
 func New(ctx context.Context, speed float64, budget int) *Hub {
@@ -92,7 +97,7 @@ func New(ctx context.Context, speed float64, budget int) *Hub {
 	}
 	return h
 }
-func (h *Hub) Join(stamp Stamp, s *scene.Scene, x, y int) (*Member, error) {
+func (h *Hub) Join(stamp Stamp, s *scene.Scene, x, y int, builds ...building.Snapshot) (*Member, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	if h.closed || h.ctx.Err() != nil {
@@ -111,10 +116,17 @@ func (h *Hub) Join(stamp Stamp, s *scene.Scene, x, y int) (*Member, error) {
 	a := h.actors[s.Key()]
 	if a == nil {
 		ctx, cancel := context.WithCancel(h.ctx)
-		a = &actor{scene: s, cancel: cancel, members: map[int64]*Member{}}
+		a = &actor{scene: s, grid: s, cancel: cancel, members: map[int64]*Member{}}
+		if len(builds) > 0 {
+			a.buildings = builds[0]
+			a.grid = building.NewGrid(s, builds[0].Objects)
+		}
 		h.actors[s.Key()] = a
 		h.wg.Add(1)
 		go h.run(ctx, a)
+	}
+	if !pathing.Clear(a.grid, p) {
+		return nil, pathing.ErrBlocked
 	}
 	m := &Member{hub: h, actor: a, stamp: stamp, pos: p, saved: p, tokens: 20, refill: time.Now(), presence: make(chan Sector, 1), updates: make(chan State, 1), done: make(chan struct{})}
 	a.members[stamp.User] = m
@@ -128,8 +140,8 @@ func (m *Member) Stamp() Stamp            { m.hub.mu.Lock(); defer m.hub.mu.Unlo
 func (m *Member) Scene() *scene.Scene     { return m.actor.scene }
 func (m *Member) snapshot(now time.Time) State {
 	x, y := m.pos.Quantized()
-	moving := (len(m.path) > 0 || (m.steering != (pathing.Point{}) && now.Before(m.steeringUntil) && !m.steeringBlocked)) && !m.frozen && now.Before(m.permit)
-	return State{Facing: m.facing, Remaining: len(m.path), X: x, Y: y, Moving: moving, Suspended: m.frozen || !now.Before(m.permit), Generation: m.generation, Seq: m.seq, Time: now.UnixMilli(), Path: append([]pathing.Point(nil), m.path...), Error: m.error}
+	moving := (len(m.path) > 0 || (m.steering != (pathing.Point{}) && now.Before(m.steeringUntil) && !m.steeringBlocked)) && !m.frozen && m.actor.editing == 0 && now.Before(m.permit)
+	return State{Facing: m.facing, Remaining: len(m.path), X: x, Y: y, Moving: moving, Suspended: m.frozen || m.actor.editing > 0 || !now.Before(m.permit), Generation: m.generation, Seq: m.seq, Time: now.UnixMilli(), Path: append([]pathing.Point(nil), m.path...), Error: m.error}
 }
 func (m *Member) Snapshot() State {
 	m.hub.mu.Lock()
@@ -207,12 +219,12 @@ func (m *Member) Move(seq int64, x, y int) error {
 	m.steering = pathing.Point{}
 	m.steeringUntil = time.Time{}
 	target := pathing.FromQ(x, y)
-	if !pathing.Clear(m.actor.scene, target) {
+	if !pathing.Clear(m.actor.grid, target) {
 		return pathing.ErrBlocked
 	}
 	ctx, cancel := context.WithTimeout(h.ctx, 200*time.Millisecond)
 	next := m.generation + 1
-	j := job{m, ctx, next, m.pos, target, time.Now()}
+	j := job{m, ctx, next, m.pos, target, time.Now(), m.actor.grid}
 	select {
 	case h.jobs <- j:
 		h.metrics.queued++
@@ -240,7 +252,7 @@ func (h *Hub) worker() {
 		case j := <-h.jobs:
 			began := time.Now()
 			h.metrics.queue.Observe(began.Sub(j.queued))
-			path, err := pathing.Find(j.ctx, j.member.actor.scene, j.start, j.target, h.budget)
+			path, err := pathing.Find(j.ctx, j.grid, j.start, j.target, h.budget)
 			h.metrics.paths.Observe(time.Since(began))
 			h.mu.Lock()
 			m := j.member
@@ -299,7 +311,7 @@ func (h *Hub) run(ctx context.Context, a *actor) {
 			h.metrics.lag.Observe(time.Since(now))
 			emit++
 			for _, m := range a.members {
-				if !m.closed && !m.frozen && now.Before(m.permit) {
+				if a.editing == 0 && !m.closed && !m.frozen && now.Before(m.permit) {
 					if m.steering != (pathing.Point{}) {
 						if now.Before(m.steeringUntil) {
 							m.advanceSteering(dt * h.speed)
@@ -330,7 +342,7 @@ func (m *Member) advance(distance float64) {
 		}
 		step := min(distance, length)
 		next := pathing.Point{X: m.pos.X + dx/length*step, Y: m.pos.Y + dy/length*step}
-		if !pathing.Segment(m.actor.scene, m.pos, next) {
+		if !pathing.Segment(m.actor.grid, m.pos, next) {
 			m.path = nil
 			m.error = pathing.ErrBlocked.Error()
 			return
@@ -357,7 +369,7 @@ func (h *Hub) remove(m *Member) {
 	if h.members[m.stamp.User] == m {
 		delete(h.members, m.stamp.User)
 	}
-	if len(m.actor.members) == 0 {
+	if len(m.actor.members) == 0 && m.actor.editing == 0 {
 		m.actor.cancel()
 		if h.actors[m.actor.scene.Key()] == m.actor {
 			delete(h.actors, m.actor.scene.Key())
@@ -418,7 +430,7 @@ func (m *Member) Steer(seq int64, dx, dy int) error {
 }
 func (m *Member) advanceSteering(distance float64) {
 	next := pathing.Point{X: m.pos.X + m.steering.X*distance, Y: m.pos.Y + m.steering.Y*distance}
-	m.steeringBlocked = !pathing.Segment(m.actor.scene, m.pos, next)
+	m.steeringBlocked = !pathing.Segment(m.actor.grid, m.pos, next)
 	if m.steeringBlocked {
 		m.error = pathing.ErrBlocked.Error()
 		return
@@ -426,4 +438,52 @@ func (m *Member) advanceSteering(distance float64) {
 	m.error = ""
 	m.pos = next
 	m.facing = (int(math.Round(math.Atan2(m.steering.Y, m.steering.X)/(math.Pi/4))) + 14) % 8
+}
+
+// EditSector pauses only this sector while SQL is running, without retaining the
+// hub mutex. The base scene and worker grids stay immutable. SQL never stalls
+// another sector's movement. Call finish on every path, including failures.
+func (h *Hub) EditSector(k scene.Key) ([]pathing.Point, func(*building.Snapshot)) {
+	h.mu.Lock()
+	a := h.actors[k]
+	people := []pathing.Point{}
+	if a != nil {
+		a.editing++
+		for _, m := range a.members {
+			people = append(people, m.pos)
+		}
+	}
+	h.mu.Unlock()
+	return people, func(s *building.Snapshot) {
+		h.mu.Lock()
+		defer h.mu.Unlock()
+		if a == nil {
+			return
+		}
+		a.editing--
+		defer func() {
+			if len(a.members) == 0 && a.editing == 0 {
+				a.cancel()
+				if h.actors[k] == a {
+					delete(h.actors, k)
+				}
+			}
+		}()
+		if s == nil || s.Version < a.buildings.Version {
+			return
+		}
+		a.buildings = *s
+		a.grid = building.NewGrid(a.scene, s.Objects)
+		for _, m := range a.members {
+			m.path = nil
+			m.steering = pathing.Point{}
+			m.generation++
+			if m.cancelPath != nil {
+				m.cancelPath()
+				m.cancelPath = nil
+			}
+			h.publish(m, time.Now())
+		}
+		h.broadcast(a, time.Now())
+	}
 }

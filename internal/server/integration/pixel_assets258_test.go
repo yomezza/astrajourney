@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"testing"
 
+	"github.com/yomezza/cosmosimulator/internal/planet/building"
 	"github.com/yomezza/cosmosimulator/internal/server"
 )
 
@@ -34,6 +35,11 @@ func TestPixelPackOriginalFilesAndNoLegacyGraphics258(t *testing.T) {
 		hash := sha256.Sum256(data)
 		if hex.EncodeToString(hash[:]) != digest {
 			t.Errorf("original pack file changed: %s", name)
+		}
+	}
+	for _, definition := range building.Catalog {
+		if _, ok := manifest.Files[definition.Asset]; !ok {
+			t.Errorf("missing original building image: %s", definition.Asset)
 		}
 	}
 	for key, name := range manifest.Mapping {
