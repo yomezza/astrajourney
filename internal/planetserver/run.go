@@ -3,6 +3,7 @@ package planetserver
 import (
 	"context"
 	"errors"
+	"github.com/yomezza/cosmosimulator/internal/platform/telemetry"
 	"io"
 	"log/slog"
 	"net"
@@ -52,16 +53,21 @@ func RunConfig(ctx context.Context, config Config, onListening func()) error {
 	if err := config.Validate(); err != nil {
 		return err
 	}
-	var output io.Writer = os.Stderr
+	var legacyOutput io.Writer
 	if config.LogFile != "" {
-		f, err := os.OpenFile(config.LogFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
+		file, err := os.OpenFile(config.LogFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 		if err != nil {
 			return errors.New("cannot open PLANET_LOG_FILE")
 		}
-		defer f.Close()
-		output = f
+		defer file.Close()
+		legacyOutput = file
 	}
-	logger := slog.New(slog.NewJSONHandler(output, nil))
+	closeLogs, logErr := telemetry.Start("planet", configuration.Getenv("DIAGNOSTICS_DIRECTORY"), configuration.Getenv("DIAGNOSTICS_ENABLED") != "false", legacyOutput)
+	if logErr != nil {
+		return logErr
+	}
+	defer closeLogs()
+	logger := slog.Default()
 	check, cancel := context.WithTimeout(ctx, config.DBTimeout)
 	db, _, err := postgres.Open(check, config.DatabaseURL, config.Schema)
 	cancel()
@@ -72,6 +78,8 @@ func RunConfig(ctx context.Context, config Config, onListening func()) error {
 		return errors.New("planetary PostgreSQL connection failed; check DATABASE_URL, DB_SCHEMA and connectivity")
 	}
 	defer db.Close()
+	stopDBObserver := telemetry.ObserveDB(ctx, db)
+	defer stopDBObserver()
 	app, err := New(db, config, logger)
 	if err != nil {
 		return err

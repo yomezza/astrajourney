@@ -1,5 +1,11 @@
 # Один CONFIG_FILE для Cosmic, Planet и Chat 0.24.13+ на Debian 13.
 # Подставьте адрес игры, PostgreSQL и настоящие NATS-пароли.
+[diagnostics]
+# Separate cosmos.jsonl, planet.jsonl, chat.jsonl; also mirrored to stderr.
+# Directory must be writable by each service account. No credentials/SQL values.
+directory = '/var/lib/astra-journey/diagnostics'
+enabled = true # Set false after collecting the incident to stop detailed tracing.
+
 [database]
 url = 'postgres://YOUR_DB_USER:YOUR_DB_PASSWORD@127.0.0.1:5432/YOUR_DATABASE?sslmode=disable'
 schema = 'astra_journey' # Новая установка; при обновлении сохраните прежнее имя схемы.

@@ -2,8 +2,9 @@ package httpkit
 
 import (
 	"encoding/json"
+	"github.com/yomezza/cosmosimulator/internal/platform/telemetry"
 	"io"
-	"log"
+	"log/slog"
 	"net/http"
 	"strings"
 )
@@ -38,6 +39,6 @@ func Internal(w http.ResponseWriter, err error) {
 		Fail(w, 409, "Сумма превышает технический диапазон")
 		return
 	}
-	log.Printf("request failed: %v", err)
+	slog.Warn("request failed", telemetry.ErrorFields(err)...)
 	Fail(w, 500, "Внутренняя ошибка сервера")
 }

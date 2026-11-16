@@ -1,3 +1,4 @@
+import { trace } from "./diagnostics.js";
 // One authoritative client session boundary. Domain values remain server-owned.
 export const Session = {
   signedIn: false,
@@ -7,6 +8,7 @@ export const Session = {
   lastPoll: 0,
 };
 export function invalidateSession() {
+ trace("session_invalidated", { sessionEpoch: Session.epoch });
   Session.epoch++;
   Session.signedIn = false;
   Session.data = {};

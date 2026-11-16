@@ -9,6 +9,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/planet/scene"
 	"github.com/yomezza/cosmosimulator/internal/planet/scenestore"
 	"github.com/yomezza/cosmosimulator/internal/platform/gamesignal"
+	"github.com/yomezza/cosmosimulator/internal/platform/telemetry"
 	"strconv"
 )
 
@@ -18,7 +19,10 @@ func fmtInt(v int64) string { return strconv.FormatInt(v, 10) }
 // only failures before attempting COMMIT can safely retry the rolled-back save.
 var ErrCheckpointCommit = errors.New("checkpoint_commit_uncertain")
 
-func (a *Service) Check(ctx context.Context, id access.Identity, w Welcome, f scenestore.Fence) error {
+func (a *Service) Check(ctx context.Context, id access.Identity, w Welcome, f scenestore.Fence) (result error) {
+	ctx = telemetry.WithVisit(ctx, id.User, w.Visit, w.Epoch)
+	ctx, ended := telemetry.Operation(ctx, "visit_check")
+	defer func() { ended(result) }()
 	tx, err := a.locked(ctx, id.User, f)
 	if err != nil {
 		return err
@@ -33,7 +37,7 @@ func (a *Service) Check(ctx context.Context, id access.Identity, w Welcome, f sc
 	return tx.Commit(ctx)
 }
 func check(ctx context.Context, tx pgx.Tx, id access.Identity, w Welcome, f scenestore.Fence) error {
-	if _, err := access.Session(ctx, tx, id.Session); err != nil {
+	if _, err := access.Session(telemetry.Phase(ctx, "session_check"), tx, id.Session); err != nil {
 		return fmt.Errorf("visit session check: %w", err)
 	}
 	var site, ship int64
@@ -48,16 +52,19 @@ func check(ctx context.Context, tx pgx.Tx, id access.Identity, w Welcome, f scen
 	if !valid {
 		return ErrVisit
 	}
-	_, err = access.Landing(ctx, tx, id.User, site, ship)
+	_, err = access.Landing(telemetry.Phase(ctx, "landing_check"), tx, id.User, site, ship)
 	if err != nil {
 		return fmt.Errorf("visit landing check: %w", err)
 	}
-	if err = sectorCheck(ctx, tx, id.User); err != nil {
+	if err = sectorCheck(telemetry.Phase(ctx, "sector_check"), tx, id.User); err != nil {
 		return fmt.Errorf("visit sector check: %w", err)
 	}
 	return nil
 }
-func (a *Service) Disconnect(ctx context.Context, id access.Identity, w Welcome, f scenestore.Fence) error {
+func (a *Service) Disconnect(ctx context.Context, id access.Identity, w Welcome, f scenestore.Fence) (result error) {
+	ctx = telemetry.WithVisit(ctx, id.User, w.Visit, w.Epoch)
+	ctx, ended := telemetry.Operation(ctx, "disconnect")
+	defer func() { ended(result) }()
 	tx, err := a.locked(ctx, id.User, f)
 	if err != nil {
 		return err
@@ -74,6 +81,7 @@ func (a *Service) Disconnect(ctx context.Context, id access.Identity, w Welcome,
 	if err = tx.Commit(ctx); err != nil {
 		return err
 	}
+	telemetry.Event(ctx, "visit disconnect committed", nil, "applied", tag.RowsAffected() > 0)
 	if tag.RowsAffected() > 0 {
 		a.lifecycleCommitted(gamesignal.VisitDisconnectedSubject, d)
 	}
@@ -122,7 +130,9 @@ func (a *Service) sweepOne(ctx context.Context, uid int64, f scenestore.Fence) e
 	var site, ship *int64
 	var valid, revoke bool
 	var previousFence int64
-	err = tx.QueryRow(ctx, `SELECT v.state,COALESCE(v.session_hash,''),v.landing_site,v.ship,COALESCE(c.generation=v.generation AND c.reserved_ship=v.ship AND c.revoke_requested_at IS NULL,false),COALESCE(c.revoke_requested_at IS NOT NULL,false),v.runtime_fence FROM planet_visits v LEFT JOIN planet_transfer_controls c ON c.user_id=v.user_id WHERE v.user_id=$1 AND v.state<>'ended'`, uid).Scan(&state, &session, &site, &ship, &valid, &revoke, &previousFence)
+	var visitID string
+	var epoch int64
+	err = tx.QueryRow(ctx, `SELECT v.state,COALESCE(v.session_hash,''),v.landing_site,v.ship,COALESCE(c.generation=v.generation AND c.reserved_ship=v.ship AND c.revoke_requested_at IS NULL,false),COALESCE(c.revoke_requested_at IS NOT NULL,false),v.runtime_fence,COALESCE(v.visit_id::text,''),v.connection_epoch FROM planet_visits v LEFT JOIN planet_transfer_controls c ON c.user_id=v.user_id WHERE v.user_id=$1 AND v.state<>'ended'`, uid).Scan(&state, &session, &site, &ship, &valid, &revoke, &previousFence, &visitID, &epoch)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil
 	}
@@ -180,13 +190,17 @@ func (a *Service) sweepOne(ctx context.Context, uid int64, f scenestore.Fence) e
 	}
 	if subject != "" {
 		a.lifecycleCommitted(subject, d)
+		telemetry.Event(telemetry.WithVisit(ctx, uid, visitID, epoch), "visit sweep committed", nil, "change", subject)
 	}
 	return nil
 }
 
 // Checkpoint saves only a server-owned position using the active epoch, control
 // generation, runtime fence AND character version. No coordinates come from HTTP.
-func (a *Service) Checkpoint(ctx context.Context, id access.Identity, w Welcome, f scenestore.Fence, s *scene.Scene, x, y int, finish bool) (int64, error) {
+func (a *Service) Checkpoint(ctx context.Context, id access.Identity, w Welcome, f scenestore.Fence, s *scene.Scene, x, y int, finish bool) (saved int64, result error) {
+	ctx = telemetry.WithVisit(ctx, id.User, w.Visit, w.Epoch)
+	ctx, ended := telemetry.Operation(ctx, "checkpoint")
+	defer func() { ended(result) }()
 	if w.Generation < 1 || w.PositionVersion < 1 || x < 0 || y < 0 || x >= 256*1024 || y >= 256*1024 || !s.Walkable(x/1024, y/1024) {
 		return 0, scene.ErrSource
 	}

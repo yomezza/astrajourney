@@ -3,6 +3,7 @@ package transfer
 import (
 	"context"
 	"errors"
+	"github.com/yomezza/cosmosimulator/internal/platform/telemetry"
 	"time"
 
 	"github.com/yomezza/cosmosimulator/internal/planet/access"
@@ -10,13 +11,15 @@ import (
 
 // Reconcile owns reservation release, including recovery after runtime expiry.
 func (a *Service) Reconcile(ctx context.Context) error { return a.reconcile(ctx, 0) }
-func (a *Service) reconcile(ctx context.Context, onlyUser int64) error {
+func (a *Service) reconcile(ctx context.Context, onlyUser int64) (result error) {
+	ctx, ended := telemetry.Operation(ctx, "transfer_reconcile")
+	defer func() { ended(result) }()
 	tx, err := a.DB.Begin(ctx)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback(context.Background())
-	if _, err = tx.Exec(ctx, `SELECT pg_advisory_xact_lock(784218)`); err != nil {
+	if _, err = tx.Exec(telemetry.Phase(ctx, "world_lock"), `SELECT pg_advisory_xact_lock(784218)`); err != nil {
 		return err
 	}
 	rows, err := tx.Query(ctx, `SELECT c.user_id,c.generation,c.reserved_ship,c.revoke_requested_at IS NOT NULL,COALESCE(CASE WHEN v.state IN('active','disconnected') AND v.generation=c.generation THEN v.session_hash END,h.session_hash,''),COALESCE(h.landing_site,0),COALESCE(h.expires_at<=clock_timestamp(),true),COALESCE(v.state,''),COALESCE(v.generation,0),COALESCE(v.runtime_fence,0),COALESCE(l.fence,0),COALESCE(l.owner_id IS NOT NULL AND l.expires_at>clock_timestamp(),false),EXISTS(SELECT 1 FROM planet_handoff_uses hu WHERE hu.handoff_id=h.id) FROM planet_transfer_controls c LEFT JOIN planet_handoffs h ON h.user_id=c.user_id AND h.operation=c.active_operation LEFT JOIN planet_visits v ON v.user_id=c.user_id CROSS JOIN planet_runtime_leases l WHERE l.id=1 AND ($1::bigint=0 OR c.user_id=$1) AND (c.reserved_ship IS NOT NULL OR c.revoke_requested_at IS NOT NULL) ORDER BY c.checked_at,c.user_id LIMIT 100`, onlyUser)

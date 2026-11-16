@@ -4,6 +4,7 @@ import (
 	"context"
 	"embed"
 	"github.com/yomezza/cosmosimulator/internal/platform/natscore"
+	"github.com/yomezza/cosmosimulator/internal/platform/telemetry"
 	"io/fs"
 	"net/http"
 	"strings"
@@ -110,7 +111,7 @@ func (a *App) Handler() http.Handler {
 	m.HandleFunc("GET /api/admin/users", a.Administration.UserPages)
 	web, _ := fs.Sub(Assets, "web")
 	m.Handle("GET /", http.FileServer(http.FS(web)))
-	return httpkit.GzipAPI(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return telemetry.TraceHTTP("cosmos", httpkit.GzipAPI(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Header().Set("X-Frame-Options", "DENY")
 		w.Header().Set("Content-Security-Policy", "default-src 'self'; style-src 'self'; script-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'")
@@ -155,7 +156,7 @@ func (a *App) Handler() http.Handler {
 			r = bounded
 		}
 		m.ServeHTTP(w, r)
-	}))
+	})))
 }
 
 func (a *App) registerTerminalRoutes(m *http.ServeMux) {

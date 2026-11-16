@@ -1,3 +1,4 @@
+import { requestID, trace } from "./diagnostics.js";
 export class ApiError extends Error {
   constructor(message, { status = 0, kind = "http", cause } = {}) {
     super(message, { cause });
@@ -9,6 +10,7 @@ export class ApiError extends Error {
 
 export async function request(path, body, signal) {
   let response;
+ const requestId = requestID(), began = performance.now();
   try {
     response = await fetch("/api/" + path, {
       signal,
@@ -17,12 +19,14 @@ export async function request(path, body, signal) {
       body: body === undefined ? undefined : JSON.stringify(body),
     });
   } catch (error) {
+    trace("http_failed", { requestId, phase: "fetch", code: error.name, durationMs: Math.round(performance.now()-began) });
     if (error.name === "AbortError") throw error;
     throw new ApiError("Не удалось подключиться", {
       kind: "network",
       cause: error,
     });
   }
+  trace("http_response", { requestId, phase: path.split("?")[0], code: response.status, durationMs: Math.round(performance.now()-began) });
   let data;
   try {
     data = JSON.parse(await response.text());

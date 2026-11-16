@@ -7,10 +7,17 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/planet/movement"
 	"github.com/yomezza/cosmosimulator/internal/planet/scenestore"
 	"github.com/yomezza/cosmosimulator/internal/planet/visits"
+	"github.com/yomezza/cosmosimulator/internal/platform/telemetry"
 	"time"
 )
 
 func takeGate(ctx context.Context, gate chan struct{}) error {
+	start := time.Now()
+	defer func() {
+		if time.Since(start) >= 50*time.Millisecond {
+			telemetry.Event(telemetry.Phase(ctx, "memory_user_gate"), "planet gate wait", ctx.Err(), "duration_ms", time.Since(start).Milliseconds())
+		}
+	}()
 	select {
 	case gate <- struct{}{}:
 		return nil
@@ -51,14 +58,16 @@ func (a *App) flushPrevious(ctx context.Context, id access.Identity, f scenestor
 	}
 	return err
 }
-func (a *App) disconnectMotion(id access.Identity, w visits.Welcome, f scenestore.Fence, m *movement.Member, gate chan struct{}, ended *bool) {
-	ctx, cancel := context.WithTimeout(context.Background(), a.config.DBTimeout)
+func (a *App) disconnectMotion(parent context.Context, id access.Identity, w visits.Welcome, f scenestore.Fence, m *movement.Member, gate chan struct{}, ended *bool) {
+	ctx, cancel := context.WithTimeout(context.WithoutCancel(parent), a.config.DBTimeout)
 	defer cancel()
 	if takeGate(ctx, gate) == nil {
 		m.Freeze()
 		if !*ended {
-			_ = a.saveMotion(ctx, id, m, f, false)
-			_ = a.visits.Disconnect(ctx, id, w, f)
+			saveErr := a.saveMotion(ctx, id, m, f, false)
+			telemetry.Event(telemetry.WithVisit(ctx, id.User, w.Visit, w.Epoch), "planet disconnect save", saveErr)
+			disconnectErr := a.visits.Disconnect(ctx, id, w, f)
+			telemetry.Event(telemetry.WithVisit(ctx, id.User, w.Visit, w.Epoch), "planet visit disconnected", disconnectErr)
 		}
 		<-gate
 	}

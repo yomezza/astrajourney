@@ -72,22 +72,36 @@ func (a *Service) LoadFrom(ctx context.Context, q postgres.Querier) (*universe.G
 		}
 		return &g, nil
 	}
+	return a.loadCached(ctx, q, false)
+}
+
+// LoadReadOnly validates a shared immutable snapshot using the caller's own
+// connection. Writers must use LoadFrom: its transaction-local copy can be
+// mutated without publishing uncommitted changes into the shared cache.
+// xmin changes with a row update and is read without fetching/decompressing the
+// large JSON value. Under the world lock this validates the exact current world.
+func (a *Service) LoadReadOnly(ctx context.Context, q postgres.Querier) (*universe.Galaxy, error) {
+	return a.loadCached(ctx, q, true)
+}
+
+func (a *Service) loadCached(ctx context.Context, q postgres.Querier, validate bool) (*universe.Galaxy, error) {
+	_, transactional := q.(pgx.Tx)
 
 	for {
 		if err := ctx.Err(); err != nil {
 			return nil, err
 		}
 		a.universeMu.Lock()
-		cached, epoch, checked := a.universe, a.universeEpoch, a.universeChecked
+		cached, epoch, checked, version := a.universe, a.universeEpoch, a.universeChecked, a.universeRowVersion
 		a.universeMu.Unlock()
-		if cached != nil && time.Since(checked) < 2*time.Second {
+		if !validate && cached != nil && time.Since(checked) < 2*time.Second {
 			return cached, nil
 		}
 		// Never wait for a pool connection while holding the cache mutex: a writer
 		// may own the last connection and need that mutex to commit/invalidate.
 		if cached != nil {
-			var revision int64
-			if err := q.QueryRow(ctx, `SELECT COALESCE((data->>'revision')::bigint,0) FROM galaxies WHERE name='Edem'`).Scan(&revision); err != nil {
+			var currentVersion string
+			if err := q.QueryRow(ctx, `SELECT xmin::text FROM galaxies WHERE name='Edem'`).Scan(&currentVersion); err != nil {
 				return nil, err
 			}
 			a.universeMu.Lock()
@@ -95,20 +109,30 @@ func (a *Service) LoadFrom(ctx context.Context, q postgres.Querier) (*universe.G
 				a.universeMu.Unlock()
 				continue
 			}
-			if revision == cached.Revision {
-				a.universeChecked = time.Now()
+			if currentVersion == version {
+				// A transaction's snapshot may be older than the current committed
+				// row. It must not extend the ordinary reader's freshness window.
+				if !transactional {
+					a.universeChecked = time.Now()
+				}
 				a.universeMu.Unlock()
 				return cached, nil
 			}
 			a.universeMu.Unlock()
 		}
 		var raw []byte
-		if err := q.QueryRow(ctx, `SELECT data FROM galaxies WHERE name='Edem'`).Scan(&raw); err != nil {
+		var rowVersion string
+		if err := q.QueryRow(ctx, `SELECT data,xmin::text FROM galaxies WHERE name='Edem'`).Scan(&raw, &rowVersion); err != nil {
 			return nil, err
 		}
 		var g universe.Galaxy
 		if err := json.Unmarshal(raw, &g); err != nil {
 			return nil, err
+		}
+		// A cold or changed transactional snapshot can include the caller's own
+		// writes, or old MVCC data. Never publish it into the process-wide cache.
+		if transactional {
+			return &g, nil
 		}
 		a.universeMu.Lock()
 		if epoch != a.universeEpoch || cached != a.universe {
@@ -116,6 +140,7 @@ func (a *Service) LoadFrom(ctx context.Context, q postgres.Querier) (*universe.G
 			continue
 		}
 		a.universe = &g
+		a.universeRowVersion = rowVersion
 		a.universeChecked = time.Now()
 		a.universeMu.Unlock()
 		return &g, nil

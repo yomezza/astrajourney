@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"errors"
+	"github.com/yomezza/cosmosimulator/internal/platform/telemetry"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -32,7 +33,10 @@ func (a *App) planetProxy() http.Handler {
 	}
 	proxy := httputil.NewSingleHostReverseProxy(u)
 	proxy.Transport = httpkit.InternalTransport()
-	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, e error) { httpkit.Fail(w, 503, "runtime_unavailable") }
+	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, e error) {
+		telemetry.Event(r.Context(), "planet proxy failed", e)
+		httpkit.Fail(w, 503, "runtime_unavailable")
+	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !a.Transfer.Enabled {
 			httpkit.Fail(w, 503, "planetary_disabled")
@@ -54,7 +58,10 @@ func (a *App) chatProxy() http.Handler {
 	}
 	proxy := httputil.NewSingleHostReverseProxy(u)
 	proxy.Transport = httpkit.InternalTransport()
-	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, e error) { httpkit.Fail(w, 503, "chat_unavailable") }
+	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, e error) {
+		telemetry.Event(r.Context(), "chat proxy failed", e)
+		httpkit.Fail(w, 503, "chat_unavailable")
+	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if configuration.Getenv("CHAT_ENABLED") != "true" {
 			httpkit.Fail(w, 503, "chat_disabled")

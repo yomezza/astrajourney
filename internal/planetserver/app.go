@@ -97,7 +97,7 @@ func (a *App) Handler() http.Handler {
 	mux.HandleFunc("GET /planet/ws/v1", a.websocket)
 	mux.HandleFunc("GET /planet/api/v1/scene", a.sceneView)
 	mux.HandleFunc("GET /planet/api/v1/metrics", a.metricsView)
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return telemetry.TraceHTTP("planet", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		if origin := r.Header.Get("Origin"); origin != "" {
@@ -114,7 +114,7 @@ func (a *App) Handler() http.Handler {
 			}
 		}
 		mux.ServeHTTP(w, r)
-	})
+	}))
 }
 
 func (a *App) health(w http.ResponseWriter, status int, reason string) {

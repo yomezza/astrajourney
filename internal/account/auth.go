@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"github.com/yomezza/cosmosimulator/internal/platform/telemetry"
 	"net/http"
 	"time"
 	"unicode/utf8"
@@ -167,6 +168,7 @@ func (a *Service) newSession(w http.ResponseWriter, r *http.Request, id int64) {
 		httpkit.Internal(w, err)
 		return
 	}
+	telemetry.Event(r.Context(), "session created", nil, "user_id", id)
 	http.SetCookie(w, &http.Cookie{Name: "session", Value: token, Path: "/", HttpOnly: true, Secure: a.Secure, SameSite: http.SameSiteLaxMode, MaxAge: 7 * 24 * 3600})
 	httpkit.Reply(w, 200, map[string]bool{"ok": true})
 }
@@ -180,6 +182,7 @@ func (a *Service) User(w http.ResponseWriter, r *http.Request) (User, bool) {
 	}
 	err = a.DB.QueryRow(r.Context(), `SELECT u.id,u.username,u.role,u.is_bot,u.credits,u.ore FROM users u JOIN sessions s ON s.user_id=u.id WHERE s.token_hash=$1 AND s.expires_at>now()`, TokenHash(c.Value)).Scan(&u.ID, &u.Username, &u.Role, &u.Bot, &u.Credits, &u.Ore)
 	if errors.Is(err, pgx.ErrNoRows) {
+		telemetry.Event(r.Context(), "session expired or revoked", nil)
 		httpkit.Fail(w, 401, "Сессия истекла")
 		return u, false
 	}
@@ -197,6 +200,7 @@ func (a *Service) Logout(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+	telemetry.Event(r.Context(), "session logout", nil)
 	http.SetCookie(w, &http.Cookie{Name: "session", Path: "/", HttpOnly: true, Secure: a.Secure, SameSite: http.SameSiteLaxMode, MaxAge: -1})
 	httpkit.Reply(w, 200, map[string]bool{"ok": true})
 }

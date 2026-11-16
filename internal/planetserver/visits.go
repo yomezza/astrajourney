@@ -14,6 +14,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/planet/scenestore"
 	"github.com/yomezza/cosmosimulator/internal/planet/visits"
 	"github.com/yomezza/cosmosimulator/internal/platform/httpkit"
+	"github.com/yomezza/cosmosimulator/internal/platform/telemetry"
 	"net/http"
 	"time"
 )
@@ -56,12 +57,13 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ctx, cancel := context.WithTimeout(r.Context(), a.config.DBTimeout)
-	id, err := access.Authenticate(ctx, a.db, r)
+	id, err := access.Authenticate(telemetry.Phase(ctx, "authenticate"), a.db, r)
 	if err == nil && a.coordinator.Ready(ctx) != "" {
 		err = errors.New("runtime unavailable")
 	}
 	cancel()
 	if err != nil {
+		telemetry.Event(r.Context(), "planet upgrade rejected", err, "public_code", publicError(err))
 		code := 503
 		if errors.Is(err, access.ErrAuth) {
 			code = 401
@@ -104,6 +106,8 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 	connection, cancelConnection := planetWebSocketContext(r.Context(), a.runContext)
 	defer cancelConnection()
 	r = r.WithContext(connection)
+	logger := a.logger.With(telemetry.Fields(r.Context())...)
+	telemetry.Event(r.Context(), "planet websocket opened", nil, "user_id", id.User)
 	openedAt := time.Now()
 	closeCause := "handler_exit"
 	var closeError error
@@ -121,17 +125,18 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 			"cause", closeCause,
 			"connected", established,
 			"connection_epoch", epochForLog,
+			"user_id", id.User, "close_code", websocket.CloseStatus(closeError), "close_initiator", closeInitiator(closeCause, closeError),
 			"duration_ms", time.Since(openedAt).Milliseconds(),
 		}
 		if closeError != nil {
-			fields = append(fields, "error", closeError.Error())
+			fields = append(fields, "failure", telemetry.ErrorFields(closeError), "public_code", publicError(closeError))
 		}
 		if closeCause == "service_shutdown" ||
 			(closeCause == "read_error" &&
 				websocket.CloseStatus(closeError) == websocket.StatusNormalClosure) {
-			a.logger.Debug("planet websocket ended", fields...)
+			logger.Info("planet websocket ended", fields...)
 		} else {
-			a.logger.Warn("planet websocket ended", fields...)
+			logger.Warn("planet websocket ended", fields...)
 		}
 	}()
 	c.SetReadLimit(4096)
@@ -218,7 +223,7 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 	if pinRelease != nil {
 		defer func() { pinRelease() }()
 	}
-	out := &stream{c: c, ctx: r.Context(), metrics: &a.transport}
+	out := &stream{c: c, ctx: r.Context(), metrics: &a.transport, onError: func(e error) { closeCause, closeError = "stream_write_failed", e }}
 	if pilot != nil {
 		out.visit = welcome.Visit
 		out.epoch = welcome.Epoch
@@ -231,9 +236,12 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	epochForLog = welcome.Epoch
+	r = r.WithContext(telemetry.WithVisit(r.Context(), id.User, welcome.Visit, welcome.Epoch))
+	logger = a.logger.With(telemetry.Fields(r.Context())...)
+	telemetry.Event(r.Context(), "planet visit activated", nil, "runtime_fence", activeFence.Number)
 	f := activeFence
 	ended := false
-	defer func() { a.disconnectMotion(id, welcome, f, pilot, gate, &ended) }()
+	defer func() { a.disconnectMotion(r.Context(), id, welcome, f, pilot, gate, &ended) }()
 	if err = send("welcome", welcome); err != nil {
 		closeCause = "welcome_write_failed"
 		closeError = err
@@ -288,7 +296,7 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 		if retry, first := validationGrace.failed(time.Now(), checkErr); retry {
 			if first {
 				pilot.Pause()
-				a.logger.Warn("planet visit check temporarily unavailable", "phase", phase, "error", checkErr)
+				logger.Warn("planet visit check temporarily unavailable", "phase", phase, "failure", telemetry.ErrorFields(checkErr))
 				if send("error", map[string]string{"code": "runtime_unavailable", "phase": phase}) != nil {
 					return false
 				}
@@ -304,7 +312,7 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 		if !checkpointPending && transition.offer == nil && returnPrepared.IsZero() {
 			pilot.Thaw()
 		}
-		a.logger.Info("planet visit check recovered", "connection_epoch", welcome.Epoch)
+		logger.Info("planet visit check recovered", "connection_epoch", welcome.Epoch)
 	}
 	saveCheckpoint := func() error {
 		save, done := context.WithTimeout(run, a.config.DBTimeout)
@@ -326,7 +334,7 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 		checkpointPending = true
 		pilot.Pause()
 		if first {
-			a.logger.Warn("planet checkpoint temporarily unavailable", "phase", "checkpoint", "connection_epoch", welcome.Epoch, "error", saveErr)
+			logger.Warn("planet checkpoint temporarily unavailable", "phase", "checkpoint", "failure", telemetry.ErrorFields(saveErr))
 			if send("error", map[string]string{"code": "runtime_unavailable", "phase": "checkpoint_retry"}) != nil {
 				return false
 			}
@@ -525,6 +533,9 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 				transition.close()
 				pilot = replacement
 				welcome = next
+				epochForLog = next.Epoch
+				logger = a.logger.With(telemetry.Fields(telemetry.WithVisit(run, id.User, next.Visit, next.Epoch))...)
+				telemetry.Event(telemetry.WithVisit(run, id.User, next.Visit, next.Epoch), "planet sector changed", nil)
 				out.epoch = next.Epoch
 				accepted = -1
 				reported = -1
@@ -609,7 +620,7 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 				if validationGrace.since.IsZero() && transition.offer == nil && returnPrepared.IsZero() {
 					pilot.Thaw()
 				}
-				a.logger.Info("planet checkpoint recovered", "connection_epoch", welcome.Epoch)
+				logger.Info("planet checkpoint recovered", "connection_epoch", welcome.Epoch)
 			}
 			if !returnPrepared.IsZero() && time.Now().After(returnPrepared) {
 				returnPrepared = time.Time{}
@@ -640,7 +651,7 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 			offered, e := a.offerTransition(run, id, pilot, transition)
 			if e != nil {
 				if lastOfferError != e.Error() {
-					a.logger.Warn("planet transition check failed", "phase", "transition_offer", "connection_epoch", welcome.Epoch, "fence", f.Number, "error", e)
+					logger.Warn("planet transition check failed", "phase", "transition_offer", "connection_epoch", welcome.Epoch, "fence", f.Number, "failure", telemetry.ErrorFields(e))
 					lastOfferError = e.Error()
 				}
 				if send("error", map[string]string{"code": publicError(e), "phase": "transition_offer"}) != nil {
@@ -668,4 +679,14 @@ func (a *App) websocket(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+}
+
+func closeInitiator(cause string, err error) string {
+	if cause == "read_error" {
+		if websocket.CloseStatus(err) >= 1000 && websocket.CloseStatus(err) != 1006 {
+			return "peer"
+		}
+		return "transport_or_peer"
+	}
+	return "planet"
 }

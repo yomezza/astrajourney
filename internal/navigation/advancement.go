@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/yomezza/cosmosimulator/internal/platform/telemetry"
 	"time"
 
 	"github.com/yomezza/cosmosimulator/internal/discovery"
@@ -13,16 +14,19 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/universe"
 )
 
-func (a *Service) AdvancePlayer(ctx context.Context, uid int64, g *universe.Galaxy) error {
+func (a *Service) AdvancePlayer(ctx context.Context, uid int64, g *universe.Galaxy) (result error) {
+	ctx = telemetry.WithVisit(ctx, uid, "", 0)
+	ctx, ended := telemetry.Operation(ctx, "advance_player")
+	defer func() { ended(result) }()
 	tx, err := a.DB.Begin(ctx)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback(context.Background())
-	if _, err = tx.Exec(ctx, `SELECT pg_advisory_xact_lock(784218)`); err != nil {
+	if _, err = tx.Exec(telemetry.Phase(ctx, "world_lock"), `SELECT pg_advisory_xact_lock(784218)`); err != nil {
 		return err
 	}
-	g, err = a.World.LoadFrom(ctx, tx)
+	g, err = a.World.LoadReadOnly(ctx, tx)
 	if err != nil {
 		return err
 	}

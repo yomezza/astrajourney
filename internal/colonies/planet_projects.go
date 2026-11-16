@@ -65,7 +65,7 @@ func (c PlanetConfig) valid() bool {
 }
 
 func (a *Service) PlanetAt(ctx context.Context, q postgres.Querier, uid int64, star, planet int) (universe.Planet, error) {
-	g, err := a.World.LoadFrom(ctx, q)
+	g, err := a.World.LoadReadOnly(ctx, q)
 	if err != nil {
 		return universe.Planet{}, err
 	}
@@ -135,7 +135,7 @@ func (a *Service) PlanetSurface(w http.ResponseWriter, r *http.Request) {
 			httpkit.Internal(w, e)
 			return
 		}
-		g, e := a.World.LoadFrom(ctx, tx)
+		g, e := a.World.LoadReadOnly(ctx, tx)
 		if e != nil {
 			httpkit.Internal(w, e)
 			return

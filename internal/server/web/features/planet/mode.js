@@ -1,3 +1,4 @@
+import { trace } from "../../core/diagnostics.js";
 import { Session } from "../../core/session.js";
 import { Startup } from "../../ui/startup.js";
 
@@ -31,6 +32,7 @@ export const PlanetMode = {
         inert.set(element, element.inert);
         element.inert = true;
       }
+      trace("planet_mode_enter", { sessionEpoch: Session.epoch, inertElements: inert.size });
       document.body.classList.add("planet-mode");
       window.dispatchEvent(
         new CustomEvent("planetmodechange", { detail: true }),
@@ -60,6 +62,7 @@ export const PlanetMode = {
   },
   leave() {
     const wasActive = this.active;
+ if(wasActive) trace("planet_mode_leave", {sessionEpoch: Session.epoch, inertElements: inert.size});
     this.ready();
     host && (host.hidden = true);
     document.body.classList.remove("planet-mode");

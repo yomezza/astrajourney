@@ -14,10 +14,12 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sync"
 	"testing"
 	"time"
 )
 
+func TestPlanetModeWithCosmicWorkers(t *testing.T) { planetBrowser210(t, false, "planet-mode-workers") }
 func TestPlanetBrowser180(t *testing.T)            { planetBrowser210(t, false) }
 func TestPlanetTransitionsBrowser210(t *testing.T) { planetBrowser210(t, true) }
 func TestPlanetWalkingBrowser257(t *testing.T)     { planetBrowser210(t, false, "planet-walking-live.mjs") }
@@ -33,6 +35,16 @@ func planetBrowser210(t *testing.T, transition bool, custom ...string) {
 		t.Skip("set RUN_PLANET_BROWSER=1 with Node/Playwright")
 	}
 	f, c, uid, surface, site, _ := prepare180(t)
+
+	if len(custom) > 0 && custom[0] == "planet-mode-workers" {
+		run, stop := context.WithCancel(f.ctx)
+		var workers sync.WaitGroup
+		for _, work := range []func(context.Context){f.app.Simulation.Simulate, f.app.Colonies.RunLandingWorker, f.app.Transfer.Run, f.app.Corporations.RunChatCleanup, f.app.Knowledge.Run} {
+			workers.Add(1)
+			go func(fn func(context.Context)) { defer workers.Done(); fn(run) }(work)
+		}
+		defer func() { stop(); workers.Wait() }()
+	}
 	peer, _, _ := peer200(t, f, uid, surface)
 	if len(custom) > 0 && custom[0] == "planet-walking-live.mjs" {
 		// One real PostgreSQL checkpoint exceeds the normal 2s DB budget.
@@ -93,6 +105,9 @@ func planetBrowser210(t *testing.T, transition bool, custom ...string) {
 	scriptName := "planet-live.mjs"
 	if len(custom) > 0 {
 		scriptName = custom[0]
+		if scriptName == "planet-mode-workers" {
+			scriptName = "planet-walking-live.mjs"
+		}
 		f.exec(`UPDATE users SET role='admin' WHERE id=$1`, uid)
 	}
 	if transition {

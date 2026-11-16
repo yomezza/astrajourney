@@ -13,12 +13,13 @@ import (
 
 // Service has explicit dependencies; the composition root owns their lifetime.
 type Service struct {
-	DB              *pgxpool.Pool
-	Auth            *account.Service
-	universeMu      sync.Mutex
-	universeEpoch   uint64
-	universeChecked time.Time
-	universe        *universe.Galaxy
-	stationMu       sync.Mutex
-	stationCount    int
+	DB                 *pgxpool.Pool
+	Auth               *account.Service
+	universeMu         sync.Mutex
+	universeEpoch      uint64
+	universeRowVersion string
+	universeChecked    time.Time
+	universe           *universe.Galaxy
+	stationMu          sync.Mutex
+	stationCount       int
 }

@@ -63,6 +63,10 @@ func (n *natsDocument) selected(service Service) NATSSettings {
 }
 
 type document struct {
+	Diagnostics struct {
+		Directory string `toml:"directory"`
+		Enabled   *bool  `toml:"enabled"`
+	} `toml:"diagnostics"`
 	Database struct {
 		URL    string `toml:"url"`
 		Schema string `toml:"schema"`
@@ -132,6 +136,8 @@ func value[T bool | int | float64](v *T) string {
 
 func (d document) values(service Service) map[string]string {
 	values := map[string]string{
+		"DIAGNOSTICS_DIRECTORY":         d.Diagnostics.Directory,
+		"DIAGNOSTICS_ENABLED":           value(d.Diagnostics.Enabled),
 		"DATABASE_URL":                  d.Database.URL,
 		"DB_SCHEMA":                     d.Database.Schema,
 		"GUIDE_MEDIA_DIR":               d.Cosmos.GuideMediaDir,

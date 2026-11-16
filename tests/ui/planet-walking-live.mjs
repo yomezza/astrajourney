@@ -86,7 +86,7 @@ try {
   assert.equal(await canvas.getAttribute("data-connection-epoch"), epoch);
   assert.deepEqual(errors, []);
   console.log(
-    "PASS: 70s real browser walking across PostgreSQL checkpoints, one injected slow save, no reconnects, continued server movement",
+    "PASS: 70s real browser walking across PostgreSQL checkpoints, no reconnects, continued server movement",
   );
   await context.close();
 } finally {

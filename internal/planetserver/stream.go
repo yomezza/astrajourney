@@ -19,6 +19,7 @@ type packet struct {
 // queue: motion and sector mailboxes each hold only the newest complete frame.
 type stream struct {
 	metrics         *transportMetrics
+	onError         func(error)
 	c               *websocket.Conn
 	ctx             context.Context
 	visit           string
@@ -44,6 +45,9 @@ func (s *stream) batch(messages []packet) error {
 			err = s.c.Write(ctx, websocket.MessageText, data)
 		}
 		if err != nil {
+			if s.onError != nil {
+				s.onError(err)
+			}
 			if s.metrics != nil {
 				s.metrics.errors.Add(1)
 			}

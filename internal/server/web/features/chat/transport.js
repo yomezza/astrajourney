@@ -1,3 +1,4 @@
+import { requestID, trace } from "../../core/diagnostics.js";
 import { uuid } from "../../core/uuid.js";
 // A single transport per signed-in account. Mutations use WS only; uncertain
 // outcomes are looked up by the original UUID and never automatically re-sent.
@@ -14,6 +15,7 @@ export class ChatClient {
       "/chat/api/v1/" + route + "?" + new URLSearchParams(params),
       {
         credentials: "same-origin",
+        headers: {"X-Request-ID": requestID()},
         signal: this.controller.signal,
         cache: "no-store",
       },
@@ -31,6 +33,9 @@ export class ChatClient {
       return;
     const url = new URL("/chat/ws/v1", location.href);
     url.protocol = location.protocol === "https:" ? "wss:" : "ws:";
+    const requestId = requestID();
+ url.searchParams.set("request_id", requestId);
+ trace("chat_ws_created", { requestId });
     const socket = new WebSocket(url);
     this.socket = socket;
     let hello = false;
@@ -43,6 +48,7 @@ export class ChatClient {
         return;
       }
       if (v.type === "hello") {
+        trace("chat_welcome", { requestId });
         hello = true;
         this.attempt = 0;
       }
@@ -55,7 +61,8 @@ export class ChatClient {
         }
       } else this.onEvent(v);
     };
-    socket.onclose = () => {
+    socket.onclose = (event) => {
+ trace("chat_ws_close", {requestId, code: event.code, wasClean: event.wasClean, current: !this.closed && this.socket === socket, initiator: this.closed ? "browser" : "unknown"});
       if (this.closed || this.socket !== socket) return;
       this.onEvent({
         type: "offline",
@@ -111,6 +118,7 @@ export class ChatClient {
     });
   }
   close() {
+    trace("chat_resources_disposed", {socket: !!this.socket, retry: !!this.retry});
     this.closed = true;
     clearTimeout(this.retry);
     this.controller.abort();

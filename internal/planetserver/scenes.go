@@ -2,6 +2,7 @@ package planetserver
 
 import (
 	"context"
+	"github.com/yomezza/cosmosimulator/internal/platform/telemetry"
 	"time"
 
 	"github.com/yomezza/cosmosimulator/internal/planet/movement"
@@ -74,7 +75,7 @@ func (a *App) maintainScenes(ctx context.Context) {
 			}
 			cancel()
 			if err != nil && ctx.Err() == nil {
-				a.logger.Debug("local scene retirement deferred")
+				telemetry.Event(check, "planet maintenance deferred", err)
 			}
 		}
 	}

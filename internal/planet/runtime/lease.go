@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
+	"github.com/yomezza/cosmosimulator/internal/platform/telemetry"
 	"log/slog"
 	"sync"
 	"time"
@@ -76,6 +77,7 @@ func (c *Coordinator) set(fence int64, reason string) {
 
 // Step is called by one lifecycle goroutine, never by requests or movement.
 func (c *Coordinator) Step(ctx context.Context) {
+	ctx = telemetry.Phase(ctx, "lease_renewal")
 	old, _ := c.Current()
 	if reason := CheckSchema(ctx, c.db); reason != "" {
 		// An unavailable DB cannot prove ownership was lost. Keep the fence for
@@ -105,10 +107,11 @@ func (c *Coordinator) Step(ctx context.Context) {
 				reason = "lease_lost"
 			}
 		}
-		c.log.Warn("planetary lease update failed", "phase", "lease_renewal", "fence", old.Fence, "reason", reason, "error", err)
+		c.log.Warn("planetary lease update failed", "phase", "lease_renewal", "fence", old.Fence, "reason", reason, "failure", telemetry.ErrorFields(err))
 		c.set(retained, reason)
 		return
 	}
+	telemetry.Event(ctx, "planet lease renewed", nil, "runtime_fence", fence)
 	c.set(fence, "")
 }
 

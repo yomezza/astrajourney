@@ -11,6 +11,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/planet/scene"
 	"github.com/yomezza/cosmosimulator/internal/planet/scenestore"
 	"github.com/yomezza/cosmosimulator/internal/platform/gamesignal"
+	"github.com/yomezza/cosmosimulator/internal/platform/telemetry"
 	"time"
 )
 
@@ -91,22 +92,22 @@ func (a *Service) Resolve(ctx context.Context, id access.Identity, hash, resume 
 	return in, nil
 }
 func (a *Service) locked(ctx context.Context, uid int64, f scenestore.Fence) (pgx.Tx, error) {
-	tx, err := a.DB.Begin(ctx)
+	tx, err := a.DB.Begin(telemetry.Phase(ctx, "begin"))
 	if err != nil {
 		return nil, err
 	}
 	phase := "world_lock"
-	if _, err = tx.Exec(ctx, `SELECT pg_advisory_xact_lock_shared(784218)`); err == nil {
+	if _, err = tx.Exec(telemetry.Phase(ctx, "world_lock"), `SELECT pg_advisory_xact_lock_shared(784218)`); err == nil {
 		phase = "runtime_fence"
 		var n int64
-		err = tx.QueryRow(ctx, `SELECT fence FROM planet_runtime_leases WHERE id=1 AND owner_id=$1 AND fence=$2 AND expires_at>clock_timestamp() AND EXISTS(SELECT 1 FROM planet_schema_state WHERE id=1 AND version=8) FOR SHARE`, f.Owner, f.Number).Scan(&n)
+		err = tx.QueryRow(telemetry.Phase(ctx, "runtime_fence"), `SELECT fence FROM planet_runtime_leases WHERE id=1 AND owner_id=$1 AND fence=$2 AND expires_at>clock_timestamp() AND EXISTS(SELECT 1 FROM planet_schema_state WHERE id=1 AND version=8) FOR SHARE`, f.Owner, f.Number).Scan(&n)
 		if errors.Is(err, pgx.ErrNoRows) {
 			err = scenestore.ErrFence
 		}
 	}
 	if err == nil {
 		phase = "user_gate"
-		_, err = tx.Exec(ctx, `SELECT pg_advisory_xact_lock(784219,$1)`, int32(uid))
+		_, err = tx.Exec(telemetry.Phase(ctx, "user_gate"), `SELECT pg_advisory_xact_lock(784219,$1)`, int32(uid))
 	}
 	if err != nil {
 		tx.Rollback(ctx)
@@ -114,9 +115,11 @@ func (a *Service) locked(ctx context.Context, uid int64, f scenestore.Fence) (pg
 	}
 	return tx, nil
 }
-func (a *Service) Activate(ctx context.Context, id access.Identity, in Intent, s *scene.Scene, f scenestore.Fence) (Welcome, error) {
-	var w Welcome
+func (a *Service) Activate(ctx context.Context, id access.Identity, in Intent, s *scene.Scene, f scenestore.Fence) (w Welcome, result error) {
+	ctx = telemetry.WithVisit(ctx, id.User, in.Visit, 0)
+	ctx, ended := telemetry.Operation(ctx, "activate")
 	tx, err := a.locked(ctx, id.User, f)
+	defer func() { ended(result) }()
 	if err != nil {
 		return w, err
 	}

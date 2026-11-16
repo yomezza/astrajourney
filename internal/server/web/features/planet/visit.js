@@ -1,3 +1,4 @@
+import { requestID, trace } from "../../core/diagnostics.js";
 import { PlanetMode } from "./mode.js";
 import { refresh } from "../../core/snapshot-store.js";
 import { uuid } from "../../core/uuid.js";
@@ -25,6 +26,7 @@ const terminalErrors = new Set([
   "unsupported_version",
 ]);
 function stop() {
+ trace("planet_resources_disposed", { sessionEpoch: Session.epoch, renderer: !!renderer, socket: !!socket, monitor: !!monitor, polling: !!polling, retry: !!retryTimer });
   scope.invalidate();
   clearTimeout(retryTimer);
   clearInterval(monitor);
@@ -50,6 +52,7 @@ async function requestScene(w, signal) {
 }
 export async function openVisit(site) {
   if (busy) return;
+  trace("planet_visit_open", {sessionEpoch: Session.epoch});
   busy = true;
   stop();
   const task = scope.begin();
@@ -306,6 +309,7 @@ export async function openVisit(site) {
       tr("Восстанавливаем соединение с планетарной службой") +
       ` · ${attempts}/8`;
     clearTimeout(retryTimer);
+    trace("planet_reconnect_scheduled", {visit: welcome?.visit || "", connectionEpoch: welcome?.connection_epoch || 0, attempt: attempts, delayMs: Math.round(delay)});
     retryTimer = setTimeout(() => connect(), delay);
   }
   async function connect() {
@@ -381,7 +385,11 @@ export async function openVisit(site) {
       site = null;
       const url = new URL("/planet/ws/v1", location.href);
       url.protocol = location.protocol === "https:" ? "wss:" : "ws:";
-      const conn = new WebSocket(url);
+      const requestId = requestID();
+ url.searchParams.set("request_id", requestId);
+ trace("planet_ws_created", { requestId, sessionEpoch: Session.epoch });
+ const conn = new WebSocket(url);
+ let traceVisit = "", traceEpoch = 0;
       let localCloseReason = "",
         lastPacketType = "",
         lastServerErrorCode = "";
@@ -400,6 +408,7 @@ export async function openVisit(site) {
         socket === conn &&
         conn.readyState === WebSocket.OPEN;
       conn.onopen = () => {
+ trace("planet_ws_open", { requestId, current: current() });
         clearTimeout(handshake);
         if (!current()) {
           localCloseReason = "stale_connection";
@@ -503,6 +512,7 @@ export async function openVisit(site) {
           const p = message.payload;
           if (message.type === "error") {
             lastServerErrorCode = String(p?.code || "unknown_error");
+ trace("planet_server_error", {requestId, visit: traceVisit, connectionEpoch: traceEpoch, code: lastServerErrorCode, phase: p?.phase || "unspecified"});
             console.warn("Planet server error", {
               code: lastServerErrorCode,
               phase: p?.phase || "unspecified",
@@ -548,6 +558,8 @@ export async function openVisit(site) {
               landingSector = p.landing_sector;
               landingSurface = p.landing_surface;
             }
+            traceVisit = welcome.visit; traceEpoch = welcome.connection_epoch;
+ trace("planet_welcome", { requestId, visit: traceVisit, connectionEpoch: traceEpoch });
             connectedAt = Date.now();
             resume.hidden = true;
             status.textContent =
@@ -627,6 +639,7 @@ export async function openVisit(site) {
             }
             renderer = controller;
             canvas.dataset.ready = "true";
+ trace("planet_scene_ready", {requestId, visit: traceVisit, connectionEpoch: traceEpoch});
             PlanetMode.ready();
             canvas.dataset.sector = String(welcome.sector);
             canvas.dataset.connectionEpoch = String(welcome.connection_epoch);
@@ -692,6 +705,7 @@ export async function openVisit(site) {
         }
       };
       conn.onclose = (event) => {
+ trace("planet_ws_close", {requestId, visit: traceVisit, connectionEpoch: traceEpoch, code: event.code, wasClean: event.wasClean, phase: localCloseReason || "transport_or_server", current: task.current() && socket === conn, initiator: localCloseReason ? "browser" : "unknown"});
         clearTimeout(handshake);
         if (!task.current() || socket !== conn) return;
         clearInterval(monitor);

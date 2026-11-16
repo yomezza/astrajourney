@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/yomezza/cosmosimulator/internal/platform/telemetry"
 	"log"
 	"net/http"
 	"strings"
@@ -20,6 +21,11 @@ func Run(ctx context.Context) error {
 	if err := configuration.Initialize(configuration.Cosmos); err != nil {
 		return err
 	}
+	closeLogs, logErr := telemetry.Start("cosmos", configuration.Getenv("DIAGNOSTICS_DIRECTORY"), configuration.Getenv("DIAGNOSTICS_ENABLED") != "false")
+	if logErr != nil {
+		return logErr
+	}
+	defer closeLogs()
 	natsConfig, err := natscore.LoadConfig(configuration.Getenv)
 	if err != nil {
 		return err
@@ -51,6 +57,8 @@ func Run(ctx context.Context) error {
 		return fmt.Errorf("Cosmic database initialization (startup timeout %s): %w", startupTimeout, err)
 	}
 	defer db.Close()
+	stopDBObserver := telemetry.ObserveDB(ctx, db)
+	defer stopDBObserver()
 	proxies, err := httpkit.ParseTrustedProxies(configuration.Getenv("TRUSTED_PROXIES"))
 	if err != nil {
 		return err

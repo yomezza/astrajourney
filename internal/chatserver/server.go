@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/yomezza/cosmosimulator/internal/platform/natscore"
+	"github.com/yomezza/cosmosimulator/internal/platform/telemetry"
 	"io"
 	"log/slog"
 	"net"
@@ -240,11 +241,11 @@ func (a *App) Handler() http.Handler {
 	})
 	m.HandleFunc("GET /chat/ws/v1", a.socket)
 	m.HandleFunc("GET /chat/api/v1/{route}", a.query)
-	return bounded(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return telemetry.TraceHTTP("chat", bounded(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		m.ServeHTTP(w, r)
-	}))
+	})))
 }
 func (a *App) identity(ctx context.Context, r *http.Request) (chat.Identity, error) {
 	c, e := r.Cookie("session")
@@ -311,6 +312,7 @@ func (a *App) socket(w http.ResponseWriter, r *http.Request) {
 	u, e := a.identity(ctx, r)
 	cancel()
 	if e != nil {
+		telemetry.Event(r.Context(), "chat upgrade rejected", e, "phase", "authenticate", "public_code", "auth_required")
 		httpkit.Fail(w, 401, "auth_required")
 		return
 	}
@@ -329,6 +331,7 @@ func (a *App) socket(w http.ResponseWriter, r *http.Request) {
 	lease, e := a.Service.Claim(ctx, u, a.instance)
 	cancel()
 	if e != nil {
+		telemetry.Event(r.Context(), "chat upgrade rejected", e, "phase", "claim", "public_code", code(e), "user_id", u.ID)
 		httpkit.Fail(w, 409, code(e))
 		return
 	}
@@ -354,6 +357,14 @@ func (a *App) socket(w http.ResponseWriter, r *http.Request) {
 	if e != nil {
 		return
 	}
+
+	closeCause := "handler_exit"
+	var closeErr error
+	opened := time.Now()
+	telemetry.Event(r.Context(), "chat websocket opened", nil, "user_id", u.ID, "chat_connection", lease.Connection, "generation", lease.Generation)
+	defer func() {
+		telemetry.Event(r.Context(), "chat websocket ended", closeErr, "user_id", u.ID, "chat_connection", lease.Connection, "generation", lease.Generation, "cause", closeCause, "close_code", websocket.CloseStatus(closeErr), "duration_ms", time.Since(opened).Milliseconds())
+	}()
 	conn.SetReadLimit(24 << 10)
 	a.mu.Lock()
 	if a.stopping {
@@ -364,7 +375,7 @@ func (a *App) socket(w http.ResponseWriter, r *http.Request) {
 	a.connections[conn] = true
 	a.mu.Unlock()
 	defer func() { a.mu.Lock(); delete(a.connections, conn); a.mu.Unlock(); conn.CloseNow() }()
-	run, stop := context.WithCancel(r.Context())
+	run, stop := context.WithCancel(telemetry.WithVisit(r.Context(), u.ID, "", 0))
 	defer stop()
 	handle, ok := a.registry.Register(u, lease, stop)
 	if !ok {
@@ -377,12 +388,15 @@ func (a *App) socket(w http.ResponseWriter, r *http.Request) {
 	}
 	commands := make(chan chat.Command, 16)
 	readDone := make(chan struct{})
+	readFailure := make(chan error, 1)
 	go func() {
-		defer close(readDone)
+		var readErr error
+		defer func() { readFailure <- readErr; close(readDone) }()
 		tokens, last := 20.0, time.Now()
 		for {
 			_, body, e := conn.Read(run)
 			if e != nil {
+				readErr = e
 				return
 			}
 			elapsed := time.Since(last).Seconds()
@@ -410,7 +424,13 @@ func (a *App) socket(w http.ResponseWriter, r *http.Request) {
 		ctx, cancel := context.WithTimeout(run, 3*time.Second)
 		defer cancel()
 		b, e := json.Marshal(v)
-		return e == nil && conn.Write(ctx, websocket.MessageText, b) == nil
+		if e == nil {
+			e = conn.Write(ctx, websocket.MessageText, b)
+		}
+		if e != nil {
+			closeCause, closeErr = "write_failed", e
+		}
+		return e == nil
 	}
 	var scopeStamp string
 	if a.dispatcher != nil {
@@ -444,8 +464,10 @@ func (a *App) socket(w http.ResponseWriter, r *http.Request) {
 	for {
 		select {
 		case <-run.Done():
+			closeCause, closeErr = "context_canceled_or_replaced", run.Err()
 			return
 		case <-readDone:
+			closeCause, closeErr = "peer_or_transport", <-readFailure
 			return
 		case <-pendingSync:
 			if !writeSync() {
@@ -478,9 +500,9 @@ func (a *App) socket(w http.ResponseWriter, r *http.Request) {
 			}
 		case <-ticker.C:
 			c, done := context.WithTimeout(run, 3*time.Second)
-			fresh, e := a.Service.Authenticate(c, u.Session)
+			fresh, e := a.Service.Authenticate(telemetry.Phase(c, "chat_session_check"), u.Session)
 			if e == nil && time.Since(lastRenew) > 10*time.Second {
-				e = a.Service.Renew(c, lease)
+				e = a.Service.Renew(telemetry.Phase(c, "chat_lease_renewal"), lease)
 				lastRenew = time.Now()
 			}
 			var next int64
@@ -495,6 +517,7 @@ func (a *App) socket(w http.ResponseWriter, r *http.Request) {
 			}
 			done()
 			if e != nil {
+				closeCause, closeErr = "session_lease_or_scope_check", e
 				return
 			}
 			u = fresh
@@ -613,6 +636,11 @@ func RunStarted(ctx context.Context, started func()) error {
 	if err := configuration.Initialize(configuration.Chat); err != nil {
 		return err
 	}
+	closeLogs, logErr := telemetry.Start("chat", configuration.Getenv("DIAGNOSTICS_DIRECTORY"), configuration.Getenv("DIAGNOSTICS_ENABLED") != "false")
+	if logErr != nil {
+		return logErr
+	}
+	defer closeLogs()
 	c, e := LoadConfig(configuration.Getenv)
 	if e != nil {
 		return e
@@ -624,6 +652,8 @@ func RunStarted(ctx context.Context, started func()) error {
 		return errors.New("Chat PostgreSQL unavailable; check configuration")
 	}
 	defer db.Close()
+	stopDBObserver := telemetry.ObserveDB(ctx, db)
+	defer stopDBObserver()
 	lock, e := db.Acquire(check)
 	if e != nil {
 		return e
