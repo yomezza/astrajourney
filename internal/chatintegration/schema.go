@@ -4,13 +4,20 @@ package chatintegration
 import (
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v5"
-	"github.com/yomezza/cosmosimulator/internal/platform/postgres"
+	"regexp"
 	"strings"
 	"time"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/yomezza/cosmosimulator/internal/platform/dblayout"
+	"github.com/yomezza/cosmosimulator/internal/platform/postgres"
 )
 
 func Partitions(ctx context.Context, tx postgres.DBTX, now time.Time) error {
+	schema, err := dblayout.RelationSchema(ctx, tx, "chat_messages")
+	if err != nil {
+		return err
+	}
 	for _, kind := range []string{"global", "planet", "sector", "corporation", "private"} {
 		weekly := kind == "private" || kind == "corporation"
 		start := now.UTC().Truncate(24 * time.Hour)
@@ -27,7 +34,7 @@ func Partitions(ctx context.Context, tx postgres.DBTX, now time.Time) error {
 			if weekly {
 				name += "_week"
 			}
-			sql := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s PARTITION OF %s FOR VALUES FROM ('%s') TO ('%s')", pgx.Identifier{name}.Sanitize(), pgx.Identifier{"chat_messages_" + kind}.Sanitize(), from.Format(time.RFC3339), to.Format(time.RFC3339))
+			sql := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s PARTITION OF %s FOR VALUES FROM ('%s') TO ('%s')", pgx.Identifier{schema, name}.Sanitize(), pgx.Identifier{schema, "chat_messages_" + kind}.Sanitize(), from.Format(time.RFC3339), to.Format(time.RFC3339))
 			if _, e := tx.Exec(ctx, sql); e != nil {
 				return e
 			}
@@ -47,7 +54,16 @@ func Functions(ctx context.Context, tx pgx.Tx, schema string) error {
 	s := pgx.Identifier{schema}.Sanitize()
 	sql := strings.ReplaceAll(functions, "@REG@", strings.ReplaceAll(s, "'", "''"))
 	sql = strings.ReplaceAll(sql, "@S@", s)
-	_, e := tx.Exec(ctx, sql)
+	routed, e := dblayout.Installed(ctx, tx, schema)
+	if e != nil {
+		return e
+	}
+	if routed {
+		re := regexp.MustCompile(`@(?:S|REG)@\.([a-z_][a-z0-9_]*)`)
+		sql = re.ReplaceAllStringFunc(functions, func(m string) string { return dblayout.Qualified(schema, re.FindStringSubmatch(m)[1]) })
+		sql = strings.ReplaceAll(sql, "SET search_path=@S@,pg_catalog", "SET search_path="+dblayout.FunctionPath(schema))
+	}
+	_, e = tx.Exec(ctx, sql)
 	return e
 }
 

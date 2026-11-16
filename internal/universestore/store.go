@@ -267,7 +267,7 @@ func Validate(g *universe.Galaxy) error {
 }
 func partition(ctx context.Context, tx pgx.Tx, id string) error {
 	var schema string
-	if e := tx.QueryRow(ctx, `SELECT current_schema()`).Scan(&schema); e != nil {
+	if e := tx.QueryRow(ctx, `SELECT n.nspname FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE c.oid='star_systems'::regclass`).Scan(&schema); e != nil {
 		return e
 	}
 	hash := sha256.Sum256([]byte(id))

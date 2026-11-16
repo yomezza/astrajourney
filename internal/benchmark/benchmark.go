@@ -15,8 +15,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/yomezza/cosmosimulator/internal/platform/dblayout"
 
 	"github.com/yomezza/cosmosimulator/internal/account"
 	"github.com/yomezza/cosmosimulator/internal/gameplay"
@@ -106,7 +106,7 @@ func (a *Service) runBenchmark(ctx context.Context, cancel context.CancelFunc, i
 	defer cancel()
 	defer func() { benchmarkControl.Lock(); delete(benchmarkControl.cancel, id); benchmarkControl.Unlock() }()
 	status := "failed"
-	metrics := map[string]any{"isolation": "temporary PostgreSQL schema", "version": "0.23.0", "scenario": scenario}
+	metrics := map[string]any{"isolation": "temporary PostgreSQL schemas", "version": "0.23.0", "scenario": scenario}
 	var total, failed, conflicts atomic.Int64
 	defer func() {
 		if status == "failed" && ctx.Err() != nil {
@@ -130,7 +130,7 @@ func (a *Service) runBenchmark(ctx context.Context, cancel context.CancelFunc, i
 		db.Close()
 		c, done := context.WithTimeout(context.Background(), 10*time.Second)
 		defer done()
-		_, _ = a.DB.Exec(c, "DROP SCHEMA IF EXISTS "+pgx.Identifier{schema}.Sanitize()+" CASCADE")
+		_, _ = a.DB.Exec(c, "DROP SCHEMA IF EXISTS "+dblayout.DropList(schema)+" CASCADE")
 	}()
 	handler, e := a.Handler(ctx, db)
 	if e != nil {

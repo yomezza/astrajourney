@@ -46,7 +46,7 @@ DECLARE held boolean;
 BEGIN
  IF ROW(NEW.star,NEW.object_id,NEW.position_mode,NEW.destination,NEW.local_target,NEW.waypoints)
  IS DISTINCT FROM ROW(OLD.star,OLD.object_id,OLD.position_mode,OLD.destination,OLD.local_target,OLD.waypoints) THEN
-  EXECUTE format('SELECT EXISTS(SELECT 1 FROM %I.planet_transfer_controls WHERE reserved_ship=$1)',TG_TABLE_SCHEMA) INTO held USING OLD.id;
+  SELECT EXISTS(SELECT 1 FROM planet_transfer_controls WHERE reserved_ship=OLD.id) INTO held;
   IF held THEN RAISE EXCEPTION 'Корабль закреплён за планетарным визитом'; END IF;
  END IF;
  RETURN NEW;

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/yomezza/cosmosimulator/internal/platform/dblayout"
 )
 
 func TestOpenDoesNotInitializeGame(t *testing.T) {
@@ -54,7 +55,7 @@ func TestOpenDoesNotInitializeGame(t *testing.T) {
 	defer second.Release()
 	for _, c := range []*pgxpool.Conn{first, second} {
 		var search string
-		if err := c.QueryRow(ctx, `SHOW search_path`).Scan(&search); err != nil || search != `"`+schema+`"` {
+		if err := c.QueryRow(ctx, `SHOW search_path`).Scan(&search); err != nil || search != dblayout.SearchPath(schema) {
 			t.Fatalf("isolated search_path not applied: %q, %v", search, err)
 		}
 	}

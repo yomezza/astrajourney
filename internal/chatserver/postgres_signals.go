@@ -73,9 +73,9 @@ func (s *PostgresWakeSource) connect(ctx context.Context) (*pgx.Conn, string, er
 	}
 	conn := pooled.Hijack()
 	var channel string
-	// Match the trigger's TG_TABLE_SCHEMA, and refuse a shadowed relation from
-	// another schema. md5 is PostgreSQL's implementation, independent of Go.
-	err = conn.QueryRow(check, `SELECT 'cosmos_chat_'||pg_catalog.md5(n.nspname) FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE c.oid='chat_outbox'::regclass AND n.nspname=current_schema() AND c.relkind='r'`).Scan(&channel)
+	// Match the actual outbox namespace after the domain-schema migration.
+	// md5 is PostgreSQL's implementation, independent of Go.
+	err = conn.QueryRow(check, `SELECT 'cosmos_chat_'||pg_catalog.md5(n.nspname) FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE c.oid='chat_outbox'::regclass AND c.relkind='r'`).Scan(&channel)
 	if err == nil {
 		_, err = conn.Exec(check, `LISTEN `+pgx.Identifier{channel}.Sanitize())
 	}

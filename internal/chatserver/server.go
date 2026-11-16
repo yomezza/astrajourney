@@ -28,7 +28,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/platform/postgres"
 )
 
-const Version = "0.26.0"
+const Version = "0.27.0"
 
 type Config struct {
 	DatabaseURL, Schema, Addr, CosmicURL, PlanetURL, Journal string
@@ -660,10 +660,13 @@ func RunStarted(ctx context.Context, started func()) error {
 	}
 	defer lock.Release()
 	var exclusive bool
-	if e = lock.QueryRow(check, `SELECT pg_try_advisory_lock(hashtextextended(current_schema()||':chat-runtime',784242))`).Scan(&exclusive); e != nil || !exclusive {
+	if e = lock.QueryRow(check, `SELECT pg_try_advisory_lock(hashtextextended((SELECT n.nspname FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE c.oid='chat_schema_state'::regclass)||':chat-runtime',784242))`).Scan(&exclusive); e != nil {
+		return errors.New("Chat schema/runtime lock unavailable; run matching Cosmic migrations and check PostgreSQL access")
+	}
+	if !exclusive {
 		return errors.New("another Chat process already owns recovery; stop it before starting this service")
 	}
-	defer lock.Exec(context.Background(), `SELECT pg_advisory_unlock(hashtextextended(current_schema()||':chat-runtime',784242))`)
+	defer lock.Exec(context.Background(), `SELECT pg_advisory_unlock(hashtextextended((SELECT n.nspname FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE c.oid='chat_schema_state'::regclass)||':chat-runtime',784242))`)
 	var maintenance *pgxpool.Pool
 	if c.MaintenanceURL != "" {
 		maintenance, _, e = postgres.Open(check, c.MaintenanceURL, c.Schema)

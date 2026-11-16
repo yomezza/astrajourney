@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/yomezza/cosmosimulator/internal/platform/dblayout"
 )
 
 func TestDatabaseConfig(t *testing.T) {
@@ -16,7 +16,7 @@ func TestDatabaseConfig(t *testing.T) {
 		if schema == "" {
 			schema = "public"
 		}
-		if name != schema || config.ConnConfig.RuntimeParams["search_path"] != (pgx.Identifier{schema}.Sanitize()) {
+		if name != schema || config.ConnConfig.RuntimeParams["search_path"] != dblayout.SearchPath(schema) {
 			t.Fatalf("schema was not treated as one quoted identifier: %q", schema)
 		}
 	}

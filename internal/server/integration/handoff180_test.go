@@ -366,7 +366,7 @@ func TestPlanetRestrictedRole180(t *testing.T) {
 		f.db.Exec(context.Background(), `DROP ROLE `+quoted)
 	})
 	f.exec(`GRANT USAGE ON SCHEMA ` + schema + ` TO ` + quoted)
-	f.exec(`GRANT SELECT ON planet_schema_state,planet_runtime_leases,planet_local_locations,planet_surfaces,planet_surface_controls,planet_runtime_controls,planet_colonies,planet_projects,planet_landing_sites,planet_characters,planet_handoffs,planet_handoff_uses,planet_transfer_controls,planet_visits,planet_session_lookup TO ` + quoted)
+	f.exec(`GRANT SELECT ON planet_schema_state,planet_runtime_leases,planet_local_locations,planet_surfaces,planet_surface_controls,planet_runtime_controls,planet_colonies,planet_projects,planet_landing_sites,planet_characters,planet_handoffs,planet_handoff_uses,planet_transfer_controls,planet_visits,planet_session_lookup,planet_sector_buildings TO ` + quoted)
 	f.exec(`GRANT SELECT(id,company_id,company_role) ON users TO ` + quoted)
 	f.exec(`GRANT SELECT(id,user_id,star,object_id,destination,local_target,waypoints) ON ships TO ` + quoted)
 	f.exec(`GRANT SELECT(id,owner_id,name) ON companies TO ` + quoted)

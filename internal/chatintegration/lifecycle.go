@@ -3,6 +3,7 @@ package chatintegration
 import (
 	"context"
 	"errors"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/yomezza/cosmosimulator/internal/platform/postgres"
 )

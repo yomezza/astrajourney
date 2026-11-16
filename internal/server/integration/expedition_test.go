@@ -12,8 +12,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/yomezza/cosmosimulator/internal/platform/dblayout"
 
 	"github.com/yomezza/cosmosimulator/internal/commerce"
 	"github.com/yomezza/cosmosimulator/internal/fleet"
@@ -37,7 +37,7 @@ func TestExpedition(t *testing.T) {
 		t.Fatal("test database required")
 	}
 	schema := fmt.Sprintf("voyage_%d", time.Now().UnixNano())
-	defer admin.Exec(ctx, "DROP SCHEMA IF EXISTS "+pgx.Identifier{schema}.Sanitize()+" CASCADE")
+	defer admin.Exec(ctx, "DROP SCHEMA IF EXISTS "+dblayout.DropList(schema)+" CASCADE")
 	db, err := openDatabase(ctx, dsn, schema)
 	if err != nil {
 		t.Fatal(err)

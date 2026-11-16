@@ -3,9 +3,9 @@ package integration
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/jackc/pgx/v5"
 	"github.com/yomezza/cosmosimulator/internal/account"
 	"github.com/yomezza/cosmosimulator/internal/chat"
+	"github.com/yomezza/cosmosimulator/internal/platform/dblayout"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -67,7 +67,11 @@ func TestChat240BackupRestore(t *testing.T) {
 	}
 	message := command("message.send", map[string]any{"kind": "global", "body": "Text erased after this backup"})["message_id"].(string)
 	command("favorite.copy", map[string]any{"id": message})
-	dump := run("pg_dump", nil, "-Fc", "--schema", schema)
+	args := []string{"-Fc"}
+	for _, name := range dblayout.Names(schema, true) {
+		args = append(args, "--schema", name)
+	}
+	dump := run("pg_dump", nil, args...)
 	f.exec(`UPDATE users SET role='admin' WHERE id=$1`, uid)
 	var other int64
 	if e = f.db.QueryRow(f.ctx, `INSERT INTO users(username,password_hash) VALUES('original_author','') RETURNING id`).Scan(&other); e != nil {
@@ -81,7 +85,7 @@ func TestChat240BackupRestore(t *testing.T) {
 	}
 	// Restore into an empty owned schema: pg_restore --clean cannot drop
 	// inherited partition constraints independently on PostgreSQL 17.
-	f.exec("DROP SCHEMA " + pgx.Identifier{schema}.Sanitize() + " CASCADE")
+	f.exec("DROP SCHEMA " + dblayout.DropList(schema) + " CASCADE")
 	run("pg_restore", dump, "--no-owner", "--exit-on-error")
 	if f.integer(`SELECT count(*) FROM chat_messages WHERE id=$1`, message) != 1 {
 		t.Fatal("backup did not restore earlier text")

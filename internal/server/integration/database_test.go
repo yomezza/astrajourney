@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/yomezza/cosmosimulator/internal/platform/dblayout"
 
 	"github.com/yomezza/cosmosimulator/internal/server"
 )
@@ -33,7 +33,7 @@ func TestDatabaseSchemaIsolation(t *testing.T) {
 	names := []string{fmt.Sprintf("cosmos_%d", suffix), fmt.Sprintf(`cosmos "%d; --`, suffix)}
 	for _, name := range names {
 		defer func(name string) {
-			_, _ = admin.Exec(context.Background(), "DROP SCHEMA IF EXISTS "+pgx.Identifier{name}.Sanitize()+" CASCADE")
+			_, _ = admin.Exec(context.Background(), "DROP SCHEMA IF EXISTS "+dblayout.DropList(name)+" CASCADE")
 		}(name)
 	}
 	// A deliberately incompatible table in another schema must never be used.

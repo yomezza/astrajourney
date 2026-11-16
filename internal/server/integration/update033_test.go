@@ -16,6 +16,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/yomezza/cosmosimulator/internal/platform/dblayout"
 
 	"github.com/yomezza/cosmosimulator/internal/platform/postgres"
 	"github.com/yomezza/cosmosimulator/internal/server"
@@ -52,7 +53,7 @@ func newFixture033(t *testing.T) *fixture033 {
 	}
 	t.Cleanup(func() {
 		db.Close()
-		base.Exec(ctx, "DROP SCHEMA "+pgx.Identifier{schema}.Sanitize()+" CASCADE")
+		base.Exec(ctx, "DROP SCHEMA "+dblayout.DropList(schema)+" CASCADE")
 		base.Close()
 	})
 	a := server.New(db, server.Config{})
@@ -354,7 +355,7 @@ func Test033UpgradePreservesLegacyAssets(t *testing.T) {
 		t.Fatal("disposable database required")
 	}
 	schema := fmt.Sprintf("legacy032_%d", time.Now().UnixNano())
-	defer base.Exec(ctx, "DROP SCHEMA IF EXISTS "+pgx.Identifier{schema}.Sanitize()+" CASCADE")
+	defer base.Exec(ctx, "DROP SCHEMA IF EXISTS "+dblayout.DropList(schema)+" CASCADE")
 	if _, err = base.Exec(ctx, "CREATE SCHEMA "+pgx.Identifier{schema}.Sanitize()); err != nil {
 		t.Fatal(err)
 	}

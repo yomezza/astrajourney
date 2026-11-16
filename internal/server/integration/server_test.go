@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/yomezza/cosmosimulator/internal/platform/dblayout"
 
 	"github.com/yomezza/cosmosimulator/internal/account"
 	"github.com/yomezza/cosmosimulator/internal/server"
@@ -44,7 +44,7 @@ func TestIntegration(t *testing.T) {
 		t.Fatal("test database name must end in _test")
 	}
 	schema := "gameplay_" + time.Now().Format("20060102150405.000000000")
-	defer admin.Exec(ctx, "DROP SCHEMA IF EXISTS "+pgx.Identifier{schema}.Sanitize()+" CASCADE")
+	defer admin.Exec(ctx, "DROP SCHEMA IF EXISTS "+dblayout.DropList(schema)+" CASCADE")
 	db, err := openDatabase(ctx, dsn, schema)
 	if err != nil {
 		t.Fatal(err)

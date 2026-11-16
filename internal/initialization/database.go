@@ -16,6 +16,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/discovery"
 	"github.com/yomezza/cosmosimulator/internal/fleet"
 	"github.com/yomezza/cosmosimulator/internal/platform/configuration"
+	"github.com/yomezza/cosmosimulator/internal/platform/dblayout"
 	"github.com/yomezza/cosmosimulator/internal/platform/postgres"
 	"github.com/yomezza/cosmosimulator/internal/universe"
 	"github.com/yomezza/cosmosimulator/internal/universestore"
@@ -55,32 +56,36 @@ func OpenDatabase(ctx context.Context, dsn, schema string, schemas fs.ReadFileFS
 			return nil, fmt.Errorf("create DB_SCHEMA %q (create it manually or grant CREATE on the database): %w", schema, err)
 		}
 	}
+	log.Printf("Cosmic schema layout: root=%q domains=%d version=1", schema, len(dblayout.Domains))
+	if err = dblayout.Prepare(ctx, tx, schema); err != nil {
+		return nil, err
+	}
 	sql, err := schemas.ReadFile("schema.sql")
 	if err != nil {
 		return nil, err
 	}
-	if _, err = tx.Exec(ctx, string(sql)); err != nil {
+	if _, err = tx.Exec(ctx, dblayout.DDL(schema, string(sql))); err != nil {
 		return nil, fmt.Errorf("initialize DB_SCHEMA %q (USAGE and CREATE on the schema are required): %w", schema, err)
 	}
 	upgrade, e := schemas.ReadFile("schema033.sql")
 	if e != nil {
 		return nil, e
 	}
-	if _, e = tx.Exec(ctx, string(upgrade)); e != nil {
+	if _, e = tx.Exec(ctx, dblayout.DDL(schema, string(upgrade))); e != nil {
 		return nil, fmt.Errorf("upgrade 0.3.3: %w", e)
 	}
 	upgrade040, e := schemas.ReadFile("schema040.sql")
 	if e != nil {
 		return nil, e
 	}
-	if _, e = tx.Exec(ctx, string(upgrade040)); e != nil {
+	if _, e = tx.Exec(ctx, dblayout.DDL(schema, string(upgrade040))); e != nil {
 		return nil, fmt.Errorf("upgrade 0.4.0: %w", e)
 	}
 	upgrade050, e := schemas.ReadFile("schema050.sql")
 	if e != nil {
 		return nil, e
 	}
-	if _, e = tx.Exec(ctx, string(upgrade050)); e != nil {
+	if _, e = tx.Exec(ctx, dblayout.DDL(schema, string(upgrade050))); e != nil {
 		return nil, fmt.Errorf("upgrade 0.5.0: %w", e)
 	}
 	if _, err = tx.Exec(ctx, `ALTER TABLE stations ADD COLUMN IF NOT EXISTS hull_catalogue_version INTEGER NOT NULL DEFAULT 0`); err != nil {
@@ -93,14 +98,14 @@ func OpenDatabase(ctx context.Context, dsn, schema string, schemas fs.ReadFileFS
 	if e != nil {
 		return nil, e
 	}
-	if _, e = tx.Exec(ctx, string(upgrade070)); e != nil {
+	if _, e = tx.Exec(ctx, dblayout.DDL(schema, string(upgrade070))); e != nil {
 		return nil, fmt.Errorf("upgrade 0.7.0: %w", e)
 	}
 	upgrade080, e := schemas.ReadFile("schema080.sql")
 	if e != nil {
 		return nil, e
 	}
-	if _, e = tx.Exec(ctx, string(upgrade080)); e != nil {
+	if _, e = tx.Exec(ctx, dblayout.DDL(schema, string(upgrade080))); e != nil {
 		return nil, fmt.Errorf("upgrade 0.8.0: %w", e)
 	}
 
@@ -108,91 +113,91 @@ func OpenDatabase(ctx context.Context, dsn, schema string, schemas fs.ReadFileFS
 	if e != nil {
 		return nil, e
 	}
-	if _, e = tx.Exec(ctx, string(upgrade090)); e != nil {
+	if _, e = tx.Exec(ctx, dblayout.DDL(schema, string(upgrade090))); e != nil {
 		return nil, fmt.Errorf("upgrade 0.9.0: %w", e)
 	}
 	upgrade100, e := schemas.ReadFile("schema100.sql")
 	if e != nil {
 		return nil, e
 	}
-	if _, e = tx.Exec(ctx, string(upgrade100)); e != nil {
+	if _, e = tx.Exec(ctx, dblayout.DDL(schema, string(upgrade100))); e != nil {
 		return nil, fmt.Errorf("upgrade 0.10.0: %w", e)
 	}
 	upgrade110, e := schemas.ReadFile("schema110.sql")
 	if e != nil {
 		return nil, e
 	}
-	if _, e = tx.Exec(ctx, string(upgrade110)); e != nil {
+	if _, e = tx.Exec(ctx, dblayout.DDL(schema, string(upgrade110))); e != nil {
 		return nil, fmt.Errorf("upgrade 0.11.0: %w", e)
 	}
 	upgrade120, e := schemas.ReadFile("schema120.sql")
 	if e != nil {
 		return nil, e
 	}
-	if _, e = tx.Exec(ctx, string(upgrade120)); e != nil {
+	if _, e = tx.Exec(ctx, dblayout.DDL(schema, string(upgrade120))); e != nil {
 		return nil, fmt.Errorf("upgrade 0.12.0: %w", e)
 	}
 	upgrade124, e := schemas.ReadFile("schema124.sql")
 	if e != nil {
 		return nil, e
 	}
-	if _, e = tx.Exec(ctx, string(upgrade124)); e != nil {
+	if _, e = tx.Exec(ctx, dblayout.DDL(schema, string(upgrade124))); e != nil {
 		return nil, fmt.Errorf("upgrade 0.12.4: %w", e)
 	}
 	upgrade144, e := schemas.ReadFile("schema144.sql")
 	if e != nil {
 		return nil, e
 	}
-	if _, e = tx.Exec(ctx, string(upgrade144)); e != nil {
+	if _, e = tx.Exec(ctx, dblayout.DDL(schema, string(upgrade144))); e != nil {
 		return nil, fmt.Errorf("upgrade 0.14.4: %w", e)
 	}
 	upgrade150, e := schemas.ReadFile("schema150.sql")
 	if e != nil {
 		return nil, e
 	}
-	if _, e = tx.Exec(ctx, string(upgrade150)); e != nil {
+	if _, e = tx.Exec(ctx, dblayout.DDL(schema, string(upgrade150))); e != nil {
 		return nil, fmt.Errorf("upgrade 0.15.0: %w", e)
 	}
 	upgrade160, e := schemas.ReadFile("schema160.sql")
 	if e != nil {
 		return nil, e
 	}
-	if _, e = tx.Exec(ctx, string(upgrade160)); e != nil {
+	if _, e = tx.Exec(ctx, dblayout.DDL(schema, string(upgrade160))); e != nil {
 		return nil, fmt.Errorf("upgrade 0.16.0: %w", e)
 	}
 	upgrade170, e := schemas.ReadFile("schema170.sql")
 	if e != nil {
 		return nil, e
 	}
-	if _, e = tx.Exec(ctx, string(upgrade170)); e != nil {
+	if _, e = tx.Exec(ctx, dblayout.DDL(schema, string(upgrade170))); e != nil {
 		return nil, fmt.Errorf("upgrade 0.17.0: %w", e)
 	}
 	upgrade180, e := schemas.ReadFile("schema180.sql")
 	if e != nil {
 		return nil, e
 	}
-	if _, e = tx.Exec(ctx, string(upgrade180)); e != nil {
+	if _, e = tx.Exec(ctx, dblayout.DDL(schema, string(upgrade180))); e != nil {
 		return nil, fmt.Errorf("upgrade 0.18.0: %w", e)
 	}
 	upgrade190, e := schemas.ReadFile("schema190.sql")
 	if e != nil {
 		return nil, e
 	}
-	if _, e = tx.Exec(ctx, string(upgrade190)); e != nil {
+	if _, e = tx.Exec(ctx, dblayout.DDL(schema, string(upgrade190))); e != nil {
 		return nil, fmt.Errorf("upgrade 0.19.0: %w", e)
 	}
 	upgrade200, e := schemas.ReadFile("schema200.sql")
 	if e != nil {
 		return nil, e
 	}
-	if _, e = tx.Exec(ctx, string(upgrade200)); e != nil {
+	if _, e = tx.Exec(ctx, dblayout.DDL(schema, string(upgrade200))); e != nil {
 		return nil, fmt.Errorf("upgrade 0.20.0: %w", e)
 	}
 	upgrade210, e := schemas.ReadFile("schema210.sql")
 	if e != nil {
 		return nil, e
 	}
-	if _, e = tx.Exec(ctx, string(upgrade210)); e != nil {
+	if _, e = tx.Exec(ctx, dblayout.DDL(schema, string(upgrade210))); e != nil {
 		return nil, fmt.Errorf("upgrade 0.21.0: %w", e)
 	}
 
@@ -205,7 +210,7 @@ func OpenDatabase(ctx context.Context, dsn, schema string, schemas fs.ReadFileFS
 		if e != nil {
 			return nil, e
 		}
-		if _, e = tx.Exec(ctx, string(upgrade240)); e != nil {
+		if _, e = tx.Exec(ctx, dblayout.DDL(schema, string(upgrade240))); e != nil {
 			return nil, fmt.Errorf("chat migration: %w", e)
 		}
 		if e = chatintegration.Functions(ctx, tx, schema); e != nil {
@@ -221,12 +226,12 @@ func OpenDatabase(ctx context.Context, dsn, schema string, schemas fs.ReadFileFS
 		if e != nil {
 			return nil, e
 		}
-		if _, e = tx.Exec(ctx, string(upgrade)); e != nil {
+		if _, e = tx.Exec(ctx, dblayout.DDL(schema, string(upgrade))); e != nil {
 			return nil, fmt.Errorf("upgrade %s: %w", file, e)
 		}
 	}
 
-	if _, err = tx.Exec(ctx, universestore.Schema); err != nil {
+	if _, err = tx.Exec(ctx, dblayout.DDL(schema, universestore.Schema)); err != nil {
 		return nil, fmt.Errorf("tabular universe schema: %w", err)
 	}
 	relational, err := universestore.Installed(ctx, tx)
@@ -387,6 +392,9 @@ func OpenDatabase(ctx context.Context, dsn, schema string, schemas fs.ReadFileFS
 	}
 
 	if err = universestore.InstallReferences(ctx, tx); err != nil {
+		return nil, err
+	}
+	if err = dblayout.Finish(ctx, tx, schema); err != nil {
 		return nil, err
 	}
 	if err = tx.Commit(ctx); err != nil {

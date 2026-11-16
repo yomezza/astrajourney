@@ -16,6 +16,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/chat"
 	"github.com/yomezza/cosmosimulator/internal/chatintegration"
 	"github.com/yomezza/cosmosimulator/internal/chatserver"
+	"github.com/yomezza/cosmosimulator/internal/platform/dblayout"
 )
 
 // DBA's reviewed SQL is run only by the fixture owner in a disposable full
@@ -41,7 +42,7 @@ func n2SQL(t *testing.T, f *fixture033, direction string) {
 		t.Fatal(err)
 	}
 	defer tx.Rollback(f.ctx)
-	if _, err = tx.Exec(f.ctx, `SET LOCAL search_path TO `+pgx.Identifier{schema}.Sanitize()+`,pg_catalog; SET LOCAL lock_timeout='2s'; SET LOCAL statement_timeout='10s'`); err != nil {
+	if _, err = tx.Exec(f.ctx, `SET LOCAL search_path TO `+pgx.Identifier{dblayout.Schema(schema, "chat")}.Sanitize()+`,pg_catalog; SET LOCAL lock_timeout='2s'; SET LOCAL statement_timeout='10s'`); err != nil {
 		t.Fatal(err)
 	}
 	if _, err = tx.Exec(f.ctx, string(raw)); err != nil {
@@ -174,7 +175,7 @@ func TestChatN2SourceTransactionsReconnectAndIsolation(t *testing.T) {
 	}
 	// A payload is not a protocol and must never become a grant or a message.
 	var channel string
-	if err = f.db.QueryRow(f.ctx, `SELECT 'cosmos_chat_'||md5(current_schema())`).Scan(&channel); err != nil {
+	if err = f.db.QueryRow(f.ctx, `SELECT 'cosmos_chat_'||md5((SELECT n.nspname FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE c.oid='chat_outbox'::regclass))`).Scan(&channel); err != nil {
 		t.Fatal(err)
 	}
 	f.exec(`SELECT pg_notify($1,'untrusted')`, channel)

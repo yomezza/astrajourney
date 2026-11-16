@@ -16,7 +16,7 @@ func (s *Service) Maintain(ctx context.Context) error {
 		return e
 	}
 	var locked bool
-	if e = tx.QueryRow(ctx, `SELECT pg_try_advisory_xact_lock(hashtextextended(current_schema()||':chat-maintenance',784241))`).Scan(&locked); e != nil || !locked {
+	if e = tx.QueryRow(ctx, `SELECT pg_try_advisory_xact_lock(hashtextextended((SELECT n.nspname FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE c.oid='chat_schema_state'::regclass)||':chat-maintenance',784241))`).Scan(&locked); e != nil || !locked {
 		return e
 	}
 	// Expiration does not remove permanent saved copies.

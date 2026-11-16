@@ -3,7 +3,10 @@ package chatintegration
 import (
 	"context"
 	"fmt"
+	"regexp"
+
 	"github.com/jackc/pgx/v5"
+	"github.com/yomezza/cosmosimulator/internal/platform/dblayout"
 )
 
 // GrantRuntime is an explicit deployment operation performed by a DBA, never by
@@ -22,8 +25,27 @@ func GrantRuntime(ctx context.Context, tx pgx.Tx, schema, runtimeRole, definerRo
 	s := pgx.Identifier{schema}.Sanitize()
 	r := pgx.Identifier{runtimeRole}.Sanitize()
 	d := pgx.Identifier{definerRole}.Sanitize()
-	exec := func(sql string) error { _, e := tx.Exec(ctx, sql); return e }
-	for _, q := range []string{`GRANT USAGE ON SCHEMA ` + s + ` TO ` + r + `,` + d, `GRANT SELECT(token_hash,user_id,expires_at) ON ` + s + `.sessions TO ` + d, `GRANT SELECT(id,username,role,is_bot,company_id,company_role) ON ` + s + `.users TO ` + r + `,` + d, `GRANT SELECT(id,name,tag,owner_id,chat_deleting) ON ` + s + `.companies TO ` + r + `,` + d, `GRANT SELECT(id,company_id,permissions) ON ` + s + `.company_roles TO ` + r + `,` + d, `GRANT SELECT(id,name,user_id) ON ` + s + `.ships TO ` + r, `GRANT SELECT ON ` + s + `.surveys,` + s + `.planet_surfaces,` + s + `.planet_sectors TO ` + r, `GRANT SELECT ON ` + s + `.planet_runtime_leases,` + s + `.planet_runtime_controls,` + s + `.planet_visits TO ` + r + `,` + d, `GRANT SELECT ON ` + s + `.chat_game_moderator_grants TO ` + d, `GRANT SELECT,UPDATE(revision) ON ` + s + `.chat_company_access_fences TO ` + d, `GRANT SELECT ON ` + s + `.chat_channels TO ` + d, `GRANT UPDATE(state) ON ` + s + `.planet_runtime_controls TO ` + d, `GRANT UPDATE(connection_epoch) ON ` + s + `.planet_visits TO ` + d, `GRANT SELECT ON ` + s + `.chat_schema_state,` + s + `.chat_company_deletion_requests,` + s + `.chat_surface_cleanup_requests TO ` + r} {
+	routed, err := dblayout.Installed(ctx, tx, schema)
+	if err != nil {
+		return err
+	}
+	namespaces, definers := s, s
+	if routed {
+		namespaces = dblayout.QuotedList(dblayout.Names(schema, false))
+		definers = pgx.Identifier{dblayout.Schema(schema, "integration")}.Sanitize()
+	}
+	reference := regexp.MustCompile(regexp.QuoteMeta(s) + `\.(?:"([a-z_][a-z0-9_]*)"|([a-z_][a-z0-9_]*))`)
+	exec := func(sql string) error {
+		if routed {
+			sql = reference.ReplaceAllStringFunc(sql, func(m string) string {
+				p := reference.FindStringSubmatch(m)
+				return dblayout.Qualified(schema, p[1]+p[2])
+			})
+		}
+		_, e := tx.Exec(ctx, sql)
+		return e
+	}
+	for _, q := range []string{`GRANT USAGE ON SCHEMA ` + namespaces + ` TO ` + r + `,` + d, `GRANT SELECT(token_hash,user_id,expires_at) ON ` + s + `.sessions TO ` + d, `GRANT SELECT(id,username,role,is_bot,company_id,company_role) ON ` + s + `.users TO ` + r + `,` + d, `GRANT SELECT(id,name,tag,owner_id,chat_deleting) ON ` + s + `.companies TO ` + r + `,` + d, `GRANT SELECT(id,company_id,permissions) ON ` + s + `.company_roles TO ` + r + `,` + d, `GRANT SELECT(id,name,user_id) ON ` + s + `.ships TO ` + r, `GRANT SELECT ON ` + s + `.surveys,` + s + `.planet_surfaces,` + s + `.planet_sectors TO ` + r, `GRANT SELECT ON ` + s + `.planet_runtime_leases,` + s + `.planet_runtime_controls,` + s + `.planet_visits TO ` + r + `,` + d, `GRANT SELECT ON ` + s + `.chat_game_moderator_grants TO ` + d, `GRANT SELECT,UPDATE(revision) ON ` + s + `.chat_company_access_fences TO ` + d, `GRANT SELECT ON ` + s + `.chat_channels TO ` + d, `GRANT UPDATE(state) ON ` + s + `.planet_runtime_controls TO ` + d, `GRANT UPDATE(connection_epoch) ON ` + s + `.planet_visits TO ` + d, `GRANT SELECT ON ` + s + `.chat_schema_state,` + s + `.chat_company_deletion_requests,` + s + `.chat_surface_cleanup_requests TO ` + r} {
 		if e := exec(q); e != nil {
 			return e
 		}
@@ -43,7 +65,7 @@ func GrantRuntime(ctx context.Context, tx pgx.Tx, schema, runtimeRole, definerRo
 		}
 	}
 	// ALTER OWNER requires CREATE on the schema; revoke it immediately afterwards.
-	if e := exec(`GRANT CREATE ON SCHEMA ` + s + ` TO ` + d); e != nil {
+	if e := exec(`GRANT CREATE ON SCHEMA ` + definers + ` TO ` + d); e != nil {
 		return e
 	}
 	for _, fn := range []string{"chat_validate_session(text)", "chat_lock_company_access(bigint,bigint)", "chat_lock_planet_presence(bigint)", "chat_lock_service_scope(bigint,uuid)", "chat_scope_stamp(bigint)"} {
@@ -57,5 +79,5 @@ func GrantRuntime(ctx context.Context, tx pgx.Tx, schema, runtimeRole, definerRo
 			return e
 		}
 	}
-	return exec(`REVOKE CREATE ON SCHEMA ` + s + ` FROM ` + d)
+	return exec(`REVOKE CREATE ON SCHEMA ` + definers + ` FROM ` + d)
 }

@@ -16,6 +16,9 @@ func runConsole() error {
 	if len(os.Args) == 2 && os.Args[1] == "--check-universe" {
 		return server.CheckUniverse(ctx, os.Stdout)
 	}
+	if len(os.Args) == 2 && os.Args[1] == "--check-schemas" {
+		return server.CheckSchemas(ctx, os.Stdout)
+	}
 	return server.Run(ctx)
 }
 

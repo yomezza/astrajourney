@@ -13,8 +13,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/yomezza/cosmosimulator/internal/platform/dblayout"
 
 	"github.com/yomezza/cosmosimulator/internal/corporations"
 	"github.com/yomezza/cosmosimulator/internal/server"
@@ -36,7 +36,7 @@ func TestTerminal(t *testing.T) {
 		t.Fatal("test database required")
 	}
 	schema := fmt.Sprintf("terminal_%d", time.Now().UnixNano())
-	defer base.Exec(ctx, "DROP SCHEMA IF EXISTS "+pgx.Identifier{schema}.Sanitize()+" CASCADE")
+	defer base.Exec(ctx, "DROP SCHEMA IF EXISTS "+dblayout.DropList(schema)+" CASCADE")
 	db, err := openDatabase(ctx, dsn, schema)
 	if err != nil {
 		t.Fatal(err)

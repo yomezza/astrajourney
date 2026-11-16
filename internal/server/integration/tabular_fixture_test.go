@@ -3,6 +3,7 @@ package integration
 import (
 	"encoding/json"
 	"github.com/jackc/pgx/v5"
+	"github.com/yomezza/cosmosimulator/internal/platform/dblayout"
 	"github.com/yomezza/cosmosimulator/internal/universe"
 	"github.com/yomezza/cosmosimulator/internal/universestore"
 )
@@ -35,7 +36,11 @@ func (f *fixture033) stageLegacy(raw []byte) {
 		f.t.Fatal(e)
 	}
 	defer tx.Rollback(f.ctx)
-	rows, e := tx.Query(f.ctx, `SELECT conrelid::regclass::text,conname FROM pg_constraint WHERE connamespace=current_schema()::regnamespace AND contype='f' AND conname LIKE 'universe_%_fk'`)
+	root, e := dblayout.RootFromPath(f.db.Config().ConnConfig.RuntimeParams["search_path"])
+	if e != nil {
+		f.t.Fatal(e)
+	}
+	rows, e := tx.Query(f.ctx, `SELECT conrelid::regclass::text,conname FROM pg_constraint WHERE connamespace=ANY(ARRAY(SELECT oid FROM pg_namespace WHERE nspname=ANY($1::text[]))) AND contype='f' AND conname LIKE 'universe_%_fk'`, dblayout.Names(root, true))
 	if e != nil {
 		f.t.Fatal(e)
 	}
@@ -57,7 +62,7 @@ func (f *fixture033) stageLegacy(raw []byte) {
 	if _, e = tx.Exec(f.ctx, `TRUNCATE universe_state,galaxy_catalog,system_identity,star_systems,system_planets,universe_lanes,universe_regions CASCADE`); e != nil {
 		f.t.Fatal(e)
 	}
-	if _, e = tx.Exec(f.ctx, `INSERT INTO galaxies(name,data) VALUES('Edem',$1) ON CONFLICT(name) DO UPDATE SET data=excluded.data`, raw); e != nil {
+	if _, e = tx.Exec(f.ctx, `INSERT INTO `+dblayout.Qualified(root, "galaxies")+`(name,data) VALUES('Edem',$1) ON CONFLICT(name) DO UPDATE SET data=excluded.data`, raw); e != nil {
 		f.t.Fatal(e)
 	}
 	if e = f.app.World.Commit(f.ctx, tx); e != nil {

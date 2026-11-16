@@ -3,19 +3,25 @@ package chatintegration
 import (
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v5"
-	"github.com/yomezza/cosmosimulator/internal/platform/postgres"
 	"strings"
 	"time"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/yomezza/cosmosimulator/internal/platform/dblayout"
+	"github.com/yomezza/cosmosimulator/internal/platform/postgres"
 )
 
 // MaintainPartitions requires the separate DDL/partition-owner connection. The
 // runtime login neither has CREATE nor owns the parent message table.
 func MaintainPartitions(ctx context.Context, q postgres.DBTX, now time.Time) error {
+	schema, err := dblayout.RelationSchema(ctx, q, "chat_messages")
+	if err != nil {
+		return err
+	}
 	if e := Partitions(ctx, q, now); e != nil {
 		return e
 	}
-	rows, e := q.Query(ctx, `SELECT child.relname FROM pg_inherits i JOIN pg_class child ON child.oid=i.inhrelid JOIN pg_namespace ns ON ns.oid=child.relnamespace JOIN pg_class parent ON parent.oid=i.inhparent WHERE ns.nspname=current_schema() AND parent.relname IN('chat_messages_global','chat_messages_planet','chat_messages_sector','chat_messages_corporation','chat_messages_private')`)
+	rows, e := q.Query(ctx, `SELECT child.relname FROM pg_inherits i JOIN pg_class child ON child.oid=i.inhrelid JOIN pg_namespace ns ON ns.oid=child.relnamespace JOIN pg_class parent ON parent.oid=i.inhparent WHERE ns.oid=(SELECT relnamespace FROM pg_class WHERE oid='chat_messages'::regclass) AND parent.relname IN('chat_messages_global','chat_messages_planet','chat_messages_sector','chat_messages_corporation','chat_messages_private')`)
 	if e != nil {
 		return e
 	}
@@ -58,11 +64,11 @@ func MaintainPartitions(ctx context.Context, q postgres.DBTX, now time.Time) err
 			continue
 		}
 		var occupied bool
-		if e = q.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM `+pgx.Identifier{name}.Sanitize()+` LIMIT 1)`).Scan(&occupied); e != nil {
+		if e = q.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM `+pgx.Identifier{schema, name}.Sanitize()+` LIMIT 1)`).Scan(&occupied); e != nil {
 			return e
 		}
 		if !occupied {
-			if _, e = q.Exec(ctx, fmt.Sprintf("DROP TABLE IF EXISTS %s", pgx.Identifier{name}.Sanitize())); e != nil {
+			if _, e = q.Exec(ctx, fmt.Sprintf("DROP TABLE IF EXISTS %s", pgx.Identifier{schema, name}.Sanitize())); e != nil {
 				return e
 			}
 		}
