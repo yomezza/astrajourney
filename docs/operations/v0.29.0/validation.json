@@ -1,0 +1,80 @@
+{
+  "version": "0.29.0",
+  "source_commit": "71168cf827c1e87f36f050cca81b539534a3d924",
+  "compiler": "go version go1.26.0 linux/amd64",
+  "platforms": [
+    "linux/amd64",
+    "windows/amd64"
+  ],
+  "binaries": 8,
+  "go_tests": "PASS; database-free suite, with native CDN NATS test enabled",
+  "go_vet": "PASS",
+  "race": "PASS: CDN, assetpack, configuration, knowledge",
+  "ui": {
+    "passed": 79,
+    "failed": 0
+  },
+  "integration_shards": {
+    "total": 176,
+    "PASS": 147,
+    "SKIP": 29,
+    "FAIL": 0
+  },
+  "separate_final_integration": [
+    "CDNProductionBrowserCache290",
+    "CosmicHasNoEmbeddedGraphics290",
+    "KnowledgeMedia251",
+    "KnowledgePublishing251",
+    "AdminServices200"
+  ],
+  "browser_cache": {
+    "initial_png_http_requests": 7,
+    "repeat_png_http_requests": 0,
+    "cosmic_graphics_requests": 0,
+    "canvas_readable": true,
+    "hologram_loaded": true,
+    "external_profile_icon_loaded": true
+  },
+  "native": {
+    "cdn": {
+      "version": "0.29.0",
+      "ready": true
+    },
+    "cosmos": {
+      "version": "0.29.0",
+      "ready": true
+    },
+    "planet": {
+      "version": "0.29.0",
+      "ready": true
+    },
+    "chat": {
+      "version": "0.29.0",
+      "ready": true
+    },
+    "all_four_nats_connected": true,
+    "asset_revision": "20a1d7843a0cc33da44528af6fbe08b09a0322ec56613b91252b8693156557ab",
+    "cdn_requests": 1,
+    "cdn_bytes": 276508
+  },
+  "cosmic_linux_bytes": {
+    "previous": 29835426,
+    "current": 16097442,
+    "saved": 13737984,
+    "percent_smaller": 46.05
+  },
+  "asset_pack": {
+    "schema_version": 1,
+    "client_contract": "astra-assets-v1",
+    "tag": "v0.29.0",
+    "revision": "20a1d7843a0cc33da44528af6fbe08b09a0322ec56613b91252b8693156557ab",
+    "archive": "astra-journey-assets-20a1d7843a0cc33da44528af6fbe08b09a0322ec56613b91252b8693156557ab.zip",
+    "sha256": "b50745e8df48c08af06d653eebb9dbd5de562eefc45599753771e9fa0f708512",
+    "size": 8166453
+  },
+  "limitations": [
+    "Windows PE builds verified; Windows runtime/SCM not executed in this Linux environment",
+    "Optional benchmark/browser/legacy integration scenarios remain explicitly skipped in the shard run",
+    "No changes to production PostgreSQL or installed production services"
+  ]
+}

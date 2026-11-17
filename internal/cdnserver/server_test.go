@@ -151,3 +151,47 @@ func TestExternalAssetsStayAvailableWithoutNATSOrCosmic(t *testing.T) {
 		t.Fatal("NATS outage affected public readiness", w.Code)
 	}
 }
+
+func TestLegacyGuideImportPreservesUUIDBytesAndSource(t *testing.T) {
+	source, root := t.TempDir(), t.TempDir()
+	id := "a1234567-1234-4234-8234-123456789abc"
+	var original bytes.Buffer
+	png.Encode(&original, image.NewRGBA(image.Rect(0, 0, 16, 16)))
+	sourceFile := filepath.Join(source, id+".png")
+	if err := os.WriteFile(sourceFile, original.Bytes(), 0600); err != nil {
+		t.Fatal(err)
+	}
+	service, err := New(Config{StorageRoot: root, CosmicURL: "http://127.0.0.1:1"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer service.Close()
+	if err = service.ImportGuide(source); err != nil {
+		t.Fatal(err)
+	}
+	if err = service.ImportGuide(source); err != nil {
+		t.Fatal("repeat import", err)
+	}
+	receipt, err := service.media.inspect(id)
+	if err != nil || receipt.ID != id || receipt.SHA256 != assetpack.Hash(original.Bytes()) {
+		t.Fatal("import changed identity/bytes", receipt, err)
+	}
+	retained, err := os.ReadFile(sourceFile)
+	if err != nil || !bytes.Equal(retained, original.Bytes()) {
+		t.Fatal("legacy source changed")
+	}
+	if second, err := New(Config{StorageRoot: root, CosmicURL: "http://127.0.0.1:1"}); err == nil {
+		second.Close()
+		t.Fatal("second process could own the same storage")
+	}
+	var different bytes.Buffer
+	png.Encode(&different, image.NewRGBA(image.Rect(0, 0, 8, 8)))
+	os.WriteFile(sourceFile, different.Bytes(), 0600)
+	if err = service.ImportGuide(source); err == nil {
+		t.Fatal("different bytes overwrote existing UUID")
+	}
+	receipt, err = service.media.inspect(id)
+	if err != nil || receipt.SHA256 != assetpack.Hash(original.Bytes()) {
+		t.Fatal("failed import damaged current bytes")
+	}
+}

@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "client_contract": "astra-assets-v1",
+  "tag": "v0.29.0",
+  "revision": "20a1d7843a0cc33da44528af6fbe08b09a0322ec56613b91252b8693156557ab",
+  "archive": "astra-journey-assets-20a1d7843a0cc33da44528af6fbe08b09a0322ec56613b91252b8693156557ab.zip",
+  "sha256": "b50745e8df48c08af06d653eebb9dbd5de562eefc45599753771e9fa0f708512",
+  "size": 8166453
+}
