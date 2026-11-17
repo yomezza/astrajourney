@@ -13,6 +13,7 @@
 | Идеи и концепции | [Реестр идей](ideas/README.md) | Владелец, архитектура, frontend |
 | Работа нескольких ИИ, промпты | [ai/README.md](../ai/README.md) | Чаты/агенты разных ролей |
 | Решения по старой дорожной карте | [Планы и решения](roadmap/README.md) | Владелец, разработчики |
+| Оптимизация пяти служб после 0.30.0 | [Предлагаемый план](ideas/service-optimization/README.ru.md) · [Анализ и источники](audits/2026-11-17-optimization/REPORT.ru.md) | Владелец, backend, frontend, DBA; реализация ещё не начата |
 | Графика и стиль | [Дизайн](design/README.md) | Graphics, SVG, frontend |
 | Планетарная служба и развёртывание | [Планетарный режим](planetary/README.ru.md) | Backend, DBA, DevOps |
 | Чат и его API | [Chat Service](chat-service/README.ru.md) · [API](chat-service/API.ru.md) | Backend, frontend |
