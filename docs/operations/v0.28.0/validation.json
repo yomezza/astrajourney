@@ -1,0 +1,45 @@
+{
+  "source_commit": "5f22438",
+  "go_integration": {
+    "total": 174,
+    "passed": 146,
+    "skipped": 28,
+    "failed": [],
+    "repaired_and_retested": [
+      "TestChat240Search",
+      "TestChatN1SQLFailureRecovery",
+      "TestChatN2SQLFailureRecovery",
+      "TestPlanetHandoff180",
+      "TestLandingBackfillAndConcurrentCompletion160",
+      "TestSurfaceTextureAssets125"
+    ]
+  },
+  "ui": {
+    "passed": 79,
+    "failed": 0
+  },
+  "race": "PASS: discovery concurrency, ownership, cold cache, readonly open",
+  "vet": "PASS",
+  "browser_live": "PASS: TestNamingProductionBrowser280, TestCatalogProductionBrowser",
+  "upgrade_from_published_027": "PASS: hashes unchanged, spent rights/custom station preserved, stable repeat",
+  "release_smoke": {
+    "cosmic": {
+      "version": "0.28.0"
+    },
+    "planet": {
+      "version": "0.28.0",
+      "status": "ready"
+    },
+    "chat": {
+      "version": "0.28.0",
+      "status": "ready",
+      "ready": true
+    }
+  },
+  "platforms_built": [
+    "linux/amd64",
+    "windows/amd64"
+  ],
+  "windows_execution_tested": false,
+  "checksums": "PASS: all old and new release files"
+}
