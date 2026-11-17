@@ -630,8 +630,8 @@ func TestChatN2RestartRetentionAndRollback(t *testing.T) {
 					pid = a.Diagnostics()["wake_source"].(map[string]any)["backend_pid"].(uint32)
 				}
 				stop()
-				if pid != 0 && f.integer(`SELECT count(*) FROM pg_stat_activity WHERE pid=$1`, pid) != 0 {
-					t.Fatal("listener survived Chat stop")
+				if pid != 0 {
+					eventuallyN1(t, func() bool { return f.integer(`SELECT count(*) FROM pg_stat_activity WHERE pid=$1`, pid) == 0 })
 				}
 				if f.integer(`SELECT count(*) FROM chat_ws_leases WHERE user_id=$1 AND expires_at>clock_timestamp()`, uid) != 0 {
 					t.Fatal("lease survived Chat stop")

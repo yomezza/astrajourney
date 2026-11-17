@@ -130,12 +130,26 @@ func TestPlanetHandoff180(t *testing.T) {
 	if res.StatusCode != 200 || scene["cells"] == nil || scene["objects"] == nil {
 		t.Fatal("no authorized scene", res.StatusCode, scene)
 	}
-	raw, _ := json.Marshal(scene)
-	for _, private := range []string{"Seed", "seed", "checksum", "password", "credits"} {
-		if strings.Contains(string(raw), private) {
-			t.Fatal("private scene data", private)
+	// Public asset values such as "bed_seedlings.png" are not private seed fields.
+	var checkPrivateFields func(any)
+	checkPrivateFields = func(value any) {
+		switch v := value.(type) {
+		case map[string]any:
+			for key, child := range v {
+				for _, private := range []string{"seed", "checksum", "password", "credits"} {
+					if strings.Contains(strings.ToLower(key), private) {
+						t.Fatalf("private scene field %q", key)
+					}
+				}
+				checkPrivateFields(child)
+			}
+		case []any:
+			for _, child := range v {
+				checkPrivateFields(child)
+			}
 		}
 	}
+	checkPrivateFields(scene)
 	if _, err = f.db.Exec(f.ctx, `UPDATE ships SET object_id='entry' WHERE id=$1`, ship); err == nil {
 		t.Fatal("DB guard bypass")
 	}

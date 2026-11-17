@@ -12,6 +12,7 @@ import (
 
 	"github.com/yomezza/cosmosimulator/internal/colonies"
 	"github.com/yomezza/cosmosimulator/internal/geography"
+	"github.com/yomezza/cosmosimulator/internal/platform/dblayout"
 )
 
 func landingFixture160(t *testing.T) (*fixture033, *http.Cookie, int64, int64, geography.PlanetSurface) {
@@ -161,13 +162,17 @@ func TestLandingBackfillAndConcurrentCompletion160(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	f.exec(string(sql))
+	root, e := dblayout.RootFromPath(f.db.Config().ConnConfig.RuntimeParams["search_path"])
+	if e != nil {
+		t.Fatal(e)
+	}
+	f.exec(dblayout.DDL(root, string(sql)))
 	reconcile160(f)
 	if f.integer(`SELECT count(*) FROM planet_landing_sites`) != 2 {
 		t.Fatal("backfill used one site per sector")
 	}
 	ids := f.integer(`SELECT sum(id) FROM planet_landing_sites`)
-	f.exec(string(sql))
+	f.exec(dblayout.DDL(root, string(sql)))
 	reconcile160(f)
 	if f.integer(`SELECT sum(id) FROM planet_landing_sites`) != ids {
 		t.Fatal("repeat migration rebuilt modules")

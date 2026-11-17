@@ -11,6 +11,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/account"
 	"github.com/yomezza/cosmosimulator/internal/chat"
 	"github.com/yomezza/cosmosimulator/internal/chatserver"
+	"github.com/yomezza/cosmosimulator/internal/platform/dblayout"
 	"github.com/yomezza/cosmosimulator/internal/testkit/natsfixture"
 )
 
@@ -79,7 +80,7 @@ func TestChatN3CommitRollbackSQLFailureAndUUID(t *testing.T) {
 	if e = f.db.QueryRow(f.ctx, `SELECT current_schema()`).Scan(&schema); e != nil {
 		t.Fatal(e)
 	}
-	table := pgx.Identifier{schema, "chat_outbox"}.Sanitize()
+	table := dblayout.Qualified(schema, "chat_outbox")
 	runtimeRole := pgx.Identifier{role}.Sanitize()
 	f.exec(`REVOKE INSERT ON ` + table + ` FROM ` + runtimeRole)
 	defer f.db.Exec(f.ctx, `GRANT INSERT ON `+table+` TO `+runtimeRole)

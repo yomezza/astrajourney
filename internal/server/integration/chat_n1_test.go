@@ -21,6 +21,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/chat"
 	"github.com/yomezza/cosmosimulator/internal/chatintegration"
 	"github.com/yomezza/cosmosimulator/internal/chatserver"
+	"github.com/yomezza/cosmosimulator/internal/platform/dblayout"
 )
 
 func n1User(t *testing.T, f *fixture033, s *chat.Service, name string) (chat.Identity, chat.Lease, *http.Cookie) {
@@ -520,7 +521,7 @@ func testChatN1SQLFailureRecovery(t *testing.T, mode string) {
 	if e := f.db.QueryRow(f.ctx, `SELECT current_schema()`).Scan(&schema); e != nil {
 		t.Fatal(e)
 	}
-	table := pgx.Identifier{schema, "chat_outbox"}.Sanitize()
+	table := dblayout.Qualified(schema, "chat_outbox")
 	r := pgx.Identifier{role}.Sanitize()
 	f.exec(`REVOKE SELECT ON ` + table + ` FROM ` + r)
 	defer f.db.Exec(f.ctx, `GRANT SELECT ON `+table+` TO `+r)
