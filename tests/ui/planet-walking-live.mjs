@@ -72,6 +72,7 @@ try {
     const target = { x: start.x + (step % 2 ? 0 : 2 * 1024), y: start.y },
       box = await canvas.boundingBox();
     await canvas.click({
+      modifiers: ["Shift"],
       position: {
         x: box.width / 2 + ((target.x - state.x) / 1024) * state.zoom,
         y: box.height / 2 + ((target.y - state.y) / 1024) * state.zoom,

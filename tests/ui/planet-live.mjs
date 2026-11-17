@@ -133,6 +133,7 @@ try {
   }));
   const box = await canvas.boundingBox();
   await canvas.click({
+    modifiers: ["Shift"],
     position: { x: box.width / 2 + 32, y: box.height / 2 },
   });
   await page.waitForFunction(
