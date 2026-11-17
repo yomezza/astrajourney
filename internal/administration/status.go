@@ -18,5 +18,11 @@ func (a *Service) ServerStatus(w http.ResponseWriter, r *http.Request) {
 		httpkit.Internal(w, err)
 		return
 	}
-	httpkit.Reply(w, 200, map[string]any{"name": "Иггдрасиль", "players": players, "bots": bots})
+	var version string
+	if err = a.DB.QueryRow(ctx, `SELECT version FROM game_release WHERE id=1`).Scan(&version); err != nil {
+		httpkit.Internal(w, err)
+		return
+	}
+	w.Header().Set("Cache-Control", "no-store")
+	httpkit.Reply(w, 200, map[string]any{"name": "Иггдрасиль", "players": players, "bots": bots, "version": version})
 }

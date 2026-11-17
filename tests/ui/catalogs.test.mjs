@@ -68,7 +68,7 @@ test("colony metadata ignores obsolete responses and retries after research chan
     return {
       src: root.querySelector("img").getAttribute("src"),
       query: root.querySelector("input").value,
-      selected: root.querySelector('[aria-pressed="true"]').dataset.projectId,
+      selected: root.querySelector('.colony-catalog-entry[aria-pressed="true"]').dataset.projectId,
       text: root.textContent,
     };
   });

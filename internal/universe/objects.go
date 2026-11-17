@@ -8,6 +8,7 @@ import (
 )
 
 type Site struct {
+	UUID          string                           `json:"uuid,omitempty"`
 	ID            string                           `json:"id"`
 	Name          string                           `json:"name"`
 	Kind          string                           `json:"kind"`
@@ -47,6 +48,14 @@ func SystemSites(s Star) []Site {
 				id = fmt.Sprintf("station-%d", i+1)
 			}
 			sites = append(sites, Site{ID: id, Name: fmt.Sprintf("%s · PORT %d", s.Name, i+1), Kind: "Орбитальная станция", Orbit: (1.2 + float64(i)*.8) * scale})
+		}
+	}
+	for i := range sites {
+		for _, o := range s.Objects {
+			if sites[i].Planet == o.ID {
+				sites[i].Name = o.Name
+				sites[i].UUID = o.UUID
+			}
 		}
 	}
 	return sites

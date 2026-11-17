@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/yomezza/cosmosimulator/internal/geography"
@@ -22,7 +23,22 @@ func TestPreRefactorGeographyCompatibility(t *testing.T) {
 	if err = json.Unmarshal(raw, &expected); err != nil {
 		t.Fatal(err)
 	}
-	values := map[string]any{"galaxy": universe.Generate(128, 20261026)}
+	// Naming now comes from PostgreSQL. The geometry baseline was generated
+	// from unmodified v0.27.0 with only names and naming_version excluded.
+	galaxy := universe.Generate(128, 20261026)
+	galaxy.NamingVersion = 0
+	for i := range galaxy.Stars {
+		galaxy.Stars[i].Name = ""
+		for j := range galaxy.Stars[i].Planets {
+			galaxy.Stars[i].Planets[j].Name = ""
+		}
+	}
+	geometryHash, e := os.ReadFile("testdata/v0.27.0-geometry.sha256")
+	if e != nil {
+		t.Fatal(e)
+	}
+	expected["galaxy"] = strings.TrimSpace(string(geometryHash))
+	values := map[string]any{"galaxy": galaxy}
 	for _, kind := range []string{"Садовый мир", "Ледяная", "Каменистая", "Вулканическая"} {
 		p := universe.Planet{ID: 1, Name: "Compatibility", Kind: kind, Mass: 1, Gravity: 1, Temperature: 288}
 		surface := geography.Generate(p, "refactor-compatibility", 100)

@@ -60,10 +60,12 @@ export const stationPicker = (root, ports, value, change) => {
   root.append(picker);
   return picker;
 };
-export const systems = (value, change) =>
+export const galaxyOf = (id) => world.stars.get(Number(id))?.galaxy || "edem";
+export const inPlayerGalaxy = (star) => world.stars.has(Number(star)) && world.stars.has(Number(Session.data.expedition?.ship.star)) && galaxyOf(star) === galaxyOf(Session.data.expedition?.ship.star);
+export const systems = (value, change, galaxy = galaxyOf(value)) =>
   UI.picker(
     (world.data?.stars || [])
-      .filter((s) => !s.deleted)
+      .filter((s) => !s.deleted && (s.galaxy || "edem") === galaxy)
       .map((s) => ({
         id: s.id,
         code: String(s.id),

@@ -132,11 +132,24 @@ func (a *Service) Rename(w http.ResponseWriter, r *http.Request) {
 		httpkit.Internal(w, err)
 		return
 	}
+	objectState := state
+	// Ownership of the SYSTEM grants separate one-time rights to its planets.
+	// Do not rewrite a planet's historical first-scan attribution.
+	if !admin {
+		var systemProtected string
+		if err = tx.QueryRow(ctx, `SELECT discoverer_id,claim_state,COALESCE(protected_founder_key,'') FROM aj_discovery_objects WHERE kind='system' AND star_id=$1 AND planet_id=0 FOR UPDATE`, in.Object.Star).Scan(&owner, &state, &systemProtected); err != nil {
+			httpkit.Internal(w, err)
+			return
+		}
+		if systemProtected != "" {
+			protected = systemProtected
+		}
+	}
 	if !admin && (state != "claimed" || owner == nil || *owner != u.ID || protected != "" || identity.Founder != "") {
 		httpkit.Fail(w, 403, "Нет права переименования")
 		return
 	}
-	if state == "retired" || (!admin && used) {
+	if objectState == "retired" || (!admin && used) {
 		httpkit.Fail(w, 409, "Право переименования уже использовано")
 		return
 	}

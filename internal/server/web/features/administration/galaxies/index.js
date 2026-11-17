@@ -323,6 +323,13 @@ export function initGalaxyAdmin() {
         seed.required = true;
         seed.max = Number.MAX_SAFE_INTEGER;
         seed.oninput = () => (d.seed = Number(seed.value));
+        const emptyLabel = n("label", undefined, "galaxy-empty-choice");
+        const empty = n("input");
+        empty.type = "checkbox";
+        empty.checked = !!d.empty;
+        empty.onchange = () => { d.empty = empty.checked; form.dispatchEvent(new Event("input", {bubbles:true})); };
+        emptyLabel.append(empty, n("span", tr("Пустая галактика — без основателей и станций")));
+        basic.append(emptyLabel);
       }
       basic.append(
         n(
@@ -516,6 +523,7 @@ export function initGalaxyAdmin() {
       const values = () => ({
         id: d.id,
         create: !!d.create,
+        empty: !!d.empty,
         shape: d.shape,
         seed: d.seed,
         name: name.value,

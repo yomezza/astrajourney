@@ -10,7 +10,9 @@ Astra Journey — браузерная космическая экономиче
 
 Сервер написан на Go, данные хранятся в PostgreSQL. Интерфейс работает в браузере на HTML, CSS, JavaScript и SVG. Для запуска не нужны Node.js и npm.
 
-**Версии служб:** Cosmic, Planet и Chat 0.27.0. [Разделение PostgreSQL по схемам](release-notes/v0.27.0.md).
+**Версии служб:** Cosmic, Planet и Chat 0.28.0. [Изменения выпуска](release-notes/v0.28.0.md).
+
+В 0.28.0 обновлены «Колонии», профиль, списки систем и станций; добавлены словари PostgreSQL, одноразовые права первооткрывателя системы на названия системы и планет, единая версия интерфейса из БД и создание пустых галактик. [Подробности и обновление](docs/operations/discovery-dictionaries.ru.md).
 
 При обновлении на 0.27.0 остановите прежние службы, сделайте согласованный backup и первым запустите новый Cosmic для переноса таблиц, затем Planet и необязательный Chat. Прежний `database.schema` сохраняется. **Настраивать `search_path` в БД вручную не нужно**: службы делают это для каждого соединения. Есть проверка без записи `--check-schemas`. [Структура, права и порядок обновления](docs/operations/database-schemas.ru.md).
 
@@ -97,7 +99,7 @@ $env:PLANET_INTERNAL_URL = 'http://127.0.0.1:8081'
 $env:ADMIN_USERNAME = 'operator'
 $env:ADMIN_PASSWORD = 'REPLACE_WITH_A_UNIQUE_PASSWORD'
 
-.\downloads\astra-journey-v0.24.13-windows-amd64.exe
+.\downloads\astra-journey-v0.28.0-windows-amd64.exe
 ```
 
 После запуска откройте `http://127.0.0.1:8080`. Для остановки используйте Ctrl+C. После создания администратора уберите `ADMIN_USERNAME` и `ADMIN_PASSWORD` из окружения последующих запусков.
@@ -109,7 +111,7 @@ $env:DATABASE_URL = 'postgres://cosmos:URL_ENCODED_PASSWORD@127.0.0.1:5432/exist
 $env:DB_SCHEMA = 'astra_journey'
 $env:PLANET_HTTP_ADDR = '127.0.0.1:8081'
 
-.\downloads\astra-journey-planet-v0.24.13-windows-amd64.exe
+.\downloads\astra-journey-planet-v0.28.0-windows-amd64.exe
 ```
 
 Обе службы используют одну базу и одну схему. Миграции выполняет космическая служба; планетарная не должна запускаться первой при обновлении схемы. В браузере нужен только порт космической службы: запросы к планетарной проходят через её шлюз.
@@ -124,7 +126,7 @@ $env:PLANET_HTTP_ADDR = '127.0.0.1:8081'
 
 ```powershell
 $env:CONFIG_FILE = 'D:\AstraJourney\configs\cosmos.toml'
-.\downloads\astra-journey-v0.24.13-windows-amd64.exe
+.\downloads\astra-journey-v0.28.0-windows-amd64.exe
 ```
 
 Для Planet и Chat используется та же переменная, но путь к их файлу.
@@ -161,7 +163,7 @@ go test ./...
 Сборка Windows amd64 и Linux amd64 из корня репозитория:
 
 ```sh
-python3 scripts/build-release.py v0.24.13
+python3 scripts/build-release.py v0.28.0
 ```
 
 Управление космическим сервером находится в `internal/server` и профильных Go-пакетах; браузерные ресурсы — в `internal/server/web`. Node/Playwright применяются при разработке и тестировании интерфейса, но не нужны для работы Windows-сборок.

@@ -25,6 +25,7 @@ type GalaxySettings struct {
 }
 
 type GalaxyDefinition struct {
+	Empty       bool               `json:"empty"`
 	Deleted     bool               `json:"deleted,omitempty"`
 	ID          string             `json:"id"`
 	Name        string             `json:"name"`
@@ -180,15 +181,6 @@ func AppendGalaxySystems(g *Galaxy, id string, target int) error {
 			prefix = "AS"
 		}
 		s.Name = fmt.Sprintf("%s-%04d", prefix, s.Number)
-		if s.Number%5 == 1 {
-			s.Name = fmt.Sprintf("KE-%04d", s.ID)
-		}
-		if s.Number%5 == 2 {
-			s.Name = fmt.Sprintf("AX-%04d", s.ID)
-		}
-		if s.Number%5 >= 3 {
-			s.Name = fmt.Sprintf("%s %d", []string{"Дальняя Заря", "Янтарный Предел", "Серебряная Река", "Тихая Лагуна", "Лазурная Искра", "Звёздная Колыбель", "Скрытая Обитель", "Вечерняя Гавань"}[s.Number%8], 1+s.Number/40)
-		}
 		if used[s.Name] {
 			s.Name += fmt.Sprintf(" · %d", s.ID)
 		}
@@ -217,13 +209,13 @@ func AssignGalaxyContent(g *Galaxy, id string) {
 			continue
 		}
 		n := 0
-		if stablePercent(d.Seed, s.ID, 1) < founderStationChance(*d, *s) {
+		if !d.Empty && stablePercent(d.Seed, s.ID, 1) < founderStationChance(*d, *s) {
 			n = 1 + stablePercent(d.Seed, s.ID, 2)%d.Settings.MaxPorts
 		}
-		if core[s.ID] {
+		if !d.Empty && core[s.ID] {
 			n = max(1, n)
 		}
-		if s.ID == 1 || s.ID == 5 {
+		if !d.Empty && (s.ID == 1 || s.ID == 5) {
 			n = max(3, n)
 		}
 		s.Ports = &n
@@ -316,7 +308,7 @@ func RebuildGalaxyLanes(g *Galaxy, id string, protected []Lane) {
 				}
 			}
 			for _, s := range members {
-				if stablePercent(d.Seed, s.ID, 3) >= d.Settings.ExtraLanes {
+				if !d.Empty && stablePercent(d.Seed, s.ID, 3) >= d.Settings.ExtraLanes {
 					continue
 				}
 				best := 0
@@ -409,6 +401,7 @@ func RebuildGalaxyLanes(g *Galaxy, id string, protected []Lane) {
 }
 
 type GalaxyEdit struct {
+	Empty    bool           `json:"empty"`
 	Create   bool           `json:"create"`
 	Shape    string         `json:"shape"`
 	Seed     int64          `json:"seed"`

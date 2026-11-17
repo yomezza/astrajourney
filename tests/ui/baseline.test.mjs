@@ -269,17 +269,14 @@ test("ship uses current mining stats, inline hologram and a separate cargo windo
   assert.ok(cargo.x >= ship.x + ship.width - 2);
 });
 
-test("guide categories are closed initially; search reveals matching categories", async (t) => {
+test("guide searches the current resource catalogue and keeps the article reader", async (t) => {
   const g = await game(t, { signedIn: true });
-  await g.ready();
-  await g.open("guide");
-  await g.page.waitForSelector(".guide-category");
-  assert.equal(await g.page.locator(".guide-category[open]").count(), 0);
-  await g.page.locator("#guide-search").fill("Железо");
-  await g.page.waitForFunction(
-    () => document.querySelectorAll(".guide-category[open]").length > 0,
-  );
-  assert.equal(await g.page.locator(".guide-category").count(), 1);
+  await g.ready(); await g.open("guide");
+  await g.page.locator('.result-row[data-article="game:resource:iron"]').waitFor();
+  await g.page.getByRole("searchbox", {name:"Поиск по базе знаний"}).fill("Железо");
+  assert.equal(await g.page.locator(".result-row").count(),1);
+  await g.page.locator('.result-row[data-article="game:resource:iron"]').click();
+  assert.match(await g.page.locator(".c-reading").textContent(),/Железо/);
 });
 
 test("picker searches, paginates, selects with keyboard and closes on Escape/outside", async (t) => {

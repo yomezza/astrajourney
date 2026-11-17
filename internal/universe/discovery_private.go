@@ -41,6 +41,7 @@ func PublicStar(s Star) Star {
 	s.ResourceRolls = nil
 	s.ResourceWeights = nil
 	s.Ports = nil
+	s.Objects = nil
 	return s
 }
 

@@ -321,12 +321,13 @@ func (a *Service) CorporationCommand(ctx context.Context, tx pgx.Tx, u account.U
 			required = map[string]int{"iron": 100, "silicon": 50}
 		}
 		raw, _ := json.Marshal(required)
-		_, err = tx.Exec(ctx, `INSERT INTO company_projects(company_id,name,kind,star,required,station) VALUES($1,$2,$3,$4,$5,$6)`, cid, in.Name, in.Target, s.Star, raw, s.ObjectID)
+		_, err = tx.Exec(ctx, `INSERT INTO company_projects(company_id,name,kind,star,required,station,created_by) VALUES($1,$2,$3,$4,$5,$6,$7)`, cid, in.Name, in.Target, s.Star, raw, s.ObjectID, u.ID)
 	case "project_contribute":
 		var star int
 		var kind, name, status string
+		var creator *int64
 		var needRaw, doneRaw []byte
-		if err = tx.QueryRow(ctx, `SELECT star,kind,name,status,required,contributed FROM company_projects WHERE id=$1 AND company_id=$2 FOR UPDATE`, in.ID, cid).Scan(&star, &kind, &name, &status, &needRaw, &doneRaw); err != nil {
+		if err = tx.QueryRow(ctx, `SELECT star,kind,name,status,required,contributed,created_by FROM company_projects WHERE id=$1 AND company_id=$2 FOR UPDATE`, in.ID, cid).Scan(&star, &kind, &name, &status, &needRaw, &doneRaw, &creator); err != nil {
 			return true, err
 		}
 		if status != "active" || s.Star != star || !fleet.Docked(*s) || in.Quantity < 1 || in.Quantity > 100000 {
@@ -368,12 +369,12 @@ func (a *Service) CorporationCommand(ctx context.Context, tx pgx.Tx, u account.U
 				return true, err
 			}
 			if kind != "warehouse" {
-				_, err = tx.Exec(ctx, `INSERT INTO stations(star,object_id,name,specialization,company_id) VALUES($1,$2,$3,$4,$5)`, star, fmt.Sprintf("project-%d", in.ID), name, func() string {
+				_, err = tx.Exec(ctx, `INSERT INTO stations(star,object_id,name,specialization,company_id,name_origin,created_by) VALUES($1,$2,$3,$4,$5,'player',$6)`, star, fmt.Sprintf("project-%d", in.ID), name, func() string {
 					if kind == "station" {
 						return "industry"
 					}
 					return "trade"
-				}(), cid)
+				}(), cid, creator)
 				if err != nil {
 					return true, err
 				}

@@ -148,7 +148,7 @@ export function initStudies() {
     choose(id);
     viewHandle?.close();
     viewHandle = mountSystemLineup({
-      host: root,
+      host: Modules.create("system-objects", "Последовательность объектов системы", 1050, 520),
       starId: id,
       assetBase: "",
       fallbackAsset: "object-unknown.svg",
@@ -163,9 +163,11 @@ export function initStudies() {
         api("system?id=" + encodeURIComponent(value), undefined, signal),
       onBack: () => {
         viewHandle = null;
+        Modules.close("system-objects");
         markSelection();
       },
     });
+    Modules.open("system-objects");
   }
   function entry(item, isCurrent = false) {
     const s = star(item.star),

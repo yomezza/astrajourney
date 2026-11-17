@@ -121,7 +121,7 @@ export async function game(
     if (handlers.has(key))
       return handlers.get(key)({ route, req, url, json, data, session });
     if (key === "server-status" && method === "GET")
-      return json({ name: "Иггдрасиль", players: 1, bots: 2 });
+      return json({ name: "Иггдрасиль", players: 1, bots: 2, version:"0.28.0" });
     if (key === "login" && method === "POST") {
       session.authenticated = true;
       return json({ ok: true });

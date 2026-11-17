@@ -1,4 +1,4 @@
-import { stationPicker } from "../navigation/pickers.js";
+import { stationPicker, inPlayerGalaxy } from "../navigation/pickers.js";
 import { stationRef } from "../stations/index.js";
 
 import { I18n } from "../../core/i18n.js";
@@ -22,7 +22,7 @@ export function createGlobalMarket({
     b = (...args) => UI.button(...args);
   return function renderGlobal(root, { port, globalMarket }) {
     const result = globalMarket;
-    const eligible = [...result.ports].sort((a, b) => a.star - b.star);
+    const eligible = result.ports.filter((p) => inPlayerGalaxy(p.star)).sort((a, b) => a.star - b.star);
     const portKey = (p) => p.star + "|" + p.station;
     let target = state.target || d().ship.star + "|" + d().ship.object_id;
     if (!eligible.some((p) => portKey(p) === target))

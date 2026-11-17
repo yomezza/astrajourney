@@ -6,7 +6,15 @@ import (
 	"math/rand"
 )
 
+type NaturalObject struct {
+	ID   int    `json:"id"`
+	UUID string `json:"uuid"`
+	Kind string `json:"kind"`
+	Name string `json:"name"`
+}
+
 type Star struct {
+	Objects         []NaturalObject               `json:"natural_objects,omitempty"`
 	UUID            string                        `json:"uuid,omitempty"`
 	CatalogCode     string                        `json:"catalog_code,omitempty"`
 	DiscoverySeed   string                        `json:"discovery_seed,omitempty"`
@@ -110,7 +118,6 @@ func generate(count int, seed int64, withLanes bool) Galaxy {
 	g.Regions = Regions
 	Enrich(&g)
 	UpgradeGeology(&g)
-	DiversifySystemNames(&g)
 	return g
 }
 

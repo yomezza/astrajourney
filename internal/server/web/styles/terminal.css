@@ -4878,3 +4878,35 @@ button.picker-button.system-picker .picker-chevron {
 .service-nats-tag[data-status="connected"] { color:var(--green,#7bd5ac); border-color:var(--green,#7bd5ac); }
 .service-nats-tag[data-status="disconnected"] { color:var(--red,#ed7b83); border-color:var(--red,#ed7b83); }
 .service-nats-tag[data-status="connecting"],.service-nats-tag[data-status="not_used"] { color:var(--accent,#efad58); border-color:var(--accent,#efad58); }
+
+/* Searchable navigation selectors share the terminal's muted panels. */
+button.picker-button.system-picker { background: #101d27; border-color: #3a505f; border-radius: 3px; min-height: 34px; }
+button.picker-button.system-picker:hover { border-color: #9b7e53; background: #1c2b34; }
+.system-popover { border: 1px solid #627481; border-radius: 4px; background: #121e28; box-shadow: 0 14px 36px #0008; padding: 12px; }
+.system-popover > input { border: 1px solid #425766; border-radius: 3px; background: #0c1720; min-height: 34px; }
+.system-popover .picker-column-title { padding: 8px 3px; font-size: 10px; letter-spacing: .07em; text-transform: uppercase; color: #98acbc; }
+.system-popover button.picker-option { border-radius: 2px; background: #172731; border: 1px solid transparent; }
+.system-popover button.picker-option[aria-selected="true"] { border-color: #9c7d50; background: #393125; color: #efc68f; }
+.system-popover button.picker-option:hover { background: #233a46; border-color: #547889; }
+.system-popover button.picker-option:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+.system-popover .picker-entry { margin-bottom: 4px; }
+.system-popover .pagination { border-top: 1px solid #304551; margin-top: 10px; padding-top: 10px; }
+
+/* Pilot profile uses only existing account/fleet information. */
+.pilot-profile { container-type: inline-size; }
+.pilot-profile-hero { display: flex; gap: 16px; align-items: center; padding: 10px 0 18px; border-bottom: 1px solid var(--border); }
+.pilot-profile-avatar { display: grid; place-items: center; width: 64px; height: 64px; flex-shrink: 0; border: 1px solid #8a7049; background: radial-gradient(ellipse at top left, #51412b, #1d2830); color: #efc58a; font-size: 24px; font-weight: 500; }
+.pilot-profile-identity { min-width: 0; }
+.pilot-profile .pilot-profile-eyebrow { margin: 0 0 5px; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; font-size: 10px; }
+.pilot-profile h2 { margin: 0 0 8px; font-size: 23px; overflow-wrap: anywhere; }
+.pilot-profile-role { display: inline-block; font-size: 10px; color: #8ec9b0; padding: 3px 6px; border: 1px solid #3e6353; background: #1b3029; }
+.pilot-profile-stats { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin: 16px 0; }
+.pilot-profile-stat { padding: 14px; background: #121e28; border: 1px solid #304451; }
+.pilot-profile-stat strong { display: block; font-size: 24px; color: #e7bb7d; font-weight: 500; }
+.pilot-profile-stat span { display: block; margin-top: 4px; font-size: 11px; color: #95aaba; }
+.pilot-profile-company { padding: 12px 14px; border: 1px solid #304451; background: #14212b; }
+.pilot-profile-company span { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: #91a7b7; margin-bottom: 6px; }
+.pilot-profile-company strong { font-size: 13px; font-weight: 500; overflow-wrap: anywhere; }
+.pilot-profile-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.pilot-profile-actions button { flex: 1; min-height: 34px; }
+@container (max-width: 320px) { .pilot-profile-hero { gap: 10px; } .pilot-profile h2 { font-size: 19px; } }

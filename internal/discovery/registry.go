@@ -10,11 +10,15 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/platform/naming"
 	"github.com/yomezza/cosmosimulator/internal/platform/postgres"
 	"github.com/yomezza/cosmosimulator/internal/universe"
+	"github.com/yomezza/cosmosimulator/internal/universestore"
 )
 
 // Sync is called by every world writer, under the existing world transaction
 // lock. Existing names are authoritative; new records receive no invented owner.
 func Sync(ctx context.Context, tx pgx.Tx, g *universe.Galaxy) error {
+	if err := universestore.PrepareAdditional(ctx, tx, g); err != nil {
+		return err
+	}
 	rows, err := tx.Query(ctx, `SELECT kind,star_id,planet_id,current_name,name_key,COALESCE(protected_founder_key,''),claim_state FROM aj_discovery_objects`)
 	if err != nil {
 		return err
@@ -127,5 +131,5 @@ func ClaimScan(ctx context.Context, tx pgx.Tx, uid int64, s universe.Star, from,
 func Metadata(ctx context.Context, q interface {
 	Query(context.Context, string, ...any) (pgx.Rows, error)
 }, uid int64, star int, planets []int) ([]map[string]any, error) {
-	return postgres.QueryMaps(ctx, q, `SELECT (CASE WHEN o.kind='system' THEN si.object_uuid ELSE sp.object_uuid END)::text AS uuid,o.kind,o.star_id,o.planet_id,o.catalog_code,o.original_name,o.current_name,o.claim_state,o.discovered_at,o.name_revision,o.protected_founder_key,COALESCE(u.username,'') AS discoverer,COALESCE((o.discoverer_id=$1 AND o.claim_state='claimed' AND o.rename_used_at IS NULL AND o.protected_founder_key IS NULL),false) AS rename_available FROM aj_discovery_objects o LEFT JOIN users u ON u.id=o.discoverer_id LEFT JOIN system_identity si ON si.id=o.star_id LEFT JOIN system_planets sp ON sp.system_id=o.star_id AND sp.id=o.planet_id WHERE o.star_id=$2 AND (o.kind='system' OR o.planet_id=ANY($3::int[])) ORDER BY o.planet_id`, uid, star, planets)
+	return postgres.QueryMaps(ctx, q, `SELECT (CASE WHEN o.kind='system' THEN si.object_uuid ELSE sp.object_uuid END)::text AS uuid,o.kind,o.star_id,o.planet_id,o.catalog_code,o.original_name,o.current_name,o.claim_state,o.discovered_at,o.name_revision,o.protected_founder_key,COALESCE(u.username,'') AS discoverer,COALESCE((parent.discoverer_id=$1 AND parent.claim_state='claimed' AND parent.protected_founder_key IS NULL AND o.rename_used_at IS NULL AND o.protected_founder_key IS NULL AND o.claim_state<>'retired' AND s.founder='' AND NOT s.deleted),false) AS rename_available FROM aj_discovery_objects o JOIN aj_discovery_objects parent ON parent.kind='system' AND parent.star_id=o.star_id AND parent.planet_id=0 JOIN system_identity si ON si.id=o.star_id JOIN star_systems s ON s.id=si.id AND s.galaxy_id=si.galaxy_id LEFT JOIN users u ON u.id=o.discoverer_id LEFT JOIN system_planets sp ON sp.system_id=o.star_id AND sp.id=o.planet_id WHERE o.star_id=$2 AND (o.kind='system' OR o.planet_id=ANY($3::int[])) ORDER BY o.planet_id`, uid, star, planets)
 }

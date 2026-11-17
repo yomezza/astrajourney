@@ -77,3 +77,19 @@ BEGIN
 END $$;
 DROP TRIGGER IF EXISTS universe_planet_identity_immutable ON system_planets;
 CREATE TRIGGER universe_planet_identity_immutable BEFORE UPDATE ON system_planets FOR EACH ROW EXECUTE FUNCTION universe_planet_identity_guard();
+
+CREATE TABLE IF NOT EXISTS system_objects (
+ system_id int NOT NULL REFERENCES system_identity(id),
+ id int NOT NULL CHECK(id IN(101,102)), object_uuid uuid NOT NULL UNIQUE,
+ kind text NOT NULL CHECK((id=101 AND kind='asteroid') OR (id=102 AND kind='ice')),
+ name text NOT NULL, PRIMARY KEY(system_id,id)
+);
+COMMENT ON TABLE system_objects IS 'Природные поля системы с постоянными именами и UUID; без права переименования игроком';
+COMMENT ON COLUMN system_objects.system_id IS 'Идентификатор звёздной системы';
+COMMENT ON COLUMN system_objects.id IS 'Постоянный локатор поля: 101 астероиды, 102 лёд';
+COMMENT ON COLUMN system_objects.object_uuid IS 'Постоянный UUID поля';
+COMMENT ON COLUMN system_objects.kind IS 'Тип природного поля';
+COMMENT ON COLUMN system_objects.name IS 'Сохранённое имя из словаря';
+
+ALTER TABLE galaxy_catalog ADD COLUMN IF NOT EXISTS empty boolean NOT NULL DEFAULT false;
+COMMENT ON COLUMN galaxy_catalog.empty IS 'Создавать природные системы без основателей и станций';

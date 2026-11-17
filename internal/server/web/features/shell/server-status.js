@@ -3,6 +3,10 @@ import { I18n } from "../../core/i18n.js";
 const n = (...args) => UI.node(...args),
   tr = (s) => I18n.t(s);
 export const serverStatus = (info) => {
+  if (typeof info.version === "string" && /^\d+\.\d+\.\d+$/.test(info.version))
+    for (const node of document.querySelectorAll("[data-game-version]"))
+      node.textContent = "v" + info.version;
+
   const target = document.getElementById("server-status");
   target.dataset.help = "Сервер";
   target.tabIndex = 0;

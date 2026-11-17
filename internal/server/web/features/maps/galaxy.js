@@ -518,7 +518,7 @@ export function initGalaxy() {
       window.dispatchEvent(
         new CustomEvent("galaxyselection", { detail: selected }),
       );
-    });
+    }, viewedGalaxy);
     picker.id = "map-system-id";
     picker.classList.add("system-picker");
     system.replaceWith(picker);
@@ -1142,7 +1142,7 @@ export function initGalaxy() {
       selected = Number(value);
       routePanel();
       draw();
-    });
+    }, viewedGalaxy);
     target.id = "route-to";
     side.append(target);
     const result = e("p");

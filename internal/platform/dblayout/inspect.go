@@ -42,7 +42,7 @@ func Inspect(ctx context.Context, pool *pgxpool.Pool, root string) (Report, erro
 		if e != nil {
 			return r, e
 		}
-		if r.LayoutVersion != 1 || recorded != root {
+		if (r.LayoutVersion != 1 && r.LayoutVersion != 2) || recorded != root {
 			r.Issues = append(r.Issues, "layout metadata does not match this installation/version")
 		}
 	}
@@ -65,7 +65,7 @@ func Inspect(ctx context.Context, pool *pgxpool.Pool, root string) (Report, erro
 		if info.Exists && !create {
 			r.Issues = append(r.Issues, "CREATE on schema required for migration: "+name)
 		}
-		if i > 0 && !installed {
+		if i > 0 && (!installed || r.LayoutVersion == 1 && info.Domain == "dictionaries") {
 			var occupied bool
 			if e = tx.QueryRow(ctx, occupiedSQL, name).Scan(&occupied); e != nil {
 				return r, e

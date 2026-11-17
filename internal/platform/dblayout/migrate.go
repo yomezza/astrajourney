@@ -30,7 +30,7 @@ func Prepare(ctx context.Context, tx pgx.Tx, root string) error {
 		if e = tx.QueryRow(ctx, "SELECT version,root_name FROM "+pgx.Identifier{root, "_astra_schema_layout"}.Sanitize()+" WHERE id=1").Scan(&version, &owner); e != nil {
 			return fmt.Errorf("schema layout metadata: %w", e)
 		}
-		if version != 1 || owner != root {
+		if (version != 1 && version != 2) || owner != root {
 			return fmt.Errorf("schema layout metadata does not match this installation/version")
 		}
 	}
@@ -46,10 +46,29 @@ func Prepare(ctx context.Context, tx pgx.Tx, root string) error {
 			}
 		}
 	}
+	// A new domain must not adopt unrelated objects when upgrading layout v1.
+	if installed {
+		var version int
+		if e = tx.QueryRow(ctx, "SELECT version FROM "+pgx.Identifier{root, "_astra_schema_layout"}.Sanitize()+" WHERE id=1").Scan(&version); e != nil {
+			return e
+		}
+		if version == 1 {
+			var occupied bool
+			if e = tx.QueryRow(ctx, occupiedSQL, Schema(root, "dictionaries")).Scan(&occupied); e != nil {
+				return e
+			}
+			if occupied {
+				return fmt.Errorf("dictionary schema is already occupied")
+			}
+		}
+	}
 	for _, d := range Domains {
 		if _, e = tx.Exec(ctx, "CREATE SCHEMA IF NOT EXISTS "+pgx.Identifier{Schema(root, d)}.Sanitize()); e != nil {
 			return fmt.Errorf("create domain schema %s: %w", d, e)
 		}
+	}
+	if _, e = tx.Exec(ctx, "COMMENT ON SCHEMA "+pgx.Identifier{Schema(root, "dictionaries")}.Sanitize()+" IS 'Редактируемые словари названий объектов игры'"); e != nil {
+		return e
 	}
 	if _, e = tx.Exec(ctx, "CREATE TABLE IF NOT EXISTS "+pgx.Identifier{root, "_astra_schema_layout"}.Sanitize()+"(id int PRIMARY KEY CHECK(id=1),version int NOT NULL,root_name text NOT NULL,applied_at timestamptz NOT NULL DEFAULT clock_timestamp())"); e != nil {
 		return e
@@ -189,7 +208,7 @@ func Finish(ctx context.Context, tx pgx.Tx, root string) error {
 	if _, e := tx.Exec(ctx, "CREATE OR REPLACE VIEW "+pgx.Identifier{root, "galaxies"}.Sanitize()+" AS SELECT name,data FROM "+Qualified(root, "galaxies")); e != nil {
 		return e
 	}
-	_, e := tx.Exec(ctx, "INSERT INTO "+pgx.Identifier{root, "_astra_schema_layout"}.Sanitize()+"(id,version,root_name) VALUES(1,1,$1) ON CONFLICT(id) DO UPDATE SET version=excluded.version,root_name=excluded.root_name", root)
+	_, e := tx.Exec(ctx, "INSERT INTO "+pgx.Identifier{root, "_astra_schema_layout"}.Sanitize()+"(id,version,root_name) VALUES(1,2,$1) ON CONFLICT(id) DO UPDATE SET version=excluded.version,root_name=excluded.root_name", root)
 	return e
 }
 func RelationSchema(ctx context.Context, q interface {

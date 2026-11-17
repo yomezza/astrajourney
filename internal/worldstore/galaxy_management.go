@@ -16,6 +16,7 @@ import (
 
 	"github.com/yomezza/cosmosimulator/internal/discovery"
 	"github.com/yomezza/cosmosimulator/internal/fleet"
+	"github.com/yomezza/cosmosimulator/internal/namedictionary"
 	"github.com/yomezza/cosmosimulator/internal/platform/httpkit"
 	resourcecatalog "github.com/yomezza/cosmosimulator/internal/resources"
 	"github.com/yomezza/cosmosimulator/internal/universe"
@@ -282,7 +283,7 @@ func buildGalaxyEdit(ctx context.Context, tx pgx.Tx, g *universe.Galaxy, in univ
 		if in.Shape == "rings" {
 			radius = 1250
 		}
-		next.Catalog = append(next.Catalog, universe.GalaxyDefinition{ID: in.ID, Name: strings.TrimSpace(in.Name), Shape: in.Shape, Seed: in.Seed, Opened: true, Radius: radius, RegionBase: base, Settings: in.Settings})
+		next.Catalog = append(next.Catalog, universe.GalaxyDefinition{ID: in.ID, Empty: in.Empty, Name: strings.TrimSpace(in.Name), Shape: in.Shape, Seed: in.Seed, Opened: true, Radius: radius, RegionBase: base, Settings: in.Settings})
 		for i, title := range []string{"Тихая дуга", "Светлый предел", "Дальний рубеж", "Звёздный поток"} {
 			next.Regions = append(next.Regions, universe.Region{ID: base + i, Name: strings.TrimSpace(in.Name) + " · " + title, Specialty: []string{"iron", "orichalcum", "azoth", "vajra"}[i]})
 		}
@@ -295,6 +296,9 @@ func buildGalaxyEdit(ctx context.Context, tx pgx.Tx, g *universe.Galaxy, in univ
 		return nil, nil, err
 	}
 	if err = universe.AppendGalaxySystems(&next, in.ID, in.Systems); err != nil {
+		return nil, nil, err
+	}
+	if err = namedictionary.NameNew(ctx, tx, &next, len(g.Stars)); err != nil {
 		return nil, nil, err
 	}
 	universe.AssignGalaxyContent(&next, in.ID)

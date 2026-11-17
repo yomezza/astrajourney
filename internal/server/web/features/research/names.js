@@ -3,7 +3,7 @@ import { I18n } from "../../core/i18n.js";
 import { api } from "../../core/api.js";
 import { uuid } from "../../core/uuid.js";
 import { loadWorld } from "../../core/world-store.js";
-import { UI } from "../../ui/runtime.js";
+import { UI, Modules } from "../../ui/runtime.js";
 import { notify } from "../../ui/feedback.js";
 
 export function discoveryPanel(star) {
@@ -38,6 +38,8 @@ export function discoveryPanel(star) {
       previous = key;
       root.replaceChildren(n("h3", tr("Первооткрыватели и названия")));
       for (const item of data.discoveries || []) {
+        const admin = Session.data.state?.user.role === "admin";
+        if (item.kind !== "system" && !admin) continue;
         const card = n("div", undefined, "discovery-record"),
           tag = n(
             "span",
@@ -55,8 +57,9 @@ export function discoveryPanel(star) {
         );
         if (item.discoverer)
           card.append(n("p", tr("Первооткрыватель") + ": " + item.discoverer));
-        const admin = Session.data.state?.user.role === "admin";
-        if (item.rename_available || admin) {
+        if (item.kind === "system" && item.rename_available)
+          card.append(UI.button("Переименовать систему", () => renameDiscovery(item)));
+        if (admin) {
           const form = n("div", undefined, "discovery-name-form"),
             input = n("input"),
             reason = n("input");
@@ -112,8 +115,7 @@ export function discoveryPanel(star) {
             }
           };
           form.append(input);
-          if (item.rename_available)
-            form.append(UI.button("Назвать объект", () => submit(false)));
+
           if (admin) {
             form.append(
               reason,
@@ -141,4 +143,39 @@ export function discoveryPanel(star) {
       root.remove();
     },
   };
+}
+
+// The entitlement is always rechecked by the server; this form never grants it.
+export function renameDiscovery(item, onSaved = () => {}) {
+  const epoch = Session.epoch;
+  const root = Modules.create("discovery-rename", "Новое название", 430, 250);
+  root.replaceChildren();
+  const form = UI.node("form"), input = UI.field(form, "Новое название", "discovery-new-name", item.current_name);
+  input.required = true;
+  input.maxLength = 120;
+  form.append(UI.node("p", I18n.t("Это однократное переименование. Продолжить?"), "muted"));
+  let operation = uuid(), pending = false;
+  input.oninput = () => operation = uuid();
+  const save = UI.button("Сохранить", () => form.requestSubmit());
+  form.append(save);
+  form.onsubmit = async (event) => {
+    event.preventDefault();
+    if (pending || !Session.signedIn || epoch !== Session.epoch) return;
+    pending = true; save.disabled = true; input.disabled = true;
+    try {
+      await api("discovery/name", { operation, object: { kind:item.kind, uuid:item.uuid, star_id:item.star_id, planet_id:item.planet_id }, name:input.value });
+      if (epoch !== Session.epoch || !Session.signedIn) return;
+      Modules.close("discovery-rename");
+      await loadWorld(true);
+      if (epoch !== Session.epoch || !Session.signedIn) return;
+      window.dispatchEvent(new Event("universechange"));
+      await onSaved();
+      notify("Название сохранено");
+    } catch(error) {
+      if (epoch === Session.epoch) notify(error.message, "error");
+    } finally { pending = false; save.disabled = false; input.disabled = false; }
+  };
+  root.append(form);
+  Modules.open("discovery-rename");
+  input.focus(); input.select();
 }

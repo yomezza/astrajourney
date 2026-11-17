@@ -5,6 +5,7 @@ import { createDataMarket } from "./data.js";
 import { createTradeForm } from "./trade-form.js";
 import { createDeliveryMarket } from "./delivery.js";
 
+import { loadWorld } from "../../core/world-store.js";
 import { FormState } from "../../ui/form-state.js";
 import { Session, RequestScope } from "../../core/session.js";
 import { scopedView } from "../../core/scoped-view.js";
@@ -65,6 +66,10 @@ export function createMarkets({ roots, act, command, renderShipyards }) {
         Session.signedIn &&
         Modules.isOpen("market") &&
         tab === state.tab;
+    if (tab === "global" || tab === "shipyards") {
+      await loadWorld();
+      if (!current()) return false;
+    }
     let globalMarket;
     if (tab === "global") {
       try {

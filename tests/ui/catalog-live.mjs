@@ -55,6 +55,7 @@ const api = async (path, body) => {
 const click = async (root, name) =>
   root.getByRole("button", { name, exact: true }).click();
 const studies = page.locator("#window-studies");
+const objects = page.locator("#window-system-objects");
 const colonies = page.locator("#window-colonies");
 try {
   await page.goto(base.href);
@@ -100,7 +101,7 @@ try {
     known.sites.length + 1,
   );
   assert.deepEqual(
-    await studies
+    await objects
       .locator(".research-system-object")
       .evaluateAll((ns) => ns.map((n) => n.dataset.objectId)),
     [
@@ -108,7 +109,7 @@ try {
       ...known.sites.toSorted((a, b) => a.orbit - b.orbit).map((s) => s.id),
     ],
   );
-  const first = studies.locator(".research-system-object-trigger").first();
+  const first = objects.locator(".research-system-object-trigger").first();
   await first.focus();
   await page.locator(".research-system-tooltip:not([hidden])").waitFor();
   assert.match(
@@ -120,13 +121,13 @@ try {
     await page.locator(".research-system-tooltip:visible").count(),
     0,
   );
-  const scroller = studies.locator(".research-system-scroll");
+  const scroller = objects.locator(".research-system-scroll");
   await scroller.hover();
   await page.mouse.wheel(700, 0);
   await page.waitForFunction(
     () => document.querySelector(".research-system-scroll").scrollLeft > 0,
   );
-  await click(studies, "← Назад");
+  await click(objects, "← Назад");
   assert.equal(await search.inputValue(), "Catalog");
   assert.equal(
     await studies.locator(".studies-source-picker").textContent(),
@@ -153,8 +154,8 @@ try {
     .first()
     .getByRole("button", { name: "Подробнее", exact: true })
     .click();
-  await studies.locator(".research-system-object").first().waitFor();
-  await click(studies, "← Назад");
+  await objects.locator(".research-system-object").first().waitFor();
+  await click(objects, "← Назад");
   assert.equal(await studies.locator(".pagination").textContent(), beforePage);
   await studies.locator(".study-entry-current").click();
   await click(studies.locator(".studies-current"), "Подробнее");
@@ -172,7 +173,7 @@ try {
     "station",
   ];
   for (const model of expectedModels) {
-    const img = studies
+    const img = objects
       .locator(`.research-system-art img[src="object-${model}.svg"]`)
       .first();
     await img.scrollIntoViewIfNeeded();
@@ -185,7 +186,7 @@ try {
       `object-${model}.svg`,
     );
   }
-  await click(studies, "← Назад");
+  await click(objects, "← Назад");
   // Every spectral class is resolved from real metadata, never the active ship's class.
   for (let id = 2; id <= 8; id++) {
     const system = await api("system?id=" + id);
@@ -263,7 +264,7 @@ try {
   );
   assert.equal(
     await colonies
-      .locator('[aria-pressed="true"]')
+      .locator('.colony-catalog-entry[aria-pressed="true"]')
       .getAttribute("data-project-id"),
     String(fixture.funding),
   );
@@ -340,15 +341,15 @@ try {
   await close("colonies");
   await open("studies");
   await click(studies.locator(".studies-current"), "Details");
-  await studies.locator(".research-system-object").first().waitFor();
+  await objects.locator(".research-system-object").first().waitFor();
   await page.evaluate(async () =>
     (await import("/bootstrap.js")).application.I18n.set("ru"),
   );
-  await studies
+  await objects
     .locator(".research-system-back")
     .filter({ hasText: "Назад" })
     .waitFor();
-  await click(studies, "← Назад");
+  await click(objects, "← Назад");
   assert.equal(
     await studies.locator(".study-entry-selected").getAttribute("data-star"),
     "2",

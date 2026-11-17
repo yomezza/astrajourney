@@ -15,18 +15,25 @@ export function createProfile({ roots, act, command }) {
   function renderProfile() {
     const root = roots.profile;
     reset(root);
-    row(root, "Позывной", Session.data.state.user.username);
-    row(
-      root,
-      "Роль",
-      tr(Session.data.state.user.role === "admin" ? "АДМИНИСТРАТОР" : "ИГРОК"),
-    );
-    row(root, "Корпорация", Session.data.profile.company || tr("Без компании"));
-    row(root, "Кораблей", Session.data.fleet.ships.length);
-    root.append(
-      b("История финансов", () => Modules.open("finance")),
-      b("Настройки", () => Modules.open("settings")),
-    );
+    root.classList.add("pilot-profile");
+    const n = UI.node, user = Session.data.state.user;
+    const hero = n("div", undefined, "pilot-profile-hero");
+    const avatar = n("span", Array.from(user.username).slice(0, 2).join("").toLocaleUpperCase(), "pilot-profile-avatar");
+    avatar.setAttribute("aria-hidden", "true");
+    const identity = n("div", undefined, "pilot-profile-identity");
+    identity.append(n("p", tr("Позывной"), "pilot-profile-eyebrow"), n("h2", user.username), n("span", tr(user.role === "admin" ? "АДМИНИСТРАТОР" : "ИГРОК"), "pilot-profile-role"));
+    hero.append(avatar, identity);
+    const stats = n("div", undefined, "pilot-profile-stats");
+    for (const [label, value] of [["Стаж игрока", Session.data.profile.level], ["Кораблей", Session.data.fleet.ships.length]]) {
+      const card = n("div", undefined, "pilot-profile-stat");
+      card.append(n("strong", String(value ?? "—")), n("span", tr(label)));
+      stats.append(card);
+    }
+    const company = n("div", undefined, "pilot-profile-company");
+    company.append(n("span", tr("Корпорация")), n("strong", Session.data.profile.company || tr("Без компании")));
+    const actions = n("div", undefined, "pilot-profile-actions");
+    actions.append(b("История финансов", () => Modules.open("finance")), b("Настройки", () => Modules.open("settings")));
+    root.append(hero, stats, company, actions);
   }
   function clear() {
     drafts.clear();

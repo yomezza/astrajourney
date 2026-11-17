@@ -119,7 +119,7 @@ CREATE COLLATION chat_unicode (provider=icu,locale='und',deterministic=false);`)
 		t.Fatal("table grant lost", name, e)
 	}
 	report, e := Inspect(ctx, db, root)
-	if e != nil || !report.Ready || report.LayoutVersion != 1 {
+	if e != nil || !report.Ready || report.LayoutVersion != 2 {
 		t.Fatal(report, e)
 	}
 	report2, e := Inspect(ctx, db, root)

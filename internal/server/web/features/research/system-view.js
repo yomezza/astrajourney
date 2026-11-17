@@ -1,3 +1,5 @@
+import { UI } from "../../ui/runtime.js";
+import { renameDiscovery } from "./names.js";
 /*
  * Research system lineup: SVG assets and objects from the game's existing
  * /api/system?id=N DTO. Adapted from the approved v13 demo for production
@@ -233,7 +235,17 @@ export function mountSystemLineup({
         e.stopPropagation();
         // Focus often fires just before click, especially on touch devices;
         // a first tap must open the tooltip, not accidentally toggle it shut.
-        showTooltip(button,model);
+        const item = model.kind && model.details && !model.star
+          ? preview.discoveries?.find(d => d.kind === "planet" && Number(d.planet_id) === Number(model.planet)) : null;
+        if (item) {
+          hideTooltip();
+          const r = button.getBoundingClientRect();
+          UI.menu([{label: "Переименовать объект", disabled: !item.rename_available,
+            action: () => renameDiscovery(item, async () => {
+              const data = await loadSystem(Number(starId), signal);
+              if (!closed && !signal.aborted) {preview=data;current=data;render();}
+            })}], r.left, r.bottom + 3, {owner:button, theme:"chat"});
+        } else showTooltip(button,model);
       },{signal});
       fragment.append(card);
     });
@@ -249,7 +261,7 @@ export function mountSystemLineup({
     if(!view.contains(e.target)&&!tooltip.contains(e.target))hideTooltip();
     else if(!e.target.closest?.(".research-system-object-trigger"))hideTooltip();
   };
-  const onScroll=()=>hideTooltip();
+  const onScroll=()=>{if(active&&!tooltip.hidden)placeTooltip(tooltip,active)};
   const onResize=()=>hideTooltip();
   const onLanguage=()=>{hideTooltip();render()};
   document.addEventListener("keydown",onKey,{capture:true,signal});
@@ -259,7 +271,7 @@ export function mountSystemLineup({
   window.addEventListener("languagechange",onLanguage,{signal});
   window.addEventListener("signedout",close,{signal});
   const onModuleClose=e=>{
-    if(e.detail==="studies"||e.detail==="studies-v13-mock")close();
+    if(e.detail==="studies"||e.detail==="studies-v13-mock"||e.detail==="system-objects")close();
   };
   window.addEventListener("moduleclose",onModuleClose,{signal});
   const promise=Promise.resolve().then(()=>loadSystem(Number(starId),signal));

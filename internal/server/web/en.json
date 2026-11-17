@@ -2181,5 +2181,9 @@
   "Нет прав на удаление этого объекта": "You cannot remove this object",
   "Подойдите ближе к объекту": "Move closer to the object",
   "Объект недоступен": "Object unavailable",
-  "Постройка": "Placed object"
+  "Постройка": "Placed object",
+  "Переименовать систему": "Rename system",
+  "Переименовать объект": "Rename object",
+  "Последовательность объектов системы": "System object sequence",
+  "Пустая галактика — без основателей и станций": "Empty galaxy — no founders or stations"
 }

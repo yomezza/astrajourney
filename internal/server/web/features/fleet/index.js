@@ -1,3 +1,4 @@
+import { inPlayerGalaxy } from "../navigation/pickers.js";
 import { arrangeShip } from "./layout.js";
 import { resourceTile } from "../inventory/resource-tile.js";
 import { shipName } from "./presentation.js";
@@ -417,7 +418,7 @@ export function createFleet({ roots, act, command }) {
         draw();
       },
     );
-    for (const offer of w().shipyards || []) {
+    for (const offer of (w().shipyards || []).filter((o) => inPlayerGalaxy(o.star))) {
       const key = offer.star + "|" + offer.station;
       if (!yards.has(key))
         yards.set(key, {

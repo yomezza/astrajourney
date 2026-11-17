@@ -15,6 +15,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/chatintegration"
 	"github.com/yomezza/cosmosimulator/internal/discovery"
 	"github.com/yomezza/cosmosimulator/internal/fleet"
+	"github.com/yomezza/cosmosimulator/internal/namedictionary"
 	"github.com/yomezza/cosmosimulator/internal/platform/configuration"
 	"github.com/yomezza/cosmosimulator/internal/platform/dblayout"
 	"github.com/yomezza/cosmosimulator/internal/platform/postgres"
@@ -56,7 +57,7 @@ func OpenDatabase(ctx context.Context, dsn, schema string, schemas fs.ReadFileFS
 			return nil, fmt.Errorf("create DB_SCHEMA %q (create it manually or grant CREATE on the database): %w", schema, err)
 		}
 	}
-	log.Printf("Cosmic schema layout: root=%q domains=%d version=1", schema, len(dblayout.Domains))
+	log.Printf("Cosmic schema layout: root=%q domains=%d version=2", schema, len(dblayout.Domains))
 	if err = dblayout.Prepare(ctx, tx, schema); err != nil {
 		return nil, err
 	}
@@ -221,7 +222,7 @@ func OpenDatabase(ctx context.Context, dsn, schema string, schemas fs.ReadFileFS
 		}
 	}
 
-	for _, file := range []string{"schema250.sql", "schema251.sql", "schema252.sql", "schema253.sql", "schema254.sql", "schema259.sql", "schema2510.sql"} {
+	for _, file := range []string{"schema250.sql", "schema251.sql", "schema252.sql", "schema253.sql", "schema254.sql", "schema259.sql", "schema2510.sql", "schema280.sql"} {
 		upgrade, e := schemas.ReadFile(file)
 		if e != nil {
 			return nil, e
@@ -234,12 +235,19 @@ func OpenDatabase(ctx context.Context, dsn, schema string, schemas fs.ReadFileFS
 	if _, err = tx.Exec(ctx, dblayout.DDL(schema, universestore.Schema)); err != nil {
 		return nil, fmt.Errorf("tabular universe schema: %w", err)
 	}
+	if _, err = tx.Exec(ctx, dblayout.DDL(schema, namedictionary.Schema)); err != nil {
+		return nil, err
+	}
+	if _, err = tx.Exec(ctx, namedictionary.Seed); err != nil {
+		return nil, err
+	}
 	relational, err := universestore.Installed(ctx, tx)
 	if err != nil {
 		return nil, err
 	}
 	var existing universe.Galaxy
 	var raw []byte
+	fresh := false
 	if relational {
 		loaded, e := universestore.Load(ctx, tx)
 		if e != nil {
@@ -249,6 +257,7 @@ func OpenDatabase(ctx context.Context, dsn, schema string, schemas fs.ReadFileFS
 	} else {
 		err = tx.QueryRow(ctx, `SELECT data FROM galaxies WHERE name='Edem'`).Scan(&raw)
 		if errors.Is(err, pgx.ErrNoRows) {
+			fresh = true
 			existing = universe.Generate(1000, 20261026)
 		} else if err != nil {
 			return nil, err
@@ -274,26 +283,9 @@ func OpenDatabase(ctx context.Context, dsn, schema string, schemas fs.ReadFileFS
 			return nil, err
 		}
 	}
-	oldNames := make(map[int]string, len(existing.Stars))
-	for _, star := range existing.Stars {
-		oldNames[star.ID] = star.Name
-	}
-	if universe.DiversifySystemNames(&existing) {
-		renames := []map[string]any{}
-		for _, star := range existing.Stars {
-			if oldNames[star.ID] != star.Name {
-				renames = append(renames, map[string]any{"id": star.ID, "old": oldNames[star.ID], "name": star.Name})
-			}
-		}
-		labels, _ := json.Marshal(renames)
-		if _, err = tx.Exec(ctx, `UPDATE stations s SET name=m.name||substr(s.name,length(m.old)+1) FROM jsonb_to_recordset($1) AS m(id int,old text,name text) WHERE s.star=m.id AND s.name IN(m.old||' · PORT 1',m.old||' · PORT 2',m.old||' · PORT 3',m.old||' · CORE')`, labels); err != nil {
-			return nil, err
-		}
-
-		raw, err = json.Marshal(existing)
-		if err != nil {
-			return nil, err
-		}
+	originalCount := len(existing.Stars)
+	if fresh {
+		originalCount = 0
 	}
 	if universe.ArrangeFrontierRings(&existing) {
 		raw, err = json.Marshal(existing)
@@ -324,6 +316,9 @@ func OpenDatabase(ctx context.Context, dsn, schema string, schemas fs.ReadFileFS
 		if err != nil {
 			return nil, err
 		}
+	}
+	if err = namedictionary.NameNew(ctx, tx, &existing, originalCount); err != nil {
+		return nil, err
 	}
 	if err = worldstore.EnsureStations(ctx, tx, &existing); err != nil {
 		return nil, err
@@ -391,6 +386,14 @@ func OpenDatabase(ctx context.Context, dsn, schema string, schemas fs.ReadFileFS
 		}
 	}
 
+	// Old installations already have deferred station/system foreign keys.
+	// Validate queued row events before index DDL, without committing partial work.
+	if _, err = tx.Exec(ctx, `SET CONSTRAINTS ALL IMMEDIATE`); err != nil {
+		return nil, err
+	}
+	if _, err = tx.Exec(ctx, `CREATE UNIQUE INDEX IF NOT EXISTS stations_global_name_unique ON stations(lower(btrim(name)))`); err != nil {
+		return nil, err
+	}
 	if err = universestore.InstallReferences(ctx, tx); err != nil {
 		return nil, err
 	}

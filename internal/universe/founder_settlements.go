@@ -26,6 +26,14 @@ func founderStationChance(d GalaxyDefinition, s Star) int {
 func assignFounderTerritories(g *Galaxy, id string) {
 	d := g.Definition(id)
 	d.Territories = nil
+	if d.Empty {
+		for i := range g.Stars {
+			if GalaxyKey(g.Stars[i]) == id {
+				g.Stars[i].Founder = ""
+			}
+		}
+		return
+	}
 	candidates := []Star{}
 	for _, s := range g.Stars {
 		if GalaxyKey(s) == id && s.Region >= 0 && s.Ports != nil && *s.Ports > 0 && math.Hypot(s.X, s.Y) <= d.Radius*.65 {

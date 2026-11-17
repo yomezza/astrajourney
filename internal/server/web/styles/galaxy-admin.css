@@ -432,3 +432,7 @@
   color: #a5c6d3;
   cursor: pointer;
 }
+
+.galaxy-admin .galaxy-empty-choice { display: flex; align-items: center; gap: 9px; padding: 12px; background: #15232d; border: 1px solid #3a505d; }
+.galaxy-admin .galaxy-empty-choice input { width: 16px; height: 16px; flex-shrink: 0; margin: 0; accent-color: #e3b06f; }
+.galaxy-admin .galaxy-empty-choice span { color: #c6d5df; font-size: 12px; }

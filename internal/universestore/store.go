@@ -98,14 +98,14 @@ func loadOnce(ctx context.Context, q Reader) (*universe.Galaxy, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
-	rows, err := q.Query(ctx, `SELECT id,name,shape,seed,opened,deleted,region_base,radius,extra_lanes,cross_links,max_lane_length,station_percent,max_ports,resource_weights,territories FROM galaxy_catalog ORDER BY ordinal`)
+	rows, err := q.Query(ctx, `SELECT id,name,shape,seed,opened,deleted,region_base,radius,extra_lanes,cross_links,max_lane_length,station_percent,max_ports,resource_weights,territories,empty FROM galaxy_catalog ORDER BY ordinal`)
 	if err != nil {
 		return nil, "", err
 	}
 	for rows.Next() {
 		var d universe.GalaxyDefinition
 		var weights, territories []byte
-		if err = rows.Scan(&d.ID, &d.Name, &d.Shape, &d.Seed, &d.Opened, &d.Deleted, &d.RegionBase, &d.Radius, &d.Settings.ExtraLanes, &d.Settings.CrossLinks, &d.Settings.MaxLaneLength, &d.Settings.StationPercent, &d.Settings.MaxPorts, &weights, &territories); err != nil {
+		if err = rows.Scan(&d.ID, &d.Name, &d.Shape, &d.Seed, &d.Opened, &d.Deleted, &d.RegionBase, &d.Radius, &d.Settings.ExtraLanes, &d.Settings.CrossLinks, &d.Settings.MaxLaneLength, &d.Settings.StationPercent, &d.Settings.MaxPorts, &weights, &territories, &d.Empty); err != nil {
 			break
 		}
 		if err = json.Unmarshal(weights, &d.Settings.ResourceWeights); err != nil {
@@ -222,6 +222,9 @@ func loadOnce(ctx context.Context, q Reader) (*universe.Galaxy, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
+	if e == nil {
+		e = loadAdditional(ctx, q, g)
+	}
 	return g, version, e
 }
 
@@ -322,7 +325,7 @@ func Save(ctx context.Context, tx pgx.Tx, g *universe.Galaxy) error {
 		if old != nil && i < len(old.Catalog) && reflect.DeepEqual(old.Catalog[i], d) {
 			continue
 		}
-		_, e = tx.Exec(ctx, `INSERT INTO galaxy_catalog(id,ordinal,name,shape,seed,opened,deleted,region_base,radius,extra_lanes,cross_links,max_lane_length,station_percent,max_ports,resource_weights,territories) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) ON CONFLICT(id) DO UPDATE SET ordinal=excluded.ordinal,name=excluded.name,shape=excluded.shape,seed=excluded.seed,opened=excluded.opened,deleted=excluded.deleted,region_base=excluded.region_base,radius=excluded.radius,extra_lanes=excluded.extra_lanes,cross_links=excluded.cross_links,max_lane_length=excluded.max_lane_length,station_percent=excluded.station_percent,max_ports=excluded.max_ports,resource_weights=excluded.resource_weights,territories=excluded.territories`, d.ID, i, d.Name, d.Shape, d.Seed, d.Opened, d.Deleted, d.RegionBase, d.Radius, d.Settings.ExtraLanes, d.Settings.CrossLinks, d.Settings.MaxLaneLength, d.Settings.StationPercent, d.Settings.MaxPorts, bytes(d.Settings.ResourceWeights), bytes(d.Territories))
+		_, e = tx.Exec(ctx, `INSERT INTO galaxy_catalog(id,ordinal,name,shape,seed,opened,deleted,region_base,radius,extra_lanes,cross_links,max_lane_length,station_percent,max_ports,resource_weights,territories,empty) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) ON CONFLICT(id) DO UPDATE SET ordinal=excluded.ordinal,name=excluded.name,shape=excluded.shape,seed=excluded.seed,opened=excluded.opened,deleted=excluded.deleted,region_base=excluded.region_base,radius=excluded.radius,extra_lanes=excluded.extra_lanes,cross_links=excluded.cross_links,max_lane_length=excluded.max_lane_length,station_percent=excluded.station_percent,max_ports=excluded.max_ports,resource_weights=excluded.resource_weights,territories=excluded.territories,empty=excluded.empty`, d.ID, i, d.Name, d.Shape, d.Seed, d.Opened, d.Deleted, d.RegionBase, d.Radius, d.Settings.ExtraLanes, d.Settings.CrossLinks, d.Settings.MaxLaneLength, d.Settings.StationPercent, d.Settings.MaxPorts, bytes(d.Settings.ResourceWeights), bytes(d.Territories), d.Empty)
 		if e != nil {
 			return e
 		}
@@ -391,7 +394,9 @@ func Save(ctx context.Context, tx pgx.Tx, g *universe.Galaxy) error {
 		if prior != nil {
 			before, after := *prior, *s
 			before.Planets = nil
+			before.Objects = nil
 			after.Planets = nil
+			after.Objects = nil
 			headerChanged = !reflect.DeepEqual(before, after)
 		}
 		if headerChanged {
@@ -431,6 +436,9 @@ func Save(ctx context.Context, tx pgx.Tx, g *universe.Galaxy) error {
 		}
 	}
 	if e = flush(); e != nil {
+		return e
+	}
+	if e = saveAdditional(ctx, tx, g); e != nil {
 		return e
 	}
 	if old == nil || !reflect.DeepEqual(old.Regions, g.Regions) {

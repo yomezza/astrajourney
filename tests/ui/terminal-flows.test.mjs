@@ -259,7 +259,7 @@ test("notification opens its system on the map before any prior map visit", asyn
   };
   await g.ready();
   await g.open("notifications");
-  await g.page.locator(".notification-row details summary").click();
+  await g.page.locator(".notification-compact-open").click();
   await g.page.getByRole("button", { name: "На карте", exact: true }).click();
   await g.page.waitForSelector("#window-galaxy[open]");
   await g.page.waitForFunction(

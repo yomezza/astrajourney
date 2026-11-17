@@ -1,0 +1,18 @@
+{
+  "status": "PASS",
+  "from": "published v0.27.0 binary",
+  "preserved_table_hashes": {
+    "users": "1181a47c021e0b8f7038d8379819f63d",
+    "ships": "1887eb68fa0b7ea6c5fcdb54a08e7c13",
+    "star_systems": "ae31a0593590b14ff3ac86bf5181988d",
+    "system_planets": "128af63913bef4cc20dd38396e1bd300",
+    "aj_discovery_objects": "d3e728bfb7f81fa1b2f7620107703994",
+    "aj_discovery_name_history": "8edc3a483e781244b5ce9d1139b17de3",
+    "warehouses": "5ae6fad9032dcadafc07b2ccef1c6223"
+  },
+  "natural_objects": 4500,
+  "layout_version": 2,
+  "player_station": "My Legacy Harbor",
+  "spent_rights": 1,
+  "repeat_startup": "stable"
+}
