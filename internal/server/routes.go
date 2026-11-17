@@ -23,7 +23,7 @@ func (a *App) Handler() http.Handler {
 	m.HandleFunc("GET /api/guide/catalog", a.Knowledge.Catalog)
 	m.HandleFunc("GET /api/guide/articles/{id}", a.Knowledge.Article)
 	m.HandleFunc("GET /api/guide/assets", a.Knowledge.AssetsView)
-	m.HandleFunc("GET /api/guide/media/{id}", a.Knowledge.MediaView)
+	m.HandleFunc("GET /internal/cdn/v1/media/{id}/authorize", a.Knowledge.MediaAuthorize)
 	m.HandleFunc("GET /api/admin/guide/categories", a.Knowledge.Categories)
 	m.HandleFunc("POST /api/admin/guide/categories", a.Knowledge.Categories)
 	m.HandleFunc("GET /api/admin/guide/articles", a.Knowledge.Articles)

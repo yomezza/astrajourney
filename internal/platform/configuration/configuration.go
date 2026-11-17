@@ -23,6 +23,7 @@ const (
 	Cosmos Service = "cosmos"
 	Planet Service = "planet"
 	Chat   Service = "chat"
+	CDN    Service = "cdn"
 )
 
 // Source is an immutable TOML snapshot or an environment lookup. File mode never
@@ -42,7 +43,7 @@ func (s *Source) Getenv(name string) string {
 // Load reads CONFIG_FILE from the supplied environment. An explicit bad path or
 // invalid document is an error, never a reason to silently select another source.
 func Load(getenv func(string) string, service Service) (*Source, error) {
-	if service != Cosmos && service != Planet && service != Chat {
+	if service != Cosmos && service != Planet && service != Chat && service != CDN {
 		return nil, errors.New("unknown configuration service")
 	}
 	path := getenv(FileVariable)
@@ -87,14 +88,14 @@ func Load(getenv func(string) string, service Service) (*Source, error) {
 	}
 	if n := document.NATS; n != nil && n.profiled() {
 		if n.Username != "" || n.Password != "" || n.PasswordFile != "" || n.ServiceIdentity != "" {
-			return nil, errors.New("put NATS credentials in per-service profiles when using [nats.cosmos/planet/chat]")
+			return nil, errors.New("put NATS credentials in per-service profiles when using [nats.cosmos/planet/chat/cdn]")
 		}
 		if n.Enabled != nil && *n.Enabled && n.profile(service) == nil {
 			return nil, errors.New("missing NATS profile for this service")
 		}
 	}
 	values := document.values(service)
-	for _, name := range []string{"PLANET_LOG_FILE", "CHAT_ERASURE_JOURNAL", "NATS_PASSWORD_FILE", "NATS_CA_FILE"} {
+	for _, name := range []string{"PLANET_LOG_FILE", "CHAT_ERASURE_JOURNAL", "NATS_PASSWORD_FILE", "NATS_CA_FILE", "GUIDE_MEDIA_DIR", "CDN_SERVICE_TOKEN_FILE", "CDN_STORAGE_ROOT", "CDN_TOKEN_FILE"} {
 		if value := values[name]; value != "" && !filepath.IsAbs(value) {
 			values[name] = filepath.Join(base, value)
 		}
@@ -109,7 +110,7 @@ func Load(getenv func(string) string, service Service) (*Source, error) {
 		}
 	}
 	if n := document.NATS; n != nil {
-		for _, profile := range []*NATSSettings{&n.NATSSettings, n.Cosmos, n.Planet, n.Chat} {
+		for _, profile := range []*NATSSettings{&n.NATSSettings, n.Cosmos, n.Planet, n.Chat, n.CDN} {
 			if profile == nil {
 				continue
 			}
@@ -123,10 +124,9 @@ func Load(getenv func(string) string, service Service) (*Source, error) {
 	return &Source{values: values}, nil
 }
 
-
 // inactiveServiceField identifies a key under another service's TOML section.
- // Top-level shared settings ([database], [nats]) remain strict for everyone.
- // Admin settings are consumed by Cosmic only.
+// Top-level shared settings ([database], [nats]) remain strict for everyone.
+// Admin settings are consumed by Cosmic only.
 func inactiveServiceField(service Service, key toml.Key) bool {
 	if len(key) == 0 {
 		return false
@@ -138,6 +138,8 @@ func inactiveServiceField(service Service, key toml.Key) bool {
 		return service != Planet
 	case "chat":
 		return service != Chat
+	case "cdn":
+		return service != CDN
 	case "admin":
 		return service != Cosmos
 	case "nats":
@@ -151,6 +153,8 @@ func inactiveServiceField(service Service, key toml.Key) bool {
 			return service != Planet
 		case "chat":
 			return service != Chat
+		case "cdn":
+			return service != CDN
 		}
 	}
 	return false

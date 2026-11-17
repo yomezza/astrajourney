@@ -2,6 +2,7 @@ package integration
 
 import (
 	"context"
+	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
@@ -10,6 +11,7 @@ import (
 )
 
 var testAssets = server.Assets
+var graphicAssets = os.DirFS("../../../assets/game")
 
 // Always called with a fixture-owned schema in a disposable _test database.
 func openDatabase(ctx context.Context, dsn, schema string) (*pgxpool.Pool, error) {

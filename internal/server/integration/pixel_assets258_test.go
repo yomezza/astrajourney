@@ -17,7 +17,7 @@ func TestPixelPackOriginalFilesAndNoLegacyGraphics258(t *testing.T) {
 		Files   map[string]string `json:"files"`
 		Mapping map[string]string `json:"mapping"`
 	}
-	raw, err := server.Assets.ReadFile("web/planet-pixelart-v1/manifest.json")
+	raw, err := fs.ReadFile(graphicAssets, "planet/pixelart-v1/manifest.json")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -28,7 +28,7 @@ func TestPixelPackOriginalFilesAndNoLegacyGraphics258(t *testing.T) {
 		t.Fatalf("expected 246 original archive files, got %d", len(manifest.Files))
 	}
 	for name, digest := range manifest.Files {
-		data, e := server.Assets.ReadFile("web/planet-pixelart-v1/" + name)
+		data, e := fs.ReadFile(graphicAssets, "planet/pixelart-v1/"+name)
 		if e != nil {
 			t.Fatal(e)
 		}

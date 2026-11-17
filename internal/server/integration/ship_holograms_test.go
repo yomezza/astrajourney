@@ -5,6 +5,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
+	"io/fs"
 	"math"
 	"regexp"
 	"strconv"
@@ -18,7 +19,7 @@ func TestShipHolograms(t *testing.T) {
 	silhouettes := map[string]string{}
 	for _, class := range fleet.Catalogue {
 		t.Run(class.ID, func(t *testing.T) {
-			data, err := testAssets.ReadFile("web/" + class.Model)
+			data, err := fs.ReadFile(graphicAssets, "space/ships/"+class.Model)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -125,7 +126,7 @@ func TestShipHologramViewports(t *testing.T) {
 	point := regexp.MustCompile(`[ML](-?[0-9.]+) (-?[0-9.]+)`)
 	for _, class := range fleet.Catalogue {
 		t.Run(class.ID, func(t *testing.T) {
-			data, err := testAssets.ReadFile("web/" + class.Model)
+			data, err := fs.ReadFile(graphicAssets, "space/ships/"+class.Model)
 			if err != nil {
 				t.Fatal(err)
 			}

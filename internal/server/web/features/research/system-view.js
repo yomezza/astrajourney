@@ -1,3 +1,4 @@
+import { assetURL } from "../../core/assets.js";
 import { UI } from "../../ui/runtime.js";
 import { renameDiscovery } from "./names.js";
 /*
@@ -216,14 +217,14 @@ export function mountSystemLineup({
        const frame=make("span","research-system-art");
       const art=make("img");
       const chosen=assetFor(model,preview.star);
-      art.src=assetBase+chosen;
+      art.src=assetURL(assetBase+chosen);
       art.alt="";
       art.decoding="async";
       art.loading=i<4?"eager":"lazy";
       art.draggable=false;
       // Missing files and unrecognized kinds always fall back to a neutral SVG.
       art.addEventListener("error",()=>{
-        if(!art.dataset.fallback){art.dataset.fallback="1";art.src=fallbackAsset;}
+        if(!art.dataset.fallback){art.dataset.fallback="1";art.src=assetURL(fallbackAsset);}
       },{signal});
       frame.append(art);
       button.append(frame,make("span","research-system-object-name",model.name));

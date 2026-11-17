@@ -50,3 +50,5 @@
 Изменение статуса идеи требует проверки и ссылки на подтверждающую реализацию, а не просто заявления исполнителя.
 
 [Cosmic/Planet 0.25.0: обновление, права БД и медиа базы знаний](operations/discovery-guide-planet.ru.md); [отчёт разработчика](../ai/handoffs/backend/004-discovery-guide-planet.ru.md).
+
+- [AstraJourney CDN: установка, внешние файлы, автоматическая синхронизация и кэш](operations/cdn.ru.md) — 0.29.0.

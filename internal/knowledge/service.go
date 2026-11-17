@@ -3,9 +3,10 @@ package knowledge
 import (
 	"context"
 	"errors"
+	"github.com/yomezza/cosmosimulator/internal/platform/gamesignal"
+	"github.com/yomezza/cosmosimulator/internal/platform/mediastore"
 	"io/fs"
 	"net/http"
-	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
@@ -15,7 +16,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/yomezza/cosmosimulator/internal/account"
 	"github.com/yomezza/cosmosimulator/internal/fleet"
-	"github.com/yomezza/cosmosimulator/internal/platform/configuration"
 	"github.com/yomezza/cosmosimulator/internal/platform/httpkit"
 	"github.com/yomezza/cosmosimulator/internal/platform/postgres"
 	resourcecatalog "github.com/yomezza/cosmosimulator/internal/resources"
@@ -31,17 +31,14 @@ type Service struct {
 	uploads       chan struct{}
 	DB            *pgxpool.Pool
 	Auth          *account.Service
-	MediaDir      string
+	MediaStore    *mediastore.Client
+	Signals       gamesignal.Emit
 	Assets        map[string]Asset
 	AssetRevision string
 }
 
 func New(db *pgxpool.Pool, auth *account.Service, files fs.FS) *Service {
-	dir := configuration.Getenv("GUIDE_MEDIA_DIR")
-	if dir == "" {
-		dir = filepath.Join("data", "guide-media")
-	}
-	a := &Service{uploads: make(chan struct{}, 2), DB: db, Auth: auth, MediaDir: dir, Assets: map[string]Asset{}}
+	a := &Service{uploads: make(chan struct{}, 2), DB: db, Auth: auth, MediaStore: mediastore.Defaults(), Assets: map[string]Asset{}}
 	a.Assets, a.AssetRevision = verifiedAssets(files)
 	return a
 }

@@ -75,10 +75,13 @@ func TestPlainNATSNativeSharedConfig(t *testing.T) {
 	checkStatus := func(connected bool) bool {
 		response := n6API(t, cosmos, "/api/admin/services", c, nil, 200)
 		cards := response["services"].([]any)
-		if len(cards) != 3 {
+		if len(cards) != 4 {
 			return false
 		}
 		for _, entry := range cards {
+			if entry.(map[string]any)["id"] == "cdn" {
+				continue
+			}
 			state := entry.(map[string]any)["nats"].(map[string]any)
 			if state["connected"] != connected {
 				return false

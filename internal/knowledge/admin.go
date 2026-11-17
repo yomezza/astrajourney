@@ -53,7 +53,7 @@ func stale() error {
 	return &inputError{409, "Редакция уже изменена. Обновите данные перед сохранением"}
 }
 
-func (a *Service) mutate(w http.ResponseWriter, r *http.Request, run func(context.Context, pgx.Tx, int64, Edit) (any, error)) {
+func (a *Service) mutate(w http.ResponseWriter, r *http.Request, run func(context.Context, pgx.Tx, int64, Edit) (any, error), afterCommit ...func(any)) {
 	u, ok := a.admin(w, r)
 	if !ok {
 		return
@@ -135,6 +135,9 @@ func (a *Service) mutate(w http.ResponseWriter, r *http.Request, run func(contex
 	if err != nil {
 		failure(w, err)
 		return
+	}
+	for _, emit := range afterCommit {
+		emit(result)
 	}
 	httpkit.Reply(w, 200, result)
 }

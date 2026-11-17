@@ -22,6 +22,7 @@ type natsDocument struct {
 	Cosmos *NATSSettings `toml:"cosmos"`
 	Planet *NATSSettings `toml:"planet"`
 	Chat   *NATSSettings `toml:"chat"`
+	CDN    *NATSSettings `toml:"cdn"`
 }
 
 func (n *natsDocument) profile(service Service) *NATSSettings {
@@ -32,10 +33,14 @@ func (n *natsDocument) profile(service Service) *NATSSettings {
 		return n.Planet
 	case Chat:
 		return n.Chat
+	case CDN:
+		return n.CDN
 	}
 	return nil
 }
-func (n *natsDocument) profiled() bool { return n.Cosmos != nil || n.Planet != nil || n.Chat != nil }
+func (n *natsDocument) profiled() bool {
+	return n.Cosmos != nil || n.Planet != nil || n.Chat != nil || n.CDN != nil
+}
 func (n *natsDocument) selected(service Service) NATSSettings {
 	out := n.NATSSettings
 	p := n.profile(service)
@@ -72,16 +77,18 @@ type document struct {
 		Schema string `toml:"schema"`
 	} `toml:"database"`
 	Cosmos struct {
-		StartupTimeout    string   `toml:"startup_timeout"`
-		GuideMediaDir     string   `toml:"guide_media_dir"`
-		HTTPAddr          string   `toml:"http_addr"`
-		PublicOrigin      string   `toml:"public_origin"`
-		CookieSecure      *bool    `toml:"cookie_secure"`
-		TrustedProxies    []string `toml:"trusted_proxies"`
-		PlanetEnabled     *bool    `toml:"planet_enabled"`
-		PlanetInternalURL string   `toml:"planet_internal_url"`
-		ChatEnabled       *bool    `toml:"chat_enabled"`
-		ChatInternalURL   string   `toml:"chat_internal_url"`
+		StartupTimeout      string   `toml:"startup_timeout"`
+		GuideMediaDir       string   `toml:"guide_media_dir"`
+		CDNInternalURL      string   `toml:"cdn_internal_url"`
+		CDNServiceTokenFile string   `toml:"cdn_service_token_file"`
+		HTTPAddr            string   `toml:"http_addr"`
+		PublicOrigin        string   `toml:"public_origin"`
+		CookieSecure        *bool    `toml:"cookie_secure"`
+		TrustedProxies      []string `toml:"trusted_proxies"`
+		PlanetEnabled       *bool    `toml:"planet_enabled"`
+		PlanetInternalURL   string   `toml:"planet_internal_url"`
+		ChatEnabled         *bool    `toml:"chat_enabled"`
+		ChatInternalURL     string   `toml:"chat_internal_url"`
 	} `toml:"cosmos"`
 	Admin struct {
 		Username string `toml:"username"`
@@ -116,6 +123,15 @@ type document struct {
 		DegradedPollInterval   string   `toml:"degraded_poll_interval"`
 		OutboxOverlap          string   `toml:"outbox_overlap"`
 	} `toml:"chat"`
+	CDN struct {
+		HTTPAddr          string `toml:"http_addr"`
+		StorageRoot       string `toml:"storage_root"`
+		CosmicInternalURL string `toml:"cosmic_internal_url"`
+		ServiceTokenFile  string `toml:"service_token_file"`
+		SyncEnabled       *bool  `toml:"sync_enabled"`
+		Repository        string `toml:"repository"`
+		SyncInterval      string `toml:"sync_interval"`
+	} `toml:"cdn"`
 	NATS *natsDocument `toml:"nats"`
 }
 
@@ -141,6 +157,15 @@ func (d document) values(service Service) map[string]string {
 		"DATABASE_URL":                  d.Database.URL,
 		"DB_SCHEMA":                     d.Database.Schema,
 		"GUIDE_MEDIA_DIR":               d.Cosmos.GuideMediaDir,
+		"CDN_INTERNAL_URL":              d.Cosmos.CDNInternalURL,
+		"CDN_SERVICE_TOKEN_FILE":        d.Cosmos.CDNServiceTokenFile,
+		"CDN_HTTP_ADDR":                 d.CDN.HTTPAddr,
+		"CDN_STORAGE_ROOT":              d.CDN.StorageRoot,
+		"CDN_COSMIC_INTERNAL_URL":       d.CDN.CosmicInternalURL,
+		"CDN_TOKEN_FILE":                d.CDN.ServiceTokenFile,
+		"CDN_SYNC_ENABLED":              value(d.CDN.SyncEnabled),
+		"CDN_REPOSITORY":                d.CDN.Repository,
+		"CDN_SYNC_INTERVAL":             d.CDN.SyncInterval,
 		"COSMOS_STARTUP_TIMEOUT":        d.Cosmos.StartupTimeout,
 		"HTTP_ADDR":                     d.Cosmos.HTTPAddr,
 		"PUBLIC_ORIGIN":                 d.Cosmos.PublicOrigin,
@@ -180,7 +205,7 @@ func (d document) values(service Service) map[string]string {
 	if service == Chat {
 		values["PLANET_INTERNAL_URL"] = d.Chat.PlanetInternalURL
 	}
-	if service == Chat || service == Planet || service == Cosmos {
+	if service == Chat || service == Planet || service == Cosmos || service == CDN {
 		if d.NATS != nil {
 			n := d.NATS.selected(service)
 			values["NATS_ENABLED"] = value(n.Enabled)

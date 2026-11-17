@@ -1,4 +1,4 @@
-# Один CONFIG_FILE для Cosmic, Planet и Chat 0.24.13+ на Debian 13.
+# Один CONFIG_FILE для Cosmic, Planet, Chat и CDN 0.24.13+ на Debian 13.
 # Подставьте адрес игры, PostgreSQL и настоящие NATS-пароли.
 [diagnostics]
 # Separate cosmos.jsonl, planet.jsonl, chat.jsonl; also mirrored to stderr.
@@ -15,10 +15,12 @@ schema = 'astra_journey' # Новая установка; при обновле�
 startup_timeout = '5m'
 # Private guide images: back up together with PostgreSQL. Never a webroot.
 # guide_media_dir = 'D:\astrajourney\guide-media'
-http_addr = '0.0.0.0:8080'
-public_origin = 'http://192.168.111.44:8080'
+http_addr = '127.0.0.1:8080'
+public_origin = 'http://192.168.111.44:8083'
+cdn_internal_url = 'http://127.0.0.1:8083'
+cdn_service_token_file = '../data/cdn/state/service.token'
 cookie_secure = false
-trusted_proxies = []
+trusted_proxies = ['127.0.0.1/32', '::1/128']
 planet_enabled = true
 chat_enabled = true
 planet_internal_url = 'http://127.0.0.1:8081'
@@ -26,7 +28,7 @@ chat_internal_url = 'http://127.0.0.1:8082'
 
 [planet]
 http_addr = '127.0.0.1:8081'
-allowed_origins = ['http://192.168.111.44:8080']
+allowed_origins = ['http://192.168.111.44:8083']
 log_file = 'logs/planet.log'
 move_speed = 4.0
 path_budget = 24000
@@ -42,7 +44,7 @@ scene_load_timeout = '20s'
 http_addr = '127.0.0.1:8082'
 cosmic_internal_url = 'http://127.0.0.1:8080'
 planet_internal_url = 'http://127.0.0.1:8081'
-allowed_origins = ['http://192.168.111.44:8080']
+allowed_origins = ['http://192.168.111.44:8083']
 erasure_journal = 'data/chat-erasure.log' # Keep the existing journal when updating.
 # Для NATS переключить на 'b1' и включить [nats] ниже.
 dispatcher_mode = 'a1'
@@ -69,3 +71,17 @@ password = 'YOUR_PLANET_NATS_PASSWORD'
 [nats.chat]
 username = 'chat'
 password = 'YOUR_CHAT_NATS_PASSWORD'
+
+# Browser entry point: serves graphics, forwards the remaining routes to Cosmic.
+[cdn]
+http_addr = '0.0.0.0:8083'
+storage_root = '../data/cdn'
+cosmic_internal_url = 'http://127.0.0.1:8080'
+service_token_file = '../data/cdn/state/service.token'
+sync_enabled = true
+repository = 'yomezza/astrajourney'
+sync_interval = '30m'
+
+[nats.cdn]
+username = 'cdn'
+password = 'YOUR_CDN_NATS_PASSWORD'

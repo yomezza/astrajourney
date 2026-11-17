@@ -72,7 +72,7 @@ test("colony metadata ignores obsolete responses and retries after research chan
       text: root.textContent,
     };
   });
-  assert.equal(result.src, "/object-garden.svg");
+  assert.match(result.src, /^\/assets\/sha256\/[a-f0-9]{64}\/space\/objects\/object-garden\.svg$/);
   assert.equal(result.query, "Colony");
   assert.equal(result.selected, "101");
   assert.ok(!result.text.includes("Stale"));

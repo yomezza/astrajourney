@@ -439,7 +439,7 @@ test("space terminal and system map do not eagerly load planetary code or textur
     g.assets.some(
       (path) =>
         /\/features\/planet\/(index|terrain)\.js$/.test(path) ||
-        path.startsWith("/planet-pixelart-v1/terrain/"),
+        path.includes("/planet/pixelart-v1/terrain/"),
     ),
     false,
   );

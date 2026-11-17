@@ -13,7 +13,7 @@ import (
 func main() {
 	check := flag.Bool("check", false, "verify the checked-in trusted asset manifest")
 	flag.Parse()
-	raw, err := knowledge.CompileAssets(os.DirFS("internal/server/web"))
+	raw, err := knowledge.CompileAssets(os.DirFS("assets/game"))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)

@@ -13,10 +13,10 @@ import (
 // still be rejected rather than silently ignored.
 func TestSharedTOMLVersionSkewIsolation(t *testing.T) {
 	cases := []struct {
-		name      string
-		toml      string
-		accepted  []configuration.Service
-		rejected  []configuration.Service
+		name     string
+		toml     string
+		accepted []configuration.Service
+		rejected []configuration.Service
 	}{
 		{
 			name:     "future Cosmic setting",

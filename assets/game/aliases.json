@@ -1,0 +1,1096 @@
+{
+  "space/ships/argus.svg": [
+    "/argus.svg"
+  ],
+  "space/ships/ark.svg": [
+    "/ark.svg"
+  ],
+  "space/ships/astra.svg": [
+    "/astra.svg"
+  ],
+  "space/ships/atlas.svg": [
+    "/atlas.svg"
+  ],
+  "space/ships/crucible.svg": [
+    "/crucible.svg"
+  ],
+  "ui/branding/favicon.svg": [
+    "/favicon.svg"
+  ],
+  "space/ships/forge.svg": [
+    "/forge.svg"
+  ],
+  "space/ships/hermes.svg": [
+    "/hermes.svg"
+  ],
+  "space/ships/iris.svg": [
+    "/iris.svg"
+  ],
+  "space/ships/leviathan.svg": [
+    "/leviathan.svg"
+  ],
+  "space/ships/lightning.svg": [
+    "/lightning.svg"
+  ],
+  "space/objects/object-asteroids.svg": [
+    "/object-asteroids.svg"
+  ],
+  "space/objects/object-black-hole.svg": [
+    "/object-black-hole.svg"
+  ],
+  "space/objects/object-desert.svg": [
+    "/object-desert.svg"
+  ],
+  "space/objects/object-garden.svg": [
+    "/object-garden.svg"
+  ],
+  "space/objects/object-gas.svg": [
+    "/object-gas.svg"
+  ],
+  "space/objects/object-ice-field.svg": [
+    "/object-ice-field.svg"
+  ],
+  "space/objects/object-icy.svg": [
+    "/object-icy.svg"
+  ],
+  "space/objects/object-lava.svg": [
+    "/object-lava.svg"
+  ],
+  "space/objects/object-rocky.svg": [
+    "/object-rocky.svg"
+  ],
+  "space/objects/object-star-a.svg": [
+    "/object-star-a.svg"
+  ],
+  "space/objects/object-star-b.svg": [
+    "/object-star-b.svg"
+  ],
+  "space/objects/object-star-f.svg": [
+    "/object-star-f.svg"
+  ],
+  "space/objects/object-star-g.svg": [
+    "/object-star-g.svg"
+  ],
+  "space/objects/object-star-k.svg": [
+    "/object-star-k.svg"
+  ],
+  "space/objects/object-star-m.svg": [
+    "/object-star-m.svg"
+  ],
+  "space/objects/object-star-o.svg": [
+    "/object-star-o.svg"
+  ],
+  "space/objects/object-station.svg": [
+    "/object-station.svg"
+  ],
+  "space/objects/object-unknown.svg": [
+    "/object-unknown.svg"
+  ],
+  "space/ships/pilgrim.svg": [
+    "/pilgrim.svg"
+  ],
+  "space/ships/titan.svg": [
+    "/titan.svg"
+  ],
+  "space/ships/vesper.svg": [
+    "/vesper.svg"
+  ],
+  "space/ships/wanderer.svg": [
+    "/wanderer.svg"
+  ],
+  "space/ships/zephyr.svg": [
+    "/zephyr.svg"
+  ],
+  "planet/pixelart-v1/assets/explorer_casual.png": [
+    "/planet-pixelart-v1/assets/explorer_casual.png",
+    "/planet-pixelart-v1/assets/explorer_casual.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/assets/explorer_suit.png": [
+    "/planet-pixelart-v1/assets/explorer_suit.png",
+    "/planet-pixelart-v1/assets/explorer_suit.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/assets/landing_module.png": [
+    "/planet-pixelart-v1/assets/landing_module.png",
+    "/planet-pixelart-v1/assets/landing_module.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/assets/ore_outcrop.png": [
+    "/planet-pixelart-v1/assets/ore_outcrop.png",
+    "/planet-pixelart-v1/assets/ore_outcrop.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/assets/rock_large.png": [
+    "/planet-pixelart-v1/assets/rock_large.png",
+    "/planet-pixelart-v1/assets/rock_large.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/assets/shore_transition.png": [
+    "/planet-pixelart-v1/assets/shore_transition.png",
+    "/planet-pixelart-v1/assets/shore_transition.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/assets/shrub_lilac.png": [
+    "/planet-pixelart-v1/assets/shrub_lilac.png",
+    "/planet-pixelart-v1/assets/shrub_lilac.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/assets/terrain_grass.png": [
+    "/planet-pixelart-v1/assets/terrain_grass.png",
+    "/planet-pixelart-v1/assets/terrain_grass.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/assets/tree_green_medium.png": [
+    "/planet-pixelart-v1/assets/tree_green_medium.png",
+    "/planet-pixelart-v1/assets/tree_green_medium.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/assets/tree_purple_large.png": [
+    "/planet-pixelart-v1/assets/tree_purple_large.png",
+    "/planet-pixelart-v1/assets/tree_purple_large.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/assets/water.png": [
+    "/planet-pixelart-v1/assets/water.png",
+    "/planet-pixelart-v1/assets/water.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/compatibility-atlases/player_casual_7x8_896x1024.png": [
+    "/planet-pixelart-v1/characters/compatibility-atlases/player_casual_7x8_896x1024.png",
+    "/planet-pixelart-v1/characters/compatibility-atlases/player_casual_7x8_896x1024.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/compatibility-atlases/player_suit_7x8_896x1024.png": [
+    "/planet-pixelart-v1/characters/compatibility-atlases/player_suit_7x8_896x1024.png",
+    "/planet-pixelart-v1/characters/compatibility-atlases/player_suit_7x8_896x1024.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/E_idle.png": [
+    "/planet-pixelart-v1/characters/composite/casual/E_idle.png",
+    "/planet-pixelart-v1/characters/composite/casual/E_idle.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/E_walk_01.png": [
+    "/planet-pixelart-v1/characters/composite/casual/E_walk_01.png",
+    "/planet-pixelart-v1/characters/composite/casual/E_walk_01.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/E_walk_02.png": [
+    "/planet-pixelart-v1/characters/composite/casual/E_walk_02.png",
+    "/planet-pixelart-v1/characters/composite/casual/E_walk_02.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/E_walk_03.png": [
+    "/planet-pixelart-v1/characters/composite/casual/E_walk_03.png",
+    "/planet-pixelart-v1/characters/composite/casual/E_walk_03.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/E_walk_04.png": [
+    "/planet-pixelart-v1/characters/composite/casual/E_walk_04.png",
+    "/planet-pixelart-v1/characters/composite/casual/E_walk_04.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/E_walk_05.png": [
+    "/planet-pixelart-v1/characters/composite/casual/E_walk_05.png",
+    "/planet-pixelart-v1/characters/composite/casual/E_walk_05.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/E_walk_06.png": [
+    "/planet-pixelart-v1/characters/composite/casual/E_walk_06.png",
+    "/planet-pixelart-v1/characters/composite/casual/E_walk_06.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/NE_idle.png": [
+    "/planet-pixelart-v1/characters/composite/casual/NE_idle.png",
+    "/planet-pixelart-v1/characters/composite/casual/NE_idle.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/NE_walk_01.png": [
+    "/planet-pixelart-v1/characters/composite/casual/NE_walk_01.png",
+    "/planet-pixelart-v1/characters/composite/casual/NE_walk_01.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/NE_walk_02.png": [
+    "/planet-pixelart-v1/characters/composite/casual/NE_walk_02.png",
+    "/planet-pixelart-v1/characters/composite/casual/NE_walk_02.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/NE_walk_03.png": [
+    "/planet-pixelart-v1/characters/composite/casual/NE_walk_03.png",
+    "/planet-pixelart-v1/characters/composite/casual/NE_walk_03.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/NE_walk_04.png": [
+    "/planet-pixelart-v1/characters/composite/casual/NE_walk_04.png",
+    "/planet-pixelart-v1/characters/composite/casual/NE_walk_04.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/NE_walk_05.png": [
+    "/planet-pixelart-v1/characters/composite/casual/NE_walk_05.png",
+    "/planet-pixelart-v1/characters/composite/casual/NE_walk_05.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/NE_walk_06.png": [
+    "/planet-pixelart-v1/characters/composite/casual/NE_walk_06.png",
+    "/planet-pixelart-v1/characters/composite/casual/NE_walk_06.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/NW_idle.png": [
+    "/planet-pixelart-v1/characters/composite/casual/NW_idle.png",
+    "/planet-pixelart-v1/characters/composite/casual/NW_idle.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/NW_walk_01.png": [
+    "/planet-pixelart-v1/characters/composite/casual/NW_walk_01.png",
+    "/planet-pixelart-v1/characters/composite/casual/NW_walk_01.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/NW_walk_02.png": [
+    "/planet-pixelart-v1/characters/composite/casual/NW_walk_02.png",
+    "/planet-pixelart-v1/characters/composite/casual/NW_walk_02.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/NW_walk_03.png": [
+    "/planet-pixelart-v1/characters/composite/casual/NW_walk_03.png",
+    "/planet-pixelart-v1/characters/composite/casual/NW_walk_03.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/NW_walk_04.png": [
+    "/planet-pixelart-v1/characters/composite/casual/NW_walk_04.png",
+    "/planet-pixelart-v1/characters/composite/casual/NW_walk_04.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/NW_walk_05.png": [
+    "/planet-pixelart-v1/characters/composite/casual/NW_walk_05.png",
+    "/planet-pixelart-v1/characters/composite/casual/NW_walk_05.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/NW_walk_06.png": [
+    "/planet-pixelart-v1/characters/composite/casual/NW_walk_06.png",
+    "/planet-pixelart-v1/characters/composite/casual/NW_walk_06.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/N_idle.png": [
+    "/planet-pixelart-v1/characters/composite/casual/N_idle.png",
+    "/planet-pixelart-v1/characters/composite/casual/N_idle.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/N_walk_01.png": [
+    "/planet-pixelart-v1/characters/composite/casual/N_walk_01.png",
+    "/planet-pixelart-v1/characters/composite/casual/N_walk_01.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/N_walk_02.png": [
+    "/planet-pixelart-v1/characters/composite/casual/N_walk_02.png",
+    "/planet-pixelart-v1/characters/composite/casual/N_walk_02.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/N_walk_03.png": [
+    "/planet-pixelart-v1/characters/composite/casual/N_walk_03.png",
+    "/planet-pixelart-v1/characters/composite/casual/N_walk_03.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/N_walk_04.png": [
+    "/planet-pixelart-v1/characters/composite/casual/N_walk_04.png",
+    "/planet-pixelart-v1/characters/composite/casual/N_walk_04.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/N_walk_05.png": [
+    "/planet-pixelart-v1/characters/composite/casual/N_walk_05.png",
+    "/planet-pixelart-v1/characters/composite/casual/N_walk_05.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/N_walk_06.png": [
+    "/planet-pixelart-v1/characters/composite/casual/N_walk_06.png",
+    "/planet-pixelart-v1/characters/composite/casual/N_walk_06.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/SE_idle.png": [
+    "/planet-pixelart-v1/characters/composite/casual/SE_idle.png",
+    "/planet-pixelart-v1/characters/composite/casual/SE_idle.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/SE_walk_01.png": [
+    "/planet-pixelart-v1/characters/composite/casual/SE_walk_01.png",
+    "/planet-pixelart-v1/characters/composite/casual/SE_walk_01.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/SE_walk_02.png": [
+    "/planet-pixelart-v1/characters/composite/casual/SE_walk_02.png",
+    "/planet-pixelart-v1/characters/composite/casual/SE_walk_02.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/SE_walk_03.png": [
+    "/planet-pixelart-v1/characters/composite/casual/SE_walk_03.png",
+    "/planet-pixelart-v1/characters/composite/casual/SE_walk_03.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/SE_walk_04.png": [
+    "/planet-pixelart-v1/characters/composite/casual/SE_walk_04.png",
+    "/planet-pixelart-v1/characters/composite/casual/SE_walk_04.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/SE_walk_05.png": [
+    "/planet-pixelart-v1/characters/composite/casual/SE_walk_05.png",
+    "/planet-pixelart-v1/characters/composite/casual/SE_walk_05.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/SE_walk_06.png": [
+    "/planet-pixelart-v1/characters/composite/casual/SE_walk_06.png",
+    "/planet-pixelart-v1/characters/composite/casual/SE_walk_06.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/SW_idle.png": [
+    "/planet-pixelart-v1/characters/composite/casual/SW_idle.png",
+    "/planet-pixelart-v1/characters/composite/casual/SW_idle.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/SW_walk_01.png": [
+    "/planet-pixelart-v1/characters/composite/casual/SW_walk_01.png",
+    "/planet-pixelart-v1/characters/composite/casual/SW_walk_01.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/SW_walk_02.png": [
+    "/planet-pixelart-v1/characters/composite/casual/SW_walk_02.png",
+    "/planet-pixelart-v1/characters/composite/casual/SW_walk_02.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/SW_walk_03.png": [
+    "/planet-pixelart-v1/characters/composite/casual/SW_walk_03.png",
+    "/planet-pixelart-v1/characters/composite/casual/SW_walk_03.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/SW_walk_04.png": [
+    "/planet-pixelart-v1/characters/composite/casual/SW_walk_04.png",
+    "/planet-pixelart-v1/characters/composite/casual/SW_walk_04.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/SW_walk_05.png": [
+    "/planet-pixelart-v1/characters/composite/casual/SW_walk_05.png",
+    "/planet-pixelart-v1/characters/composite/casual/SW_walk_05.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/SW_walk_06.png": [
+    "/planet-pixelart-v1/characters/composite/casual/SW_walk_06.png",
+    "/planet-pixelart-v1/characters/composite/casual/SW_walk_06.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/S_idle.png": [
+    "/planet-pixelart-v1/characters/composite/casual/S_idle.png",
+    "/planet-pixelart-v1/characters/composite/casual/S_idle.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/S_walk_01.png": [
+    "/planet-pixelart-v1/characters/composite/casual/S_walk_01.png",
+    "/planet-pixelart-v1/characters/composite/casual/S_walk_01.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/S_walk_02.png": [
+    "/planet-pixelart-v1/characters/composite/casual/S_walk_02.png",
+    "/planet-pixelart-v1/characters/composite/casual/S_walk_02.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/S_walk_03.png": [
+    "/planet-pixelart-v1/characters/composite/casual/S_walk_03.png",
+    "/planet-pixelart-v1/characters/composite/casual/S_walk_03.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/S_walk_04.png": [
+    "/planet-pixelart-v1/characters/composite/casual/S_walk_04.png",
+    "/planet-pixelart-v1/characters/composite/casual/S_walk_04.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/S_walk_05.png": [
+    "/planet-pixelart-v1/characters/composite/casual/S_walk_05.png",
+    "/planet-pixelart-v1/characters/composite/casual/S_walk_05.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/S_walk_06.png": [
+    "/planet-pixelart-v1/characters/composite/casual/S_walk_06.png",
+    "/planet-pixelart-v1/characters/composite/casual/S_walk_06.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/W_idle.png": [
+    "/planet-pixelart-v1/characters/composite/casual/W_idle.png",
+    "/planet-pixelart-v1/characters/composite/casual/W_idle.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/W_walk_01.png": [
+    "/planet-pixelart-v1/characters/composite/casual/W_walk_01.png",
+    "/planet-pixelart-v1/characters/composite/casual/W_walk_01.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/W_walk_02.png": [
+    "/planet-pixelart-v1/characters/composite/casual/W_walk_02.png",
+    "/planet-pixelart-v1/characters/composite/casual/W_walk_02.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/W_walk_03.png": [
+    "/planet-pixelart-v1/characters/composite/casual/W_walk_03.png",
+    "/planet-pixelart-v1/characters/composite/casual/W_walk_03.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/W_walk_04.png": [
+    "/planet-pixelart-v1/characters/composite/casual/W_walk_04.png",
+    "/planet-pixelart-v1/characters/composite/casual/W_walk_04.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/W_walk_05.png": [
+    "/planet-pixelart-v1/characters/composite/casual/W_walk_05.png",
+    "/planet-pixelart-v1/characters/composite/casual/W_walk_05.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/casual/W_walk_06.png": [
+    "/planet-pixelart-v1/characters/composite/casual/W_walk_06.png",
+    "/planet-pixelart-v1/characters/composite/casual/W_walk_06.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/E_idle.png": [
+    "/planet-pixelart-v1/characters/composite/suit/E_idle.png",
+    "/planet-pixelart-v1/characters/composite/suit/E_idle.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/E_walk_01.png": [
+    "/planet-pixelart-v1/characters/composite/suit/E_walk_01.png",
+    "/planet-pixelart-v1/characters/composite/suit/E_walk_01.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/E_walk_02.png": [
+    "/planet-pixelart-v1/characters/composite/suit/E_walk_02.png",
+    "/planet-pixelart-v1/characters/composite/suit/E_walk_02.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/E_walk_03.png": [
+    "/planet-pixelart-v1/characters/composite/suit/E_walk_03.png",
+    "/planet-pixelart-v1/characters/composite/suit/E_walk_03.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/E_walk_04.png": [
+    "/planet-pixelart-v1/characters/composite/suit/E_walk_04.png",
+    "/planet-pixelart-v1/characters/composite/suit/E_walk_04.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/E_walk_05.png": [
+    "/planet-pixelart-v1/characters/composite/suit/E_walk_05.png",
+    "/planet-pixelart-v1/characters/composite/suit/E_walk_05.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/E_walk_06.png": [
+    "/planet-pixelart-v1/characters/composite/suit/E_walk_06.png",
+    "/planet-pixelart-v1/characters/composite/suit/E_walk_06.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/NE_idle.png": [
+    "/planet-pixelart-v1/characters/composite/suit/NE_idle.png",
+    "/planet-pixelart-v1/characters/composite/suit/NE_idle.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/NE_walk_01.png": [
+    "/planet-pixelart-v1/characters/composite/suit/NE_walk_01.png",
+    "/planet-pixelart-v1/characters/composite/suit/NE_walk_01.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/NE_walk_02.png": [
+    "/planet-pixelart-v1/characters/composite/suit/NE_walk_02.png",
+    "/planet-pixelart-v1/characters/composite/suit/NE_walk_02.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/NE_walk_03.png": [
+    "/planet-pixelart-v1/characters/composite/suit/NE_walk_03.png",
+    "/planet-pixelart-v1/characters/composite/suit/NE_walk_03.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/NE_walk_04.png": [
+    "/planet-pixelart-v1/characters/composite/suit/NE_walk_04.png",
+    "/planet-pixelart-v1/characters/composite/suit/NE_walk_04.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/NE_walk_05.png": [
+    "/planet-pixelart-v1/characters/composite/suit/NE_walk_05.png",
+    "/planet-pixelart-v1/characters/composite/suit/NE_walk_05.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/NE_walk_06.png": [
+    "/planet-pixelart-v1/characters/composite/suit/NE_walk_06.png",
+    "/planet-pixelart-v1/characters/composite/suit/NE_walk_06.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/NW_idle.png": [
+    "/planet-pixelart-v1/characters/composite/suit/NW_idle.png",
+    "/planet-pixelart-v1/characters/composite/suit/NW_idle.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/NW_walk_01.png": [
+    "/planet-pixelart-v1/characters/composite/suit/NW_walk_01.png",
+    "/planet-pixelart-v1/characters/composite/suit/NW_walk_01.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/NW_walk_02.png": [
+    "/planet-pixelart-v1/characters/composite/suit/NW_walk_02.png",
+    "/planet-pixelart-v1/characters/composite/suit/NW_walk_02.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/NW_walk_03.png": [
+    "/planet-pixelart-v1/characters/composite/suit/NW_walk_03.png",
+    "/planet-pixelart-v1/characters/composite/suit/NW_walk_03.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/NW_walk_04.png": [
+    "/planet-pixelart-v1/characters/composite/suit/NW_walk_04.png",
+    "/planet-pixelart-v1/characters/composite/suit/NW_walk_04.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/NW_walk_05.png": [
+    "/planet-pixelart-v1/characters/composite/suit/NW_walk_05.png",
+    "/planet-pixelart-v1/characters/composite/suit/NW_walk_05.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/NW_walk_06.png": [
+    "/planet-pixelart-v1/characters/composite/suit/NW_walk_06.png",
+    "/planet-pixelart-v1/characters/composite/suit/NW_walk_06.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/N_idle.png": [
+    "/planet-pixelart-v1/characters/composite/suit/N_idle.png",
+    "/planet-pixelart-v1/characters/composite/suit/N_idle.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/N_walk_01.png": [
+    "/planet-pixelart-v1/characters/composite/suit/N_walk_01.png",
+    "/planet-pixelart-v1/characters/composite/suit/N_walk_01.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/N_walk_02.png": [
+    "/planet-pixelart-v1/characters/composite/suit/N_walk_02.png",
+    "/planet-pixelart-v1/characters/composite/suit/N_walk_02.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/N_walk_03.png": [
+    "/planet-pixelart-v1/characters/composite/suit/N_walk_03.png",
+    "/planet-pixelart-v1/characters/composite/suit/N_walk_03.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/N_walk_04.png": [
+    "/planet-pixelart-v1/characters/composite/suit/N_walk_04.png",
+    "/planet-pixelart-v1/characters/composite/suit/N_walk_04.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/N_walk_05.png": [
+    "/planet-pixelart-v1/characters/composite/suit/N_walk_05.png",
+    "/planet-pixelart-v1/characters/composite/suit/N_walk_05.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/N_walk_06.png": [
+    "/planet-pixelart-v1/characters/composite/suit/N_walk_06.png",
+    "/planet-pixelart-v1/characters/composite/suit/N_walk_06.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/SE_idle.png": [
+    "/planet-pixelart-v1/characters/composite/suit/SE_idle.png",
+    "/planet-pixelart-v1/characters/composite/suit/SE_idle.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/SE_walk_01.png": [
+    "/planet-pixelart-v1/characters/composite/suit/SE_walk_01.png",
+    "/planet-pixelart-v1/characters/composite/suit/SE_walk_01.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/SE_walk_02.png": [
+    "/planet-pixelart-v1/characters/composite/suit/SE_walk_02.png",
+    "/planet-pixelart-v1/characters/composite/suit/SE_walk_02.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/SE_walk_03.png": [
+    "/planet-pixelart-v1/characters/composite/suit/SE_walk_03.png",
+    "/planet-pixelart-v1/characters/composite/suit/SE_walk_03.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/SE_walk_04.png": [
+    "/planet-pixelart-v1/characters/composite/suit/SE_walk_04.png",
+    "/planet-pixelart-v1/characters/composite/suit/SE_walk_04.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/SE_walk_05.png": [
+    "/planet-pixelart-v1/characters/composite/suit/SE_walk_05.png",
+    "/planet-pixelart-v1/characters/composite/suit/SE_walk_05.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/SE_walk_06.png": [
+    "/planet-pixelart-v1/characters/composite/suit/SE_walk_06.png",
+    "/planet-pixelart-v1/characters/composite/suit/SE_walk_06.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/SW_idle.png": [
+    "/planet-pixelart-v1/characters/composite/suit/SW_idle.png",
+    "/planet-pixelart-v1/characters/composite/suit/SW_idle.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/SW_walk_01.png": [
+    "/planet-pixelart-v1/characters/composite/suit/SW_walk_01.png",
+    "/planet-pixelart-v1/characters/composite/suit/SW_walk_01.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/SW_walk_02.png": [
+    "/planet-pixelart-v1/characters/composite/suit/SW_walk_02.png",
+    "/planet-pixelart-v1/characters/composite/suit/SW_walk_02.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/SW_walk_03.png": [
+    "/planet-pixelart-v1/characters/composite/suit/SW_walk_03.png",
+    "/planet-pixelart-v1/characters/composite/suit/SW_walk_03.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/SW_walk_04.png": [
+    "/planet-pixelart-v1/characters/composite/suit/SW_walk_04.png",
+    "/planet-pixelart-v1/characters/composite/suit/SW_walk_04.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/SW_walk_05.png": [
+    "/planet-pixelart-v1/characters/composite/suit/SW_walk_05.png",
+    "/planet-pixelart-v1/characters/composite/suit/SW_walk_05.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/SW_walk_06.png": [
+    "/planet-pixelart-v1/characters/composite/suit/SW_walk_06.png",
+    "/planet-pixelart-v1/characters/composite/suit/SW_walk_06.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/S_idle.png": [
+    "/planet-pixelart-v1/characters/composite/suit/S_idle.png",
+    "/planet-pixelart-v1/characters/composite/suit/S_idle.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/S_walk_01.png": [
+    "/planet-pixelart-v1/characters/composite/suit/S_walk_01.png",
+    "/planet-pixelart-v1/characters/composite/suit/S_walk_01.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/S_walk_02.png": [
+    "/planet-pixelart-v1/characters/composite/suit/S_walk_02.png",
+    "/planet-pixelart-v1/characters/composite/suit/S_walk_02.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/S_walk_03.png": [
+    "/planet-pixelart-v1/characters/composite/suit/S_walk_03.png",
+    "/planet-pixelart-v1/characters/composite/suit/S_walk_03.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/S_walk_04.png": [
+    "/planet-pixelart-v1/characters/composite/suit/S_walk_04.png",
+    "/planet-pixelart-v1/characters/composite/suit/S_walk_04.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/S_walk_05.png": [
+    "/planet-pixelart-v1/characters/composite/suit/S_walk_05.png",
+    "/planet-pixelart-v1/characters/composite/suit/S_walk_05.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/S_walk_06.png": [
+    "/planet-pixelart-v1/characters/composite/suit/S_walk_06.png",
+    "/planet-pixelart-v1/characters/composite/suit/S_walk_06.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/W_idle.png": [
+    "/planet-pixelart-v1/characters/composite/suit/W_idle.png",
+    "/planet-pixelart-v1/characters/composite/suit/W_idle.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/W_walk_01.png": [
+    "/planet-pixelart-v1/characters/composite/suit/W_walk_01.png",
+    "/planet-pixelart-v1/characters/composite/suit/W_walk_01.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/W_walk_02.png": [
+    "/planet-pixelart-v1/characters/composite/suit/W_walk_02.png",
+    "/planet-pixelart-v1/characters/composite/suit/W_walk_02.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/W_walk_03.png": [
+    "/planet-pixelart-v1/characters/composite/suit/W_walk_03.png",
+    "/planet-pixelart-v1/characters/composite/suit/W_walk_03.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/W_walk_04.png": [
+    "/planet-pixelart-v1/characters/composite/suit/W_walk_04.png",
+    "/planet-pixelart-v1/characters/composite/suit/W_walk_04.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/W_walk_05.png": [
+    "/planet-pixelart-v1/characters/composite/suit/W_walk_05.png",
+    "/planet-pixelart-v1/characters/composite/suit/W_walk_05.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/characters/composite/suit/W_walk_06.png": [
+    "/planet-pixelart-v1/characters/composite/suit/W_walk_06.png",
+    "/planet-pixelart-v1/characters/composite/suit/W_walk_06.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/construction/farm/bed_empty.png": [
+    "/planet-pixelart-v1/construction/farm/bed_empty.png",
+    "/planet-pixelart-v1/construction/farm/bed_empty.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/construction/farm/bed_seedlings.png": [
+    "/planet-pixelart-v1/construction/farm/bed_seedlings.png",
+    "/planet-pixelart-v1/construction/farm/bed_seedlings.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/construction/farm/container.png": [
+    "/planet-pixelart-v1/construction/farm/container.png",
+    "/planet-pixelart-v1/construction/farm/container.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/construction/farm/corn_mature.png": [
+    "/planet-pixelart-v1/construction/farm/corn_mature.png",
+    "/planet-pixelart-v1/construction/farm/corn_mature.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/construction/farm/crop_a_growth.png": [
+    "/planet-pixelart-v1/construction/farm/crop_a_growth.png",
+    "/planet-pixelart-v1/construction/farm/crop_a_growth.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/construction/farm/crop_a_sprout.png": [
+    "/planet-pixelart-v1/construction/farm/crop_a_sprout.png",
+    "/planet-pixelart-v1/construction/farm/crop_a_sprout.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/construction/farm/crop_b_growth.png": [
+    "/planet-pixelart-v1/construction/farm/crop_b_growth.png",
+    "/planet-pixelart-v1/construction/farm/crop_b_growth.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/construction/farm/crop_b_sprout.png": [
+    "/planet-pixelart-v1/construction/farm/crop_b_sprout.png",
+    "/planet-pixelart-v1/construction/farm/crop_b_sprout.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/construction/farm/farm-layout.json": [
+    "/planet-pixelart-v1/construction/farm/farm-layout.json"
+  ],
+  "planet/pixelart-v1/construction/farm/farm_terminal.png": [
+    "/planet-pixelart-v1/construction/farm/farm_terminal.png",
+    "/planet-pixelart-v1/construction/farm/farm_terminal.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/construction/farm/fence_corner.png": [
+    "/planet-pixelart-v1/construction/farm/fence_corner.png",
+    "/planet-pixelart-v1/construction/farm/fence_corner.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/construction/farm/fence_post.png": [
+    "/planet-pixelart-v1/construction/farm/fence_post.png",
+    "/planet-pixelart-v1/construction/farm/fence_post.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/construction/farm/fence_straight.png": [
+    "/planet-pixelart-v1/construction/farm/fence_straight.png",
+    "/planet-pixelart-v1/construction/farm/fence_straight.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/construction/farm/foundation.png": [
+    "/planet-pixelart-v1/construction/farm/foundation.png",
+    "/planet-pixelart-v1/construction/farm/foundation.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/construction/farm/gate_closed.png": [
+    "/planet-pixelart-v1/construction/farm/gate_closed.png",
+    "/planet-pixelart-v1/construction/farm/gate_closed.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/construction/farm/gate_open.png": [
+    "/planet-pixelart-v1/construction/farm/gate_open.png",
+    "/planet-pixelart-v1/construction/farm/gate_open.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/construction/farm/harvest_basket.png": [
+    "/planet-pixelart-v1/construction/farm/harvest_basket.png",
+    "/planet-pixelart-v1/construction/farm/harvest_basket.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/construction/farm/irrigation_junction.png": [
+    "/planet-pixelart-v1/construction/farm/irrigation_junction.png",
+    "/planet-pixelart-v1/construction/farm/irrigation_junction.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/construction/farm/soil_bed.png": [
+    "/planet-pixelart-v1/construction/farm/soil_bed.png",
+    "/planet-pixelart-v1/construction/farm/soil_bed.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/construction/farm/solar_unit.png": [
+    "/planet-pixelart-v1/construction/farm/solar_unit.png",
+    "/planet-pixelart-v1/construction/farm/solar_unit.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/construction/farm/stone_path.png": [
+    "/planet-pixelart-v1/construction/farm/stone_path.png",
+    "/planet-pixelart-v1/construction/farm/stone_path.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/construction/farm/tomato_mature.png": [
+    "/planet-pixelart-v1/construction/farm/tomato_mature.png",
+    "/planet-pixelart-v1/construction/farm/tomato_mature.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/construction/farm/tool_crate.png": [
+    "/planet-pixelart-v1/construction/farm/tool_crate.png",
+    "/planet-pixelart-v1/construction/farm/tool_crate.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/construction/farm/water_tank.png": [
+    "/planet-pixelart-v1/construction/farm/water_tank.png",
+    "/planet-pixelart-v1/construction/farm/water_tank.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/construction/farm/workstation.png": [
+    "/planet-pixelart-v1/construction/farm/workstation.png",
+    "/planet-pixelart-v1/construction/farm/workstation.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/construction/fences/fence_gate.png": [
+    "/planet-pixelart-v1/construction/fences/fence_gate.png",
+    "/planet-pixelart-v1/construction/fences/fence_gate.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/construction/fences/signpost.png": [
+    "/planet-pixelart-v1/construction/fences/signpost.png",
+    "/planet-pixelart-v1/construction/fences/signpost.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/construction/floors/cable.png": [
+    "/planet-pixelart-v1/construction/floors/cable.png",
+    "/planet-pixelart-v1/construction/floors/cable.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/construction/floors/floor_tile.png": [
+    "/planet-pixelart-v1/construction/floors/floor_tile.png",
+    "/planet-pixelart-v1/construction/floors/floor_tile.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/construction/floors/pipe.png": [
+    "/planet-pixelart-v1/construction/floors/pipe.png",
+    "/planet-pixelart-v1/construction/floors/pipe.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/construction/floors/technical_deck.png": [
+    "/planet-pixelart-v1/construction/floors/technical_deck.png",
+    "/planet-pixelart-v1/construction/floors/technical_deck.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/construction/foundations/foundation_tile.png": [
+    "/planet-pixelart-v1/construction/foundations/foundation_tile.png",
+    "/planet-pixelart-v1/construction/foundations/foundation_tile.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/construction/foundations/support_frame.png": [
+    "/planet-pixelart-v1/construction/foundations/support_frame.png",
+    "/planet-pixelart-v1/construction/foundations/support_frame.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/construction/paths/farm_path.png": [
+    "/planet-pixelart-v1/construction/paths/farm_path.png",
+    "/planet-pixelart-v1/construction/paths/farm_path.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/construction/walls/door.png": [
+    "/planet-pixelart-v1/construction/walls/door.png",
+    "/planet-pixelart-v1/construction/walls/door.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/construction/walls/wall_corner.png": [
+    "/planet-pixelart-v1/construction/walls/wall_corner.png",
+    "/planet-pixelart-v1/construction/walls/wall_corner.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/construction/walls/wall_straight.png": [
+    "/planet-pixelart-v1/construction/walls/wall_straight.png",
+    "/planet-pixelart-v1/construction/walls/wall_straight.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/construction/walls/window.png": [
+    "/planet-pixelart-v1/construction/walls/window.png",
+    "/planet-pixelart-v1/construction/walls/window.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/effects/active_terminal.png": [
+    "/planet-pixelart-v1/effects/active_terminal.png",
+    "/planet-pixelart-v1/effects/active_terminal.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/effects/blocked_point_marker.png": [
+    "/planet-pixelart-v1/effects/blocked_point_marker.png",
+    "/planet-pixelart-v1/effects/blocked_point_marker.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/effects/blueprint_footprint.png": [
+    "/planet-pixelart-v1/effects/blueprint_footprint.png",
+    "/planet-pixelart-v1/effects/blueprint_footprint.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/effects/build_cell_selected.png": [
+    "/planet-pixelart-v1/effects/build_cell_selected.png",
+    "/planet-pixelart-v1/effects/build_cell_selected.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/effects/character_selection.png": [
+    "/planet-pixelart-v1/effects/character_selection.png",
+    "/planet-pixelart-v1/effects/character_selection.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/effects/footstep_dust.png": [
+    "/planet-pixelart-v1/effects/footstep_dust.png",
+    "/planet-pixelart-v1/effects/footstep_dust.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/effects/hover_highlight.png": [
+    "/planet-pixelart-v1/effects/hover_highlight.png",
+    "/planet-pixelart-v1/effects/hover_highlight.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/effects/interaction_spark.png": [
+    "/planet-pixelart-v1/effects/interaction_spark.png",
+    "/planet-pixelart-v1/effects/interaction_spark.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/effects/movement_marker.png": [
+    "/planet-pixelart-v1/effects/movement_marker.png",
+    "/planet-pixelart-v1/effects/movement_marker.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/effects/object_selection.png": [
+    "/planet-pixelart-v1/effects/object_selection.png",
+    "/planet-pixelart-v1/effects/object_selection.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/effects/sector_boundary.png": [
+    "/planet-pixelart-v1/effects/sector_boundary.png",
+    "/planet-pixelart-v1/effects/sector_boundary.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/effects/signal_lights.png": [
+    "/planet-pixelart-v1/effects/signal_lights.png",
+    "/planet-pixelart-v1/effects/signal_lights.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/landing/landing_pad.png": [
+    "/planet-pixelart-v1/landing/landing_pad.png",
+    "/planet-pixelart-v1/landing/landing_pad.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/manifest.json": [
+    "/planet-pixelart-v1/manifest.json"
+  ],
+  "planet/pixelart-v1/nature/decorations/dry_branch.png": [
+    "/planet-pixelart-v1/nature/decorations/dry_branch.png",
+    "/planet-pixelart-v1/nature/decorations/dry_branch.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/nature/decorations/exposed_roots.png": [
+    "/planet-pixelart-v1/nature/decorations/exposed_roots.png",
+    "/planet-pixelart-v1/nature/decorations/exposed_roots.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/nature/decorations/fallen_leaves.png": [
+    "/planet-pixelart-v1/nature/decorations/fallen_leaves.png",
+    "/planet-pixelart-v1/nature/decorations/fallen_leaves.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/nature/decorations/fossil_fragment.png": [
+    "/planet-pixelart-v1/nature/decorations/fossil_fragment.png",
+    "/planet-pixelart-v1/nature/decorations/fossil_fragment.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/nature/decorations/log.png": [
+    "/planet-pixelart-v1/nature/decorations/log.png",
+    "/planet-pixelart-v1/nature/decorations/log.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/nature/decorations/stump.png": [
+    "/planet-pixelart-v1/nature/decorations/stump.png",
+    "/planet-pixelart-v1/nature/decorations/stump.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/nature/minerals/alien_mineral.png": [
+    "/planet-pixelart-v1/nature/minerals/alien_mineral.png",
+    "/planet-pixelart-v1/nature/minerals/alien_mineral.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/nature/minerals/blue_crystals.png": [
+    "/planet-pixelart-v1/nature/minerals/blue_crystals.png",
+    "/planet-pixelart-v1/nature/minerals/blue_crystals.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/nature/minerals/copper_ore.png": [
+    "/planet-pixelart-v1/nature/minerals/copper_ore.png",
+    "/planet-pixelart-v1/nature/minerals/copper_ore.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/nature/minerals/energy_mineral.png": [
+    "/planet-pixelart-v1/nature/minerals/energy_mineral.png",
+    "/planet-pixelart-v1/nature/minerals/energy_mineral.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/nature/minerals/fossil_stone.png": [
+    "/planet-pixelart-v1/nature/minerals/fossil_stone.png",
+    "/planet-pixelart-v1/nature/minerals/fossil_stone.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/nature/minerals/green_crystals.png": [
+    "/planet-pixelart-v1/nature/minerals/green_crystals.png",
+    "/planet-pixelart-v1/nature/minerals/green_crystals.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/nature/minerals/iron_ore.png": [
+    "/planet-pixelart-v1/nature/minerals/iron_ore.png",
+    "/planet-pixelart-v1/nature/minerals/iron_ore.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/nature/minerals/large_deposit.png": [
+    "/planet-pixelart-v1/nature/minerals/large_deposit.png",
+    "/planet-pixelart-v1/nature/minerals/large_deposit.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/nature/minerals/meteor_shard.png": [
+    "/planet-pixelart-v1/nature/minerals/meteor_shard.png",
+    "/planet-pixelart-v1/nature/minerals/meteor_shard.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/nature/minerals/mineral_outcrop.png": [
+    "/planet-pixelart-v1/nature/minerals/mineral_outcrop.png",
+    "/planet-pixelart-v1/nature/minerals/mineral_outcrop.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/nature/minerals/pale_metal_ore.png": [
+    "/planet-pixelart-v1/nature/minerals/pale_metal_ore.png",
+    "/planet-pixelart-v1/nature/minerals/pale_metal_ore.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/nature/minerals/turquoise_crystals.png": [
+    "/planet-pixelart-v1/nature/minerals/turquoise_crystals.png",
+    "/planet-pixelart-v1/nature/minerals/turquoise_crystals.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/nature/minerals/violet_crystals.png": [
+    "/planet-pixelart-v1/nature/minerals/violet_crystals.png",
+    "/planet-pixelart-v1/nature/minerals/violet_crystals.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/nature/rocks/coastal_stones.png": [
+    "/planet-pixelart-v1/nature/rocks/coastal_stones.png",
+    "/planet-pixelart-v1/nature/rocks/coastal_stones.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/nature/rocks/cracked_stone.png": [
+    "/planet-pixelart-v1/nature/rocks/cracked_stone.png",
+    "/planet-pixelart-v1/nature/rocks/cracked_stone.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/nature/rocks/flat_stone.png": [
+    "/planet-pixelart-v1/nature/rocks/flat_stone.png",
+    "/planet-pixelart-v1/nature/rocks/flat_stone.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/nature/rocks/large_boulder.png": [
+    "/planet-pixelart-v1/nature/rocks/large_boulder.png",
+    "/planet-pixelart-v1/nature/rocks/large_boulder.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/nature/rocks/medium_stone.png": [
+    "/planet-pixelart-v1/nature/rocks/medium_stone.png",
+    "/planet-pixelart-v1/nature/rocks/medium_stone.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/nature/rocks/pebble.png": [
+    "/planet-pixelart-v1/nature/rocks/pebble.png",
+    "/planet-pixelart-v1/nature/rocks/pebble.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/nature/rocks/sandstone.png": [
+    "/planet-pixelart-v1/nature/rocks/sandstone.png",
+    "/planet-pixelart-v1/nature/rocks/sandstone.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/nature/rocks/sharp_outcrop.png": [
+    "/planet-pixelart-v1/nature/rocks/sharp_outcrop.png",
+    "/planet-pixelart-v1/nature/rocks/sharp_outcrop.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/nature/rocks/snow_boulder.png": [
+    "/planet-pixelart-v1/nature/rocks/snow_boulder.png",
+    "/planet-pixelart-v1/nature/rocks/snow_boulder.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/nature/rocks/stone_group.png": [
+    "/planet-pixelart-v1/nature/rocks/stone_group.png",
+    "/planet-pixelart-v1/nature/rocks/stone_group.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/nature/rocks/volcanic_rock.png": [
+    "/planet-pixelart-v1/nature/rocks/volcanic_rock.png",
+    "/planet-pixelart-v1/nature/rocks/volcanic_rock.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/terrain/alien/alien_turquoise.png": [
+    "/planet-pixelart-v1/terrain/alien/alien_turquoise.png",
+    "/planet-pixelart-v1/terrain/alien/alien_turquoise.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/terrain/alien/alien_violet.png": [
+    "/planet-pixelart-v1/terrain/alien/alien_violet.png",
+    "/planet-pixelart-v1/terrain/alien/alien_violet.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/terrain/dirt/dry_soil.png": [
+    "/planet-pixelart-v1/terrain/dirt/dry_soil.png",
+    "/planet-pixelart-v1/terrain/dirt/dry_soil.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/terrain/dirt/soil.png": [
+    "/planet-pixelart-v1/terrain/dirt/soil.png",
+    "/planet-pixelart-v1/terrain/dirt/soil.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/terrain/grass/dark_grass.png": [
+    "/planet-pixelart-v1/terrain/grass/dark_grass.png",
+    "/planet-pixelart-v1/terrain/grass/dark_grass.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/terrain/grass/grass.png": [
+    "/planet-pixelart-v1/terrain/grass/grass.png",
+    "/planet-pixelart-v1/terrain/grass/grass.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/terrain/grass/light_grass.png": [
+    "/planet-pixelart-v1/terrain/grass/light_grass.png",
+    "/planet-pixelart-v1/terrain/grass/light_grass.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/terrain/ice/ice.png": [
+    "/planet-pixelart-v1/terrain/ice/ice.png",
+    "/planet-pixelart-v1/terrain/ice/ice.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/terrain/paths/trodden_path.png": [
+    "/planet-pixelart-v1/terrain/paths/trodden_path.png",
+    "/planet-pixelart-v1/terrain/paths/trodden_path.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/terrain/rock/rocky_ground.png": [
+    "/planet-pixelart-v1/terrain/rock/rocky_ground.png",
+    "/planet-pixelart-v1/terrain/rock/rocky_ground.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/terrain/sand/sand.png": [
+    "/planet-pixelart-v1/terrain/sand/sand.png",
+    "/planet-pixelart-v1/terrain/sand/sand.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/terrain/snow/snow.png": [
+    "/planet-pixelart-v1/terrain/snow/snow.png",
+    "/planet-pixelart-v1/terrain/snow/snow.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/terrain/swamp/swamp.png": [
+    "/planet-pixelart-v1/terrain/swamp/swamp.png",
+    "/planet-pixelart-v1/terrain/swamp/swamp.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/terrain/swamp/wet_mud.png": [
+    "/planet-pixelart-v1/terrain/swamp/wet_mud.png",
+    "/planet-pixelart-v1/terrain/swamp/wet_mud.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/terrain/technical/technical_deck.png": [
+    "/planet-pixelart-v1/terrain/technical/technical_deck.png",
+    "/planet-pixelart-v1/terrain/technical/technical_deck.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/terrain/transitions/grass_to_rock_e.png": [
+    "/planet-pixelart-v1/terrain/transitions/grass_to_rock_e.png",
+    "/planet-pixelart-v1/terrain/transitions/grass_to_rock_e.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/terrain/transitions/grass_to_rock_n.png": [
+    "/planet-pixelart-v1/terrain/transitions/grass_to_rock_n.png",
+    "/planet-pixelart-v1/terrain/transitions/grass_to_rock_n.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/terrain/transitions/grass_to_rock_s.png": [
+    "/planet-pixelart-v1/terrain/transitions/grass_to_rock_s.png",
+    "/planet-pixelart-v1/terrain/transitions/grass_to_rock_s.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/terrain/transitions/grass_to_rock_w.png": [
+    "/planet-pixelart-v1/terrain/transitions/grass_to_rock_w.png",
+    "/planet-pixelart-v1/terrain/transitions/grass_to_rock_w.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/terrain/transitions/grass_to_sand_e.png": [
+    "/planet-pixelart-v1/terrain/transitions/grass_to_sand_e.png",
+    "/planet-pixelart-v1/terrain/transitions/grass_to_sand_e.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/terrain/transitions/grass_to_sand_n.png": [
+    "/planet-pixelart-v1/terrain/transitions/grass_to_sand_n.png",
+    "/planet-pixelart-v1/terrain/transitions/grass_to_sand_n.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/terrain/transitions/grass_to_sand_s.png": [
+    "/planet-pixelart-v1/terrain/transitions/grass_to_sand_s.png",
+    "/planet-pixelart-v1/terrain/transitions/grass_to_sand_s.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/terrain/transitions/grass_to_sand_w.png": [
+    "/planet-pixelart-v1/terrain/transitions/grass_to_sand_w.png",
+    "/planet-pixelart-v1/terrain/transitions/grass_to_sand_w.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/terrain/transitions/grass_to_soil_e.png": [
+    "/planet-pixelart-v1/terrain/transitions/grass_to_soil_e.png",
+    "/planet-pixelart-v1/terrain/transitions/grass_to_soil_e.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/terrain/transitions/grass_to_soil_n.png": [
+    "/planet-pixelart-v1/terrain/transitions/grass_to_soil_n.png",
+    "/planet-pixelart-v1/terrain/transitions/grass_to_soil_n.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/terrain/transitions/grass_to_soil_s.png": [
+    "/planet-pixelart-v1/terrain/transitions/grass_to_soil_s.png",
+    "/planet-pixelart-v1/terrain/transitions/grass_to_soil_s.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/terrain/transitions/grass_to_soil_w.png": [
+    "/planet-pixelart-v1/terrain/transitions/grass_to_soil_w.png",
+    "/planet-pixelart-v1/terrain/transitions/grass_to_soil_w.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/terrain/transitions/grass_to_water_e.png": [
+    "/planet-pixelart-v1/terrain/transitions/grass_to_water_e.png",
+    "/planet-pixelart-v1/terrain/transitions/grass_to_water_e.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/terrain/transitions/grass_to_water_n.png": [
+    "/planet-pixelart-v1/terrain/transitions/grass_to_water_n.png",
+    "/planet-pixelart-v1/terrain/transitions/grass_to_water_n.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/terrain/transitions/grass_to_water_s.png": [
+    "/planet-pixelart-v1/terrain/transitions/grass_to_water_s.png",
+    "/planet-pixelart-v1/terrain/transitions/grass_to_water_s.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/terrain/transitions/grass_to_water_w.png": [
+    "/planet-pixelart-v1/terrain/transitions/grass_to_water_w.png",
+    "/planet-pixelart-v1/terrain/transitions/grass_to_water_w.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/terrain/volcanic/volcanic.png": [
+    "/planet-pixelart-v1/terrain/volcanic/volcanic.png",
+    "/planet-pixelart-v1/terrain/volcanic/volcanic.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/water/animations/ripple_00.png": [
+    "/planet-pixelart-v1/water/animations/ripple_00.png",
+    "/planet-pixelart-v1/water/animations/ripple_00.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/water/animations/ripple_01.png": [
+    "/planet-pixelart-v1/water/animations/ripple_01.png",
+    "/planet-pixelart-v1/water/animations/ripple_01.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/water/animations/ripple_02.png": [
+    "/planet-pixelart-v1/water/animations/ripple_02.png",
+    "/planet-pixelart-v1/water/animations/ripple_02.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/water/animations/ripple_03.png": [
+    "/planet-pixelart-v1/water/animations/ripple_03.png",
+    "/planet-pixelart-v1/water/animations/ripple_03.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/water/cold/cold.png": [
+    "/planet-pixelart-v1/water/cold/cold.png",
+    "/planet-pixelart-v1/water/cold/cold.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/water/deep/deep.png": [
+    "/planet-pixelart-v1/water/deep/deep.png",
+    "/planet-pixelart-v1/water/deep/deep.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/water/shallow/shallow.png": [
+    "/planet-pixelart-v1/water/shallow/shallow.png",
+    "/planet-pixelart-v1/water/shallow/shallow.png?v=26e609a73c10"
+  ],
+  "planet/pixelart-v1/water/swamp/swamp.png": [
+    "/planet-pixelart-v1/water/swamp/swamp.png",
+    "/planet-pixelart-v1/water/swamp/swamp.png?v=26e609a73c10"
+  ],
+  "ui/icons/profile.svg": [
+    "/ui/icons/profile.svg"
+  ],
+  "ui/icons/sidebar-collapse.svg": [
+    "/ui/icons/sidebar-collapse.svg"
+  ]
+}

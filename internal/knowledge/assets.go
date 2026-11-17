@@ -25,17 +25,16 @@ type AssetManifest struct {
 // The checked-in manifest is verified before Cosmic release compilation.
 func CompileAssets(files fs.FS) ([]byte, error) {
 	paths := map[string]string{}
-	entries, err := fs.ReadDir(files, ".")
+	entries, err := fs.Glob(files, "space/objects/object-*.svg")
 	if err != nil {
 		return nil, err
 	}
-	for _, e := range entries {
-		if regexp.MustCompile(`^object-[a-z-]+\.svg$`).MatchString(e.Name()) {
-			paths["object/"+strings.TrimSuffix(strings.TrimPrefix(e.Name(), "object-"), ".svg")] = e.Name()
-		}
+	for _, name := range entries {
+		base := strings.TrimPrefix(name, "space/objects/")
+		paths["object/"+strings.TrimSuffix(strings.TrimPrefix(base, "object-"), ".svg")] = name
 	}
 	for _, h := range fleet.Catalogue {
-		paths["ship/"+h.ID] = h.Model
+		paths["ship/"+h.ID] = "space/ships/" + h.Model
 	}
 	keys := []string{}
 	for key := range paths {
@@ -49,29 +48,22 @@ func CompileAssets(files fs.FS) ([]byte, error) {
 			return nil, e
 		}
 		sum := sha256.Sum256(body)
-		manifest.Items = append(manifest.Items, Asset{key, "/" + paths[key], hex.EncodeToString(sum[:]), true})
+		manifest.Items = append(manifest.Items, Asset{key, "/assets/sha256/" + hex.EncodeToString(sum[:]) + "/" + paths[key], hex.EncodeToString(sum[:]), true})
 	}
 	raw, err := json.MarshalIndent(manifest, "", "  ")
 	return append(raw, '\n'), err
 }
-func verifiedAssets(files fs.FS) (map[string]Asset, string) {
+func verifiedAssets(_ fs.FS) (map[string]Asset, string) {
 	assets := map[string]Asset{}
 	digest := sha256.Sum256(builtinManifest)
 	var manifest AssetManifest
 	if json.Unmarshal(builtinManifest, &manifest) != nil || manifest.Version != 1 {
 		return assets, hex.EncodeToString(digest[:])
 	}
+	// The build tool verifies the source manifest. Runtime trusts this small,
+	// compiled catalog; all image bytes belong exclusively to the external pack.
 	for _, item := range manifest.Items {
-		path := strings.TrimPrefix(item.Path, "/")
-		if !regexp.MustCompile(`^[a-z][a-z0-9-]*\.svg$`).MatchString(path) {
-			continue
-		}
-		raw, err := fs.ReadFile(files, path)
-		if err != nil {
-			continue
-		}
-		sum := sha256.Sum256(raw)
-		if hex.EncodeToString(sum[:]) == item.SHA {
+		if regexp.MustCompile(`^/assets/sha256/[a-f0-9]{64}/space/(ships|objects)/[a-z0-9-]+\.svg$`).MatchString(item.Path) {
 			assets[item.Key] = item
 		}
 	}

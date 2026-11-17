@@ -16,6 +16,7 @@ SERVICES = {
     "cosmos": ("astra-journey", "internal/server/app.go"),
     "planet": ("astra-journey-planet", "internal/planetserver/app.go"),
     "chat": ("astra-journey-chat", "internal/chatserver/server.go"),
+    "cdn": ("astra-journey-cdn", "internal/cdnserver/server.go"),
 }
 
 
@@ -63,7 +64,7 @@ def main():
         if path.exists():
             parser.error(f"refusing to overwrite {path.name}; choose a new version or select only a missing platform/service")
     source_commit = capture("git", "rev-parse", "--verify", f"{args.source_ref or 'HEAD'}^{{commit}}")
-    dirty = not args.source_ref and bool(capture("git", "status", "--porcelain", "--", "cmd", "internal", "go.mod", "go.sum"))
+    dirty = not args.source_ref and bool(capture("git", "status", "--porcelain", "--", "cmd", "internal", "assets", "go.mod", "go.sum"))
     manifest_path = output / f"astra-journey-{args.tag}-build.json"
     manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {"tag": args.tag, "builds": []}
     additions = []
@@ -73,7 +74,7 @@ def main():
         if args.source_ref:
             archive = temporary / "source.tar"
             with archive.open("wb") as stream:
-                subprocess.run(["git", "archive", source_commit, "cmd", "internal", "go.mod", "go.sum"], cwd=ROOT, stdout=stream, check=True)
+                subprocess.run(["git", "archive", source_commit, "cmd", "internal", "assets", "go.mod", "go.sum"], cwd=ROOT, stdout=stream, check=True)
             source = temporary / "source"
             source.mkdir()
             with tarfile.open(archive) as stream:
@@ -82,6 +83,9 @@ def main():
             version = re.search(r'const Version = "([^"]+)"', (source / SERVICES[service][1]).read_text())
             if not version or version[1] != args.tag[1:]:
                 parser.error(f"{service} source version does not match {args.tag}")
+        pack_output = temporary / "assets"
+        subprocess.run(["go", "run", "./cmd/astra-assets", "-tag", args.tag, "-out", str(pack_output), "-check"], cwd=source, check=True)
+        asset_release = json.loads((pack_output / "astra-journey-assets.json").read_text())
         if "cosmos" in services:
             subprocess.run(["go", "run", "./cmd/astra-guide-assets", "-check"], cwd=source, check=True)
         compiler = capture("go", "version", cwd=source)
@@ -102,10 +106,19 @@ def main():
             digest = hashlib.sha256(target.read_bytes()).hexdigest()
             additions.append({"file": target.name, "service": service, "goos": platform, "goarch": "amd64", "goamd64": "v1", "cgo_enabled": False, "source_ref": args.source_ref, "source_commit": source_commit, "source_dirty": dirty, "compiler": compiler, "build_label": args.tag, "sha256": digest})
             print(f"{target.name}  {digest}", flush=True)
+        for filename in [asset_release["archive"], "astra-journey-assets.json"]:
+            target = output / filename
+            body = (pack_output / filename).read_bytes()
+            if filename != "astra-journey-assets.json" and target.exists() and target.read_bytes() != body:
+                raise ValueError(f"refusing to overwrite asset pack {filename}")
+            staged = target.with_suffix(target.suffix + ".partial")
+            staged.write_bytes(body)
+            staged.replace(target)
+    manifest["assets"] = asset_release
     manifest["builds"].extend(additions)
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")
     sums = output / "SHA256SUMS"
-    paths = [output / item["file"] for item in additions] + [manifest_path]
+    paths = [output / item["file"] for item in additions] + [manifest_path, output / asset_release["archive"], output / "astra-journey-assets.json"]
     replace = {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest() for path in paths}
     lines = sums.read_text().splitlines() if sums.exists() else []
     lines = [line for line in lines if line.split(maxsplit=1)[-1].strip() not in replace]

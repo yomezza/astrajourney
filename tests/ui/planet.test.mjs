@@ -10,7 +10,7 @@ test("planet scenes load public art lazily, reuse six textures and keep geograph
   await g.ready();
   assert.equal(
     g.assets.some(
-      (p) => p.endsWith("/planet/index.js") || p.includes("planet-pixelart-v1/terrain/"),
+      (p) => p.endsWith("/planet/index.js") || p.includes("planet/pixelart-v1/terrain/"),
     ),
     false,
   );
@@ -29,7 +29,7 @@ test("planet scenes load public art lazily, reuse six textures and keep geograph
     });
     await g.page.waitForSelector('#planet-map[data-textures="ready"]');
   }
-  const png = g.assets.filter((p) => p.includes("planet-pixelart-v1/terrain/"));
+  const png = g.assets.filter((p) => p.includes("planet/pixelart-v1/terrain/"));
   assert.equal(png.length, 6);
   assert.equal(new Set(png).size, 6);
   assert.equal(JSON.stringify(g.data["planet/surface"].geography), before);
@@ -39,7 +39,7 @@ test("planet scenes load public art lazily, reuse six textures and keep geograph
   );
   await g.page.evaluate(() => window.__testApp.I18n.set("en"));
   await g.page.waitForSelector('#planet-map[data-textures="ready"]');
-  assert.equal(g.assets.filter((p) => p.includes("planet-pixelart-v1/terrain/")).length, 6);
+  assert.equal(g.assets.filter((p) => p.includes("planet/pixelart-v1/terrain/")).length, 6);
 });
 
 test("texture failure falls back and retries without replacing geography", async (t) => {
@@ -47,13 +47,13 @@ test("texture failure falls back and retries without replacing geography", async
   g.data["planet/surface"] = planetFixture();
   g.data["planet/state"] = planetState();
   await g.ready();
-  await g.context.route("**/planet-pixelart-v1/terrain/**/*.png*", (r) => r.abort());
+  await g.context.route("**/planet/pixelart-v1/terrain/**/*.png*", (r) => r.abort());
   await g.page.evaluate(async () => {
     const { openPlanet } = await import("/features/planet/loader.js");
     await openPlanet(1, 1);
   });
   await g.page.waitForSelector('#planet-map[data-textures="partial"]');
-  await g.context.unroute("**/planet-pixelart-v1/terrain/**/*.png*");
+  await g.context.unroute("**/planet/pixelart-v1/terrain/**/*.png*");
   await g.page
     .getByRole("button", { name: "Повторить загрузку текстур", exact: true })
     .click();
@@ -72,7 +72,7 @@ test("late images cannot resurrect a scene after logout", async (t) => {
   const gate = new Promise((r) => (release = r)),
     allRequested = new Promise((r) => (received = r)),
     requests = [];
-  await g.context.route("**/planet-pixelart-v1/terrain/**/*.png*", async (route) => {
+  await g.context.route("**/planet/pixelart-v1/terrain/**/*.png*", async (route) => {
     requests.push(route.request());
     if (requests.length === 5) received();
     await gate;
@@ -135,7 +135,7 @@ test("surface cards locate shared landing infrastructure and reflect current acc
   };
   await g.ready();
   assert.equal(
-    g.assets.some((p) => p.endsWith("planet-pixelart-v1/assets/landing_module.png")),
+    g.assets.some((p) => p.endsWith("planet/pixelart-v1/assets/landing_module.png")),
     false,
   );
   await g.page.evaluate(async () => {

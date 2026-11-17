@@ -14,7 +14,7 @@ import (
 func (a *App) ConfigureNATS(c natscore.Config) error {
 	a.Corporations.CleanupWake = make(chan struct{}, 1)
 	var invalid atomic.Uint64
-	client, e := natscore.NewSignalClient(c, "cosmos", gamesignal.CosmicSubjects, []string{gamesignal.CleanupSubject}, func(m *nats.Msg) {
+	client, e := natscore.NewSignalClient(c, "cosmos", append(append([]string{}, gamesignal.CosmicSubjects...), gamesignal.MediaChangedSubject), []string{gamesignal.CleanupSubject}, func(m *nats.Msg) {
 		_, ok := gamesignal.DecodeCompany(m.Subject, m.Data)
 		if !ok || m.Reply != "" {
 			invalid.Add(1)
@@ -32,6 +32,7 @@ func (a *App) ConfigureNATS(c natscore.Config) error {
 	if client != nil {
 		a.Corporations.Signals = client.Publish
 		a.Administration.Signals = client.Publish
+		a.Knowledge.Signals = client.Publish
 	}
 	return nil
 }

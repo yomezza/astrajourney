@@ -1,3 +1,4 @@
+import { assetURL } from "../../core/assets.js";
 /* Shared colony catalogue: presentation only, no colony mutations or fabricated sites. */
 const views = new WeakMap();
 const TYPES = Object.freeze({
@@ -202,11 +203,11 @@ export function mountColonyCatalog(root, data, options) {
     const img = node("img", "colony-catalog-planet");
     img.alt = info?.site?.name || p.name || tr("Планета");
     const kind = info?.site?.kind;
-    img.src = options.assetBase + (TYPES[kind] || "object-unknown.svg");
+    img.src = assetURL(options.assetBase + (TYPES[kind] || "object-unknown.svg"));
     img.onerror = () => {
       if (!img.dataset.fallback) {
         img.dataset.fallback = "1";
-        img.src = options.assetBase + "object-unknown.svg";
+        img.src = assetURL(options.assetBase + "object-unknown.svg");
       }
     };
     visual.append(img);

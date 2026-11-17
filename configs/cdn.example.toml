@@ -1,0 +1,19 @@
+# No [database] is needed. Relative filesystem paths resolve against CONFIG_FILE.
+# Open http://127.0.0.1:8083 in the browser. Cosmic remains on private :8080.
+[cdn]
+http_addr = '127.0.0.1:8083'
+storage_root = '../data/cdn'
+cosmic_internal_url = 'http://127.0.0.1:8080'
+service_token_file = '../data/cdn/state/service.token'
+sync_enabled = true
+repository = 'yomezza/astrajourney'
+sync_interval = '30m'
+
+[nats]
+enabled = false # Enable using the separate cdn identity and CDN ACLs.
+servers = ['nats://127.0.0.1:4222']
+service_identity = 'cdn'
+username = 'cdn'
+# password_file = '/etc/astra-journey/secrets/cdn-nats.password'
+connect_timeout = '2s'
+reconnect_wait = '1s'

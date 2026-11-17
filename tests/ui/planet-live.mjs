@@ -36,7 +36,7 @@ try {
   const errors = [],
     artRequests = [];
   page.on("request", (r) => {
-    if (new URL(r.url()).pathname.startsWith("/planet-pixelart-v1/"))
+    if (new URL(r.url()).pathname.startsWith("/planet/pixelart-v1/"))
       artRequests.push(new URL(r.url()).pathname);
   });
   page.on("pageerror", (e) => errors.push(e.message));

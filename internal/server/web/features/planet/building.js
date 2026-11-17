@@ -1,3 +1,4 @@
+import { assetURL } from "../../core/assets.js";
 import { acquireArt } from "./scene-art.js";
 import { ART_PATHS, PACK_REVISION } from "./art-pack.js";
 import { I18n } from "../../core/i18n.js";
@@ -20,7 +21,7 @@ const messages = {
 export function buildingKeys(data) {
   for (const d of data?.catalog || [])
     ART_PATHS["build_" + d.id] =
-      `/planet-pixelart-v1/${d.asset}?v=${PACK_REVISION}`;
+      assetURL(`/planet-pixelart-v1/${d.asset}?v=${PACK_REVISION}`);
   return (data?.catalog || []).map((d) => "build_" + d.id);
 }
 export function drawBuilding(ctx, art, o, definition, alpha = 1) {

@@ -4,6 +4,7 @@ import { readFile, readdir } from "node:fs/promises";
 import { chromium } from "playwright";
 import { fixture } from "./fixtures.mjs";
 
+const graphics = new URL("../../assets/game/", import.meta.url);
 const web = new URL("../../internal/server/web/", import.meta.url);
 const mime = {
   html: "text/html",
@@ -32,13 +33,14 @@ export async function game(
   const server = createServer(async (req, res) => {
     try {
       const path = new URL(req.url, "http://localhost").pathname;
-      const name = path === "/" ? "index.html" : path.slice(1);
-      if (!allowed.has(name)) {
+      const hashed=/^\/assets\/sha256\/[a-f0-9]{64}\/(.+)$/.exec(path);
+      const name = hashed ? hashed[1] : path === "/" ? "index.html" : path.slice(1);
+      if (!hashed && !allowed.has(name)) {
         res.writeHead(404);
         res.end();
         return;
       }
-      const body = await readFile(new URL(name, web));
+      const body = await readFile(new URL(name, hashed ? graphics : web));
       res.writeHead(200, {
         "Content-Type":
           mime[name.split(".").at(-1)] || "application/octet-stream",

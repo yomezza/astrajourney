@@ -1,6 +1,7 @@
+import { assetURL } from "../../core/assets.js";
 // Original pixel pack files; logical scene IDs remain stable for saved sectors.
 export const PACK_REVISION = "26e609a73c10";
-export const ART_PATHS = {
+const rawPaths = {
   "atlas": "/planet-pixelart-v1/characters/compatibility-atlases/player_suit_7x8_896x1024.png?v=26e609a73c10",
   "atlas_casual": "/planet-pixelart-v1/characters/compatibility-atlases/player_casual_7x8_896x1024.png?v=26e609a73c10",
   "landing": "/planet-pixelart-v1/assets/landing_module.png?v=26e609a73c10",
@@ -32,3 +33,7 @@ export const ART_PATHS = {
   "ripple_2": "/planet-pixelart-v1/water/animations/ripple_02.png?v=26e609a73c10",
   "ripple_3": "/planet-pixelart-v1/water/animations/ripple_03.png?v=26e609a73c10"
 };
+
+export const ART_PATHS = new Proxy(rawPaths, {
+ get(target, key, receiver) { const value = Reflect.get(target, key, receiver); return typeof value === "string" ? assetURL(value) : value; }
+});

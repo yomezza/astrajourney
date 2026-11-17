@@ -7,3 +7,6 @@
 /cosmos.toml
 /planet.toml
 /chat.toml
+
+# Python build tool bytecode
+__pycache__/

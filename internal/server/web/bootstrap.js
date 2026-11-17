@@ -1,4 +1,5 @@
 import { initTooltip } from "./ui/tooltip.js";
+import { loadAssetMap } from "./core/assets.js";
 import { initI18n, I18n } from "./core/i18n.js";
 import { Session } from "./core/session.js";
 import { api } from "./core/api.js";
@@ -31,6 +32,7 @@ import { initGalaxy } from "./features/maps/galaxy.js";
 
 import { initChat } from "./features/chat/index.js";
 
+await loadAssetMap();
 initI18n();
 initTooltip();
 initControls();

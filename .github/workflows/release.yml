@@ -16,16 +16,20 @@ jobs:
           sha256sum -c downloads/SHA256SUMS
           test -f "release-notes/$RELEASE_TAG.md"
           found=false
-          for suffix in '' '-planet' '-chat'; do
+          for suffix in '' '-planet' '-chat' '-cdn'; do
             linux="downloads/astra-journey${suffix}-${RELEASE_TAG}-linux-amd64"
-            if test -f "$linux"; then
-              found=true
-            fi
+            test -f "$linux"
+            test -f "downloads/astra-journey${suffix}-${RELEASE_TAG}-windows-amd64.exe"
+            found=true
           done
           test "$found" = true
         env:
           RELEASE_TAG: ${{ github.ref_name }}
-      - name: Publish amd64 binaries and checksums
+      - name: Verify external graphics
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: python3 scripts/verify-asset-release.py "$RELEASE_TAG"
+      - name: Publish amd64 binaries, graphics and checksums
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -33,7 +37,7 @@ jobs:
         run: |
           set -euo pipefail
           executables=()
-          for suffix in '' '-planet' '-chat'; do
+          for suffix in '' '-planet' '-chat' '-cdn'; do
             linux="downloads/astra-journey${suffix}-${RELEASE_TAG}-linux-amd64"
             if test -f "$linux"; then
               executables+=("$linux")
@@ -46,8 +50,12 @@ jobs:
           if test -f "downloads/astra-journey-${RELEASE_TAG}-build.json"; then
             executables+=("downloads/astra-journey-${RELEASE_TAG}-build.json")
           fi
+          asset_archive="$(python3 -c 'import json; print(json.load(open("downloads/astra-journey-assets.json"))["archive"])')"
           gh release create "$RELEASE_TAG" \
             "${executables[@]}" \
+            "downloads/$asset_archive" \
+            downloads/astra-journey-assets.json \
+            configs/cdn.example.toml \
             configs/cosmos.example.toml \
             configs/planet.example.toml \
             configs/chat.example.toml \

@@ -10,7 +10,9 @@ Astra Journey — браузерная космическая экономиче
 
 Сервер написан на Go, данные хранятся в PostgreSQL. Интерфейс работает в браузере на HTML, CSS, JavaScript и SVG. Для запуска не нужны Node.js и npm.
 
-**Версии служб:** Cosmic, Planet и Chat 0.28.0. [Изменения выпуска](release-notes/v0.28.0.md).
+**Версии служб:** Cosmic, Planet, Chat и CDN 0.29.0. [Изменения выпуска](release-notes/v0.29.0.md).
+
+CDN автоматически получает графику из GitHub Releases и хранит её во внешних каталогах. Браузер открывает адрес CDN (по умолчанию `http://127.0.0.1:8083`); Cosmic работает на приватном `127.0.0.1:8080`. [Установка, перенос изображений и кэш](docs/operations/cdn.ru.md).
 
 В 0.28.0 обновлены «Колонии», профиль, списки систем и станций; добавлены словари PostgreSQL, одноразовые права первооткрывателя системы на названия системы и планет, единая версия интерфейса из БД и создание пустых галактик. [Подробности и обновление](docs/operations/discovery-dictionaries.ru.md).
 
@@ -82,7 +84,7 @@ Astra Journey — браузерная космическая экономиче
 
 ## Запуск в Windows
 
-Нужна PostgreSQL 17 или совместимая версия. Сборки рассчитаны на Windows x64. Для космического режима достаточно одного исполняемого файла; высадка требует второй службы той же версии.
+Нужна PostgreSQL 17 или совместимая версия. Сборки рассчитаны на Windows x64. Для космического режима нужны Cosmic и CDN; высадка требует Planet той же версии.
 
 Можно использовать существующую базу PostgreSQL, выделив игре отдельную схему. `DATABASE_URL` задаёт подключение к базе, `DB_SCHEMA` — корневое имя установки. По умолчанию это `public`; таблицы размещаются в производных предметных схемах. Cosmic создаёт отсутствующие схемы при наличии права `CREATE` на базу. Роль службы должна иметь необходимые права на схему, таблицы и последовательности.
 
@@ -99,10 +101,16 @@ $env:PLANET_INTERNAL_URL = 'http://127.0.0.1:8081'
 $env:ADMIN_USERNAME = 'operator'
 $env:ADMIN_PASSWORD = 'REPLACE_WITH_A_UNIQUE_PASSWORD'
 
-.\downloads\astra-journey-v0.28.0-windows-amd64.exe
+.\downloads\astra-journey-v0.29.0-windows-amd64.exe
 ```
 
-После запуска откройте `http://127.0.0.1:8080`. Для остановки используйте Ctrl+C. После создания администратора уберите `ADMIN_USERNAME` и `ADMIN_PASSWORD` из окружения последующих запусков.
+После Cosmic запустите CDN во втором окне PowerShell из того же каталога установки:
+
+```powershell
+.\downloads\astra-journey-cdn-v0.29.0-windows-amd64.exe
+```
+
+Служба сама создаст `data/cdn` и скачает подготовленный пакет. После её готовности откройте `http://127.0.0.1:8083`. Для остановки используйте Ctrl+C. После создания администратора уберите `ADMIN_USERNAME` и `ADMIN_PASSWORD` из окружения последующих запусков.
 
 Чтобы включить высадку, откройте **второе окно PowerShell** и запустите планетарную службу. Ниже пример с тем же логином PostgreSQL для локальной проверки; для постоянной установки рекомендуется отдельная роль с ограниченными правами.
 
@@ -110,11 +118,12 @@ $env:ADMIN_PASSWORD = 'REPLACE_WITH_A_UNIQUE_PASSWORD'
 $env:DATABASE_URL = 'postgres://cosmos:URL_ENCODED_PASSWORD@127.0.0.1:5432/existing_database?sslmode=disable'
 $env:DB_SCHEMA = 'astra_journey'
 $env:PLANET_HTTP_ADDR = '127.0.0.1:8081'
+$env:PLANET_ALLOWED_ORIGINS = 'http://127.0.0.1:8083'
 
-.\downloads\astra-journey-planet-v0.28.0-windows-amd64.exe
+.\downloads\astra-journey-planet-v0.29.0-windows-amd64.exe
 ```
 
-Обе службы используют одну базу и одну схему. Миграции выполняет космическая служба; планетарная не должна запускаться первой при обновлении схемы. В браузере нужен только порт космической службы: запросы к планетарной проходят через её шлюз.
+Обе службы используют одну базу и одну схему. Миграции выполняет космическая служба; планетарная не должна запускаться первой при обновлении схемы. Браузер обращается к CDN, запросы Planet далее проходят через шлюз Cosmic.
 
 Файл [`.env.example`](.env.example) содержит остальные параметры. Исполняемые файлы **не читают `.env` автоматически**.
 
@@ -126,17 +135,17 @@ $env:PLANET_HTTP_ADDR = '127.0.0.1:8081'
 
 ```powershell
 $env:CONFIG_FILE = 'D:\AstraJourney\configs\cosmos.toml'
-.\downloads\astra-journey-v0.28.0-windows-amd64.exe
+.\downloads\astra-journey-v0.29.0-windows-amd64.exe
 ```
 
-Для Planet и Chat используется та же переменная, но путь к их файлу.
+Для Planet, Chat и CDN используется та же переменная, но путь к их файлу.
 Если `CONFIG_FILE` не задана или пуста, остаётся прежний режим окружения.
 При выборе TOML настройки приложения из окружения не подмешиваются. После
 изменения конфигурации службу нужно перезапустить.
 
 [Полная инструкция и таблица параметров](docs/configuration.ru.md).
 Шаблоны: [Cosmic](configs/cosmos.example.toml),
-[Planet](configs/planet.example.toml), [Chat](configs/chat.example.toml).
+[Planet](configs/planet.example.toml), [Chat](configs/chat.example.toml), [CDN](configs/cdn.example.toml).
 
 ## Обновление и безопасность
 
@@ -163,7 +172,7 @@ go test ./...
 Сборка Windows amd64 и Linux amd64 из корня репозитория:
 
 ```sh
-python3 scripts/build-release.py v0.28.0
+python3 scripts/build-release.py v0.29.0 --platform both
 ```
 
 Управление космическим сервером находится в `internal/server` и профильных Go-пакетах; браузерные ресурсы — в `internal/server/web`. Node/Playwright применяются при разработке и тестировании интерфейса, но не нужны для работы Windows-сборок.

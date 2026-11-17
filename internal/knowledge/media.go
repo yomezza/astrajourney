@@ -4,43 +4,40 @@ import (
 	"bytes"
 	"context"
 	"crypto/sha256"
-	"encoding/hex"
 	"errors"
-	"image"
-	_ "image/jpeg"
-	"image/png"
-	"io"
-	"log"
-	"net/http"
-	"os"
-	"path/filepath"
-	"strings"
-	"time"
-
 	"github.com/jackc/pgx/v5"
+	"github.com/yomezza/cosmosimulator/internal/platform/gamesignal"
 	"github.com/yomezza/cosmosimulator/internal/platform/httpkit"
 	"github.com/yomezza/cosmosimulator/internal/platform/idempotency"
 	"github.com/yomezza/cosmosimulator/internal/platform/identifiers"
+	"github.com/yomezza/cosmosimulator/internal/platform/mediastore"
 	"github.com/yomezza/cosmosimulator/internal/platform/postgres"
-	_ "golang.org/x/image/webp"
+	"io"
+	"log"
+	"net/http"
+	"time"
 )
 
-const mediaLimit = 8 * 1024 * 1024
+const mediaLimit = mediastore.Limit
 
-type limitWriter struct {
-	w io.Writer
-	n int64
-}
-
-func (l *limitWriter) Write(p []byte) (int, error) {
-	if int64(len(p)) > l.n {
-		return 0, errors.New("encoded image too large")
+func mediaFailure(w http.ResponseWriter, err error) {
+	var e *mediastore.Error
+	if errors.As(err, &e) {
+		switch e.Status {
+		case 409, 413, 415, 422, 429:
+			httpkit.Fail(w, e.Status, "Изображение не принято CDN")
+			return
+		}
 	}
-	n, e := l.w.Write(p)
-	l.n -= int64(n)
-	return n, e
+	httpkit.Fail(w, 503, "Хранилище изображений недоступно")
 }
-
+func (a *Service) emitMedia(id, state string) {
+	if a.Signals != nil {
+		if message, ok := gamesignal.EncodeMedia(id, state); ok {
+			a.Signals(message)
+		}
+	}
+}
 func (a *Service) Media(w http.ResponseWriter, r *http.Request) {
 	u, ok := a.admin(w, r)
 	if !ok {
@@ -87,57 +84,16 @@ func (a *Service) Media(w http.ResponseWriter, r *http.Request) {
 	}
 	defer input.Close()
 	raw, err := io.ReadAll(io.LimitReader(input, mediaLimit+1))
-	if err != nil {
-		failure(w, err)
-		return
-	}
-	if len(raw) > mediaLimit {
+	if err != nil || int64(len(raw)) > mediaLimit {
 		httpkit.Fail(w, 413, "Изображение слишком большое")
 		return
 	}
-	config, format, err := image.DecodeConfig(bytes.NewReader(raw))
-	if err != nil || (format != "png" && format != "jpeg" && format != "webp") {
-		httpkit.Fail(w, 415, "Принимаются PNG, JPEG и WebP; загрузка SVG пока недоступна")
-		return
-	}
-	if config.Width < 1 || config.Height < 1 || config.Width > 4096 || config.Height > 4096 || bytes.Contains(raw, []byte("acTL")) || bytes.Contains(raw, []byte("ANIM")) {
-		httpkit.Fail(w, 422, "Изображение должно быть статичным и не более 4096 × 4096")
-		return
-	}
-	decoded, actual, err := image.Decode(bytes.NewReader(raw))
-	if err != nil || actual != format {
-		httpkit.Fail(w, 422, "Повреждённое изображение")
-		return
-	}
-	if err = os.MkdirAll(a.MediaDir, 0700); err != nil {
-		failure(w, err)
-		return
-	}
-	staging, err := os.CreateTemp(a.MediaDir, ".staging-")
+	// The CDN owns decoding, normalization, hashes, durable files and receipts.
+	receipt, err := a.MediaStore.Do(r.Context(), "PUT", operation, bytes.NewReader(raw))
 	if err != nil {
-		failure(w, err)
+		mediaFailure(w, err)
 		return
 	}
-	defer os.Remove(staging.Name())
-	hash := sha256.New()
-	writer := &limitWriter{io.MultiWriter(staging, hash), mediaLimit}
-	if err = png.Encode(writer, decoded); err != nil {
-		staging.Close()
-		httpkit.Fail(w, 413, "Перекодированное изображение слишком большое")
-		return
-	}
-	if err = staging.Sync(); err != nil {
-		staging.Close()
-		failure(w, err)
-		return
-	}
-	info, err := staging.Stat()
-	staging.Close()
-	if err != nil {
-		failure(w, err)
-		return
-	}
-	sum := hex.EncodeToString(hash.Sum(nil))
 	digest := idempotency.Digest(struct {
 		Input  [32]byte
 		RU, EN string
@@ -179,7 +135,17 @@ func (a *Service) Media(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else if errors.Is(err, pgx.ErrNoRows) {
-		_, err = tx.Exec(ctx, `INSERT INTO aj_guide_media(id,source_format,served_format,sha256,byte_size,pixel_width,pixel_height,object_key,state,alt_ru,alt_en,uploaded_by,request_hash) VALUES($1,$2,'png',$3,$4,$5,$6,$1,'pending',$7,$8,$9,$10)`, operation, format, sum, info.Size(), config.Width, config.Height, altRU, altEN, u.ID, digest)
+		_, err = tx.Exec(ctx, `INSERT INTO aj_guide_media(id,source_format,served_format,sha256,byte_size,pixel_width,pixel_height,object_key,state,alt_ru,alt_en,uploaded_by,request_hash) VALUES($1,$2,'png',$3,$4,$5,$6,$1,'pending',$7,$8,$9,$10)`, operation, receipt.SourceFormat, receipt.SHA256, receipt.Size, receipt.Width, receipt.Height, altRU, altEN, u.ID, digest)
+	}
+	if err != nil {
+		failure(w, err)
+		return
+	}
+	// Durable CDN receipt first, publication metadata and audit in one transaction.
+	_, err = tx.Exec(ctx, `UPDATE aj_guide_media SET state='ready' WHERE id=$1 AND state='pending' AND sha256=$2`, operation, receipt.SHA256)
+	if err == nil {
+		audit, _ := jsonMediaAudit(operation, receipt.SHA256)
+		_, err = tx.Exec(ctx, `INSERT INTO admin_log(actor,action,data) VALUES($1,'knowledge_media_upload',$2)`, u.ID, audit)
 	}
 	if err == nil {
 		err = tx.Commit(ctx)
@@ -188,74 +154,37 @@ func (a *Service) Media(w http.ResponseWriter, r *http.Request) {
 		failure(w, err)
 		return
 	}
-	target := filepath.Join(a.MediaDir, operation+".png")
-	if err = os.Rename(staging.Name(), target); err != nil {
-		// Windows refuses to rename over an existing file. A concurrent retry of
-		// the same committed intent may already have published this exact PNG.
-		file, openErr := os.Open(target)
-		if openErr != nil {
-			failure(w, err)
-			return
-		}
-		existing := sha256.New()
-		n, readErr := io.Copy(existing, io.LimitReader(file, mediaLimit+1))
-		file.Close()
-		if readErr != nil || n > mediaLimit || hex.EncodeToString(existing.Sum(nil)) != sum {
-			failure(w, err)
-			return
-		}
-	}
-	// Metadata pending + durable atomic file first; public reads require ready.
-	_, err = a.DB.Exec(ctx, `UPDATE aj_guide_media SET state='ready' WHERE id=$1 AND state='pending'`, operation)
-	if err != nil {
-		failure(w, err)
-		return
-	}
-	audit, _ := jsonMediaAudit(operation, sum)
-	_, err = a.DB.Exec(ctx, `INSERT INTO admin_log(actor,action,data) VALUES($1,'knowledge_media_upload',$2)`, u.ID, audit)
-	if err != nil {
-		failure(w, err)
-		return
-	}
-	httpkit.Reply(w, 200, map[string]any{"id": operation, "state": "ready", "sha256": sum, "width": config.Width, "height": config.Height})
+	a.emitMedia(operation, "ready")
+	httpkit.Reply(w, 200, map[string]any{"id": operation, "state": "ready", "sha256": receipt.SHA256, "width": receipt.Width, "height": receipt.Height})
 }
 func jsonMediaAudit(id, hash string) ([]byte, error) {
 	return []byte(`{"id":"` + id + `","sha256":"` + hash + `"}`), nil
 }
-func (a *Service) MediaView(w http.ResponseWriter, r *http.Request) {
+
+// MediaAuthorize is service-authenticated and returns metadata, never image bytes.
+func (a *Service) MediaAuthorize(w http.ResponseWriter, r *http.Request) {
+	token, err := mediastore.Token(a.MediaStore.TokenFile)
+	if err != nil || !mediastore.Authorized(r, token) {
+		httpkit.Fail(w, 403, "service authentication required")
+		return
+	}
 	u, ok := a.Auth.User(w, r)
 	if !ok {
 		return
 	}
 	id := r.PathValue("id")
 	if !identifiers.ValidUUID(id) {
-		httpkit.Fail(w, 404, "Изображение не найдено")
+		http.NotFound(w, r)
 		return
 	}
 	var object, hash string
 	var visible bool
-	err := a.DB.QueryRow(r.Context(), visibleCategories+`SELECT m.object_key::text,m.sha256,($2 OR EXISTS(SELECT 1 FROM aj_guide_revision_media x JOIN aj_guide_publications p ON (p.article_id,p.revision,p.locale)=(x.article_id,x.revision,x.locale) JOIN aj_guide_articles a ON a.id=p.article_id JOIN visible c ON c.id=a.category_id WHERE x.uploaded_media_id=m.id AND a.status='active')) FROM aj_guide_media m WHERE m.id=$1 AND m.state='ready'`, id, u.Role == "admin").Scan(&object, &hash, &visible)
+	err = a.DB.QueryRow(r.Context(), visibleCategories+`SELECT m.object_key::text,m.sha256,($2 OR EXISTS(SELECT 1 FROM aj_guide_revision_media x JOIN aj_guide_publications p ON (p.article_id,p.revision,p.locale)=(x.article_id,x.revision,x.locale) JOIN aj_guide_articles a ON a.id=p.article_id JOIN visible c ON c.id=a.category_id WHERE x.uploaded_media_id=m.id AND a.status='active')) FROM aj_guide_media m WHERE m.id=$1 AND m.state='ready'`, id, u.Role == "admin").Scan(&object, &hash, &visible)
 	if err != nil || !visible || !identifiers.ValidUUID(object) {
-		httpkit.Fail(w, 404, "Изображение не найдено")
+		http.NotFound(w, r)
 		return
 	}
-	file, err := os.Open(filepath.Join(a.MediaDir, object+".png"))
-	if err != nil {
-		httpkit.Fail(w, 404, "Изображение недоступно")
-		return
-	}
-	defer file.Close()
-	info, err := file.Stat()
-	if err != nil {
-		failure(w, err)
-		return
-	}
-	w.Header().Set("Content-Type", "image/png")
-	w.Header().Set("X-Content-Type-Options", "nosniff")
-	w.Header().Set("Content-Security-Policy", "sandbox; default-src 'none'")
-	w.Header().Set("Cache-Control", "private, max-age=300")
-	w.Header().Set("ETag", `"`+hash+`"`)
-	http.ServeContent(w, r, "image.png", info.ModTime(), file)
+	httpkit.Reply(w, 200, mediastore.Receipt{ID: object, SHA256: hash})
 }
 func (a *Service) DeleteMedia(w http.ResponseWriter, r *http.Request) {
 	a.mutate(w, r, func(ctx context.Context, tx pgx.Tx, actor int64, in Edit) (any, error) {
@@ -281,94 +210,75 @@ func (a *Service) DeleteMedia(w http.ResponseWriter, r *http.Request) {
 			return nil, pgx.ErrNoRows
 		}
 		return map[string]any{"id": in.ID, "deleted": true}, nil
+	}, func(result any) {
+		if item, ok := result.(map[string]any); ok {
+			if id, ok := item["id"].(string); ok {
+				a.emitMedia(id, "deleted")
+			}
+		}
 	})
 }
 
-// Maintain removes only explicitly deleted, unreferenced media after 30 days,
-// and stale staging/orphan files after a day. Published revision files survive.
+// Maintain reconciles durable metadata against CDN receipts. An unreachable CDN
+// is an operational error, never evidence that images disappeared.
 func (a *Service) Maintain(ctx context.Context) error {
-	// Repair a committed pending intent only when its durable PNG matches the
-	// stored digest. A missing ready file is quarantined, never replaced by input.
-	items, e := postgres.QueryMaps(ctx, a.DB, `SELECT id::text,object_key::text,sha256,state FROM aj_guide_media WHERE state IN('pending','ready') ORDER BY last_verified_at NULLS FIRST,uploaded_at LIMIT 200`)
-	if e != nil {
-		return e
+	items, err := postgres.QueryMaps(ctx, a.DB, `SELECT id::text,object_key::text,sha256,state,uploaded_at<clock_timestamp()-interval '24 hours' AS stale FROM aj_guide_media WHERE state IN('pending','ready') ORDER BY last_verified_at NULLS FIRST,uploaded_at LIMIT 200`)
+	if err != nil {
+		return err
 	}
 	for _, item := range items {
+		id := fmtValue(item["id"])
 		object := fmtValue(item["object_key"])
 		if !identifiers.ValidUUID(object) {
 			continue
 		}
-		file, readErr := os.Open(filepath.Join(a.MediaDir, object+".png"))
+		receipt, readErr := a.MediaStore.Do(ctx, "GET", object, nil)
+		state := "ready"
 		if readErr != nil {
-			if !os.IsNotExist(readErr) {
+			var e *mediastore.Error
+			if !errors.As(readErr, &e) || e.Status != 404 && e.Status != 422 {
 				return readErr
 			}
-			if _, e = a.DB.Exec(ctx, `UPDATE aj_guide_media SET last_verified_at=clock_timestamp(),state=CASE WHEN state='ready' OR uploaded_at<clock_timestamp()-interval '24 hours' THEN 'quarantined' ELSE state END WHERE id=$1 AND state IN('pending','ready')`, item["id"]); e != nil {
-				return e
+			state = fmtValue(item["state"])
+			if e.Status == 422 || state == "ready" || item["stale"] == true {
+				state = "quarantined"
 			}
-			continue
-		}
-		hash := sha256.New()
-		length, readErr := io.Copy(hash, io.LimitReader(file, mediaLimit+1))
-		file.Close()
-		if readErr != nil {
-			return readErr
-		}
-		state := "ready"
-		if length > mediaLimit || hex.EncodeToString(hash.Sum(nil)) != item["sha256"] {
+		} else if receipt.SHA256 != item["sha256"] {
 			state = "quarantined"
 		}
-		if _, e = a.DB.Exec(ctx, `UPDATE aj_guide_media SET state=$2,last_verified_at=clock_timestamp() WHERE id=$1 AND state IN('pending','ready')`, item["id"], state); e != nil {
-			return e
+		if _, err = a.DB.Exec(ctx, `UPDATE aj_guide_media SET state=$2,last_verified_at=clock_timestamp() WHERE id=$1 AND state IN('pending','ready')`, id, state); err != nil {
+			return err
+		}
+		if state != fmtValue(item["state"]) {
+			a.emitMedia(id, state)
 		}
 	}
-	entries, err := os.ReadDir(a.MediaDir)
-	if os.IsNotExist(err) {
-		return nil
-	}
+	deleted, err := postgres.QueryMaps(ctx, a.DB, `SELECT object_key::text,sha256 FROM aj_guide_media m WHERE state='deleted' AND deleted_at<clock_timestamp()-interval '30 days' AND NOT EXISTS(SELECT 1 FROM aj_guide_revision_media x WHERE x.uploaded_media_id=m.id) LIMIT 200`)
 	if err != nil {
 		return err
 	}
-	for _, entry := range entries {
-		if entry.IsDir() {
-			continue
-		}
-		info, e := entry.Info()
-		if e != nil || time.Since(info.ModTime()) < 24*time.Hour {
-			continue
-		}
-		name := entry.Name()
-		remove := strings.HasPrefix(name, ".staging-")
-		if strings.HasSuffix(name, ".png") && identifiers.ValidUUID(strings.TrimSuffix(name, ".png")) {
-			var exists, deleted bool
-			e = a.DB.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM aj_guide_media WHERE object_key=$1),EXISTS(SELECT 1 FROM aj_guide_media m WHERE object_key=$1 AND state='deleted' AND deleted_at<clock_timestamp()-interval '30 days' AND NOT EXISTS(SELECT 1 FROM aj_guide_revision_media x WHERE x.uploaded_media_id=m.id))`, strings.TrimSuffix(name, ".png")).Scan(&exists, &deleted)
-			if e != nil {
-				return e
-			}
-			remove = !exists || deleted
-		}
-		if remove {
-			if e = os.Remove(filepath.Join(a.MediaDir, name)); e != nil && !os.IsNotExist(e) {
-				return e
-			}
+	for _, item := range deleted {
+		_, err = a.MediaStore.Do(ctx, "DELETE", fmtValue(item["object_key"])+"?sha256="+fmtValue(item["sha256"]), nil)
+		if err != nil {
+			return err
 		}
 	}
 	return nil
 }
-
 func (a *Service) Run(ctx context.Context) {
-	timer := time.NewTicker(time.Hour)
-	defer timer.Stop()
+	ticker := time.NewTicker(time.Hour)
+	defer ticker.Stop()
 	for {
 		bounded, cancel := context.WithTimeout(ctx, 30*time.Second)
-		if err := a.Maintain(bounded); err != nil && ctx.Err() == nil {
+		err := a.Maintain(bounded)
+		cancel()
+		if err != nil && ctx.Err() == nil {
 			log.Printf("Knowledge media maintenance: %v", err)
 		}
-		cancel()
 		select {
 		case <-ctx.Done():
 			return
-		case <-timer.C:
+		case <-ticker.C:
 		}
 	}
 }

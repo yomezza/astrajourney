@@ -10,12 +10,12 @@ import (
 )
 
 func TestObjectHolograms080(t *testing.T) {
-	files, err := fs.Glob(testAssets, "web/object-*.svg")
+	files, err := fs.Glob(graphicAssets, "space/objects/object-*.svg")
 	// The research catalogue also contains a static unknown-object placeholder.
 	// Its drawing is not one of the seventeen animated object holograms.
 	holograms := files[:0]
 	for _, file := range files {
-		if file != "web/object-unknown.svg" {
+		if file != "space/objects/object-unknown.svg" {
 			holograms = append(holograms, file)
 		}
 	}
@@ -25,7 +25,7 @@ func TestObjectHolograms080(t *testing.T) {
 	}
 	for _, file := range files {
 		t.Run(file, func(t *testing.T) {
-			data, err := testAssets.ReadFile(file)
+			data, err := fs.ReadFile(graphicAssets, file)
 			if err != nil {
 				t.Fatal(err)
 			}

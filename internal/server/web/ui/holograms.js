@@ -1,3 +1,4 @@
+import { assetURL } from "../core/assets.js";
 import { AssetCache } from "../core/asset-cache.js";
 
 import { I18n } from "../core/i18n.js";
@@ -9,7 +10,7 @@ export function initHolograms() {
   let serial = 0;
   function template(source) {
     return templates.load(source, async () => {
-      const response = await fetch(source);
+      const response = await fetch(assetURL(source), { cache: "force-cache" });
       if (!response.ok) throw Error("Hologram unavailable");
       const svg = new DOMParser().parseFromString(
         await response.text(),
@@ -55,7 +56,8 @@ export function initHolograms() {
     states.set(holder, state);
     holder.replaceChildren();
     holder.dataset.model = source;
-    if (!/^[a-z][a-z0-9-]*\.svg$/.test(source)) return;
+    if (!/^[a-z][a-z0-9-]*\.svg$/.test(source) && !/^\/?assets\/sha256\/[a-f0-9]{64}\/space\/(ships|objects)\/[a-z0-9-]+\.svg$/.test(source)) return;
+    if (source.startsWith("assets/sha256/")) source = "/" + source;
     template(source)
       .then((original) => {
         if (states.get(holder) !== state || !holder.isConnected) return;

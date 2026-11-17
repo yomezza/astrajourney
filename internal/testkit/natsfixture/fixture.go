@@ -88,6 +88,7 @@ type Broker struct {
 	OperatorPassword                   string
 	PlanetPassword, PlanetPasswordFile string
 	CosmosPassword, CosmosPasswordFile string
+	CDNPassword                        string
 }
 
 func New(t *testing.T, options Options) *Broker {
@@ -171,8 +172,17 @@ func New(t *testing.T, options Options) *Broker {
 		if e = os.WriteFile(b.CosmosPasswordFile, []byte(b.CosmosPassword), 0600); e != nil {
 			t.Fatal(e)
 		}
-		users = append(users, map[string]any{"user": "cosmos", "password": hash(b.CosmosPassword), "permissions": map[string]any{"publish": map[string]any{"allow": gamesignal.CosmicSubjects}, "subscribe": map[string]any{"allow": []string{gamesignal.CleanupSubject}}}})
+		users = append(users, map[string]any{"user": "cosmos", "password": hash(b.CosmosPassword), "permissions": map[string]any{"publish": map[string]any{"allow": append(append([]string{}, gamesignal.CosmicSubjects...), gamesignal.MediaChangedSubject)}, "subscribe": map[string]any{"allow": []string{gamesignal.CleanupSubject}}}})
 	}
+	if options.N6 {
+		secret := make([]byte, 32)
+		if _, e = rand.Read(secret); e != nil {
+			t.Fatal(e)
+		}
+		b.CDNPassword = base64.RawURLEncoding.EncodeToString(secret)
+		users = append(users, map[string]any{"user": "cdn", "password": hash(b.CDNPassword), "permissions": map[string]any{"publish": map[string]any{"allow": []string{gamesignal.AssetsReadySubject, gamesignal.AssetsChangedSubject}}, "subscribe": map[string]any{"allow": []string{gamesignal.MediaChangedSubject}}}})
+	}
+
 	config := map[string]any{"server_name": "n3-disposable", "host": "127.0.0.1", "port": port, "tls": map[string]any{"cert_file": m.CertFile, "key_file": m.KeyFile, "min_version": "1.2", "timeout": 2}, "authorization": map[string]any{"users": users}, "log_file": b.LogFile}
 	if options.Plain {
 		delete(config, "tls")
@@ -225,7 +235,7 @@ func (b *Broker) Start() {
 		case <-b.done:
 			b.cmd = nil
 			message := strings.ReplaceAll(strings.ReplaceAll(b.stderr.String(), b.Password, "[redacted]"), b.OperatorPassword, "[redacted]")
-			for _, secret := range []string{b.PlanetPassword, b.CosmosPassword} {
+			for _, secret := range []string{b.PlanetPassword, b.CosmosPassword, b.CDNPassword} {
 				if secret != "" {
 					message = strings.ReplaceAll(message, secret, "[redacted]")
 				}

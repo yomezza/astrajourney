@@ -3,6 +3,8 @@ package integration
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/yomezza/cosmosimulator/internal/cdnserver"
+	"github.com/yomezza/cosmosimulator/internal/platform/mediastore"
 	"image"
 	"image/png"
 	"mime/multipart"
@@ -122,7 +124,16 @@ func TestKnowledgeMedia251(t *testing.T) {
 	admin, uid := f.signup("media251")
 	player, _ := f.signup("mediareader251")
 	f.exec(`UPDATE users SET role='admin' WHERE id=$1`, uid)
-	f.app.Knowledge.MediaDir = t.TempDir()
+	mediaRoot := t.TempDir()
+	cosmic := httptest.NewServer(f.handler)
+	cdn, err := cdnserver.New(cdnserver.Config{StorageRoot: mediaRoot, CosmicURL: cosmic.URL})
+	if err != nil {
+		t.Fatal(err)
+	}
+	endpoint := httptest.NewServer(cdn.Handler())
+	t.Cleanup(func() { endpoint.Close(); cosmic.Close(); cdn.Close() })
+	f.app.Knowledge.MediaStore = &mediastore.Client{BaseURL: endpoint.URL, TokenFile: filepath.Join(mediaRoot, "state", "service.token"), HTTP: endpoint.Client()}
+	f.handler = cdn.Handler()
 	upload := func(c *http.Cookie, op string, body []byte, status int) map[string]any {
 		t.Helper()
 		var content bytes.Buffer
@@ -166,7 +177,7 @@ func TestKnowledgeMedia251(t *testing.T) {
 	if f.integer(`SELECT count(*) FROM aj_guide_media WHERE id=$1 AND state='ready'`, id) != 1 {
 		t.Fatal("pending file was not repaired")
 	}
-	if err := os.Remove(filepath.Join(f.app.Knowledge.MediaDir, id+".png")); err != nil {
+	if err := os.Remove(filepath.Join(mediaRoot, "private", "guide", "objects", id[:2], id+".png")); err != nil {
 		t.Fatal(err)
 	}
 	if err := f.app.Knowledge.Maintain(f.ctx); err != nil {

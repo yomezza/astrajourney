@@ -7,7 +7,7 @@ schema = 'astra_journey' # Новая установка; при обновле�
 http_addr = '127.0.0.1:8082'
 cosmic_internal_url = 'http://127.0.0.1:8080'
 planet_internal_url = 'http://127.0.0.1:8081'
-allowed_origins = ['http://192.168.111.44:8080']
+allowed_origins = ['http://192.168.111.44:8083']
 # Путь относительно TOML; заранее создайте каталог и сохраните старый журнал.
 erasure_journal = '../data/chat-erasure.log'
 
@@ -43,4 +43,4 @@ reconnect_wait = '1s'
 
 # С 0.24.13: для подключения без TLS используйте nats://host:4222,
 # удалите ca_file/password_file и задайте password = 'YOUR_NATS_PASSWORD'.
-# Общий конфиг трёх служб: shared.example.toml.
+# Общий конфиг четырёх служб: shared.example.toml.

@@ -39,7 +39,7 @@ test("local art uses saved masks, global texture UV, one atlas and server-facing
   const g = await game(t, { signedIn: true });
   await g.ready();
   assert.equal(
-    g.assets.some((p) => p.includes("/planet-pixelart-v1/")),
+    g.assets.some((p) => p.includes("/planet/pixelart-v1/")),
     false,
   );
   const scene = localArtScene();

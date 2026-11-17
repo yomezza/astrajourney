@@ -1,3 +1,4 @@
+import { assetURL } from "../../core/assets.js";
 // Public images only. Decoded bitmaps are leased by renderers; idle entries are
 // evicted in LRU order. A closed renderer never retains a decoding request.
 import { ART_PATHS as paths } from "./art-pack.js";
@@ -34,7 +35,7 @@ function entry(key) {
   };
   entries.set(key, e);
   e.promise = (async () => {
-    const response = await fetch(paths[key], {
+    const response = await fetch(assetURL(paths[key]), {
       signal: AbortSignal.any([e.abort.signal, AbortSignal.timeout(8000)]),
       cache: "force-cache",
     });
