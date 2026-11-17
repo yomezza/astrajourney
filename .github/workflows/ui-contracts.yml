@@ -62,7 +62,21 @@ jobs:
           go-version-file: go.mod
       - name: Terminal browser against real Go and PostgreSQL
         working-directory: .
-        run: go test ./internal/server/integration -run '^(TestCDNProductionBrowserCache290|TestTerminalBrowser|TestPlanetBrowser180|TestPlanetWalkingBrowser257|TestPlanetTransitionsBrowser210|TestDiscoveryGuidePlanetBrowser250|TestChat240FiftyConnections|TestGalaxyEditorBrowser|TestNotificationsCompactBrowser)$' -count=1 -timeout=5m -v
+        run: |
+          if go test ./internal/server/integration -run '^(TestCDNProductionBrowserCache290|TestTerminalBrowser|TestPlanetBrowser180|TestPlanetWalkingBrowser257|TestPlanetTransitionsBrowser210|TestDiscoveryGuidePlanetBrowser250|TestChat240FiftyConnections|TestGalaxyEditorBrowser|TestNotificationsCompactBrowser)$' -count=1 -timeout=5m -v > /tmp/astra-browser.log 2>&1; then
+            cat /tmp/astra-browser.log
+          else
+            cat /tmp/astra-browser.log
+            python3 - <<'PYDIAG'
+          import re
+          from pathlib import Path
+          lines = Path('/tmp/astra-browser.log').read_text().splitlines()
+          evidence = [line for line in lines if re.search(r'--- FAIL:|Error:|AssertionError|Timeout|waiting for|actual:|expected:|at .*mjs:', line)]
+          message = '\n'.join(evidence[-70:]) or 'Browser integration failed; see job output'
+          print('::error::' + message.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A'))
+          PYDIAG
+            exit 1
+          fi
         env:
           RUN_CDN_BROWSER: '1'
           RUN_TERMINAL_BROWSER: '1'
