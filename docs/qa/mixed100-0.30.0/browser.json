@@ -1,0 +1,709 @@
+{
+  "started_at": "2026-11-17T12:45:03.865Z",
+  "module_openings": [
+    {
+      "id": "market",
+      "ms": 182.09687200000008,
+      "at": "2026-11-17T12:45:06.300Z",
+      "ok": true
+    },
+    {
+      "id": "tasks",
+      "ms": 96.79016599999886,
+      "at": "2026-11-17T12:45:26.433Z",
+      "ok": true
+    },
+    {
+      "id": "studies",
+      "ms": 390.45742600000085,
+      "at": "2026-11-17T12:46:06.901Z",
+      "ok": true
+    },
+    {
+      "id": "galaxy",
+      "ms": 30008.47320800001,
+      "ok": false,
+      "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#sidebar [data-open=\"galaxy\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-open=\"galaxy\" title=\"Галактическая кар"
+    },
+    {
+      "id": "market",
+      "ms": 67.46606400000746,
+      "at": "2026-11-17T12:47:37.062Z",
+      "ok": true
+    },
+    {
+      "id": "tasks",
+      "ms": 220.2403639999975,
+      "at": "2026-11-17T12:47:57.302Z",
+      "ok": true
+    },
+    {
+      "id": "studies",
+      "ms": 224.3236259999976,
+      "at": "2026-11-17T12:48:37.571Z",
+      "ok": true
+    },
+    {
+      "id": "galaxy",
+      "ms": 30014.248036000005,
+      "ok": false,
+      "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#sidebar [data-open=\"galaxy\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-open=\"galaxy\" title=\"Галактическая кар"
+    },
+    {
+      "id": "market",
+      "ms": 172.5634940000018,
+      "at": "2026-11-17T12:50:07.878Z",
+      "ok": true
+    },
+    {
+      "id": "tasks",
+      "ms": 283.1982629999984,
+      "at": "2026-11-17T12:50:28.175Z",
+      "ok": true
+    },
+    {
+      "id": "studies",
+      "ms": 85.45908200001577,
+      "at": "2026-11-17T12:51:08.346Z",
+      "ok": true
+    },
+    {
+      "id": "galaxy",
+      "ms": 30010.443583999993,
+      "ok": false,
+      "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#sidebar [data-open=\"galaxy\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-open=\"galaxy\" title=\"Галактическая кар"
+    },
+    {
+      "id": "market",
+      "ms": 131.4765910000424,
+      "at": "2026-11-17T12:52:38.591Z",
+      "ok": true
+    },
+    {
+      "id": "tasks",
+      "ms": 189.1631500000367,
+      "at": "2026-11-17T12:52:58.800Z",
+      "ok": true
+    },
+    {
+      "id": "studies",
+      "ms": 200.33619100000942,
+      "at": "2026-11-17T12:53:39.114Z",
+      "ok": true
+    },
+    {
+      "id": "galaxy",
+      "ms": 30015.51679100003,
+      "ok": false,
+      "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#sidebar [data-open=\"galaxy\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-open=\"galaxy\" title=\"Галактическая кар"
+    },
+    {
+      "id": "market",
+      "ms": 200.9082299999427,
+      "at": "2026-11-17T12:55:09.484Z",
+      "ok": true
+    },
+    {
+      "id": "tasks",
+      "ms": 187.32164099998772,
+      "at": "2026-11-17T12:55:29.689Z",
+      "ok": true
+    },
+    {
+      "id": "studies",
+      "ms": 194.55244400002994,
+      "at": "2026-11-17T12:56:09.960Z",
+      "ok": true
+    },
+    {
+      "id": "galaxy",
+      "ms": 30008.991255,
+      "ok": false,
+      "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#sidebar [data-open=\"galaxy\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-open=\"galaxy\" title=\"Галактическая кар"
+    },
+    {
+      "id": "market",
+      "ms": 214.17511700000614,
+      "at": "2026-11-17T12:57:40.259Z",
+      "ok": true
+    },
+    {
+      "id": "tasks",
+      "ms": 65.89284500002395,
+      "at": "2026-11-17T12:58:00.343Z",
+      "ok": true
+    },
+    {
+      "id": "studies",
+      "ms": 188.837598000071,
+      "at": "2026-11-17T12:58:40.590Z",
+      "ok": true
+    },
+    {
+      "id": "galaxy",
+      "ms": 30043.811647000024,
+      "ok": false,
+      "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#sidebar [data-open=\"galaxy\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-open=\"galaxy\" title=\"Галактическая кар"
+    },
+    {
+      "id": "market",
+      "ms": 236.3660970000783,
+      "at": "2026-11-17T13:00:10.985Z",
+      "ok": true
+    },
+    {
+      "id": "tasks",
+      "ms": 74.1504010000499,
+      "at": "2026-11-17T13:00:31.086Z",
+      "ok": true
+    },
+    {
+      "id": "studies",
+      "ms": 132.01753999991342,
+      "at": "2026-11-17T13:01:11.321Z",
+      "ok": true
+    },
+    {
+      "id": "galaxy",
+      "ms": 30021.177349000005,
+      "ok": false,
+      "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#sidebar [data-open=\"galaxy\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-open=\"galaxy\" title=\"Галактическая кар"
+    },
+    {
+      "id": "market",
+      "ms": 207.55098500009626,
+      "at": "2026-11-17T13:02:41.664Z",
+      "ok": true
+    },
+    {
+      "id": "tasks",
+      "ms": 127.71587800001726,
+      "at": "2026-11-17T13:03:01.814Z",
+      "ok": true
+    },
+    {
+      "id": "studies",
+      "ms": 55.73673100001179,
+      "at": "2026-11-17T13:03:41.937Z",
+      "ok": true
+    },
+    {
+      "id": "galaxy",
+      "ms": 30035.855610999977,
+      "ok": false,
+      "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#sidebar [data-open=\"galaxy\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-open=\"galaxy\" title=\"Галактическая кар"
+    },
+    {
+      "id": "market",
+      "ms": 117.94572499999776,
+      "at": "2026-11-17T13:05:12.176Z",
+      "ok": true
+    },
+    {
+      "id": "tasks",
+      "ms": 199.48114899988286,
+      "at": "2026-11-17T13:05:32.399Z",
+      "ok": true
+    },
+    {
+      "id": "studies",
+      "ms": 167.2588120000437,
+      "at": "2026-11-17T13:06:12.648Z",
+      "ok": true
+    },
+    {
+      "id": "galaxy",
+      "ms": 30032.88602900016,
+      "ok": false,
+      "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#sidebar [data-open=\"galaxy\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-open=\"galaxy\" title=\"Галактическая кар"
+    },
+    {
+      "id": "market",
+      "ms": 146.86905900016427,
+      "at": "2026-11-17T13:07:42.915Z",
+      "ok": true
+    },
+    {
+      "id": "tasks",
+      "ms": 69.50101799983531,
+      "at": "2026-11-17T13:08:03.066Z",
+      "ok": true
+    },
+    {
+      "id": "studies",
+      "ms": 170.72557300003245,
+      "at": "2026-11-17T13:08:43.323Z",
+      "ok": true
+    },
+    {
+      "id": "galaxy",
+      "ms": 30015.521915000165,
+      "ok": false,
+      "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#sidebar [data-open=\"galaxy\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-open=\"galaxy\" title=\"Галактическая кар"
+    },
+    {
+      "id": "market",
+      "ms": 111.80582799995318,
+      "at": "2026-11-17T13:10:13.523Z",
+      "ok": true
+    },
+    {
+      "id": "tasks",
+      "ms": 192.98848499986343,
+      "at": "2026-11-17T13:10:33.744Z",
+      "ok": true
+    },
+    {
+      "id": "studies",
+      "ms": 240.61214100010693,
+      "at": "2026-11-17T13:11:14.090Z",
+      "ok": true
+    },
+    {
+      "id": "galaxy",
+      "ms": 30022.89574999991,
+      "ok": false,
+      "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#sidebar [data-open=\"galaxy\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-open=\"galaxy\" title=\"Галактическая кар"
+    },
+    {
+      "id": "market",
+      "ms": 211.91508299997076,
+      "at": "2026-11-17T13:12:44.460Z",
+      "ok": true
+    },
+    {
+      "id": "tasks",
+      "ms": 120.62779900012538,
+      "at": "2026-11-17T13:13:04.600Z",
+      "ok": true
+    },
+    {
+      "id": "studies",
+      "ms": 76.4863179998938,
+      "at": "2026-11-17T13:13:44.769Z",
+      "ok": true
+    },
+    {
+      "id": "galaxy",
+      "ms": 30028.027575999964,
+      "ok": false,
+      "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#sidebar [data-open=\"galaxy\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-open=\"galaxy\" title=\"Галактическая кар"
+    }
+  ],
+  "page_errors": [],
+  "http_errors": [
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/notifications",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/notifications",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/notifications",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/notifications",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/history",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/notifications",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/notifications",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/history",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/notifications",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/history",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/history",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/notifications",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/history",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    },
+    {
+      "path": "/chat/api/v1/bootstrap",
+      "status": 429
+    }
+  ],
+  "requests": 7926,
+  "websockets": 1,
+  "ready": true,
+  "initial_ready_ms": 1078.0278130000002,
+  "performance": {
+    "long_tasks": {
+      "long_tasks": 16,
+      "long_task_ms": 1065,
+      "long_task_max_ms": 100
+    },
+    "resource_entries": 250
+  },
+  "finished_at": "2026-11-17T13:14:54.909Z"
+}

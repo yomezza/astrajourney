@@ -1,0 +1,5 @@
+{
+  "first_5_minutes_postgres_cores": 1.1690020365752114,
+  "last_5_minutes_postgres_cores": 2.014997538762392,
+  "note": "Per-PID CPU delta summed for live PostgreSQL tree; no attribution to a particular SQL query was measured."
+}

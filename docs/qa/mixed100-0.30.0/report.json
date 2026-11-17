@@ -1,0 +1,1538 @@
+{
+  "binary_sha256": {
+    "cdn": "66c1e6ce22b37ae890bc2d24f48a71073de6400036c4ce5a6e73d635ce1b8414",
+    "chat": "3356a16396e2da33914f2838eee2fef601c570a717e9316966edfa30ad0d8faf",
+    "cosmos": "bd1f8c126a352f12c4964f57412aa047212dd5866c3aef9b787dcdb24c87de35",
+    "planet": "c0fd1f15a036d65023d2f5a74db57602cf8261c9b9322d3431e78177c0ba28da",
+    "web": "5ba71f22d1fea79652980dcd7931679d575cfb6135dcb75e86e423554ba41743"
+  },
+  "cgroup": {
+    "cpu.max": "400000 100000",
+    "cpu.stat": "usage_usec 5377827386\nuser_usec 4348362588\nsystem_usec 1029464798\nnice_usec 0\nnr_periods 56782\nnr_throttled 1671\nthrottled_usec 46908623\nnr_bursts 0\nburst_usec 0",
+    "memory.current": "2090430464",
+    "memory.max": "34359738368",
+    "memory.peak": "6879387648"
+  },
+  "cgroup_end": {
+    "cpu.max": "400000 100000",
+    "cpu.stat": "usage_usec 11490356945\nuser_usec 9314268712\nsystem_usec 2176088232\nnice_usec 0\nnr_periods 76140\nnr_throttled 12704\nthrottled_usec 677466505\nnr_bursts 0\nburst_usec 0",
+    "memory.current": "7842549760",
+    "memory.max": "34359738368",
+    "memory.peak": "8152662016"
+  },
+  "chat_writers_percent": 80,
+  "database": "mixed100_1794919365100694328_test",
+  "dispatcher": "b1",
+  "finished_at": "2026-11-17T13:15:13.989707231Z",
+  "go": "go1.26.0",
+  "graph_systems": 3000,
+  "integrity": {
+    "chat_messages": 7363,
+    "chat_unique_ids": 7363,
+    "completed_planner_tasks": 19,
+    "negative_ship_cargo": 0,
+    "negative_user_balance": 0,
+    "planner_tasks": 19,
+    "saved_buildings": 6,
+    "ships": 100,
+    "users": 100
+  },
+  "landing_sites": 3,
+  "logging_all_services": true,
+  "logs": {
+    "browser.console.log": 0,
+    "cdn.console.log": 696903,
+    "cdn.install.log": 61,
+    "cdn.jsonl": 696842,
+    "chat.console.log": 1081694632,
+    "chat.jsonl": 1081694571,
+    "cosmos.console.log": 342691780,
+    "cosmos.jsonl": 342691719,
+    "planet.console.log": 126523750,
+    "planet.jsonl": 126523689,
+    "planet.legacy.log": 126523689,
+    "web.console.log": 777819706,
+    "web.install.log": 117,
+    "web.jsonl": 777819645
+  },
+  "nats_tls": true,
+  "phase_result": "completed",
+  "phases": [
+    {
+      "aborted": "",
+      "name": "players_25",
+      "seconds": 60.00175252,
+      "ticks_advanced": 6,
+      "users": 25
+    },
+    {
+      "aborted": "",
+      "name": "players_50",
+      "seconds": 60.000194179,
+      "ticks_advanced": 5,
+      "users": 50
+    },
+    {
+      "aborted": "",
+      "name": "players_100",
+      "seconds": 1800.000555857,
+      "ticks_advanced": 170,
+      "users": 100
+    }
+  ],
+  "planet_percent": 30,
+  "planned_users": 100,
+  "pool_max_per_service": 8,
+  "result": {
+    "chat_ack_ok": 7363,
+    "chat_ack_seen_in_history": 7363,
+    "chat_ack_unseen_over_10s": 0,
+    "chat_sent": 7363,
+    "counts": {
+      "drain/chat.sync": 109,
+      "drain/chat.ws_bytes": 125144,
+      "drain/http_rejection//api/expedition/Лимит добычи исчерпан": 1,
+      "drain/http_rejection//chat/api/v1/bootstrap/server_busy": 35,
+      "drain/http_rejection//chat/api/v1/history/server_busy": 35,
+      "drain/http_rejection//chat/api/v1/notifications/server_busy": 35,
+      "drain/planet.move_sent": 1,
+      "drain/planet.transition_complete": 5,
+      "players_100/chat.client_coalesced": 8695,
+      "players_100/chat.sync": 419821,
+      "players_100/chat.ws_bytes": 29335472,
+      "players_100/http_rejection//api/expedition/Лимит добычи исчерпан": 2564,
+      "players_100/http_rejection//chat/api/v1/bootstrap/server_busy": 84799,
+      "players_100/http_rejection//chat/api/v1/history/server_busy": 88591,
+      "players_100/http_rejection//chat/api/v1/notifications/server_busy": 95767,
+      "players_100/planet.move_sent": 9236,
+      "players_100/planet.no_local_build_site": 86,
+      "players_100/planet.transition_complete": 446,
+      "players_25/chat.sync": 1190,
+      "players_25/chat.ws_bytes": 218259,
+      "players_25/planet.move_sent": 55,
+      "players_25/planet.transition_complete": 5,
+      "players_50/chat.client_coalesced": 1,
+      "players_50/chat.sync": 4565,
+      "players_50/chat.ws_bytes": 464598,
+      "players_50/planet.move_sent": 133,
+      "players_50/planet.no_local_build_site": 1,
+      "players_50/planet.transition_complete": 8
+    },
+    "metrics": {
+      "drain/chat.message_ack": {
+        "body_bytes": 553,
+        "codes": {
+          "ok": 2
+        },
+        "count": 2,
+        "max_ms": 271.200666,
+        "mean_ms": 213.0753505,
+        "p50_ms": 154.950035,
+        "p95_ms": 271.200666,
+        "p99_ms": 271.200666,
+        "samples": 2
+      },
+      "drain/chat.send_to_first_history": {
+        "body_bytes": 0,
+        "codes": {
+          "ok": 3
+        },
+        "count": 3,
+        "max_ms": 1120.964917,
+        "mean_ms": 636.8124206666666,
+        "p50_ms": 435.593348,
+        "p95_ms": 1120.964917,
+        "p99_ms": 1120.964917,
+        "samples": 3
+      },
+      "drain/http GET /api/expedition": {
+        "body_bytes": 845786,
+        "codes": {
+          "200": 208,
+          "cancelled": 1
+        },
+        "count": 209,
+        "max_ms": 367.770753,
+        "mean_ms": 20.633282397129186,
+        "p50_ms": 10.659405,
+        "p95_ms": 36.897398,
+        "p99_ms": 238.149851,
+        "samples": 209
+      },
+      "drain/http GET /api/fleet": {
+        "body_bytes": 454198,
+        "codes": {
+          "200": 209
+        },
+        "count": 209,
+        "max_ms": 368.661475,
+        "mean_ms": 19.48278004784689,
+        "p50_ms": 9.846099,
+        "p95_ms": 34.594983,
+        "p99_ms": 238.0812,
+        "samples": 209
+      },
+      "drain/http GET /api/gameplay": {
+        "body_bytes": 56403,
+        "codes": {
+          "200": 208
+        },
+        "count": 208,
+        "max_ms": 312.202236,
+        "mean_ms": 10.484822350961538,
+        "p50_ms": 2.529472,
+        "p95_ms": 16.846711,
+        "p99_ms": 227.516514,
+        "samples": 208
+      },
+      "drain/http GET /api/market/global": {
+        "body_bytes": 8889,
+        "codes": {
+          "200": 3
+        },
+        "count": 3,
+        "max_ms": 23.094388,
+        "mean_ms": 9.895505666666667,
+        "p50_ms": 3.727673,
+        "p95_ms": 23.094388,
+        "p99_ms": 23.094388,
+        "samples": 3
+      },
+      "drain/http GET /api/notifications": {
+        "body_bytes": 109022,
+        "codes": {
+          "200": 208
+        },
+        "count": 208,
+        "max_ms": 312.329784,
+        "mean_ms": 11.43270048557692,
+        "p50_ms": 3.469457,
+        "p95_ms": 18.500215,
+        "p99_ms": 227.604914,
+        "samples": 208
+      },
+      "drain/http GET /api/profile": {
+        "body_bytes": 44853,
+        "codes": {
+          "200": 208
+        },
+        "count": 208,
+        "max_ms": 312.085325,
+        "mean_ms": 10.283743298076931,
+        "p50_ms": 2.507592,
+        "p95_ms": 14.262223,
+        "p99_ms": 227.186574,
+        "samples": 208
+      },
+      "drain/http GET /api/state": {
+        "body_bytes": 79414,
+        "codes": {
+          "200": 208
+        },
+        "count": 208,
+        "max_ms": 312.716331,
+        "mean_ms": 11.55527499038461,
+        "p50_ms": 3.585935,
+        "p95_ms": 21.144725,
+        "p99_ms": 228.086074,
+        "samples": 208
+      },
+      "drain/http GET /api/system": {
+        "body_bytes": 5097,
+        "codes": {
+          "200": 3
+        },
+        "count": 3,
+        "max_ms": 45.063033,
+        "mean_ms": 26.108727,
+        "p50_ms": 23.947816,
+        "p95_ms": 45.063033,
+        "p99_ms": 45.063033,
+        "samples": 3
+      },
+      "drain/http GET /api/workbench": {
+        "body_bytes": 1712946,
+        "codes": {
+          "200": 213,
+          "cancelled": 1
+        },
+        "count": 214,
+        "max_ms": 469.665246,
+        "mean_ms": 43.542283098130824,
+        "p50_ms": 22.685498,
+        "p95_ms": 167.65658,
+        "p99_ms": 428.533151,
+        "samples": 214
+      },
+      "drain/http GET /chat/api/v1/bootstrap": {
+        "body_bytes": 51832,
+        "codes": {
+          "200": 70,
+          "429": 35
+        },
+        "count": 105,
+        "max_ms": 121.642673,
+        "mean_ms": 33.67782466666666,
+        "p50_ms": 35.173798,
+        "p95_ms": 65.180394,
+        "p99_ms": 67.442115,
+        "samples": 105
+      },
+      "drain/http GET /chat/api/v1/history": {
+        "body_bytes": 2558307,
+        "codes": {
+          "200": 104,
+          "429": 35
+        },
+        "count": 139,
+        "max_ms": 499.969099,
+        "mean_ms": 220.61780741007203,
+        "p50_ms": 190.258141,
+        "p95_ms": 493.943137,
+        "p99_ms": 498.596213,
+        "samples": 139
+      },
+      "drain/http GET /chat/api/v1/notifications": {
+        "body_bytes": 1050,
+        "codes": {
+          "200": 70,
+          "429": 35
+        },
+        "count": 105,
+        "max_ms": 57.247477,
+        "mean_ms": 25.594165076190475,
+        "p50_ms": 31.36513,
+        "p95_ms": 47.328649,
+        "p99_ms": 52.401326,
+        "samples": 105
+      },
+      "drain/http GET /planet/api/v1/scene": {
+        "body_bytes": 2493085,
+        "codes": {
+          "200": 5
+        },
+        "count": 5,
+        "max_ms": 44.575994,
+        "mean_ms": 33.213618600000004,
+        "p50_ms": 33.516526,
+        "p95_ms": 44.575994,
+        "p99_ms": 44.575994,
+        "samples": 5
+      },
+      "drain/http POST /api/expedition": {
+        "body_bytes": 32623,
+        "codes": {
+          "200": 2,
+          "409": 1
+        },
+        "count": 3,
+        "max_ms": 398.980236,
+        "mean_ms": 239.63956299999995,
+        "p50_ms": 267.550056,
+        "p95_ms": 398.980236,
+        "p99_ms": 398.980236,
+        "samples": 3
+      },
+      "drain/http POST /api/workbench": {
+        "body_bytes": 12,
+        "codes": {
+          "200": 1
+        },
+        "count": 1,
+        "max_ms": 325.90841,
+        "mean_ms": 325.90841,
+        "p50_ms": 325.90841,
+        "p95_ms": 325.90841,
+        "p99_ms": 325.90841,
+        "samples": 1
+      },
+      "drain/planet.move_ack": {
+        "body_bytes": 0,
+        "codes": {
+          "ok": 1
+        },
+        "count": 1,
+        "max_ms": 219.086832,
+        "mean_ms": 219.086832,
+        "p50_ms": 219.086832,
+        "p95_ms": 219.086832,
+        "p99_ms": 219.086832,
+        "samples": 1
+      },
+      "drain/terminal.snapshot": {
+        "body_bytes": 0,
+        "codes": {
+          "complete": 214
+        },
+        "count": 214,
+        "max_ms": 469.908003,
+        "mean_ms": 43.877956855140184,
+        "p50_ms": 22.828572,
+        "p95_ms": 170.552323,
+        "p99_ms": 428.726995,
+        "samples": 214
+      },
+      "players_100/chat.message_ack": {
+        "body_bytes": 1982844,
+        "codes": {
+          "ok": 7180
+        },
+        "count": 7180,
+        "max_ms": 590.062637,
+        "mean_ms": 61.08938190320322,
+        "p50_ms": 39.78618,
+        "p95_ms": 197.187392,
+        "p99_ms": 277.872781,
+        "samples": 7180
+      },
+      "players_100/chat.send_to_first_history": {
+        "body_bytes": 0,
+        "codes": {
+          "ok": 7179
+        },
+        "count": 7179,
+        "max_ms": 4049.191406,
+        "mean_ms": 291.215358871151,
+        "p50_ms": 282.044868,
+        "p95_ms": 604.896134,
+        "p99_ms": 1022.070521,
+        "samples": 7179
+      },
+      "players_100/http GET /api/estimate": {
+        "body_bytes": 80278,
+        "codes": {
+          "200": 565
+        },
+        "count": 565,
+        "max_ms": 71.147134,
+        "mean_ms": 12.39854264955751,
+        "p50_ms": 8.172157,
+        "p95_ms": 38.333227,
+        "p99_ms": 52.202217,
+        "samples": 565
+      },
+      "players_100/http GET /api/expedition": {
+        "body_bytes": 174253901,
+        "codes": {
+          "200": 42782
+        },
+        "count": 42782,
+        "max_ms": 424.706702,
+        "mean_ms": 32.31332530702173,
+        "p50_ms": 25.387322,
+        "p95_ms": 81.080156,
+        "p99_ms": 121.697215,
+        "samples": 42782
+      },
+      "players_100/http GET /api/fleet": {
+        "body_bytes": 97171422,
+        "codes": {
+          "200": 42782
+        },
+        "count": 42782,
+        "max_ms": 425.223877,
+        "mean_ms": 28.371312297181237,
+        "p50_ms": 20.228929,
+        "p95_ms": 76.014326,
+        "p99_ms": 117.992882,
+        "samples": 42782
+      },
+      "players_100/http GET /api/galaxy": {
+        "body_bytes": 9427250,
+        "codes": {
+          "200": 50
+        },
+        "count": 50,
+        "max_ms": 51.682236,
+        "mean_ms": 21.57276258,
+        "p50_ms": 18.681115,
+        "p95_ms": 33.944593,
+        "p99_ms": 51.682236,
+        "samples": 50
+      },
+      "players_100/http GET /api/gameplay": {
+        "body_bytes": 11524677,
+        "codes": {
+          "200": 42783
+        },
+        "count": 42783,
+        "max_ms": 366.123034,
+        "mean_ms": 10.792579760605872,
+        "p50_ms": 6.05006,
+        "p95_ms": 35.915093,
+        "p99_ms": 65.526097,
+        "samples": 42783
+      },
+      "players_100/http GET /api/market/global": {
+        "body_bytes": 11719092,
+        "codes": {
+          "200": 3959
+        },
+        "count": 3959,
+        "max_ms": 245.743532,
+        "mean_ms": 10.760386313968153,
+        "p50_ms": 6.424247,
+        "p95_ms": 33.575881,
+        "p99_ms": 57.056199,
+        "samples": 3959
+      },
+      "players_100/http GET /api/notifications": {
+        "body_bytes": 18301882,
+        "codes": {
+          "200": 42783
+        },
+        "count": 42783,
+        "max_ms": 254.054264,
+        "mean_ms": 11.703500419395533,
+        "p50_ms": 7.032384,
+        "p95_ms": 36.577957,
+        "p99_ms": 66.417515,
+        "samples": 42783
+      },
+      "players_100/http GET /api/planet/visit": {
+        "body_bytes": 1290,
+        "codes": {
+          "200": 15
+        },
+        "count": 15,
+        "max_ms": 20.983439,
+        "mean_ms": 5.031716399999999,
+        "p50_ms": 3.757521,
+        "p95_ms": 20.983439,
+        "p99_ms": 20.983439,
+        "samples": 15
+      },
+      "players_100/http GET /api/planner": {
+        "body_bytes": 179224,
+        "codes": {
+          "200": 5697
+        },
+        "count": 5697,
+        "max_ms": 198.100023,
+        "mean_ms": 6.739697513077065,
+        "p50_ms": 3.425707,
+        "p95_ms": 24.868091,
+        "p99_ms": 43.916299,
+        "samples": 5697
+      },
+      "players_100/http GET /api/profile": {
+        "body_bytes": 9214933,
+        "codes": {
+          "200": 42783
+        },
+        "count": 42783,
+        "max_ms": 197.448844,
+        "mean_ms": 8.296664833344982,
+        "p50_ms": 4.818511,
+        "p95_ms": 27.676013,
+        "p99_ms": 47.883097,
+        "samples": 42783
+      },
+      "players_100/http GET /api/state": {
+        "body_bytes": 16401851,
+        "codes": {
+          "200": 42783
+        },
+        "count": 42783,
+        "max_ms": 412.0133,
+        "mean_ms": 15.10486939006128,
+        "p50_ms": 8.356995,
+        "p95_ms": 48.805122,
+        "p99_ms": 93.896129,
+        "samples": 42783
+      },
+      "players_100/http GET /api/system": {
+        "body_bytes": 6492972,
+        "codes": {
+          "200": 3959
+        },
+        "count": 3959,
+        "max_ms": 270.540983,
+        "mean_ms": 20.96272237762057,
+        "p50_ms": 13.931474,
+        "p95_ms": 61.996199,
+        "p99_ms": 100.999666,
+        "samples": 3959
+      },
+      "players_100/http GET /api/workbench": {
+        "body_bytes": 343286976,
+        "codes": {
+          "200": 42777
+        },
+        "count": 42777,
+        "max_ms": 985.591082,
+        "mean_ms": 77.24199260277686,
+        "p50_ms": 61.848757,
+        "p95_ms": 188.239783,
+        "p99_ms": 356.489718,
+        "samples": 42777
+      },
+      "players_100/http GET /chat/api/v1/bootstrap": {
+        "body_bytes": 145154086,
+        "codes": {
+          "200": 199409,
+          "429": 84799
+        },
+        "count": 284208,
+        "max_ms": 579.955981,
+        "mean_ms": 56.21661213246323,
+        "p50_ms": 39.995931,
+        "p95_ms": 187.336497,
+        "p99_ms": 263.717751,
+        "samples": 284208
+      },
+      "players_100/http GET /chat/api/v1/history": {
+        "body_bytes": 4726921160,
+        "codes": {
+          "200": 195583,
+          "429": 88591
+        },
+        "count": 284174,
+        "max_ms": 689.431911,
+        "mean_ms": 101.92139652479514,
+        "p50_ms": 90.47464,
+        "p95_ms": 277.024338,
+        "p99_ms": 359.002724,
+        "samples": 284174
+      },
+      "players_100/http GET /chat/api/v1/notifications": {
+        "body_bytes": 2863731,
+        "codes": {
+          "200": 188441,
+          "429": 95767
+        },
+        "count": 284208,
+        "max_ms": 572.615737,
+        "mean_ms": 46.836575754278606,
+        "p50_ms": 40.674237,
+        "p95_ms": 142.725865,
+        "p99_ms": 223.635223,
+        "samples": 284208
+      },
+      "players_100/http GET /planet/api/v1/scene": {
+        "body_bytes": 227646718,
+        "codes": {
+          "200": 461
+        },
+        "count": 461,
+        "max_ms": 785.944231,
+        "mean_ms": 114.38061804989155,
+        "p50_ms": 79.269993,
+        "p95_ms": 350.213411,
+        "p99_ms": 521.486568,
+        "samples": 461
+      },
+      "players_100/http POST /api/expedition": {
+        "body_bytes": 77164253,
+        "codes": {
+          "200": 4904,
+          "409": 2564
+        },
+        "count": 7468,
+        "max_ms": 407.468623,
+        "mean_ms": 42.79408313564545,
+        "p50_ms": 27.836932,
+        "p95_ms": 128.340487,
+        "p99_ms": 198.15384,
+        "samples": 7468
+      },
+      "players_100/http POST /api/planet/handoff": {
+        "body_bytes": 3447,
+        "codes": {
+          "200": 15
+        },
+        "count": 15,
+        "max_ms": 14.463383,
+        "mean_ms": 6.517246599999999,
+        "p50_ms": 5.17246,
+        "p95_ms": 14.463383,
+        "p99_ms": 14.463383,
+        "samples": 15
+      },
+      "players_100/http POST /api/planner": {
+        "body_bytes": 108,
+        "codes": {
+          "200": 9
+        },
+        "count": 9,
+        "max_ms": 20.061298,
+        "mean_ms": 9.720532555555556,
+        "p50_ms": 6.193972,
+        "p95_ms": 20.061298,
+        "p99_ms": 20.061298,
+        "samples": 9
+      },
+      "players_100/http POST /api/workbench": {
+        "body_bytes": 27804,
+        "codes": {
+          "200": 2317
+        },
+        "count": 2317,
+        "max_ms": 343.948662,
+        "mean_ms": 33.85603583642645,
+        "p50_ms": 19.895649,
+        "p95_ms": 109.308086,
+        "p99_ms": 160.219361,
+        "samples": 2317
+      },
+      "players_100/planet.build_place": {
+        "body_bytes": 0,
+        "codes": {
+          "build_occupied": 574,
+          "ok": 614,
+          "transition_pending": 1
+        },
+        "count": 1189,
+        "max_ms": 444.545808,
+        "mean_ms": 49.14902456854497,
+        "p50_ms": 27.153832,
+        "p95_ms": 168.621054,
+        "p99_ms": 282.410468,
+        "samples": 1189
+      },
+      "players_100/planet.build_remove": {
+        "body_bytes": 0,
+        "codes": {
+          "build_too_far": 141,
+          "ok": 475
+        },
+        "count": 616,
+        "max_ms": 468.585676,
+        "mean_ms": 47.4309694918831,
+        "p50_ms": 22.451634,
+        "p95_ms": 180.05909,
+        "p99_ms": 309.184497,
+        "samples": 616
+      },
+      "players_100/planet.landing_ready": {
+        "body_bytes": 0,
+        "codes": {
+          "ok": 15
+        },
+        "count": 15,
+        "max_ms": 82.504456,
+        "mean_ms": 61.02559646666666,
+        "p50_ms": 61.775637,
+        "p95_ms": 82.504456,
+        "p99_ms": 82.504456,
+        "samples": 15
+      },
+      "players_100/planet.move_ack": {
+        "body_bytes": 0,
+        "codes": {
+          "ok": 9235
+        },
+        "count": 9235,
+        "max_ms": 364.560479,
+        "mean_ms": 32.09338078440725,
+        "p50_ms": 13.496735,
+        "p95_ms": 123.822313,
+        "p99_ms": 206.226718,
+        "samples": 9235
+      },
+      "players_100/terminal.snapshot": {
+        "body_bytes": 0,
+        "codes": {
+          "complete": 42777
+        },
+        "count": 42777,
+        "max_ms": 985.823278,
+        "mean_ms": 77.55448384755795,
+        "p50_ms": 62.208696,
+        "p95_ms": 188.82274,
+        "p99_ms": 358.137443,
+        "samples": 42777
+      },
+      "players_25/chat.message_ack": {
+        "body_bytes": 15910,
+        "codes": {
+          "ok": 58
+        },
+        "count": 58,
+        "max_ms": 24.130112,
+        "mean_ms": 4.88094953448276,
+        "p50_ms": 3.731625,
+        "p95_ms": 14.234882,
+        "p99_ms": 24.130112,
+        "samples": 58
+      },
+      "players_25/chat.send_to_first_history": {
+        "body_bytes": 0,
+        "codes": {
+          "ok": 58
+        },
+        "count": 58,
+        "max_ms": 379.360242,
+        "mean_ms": 240.44374917241382,
+        "p50_ms": 242.672086,
+        "p95_ms": 325.025695,
+        "p99_ms": 379.360242,
+        "samples": 58
+      },
+      "players_25/http GET /api/estimate": {
+        "body_bytes": 1277,
+        "codes": {
+          "200": 9
+        },
+        "count": 9,
+        "max_ms": 3.672405,
+        "mean_ms": 3.1683987777777776,
+        "p50_ms": 3.111855,
+        "p95_ms": 3.672405,
+        "p99_ms": 3.672405,
+        "samples": 9
+      },
+      "players_25/http GET /api/expedition": {
+        "body_bytes": 1555290,
+        "codes": {
+          "200": 383
+        },
+        "count": 383,
+        "max_ms": 49.584382,
+        "mean_ms": 9.823689610966067,
+        "p50_ms": 8.699258,
+        "p95_ms": 16.591696,
+        "p99_ms": 28.243766,
+        "samples": 383
+      },
+      "players_25/http GET /api/fleet": {
+        "body_bytes": 724471,
+        "codes": {
+          "200": 383
+        },
+        "count": 383,
+        "max_ms": 40.12153,
+        "mean_ms": 8.899296639686694,
+        "p50_ms": 8.136872,
+        "p95_ms": 14.94591,
+        "p99_ms": 30.677782,
+        "samples": 383
+      },
+      "players_25/http GET /api/galaxy": {
+        "body_bytes": 4713625,
+        "codes": {
+          "200": 25
+        },
+        "count": 25,
+        "max_ms": 28.169145,
+        "mean_ms": 19.697384239999998,
+        "p50_ms": 18.491392,
+        "p95_ms": 27.663061,
+        "p99_ms": 28.169145,
+        "samples": 25
+      },
+      "players_25/http GET /api/gameplay": {
+        "body_bytes": 102064,
+        "codes": {
+          "200": 384
+        },
+        "count": 384,
+        "max_ms": 23.986715,
+        "mean_ms": 2.9897565625,
+        "p50_ms": 2.412047,
+        "p95_ms": 6.189872,
+        "p99_ms": 11.302783,
+        "samples": 384
+      },
+      "players_25/http GET /api/market/global": {
+        "body_bytes": 56249,
+        "codes": {
+          "200": 19
+        },
+        "count": 19,
+        "max_ms": 7.119811,
+        "mean_ms": 3.423397,
+        "p50_ms": 2.902179,
+        "p95_ms": 7.119811,
+        "p99_ms": 7.119811,
+        "samples": 19
+      },
+      "players_25/http GET /api/notifications": {
+        "body_bytes": 53512,
+        "codes": {
+          "200": 384
+        },
+        "count": 384,
+        "max_ms": 12.588923,
+        "mean_ms": 3.047337166666665,
+        "p50_ms": 2.539259,
+        "p95_ms": 5.844995,
+        "p99_ms": 10.56774,
+        "samples": 384
+      },
+      "players_25/http GET /api/planet/visit": {
+        "body_bytes": 774,
+        "codes": {
+          "200": 9
+        },
+        "count": 9,
+        "max_ms": 11.556378,
+        "mean_ms": 7.306355444444445,
+        "p50_ms": 8.033421,
+        "p95_ms": 11.556378,
+        "p99_ms": 11.556378,
+        "samples": 9
+      },
+      "players_25/http GET /api/planner": {
+        "body_bytes": 2720,
+        "codes": {
+          "200": 46
+        },
+        "count": 46,
+        "max_ms": 4.46875,
+        "mean_ms": 1.7857411739130433,
+        "p50_ms": 1.625392,
+        "p95_ms": 3.659827,
+        "p99_ms": 4.46875,
+        "samples": 46
+      },
+      "players_25/http GET /api/profile": {
+        "body_bytes": 81782,
+        "codes": {
+          "200": 384
+        },
+        "count": 384,
+        "max_ms": 18.185282,
+        "mean_ms": 2.8072290078125026,
+        "p50_ms": 2.272048,
+        "p95_ms": 5.165748,
+        "p99_ms": 10.701171,
+        "samples": 384
+      },
+      "players_25/http GET /api/state": {
+        "body_bytes": 144283,
+        "codes": {
+          "200": 384
+        },
+        "count": 384,
+        "max_ms": 19.626564,
+        "mean_ms": 3.9535297890625007,
+        "p50_ms": 3.528217,
+        "p95_ms": 7.105128,
+        "p99_ms": 12.993676,
+        "samples": 384
+      },
+      "players_25/http GET /api/system": {
+        "body_bytes": 30951,
+        "codes": {
+          "200": 19
+        },
+        "count": 19,
+        "max_ms": 8.499175,
+        "mean_ms": 5.645387473684212,
+        "p50_ms": 5.615088,
+        "p95_ms": 8.499175,
+        "p99_ms": 8.499175,
+        "samples": 19
+      },
+      "players_25/http GET /api/workbench": {
+        "body_bytes": 2945314,
+        "codes": {
+          "200": 383
+        },
+        "count": 383,
+        "max_ms": 140.853218,
+        "mean_ms": 19.686703911227156,
+        "p50_ms": 17.214479,
+        "p95_ms": 34.559278,
+        "p99_ms": 50.082101,
+        "samples": 383
+      },
+      "players_25/http GET /chat/api/v1/bootstrap": {
+        "body_bytes": 827659,
+        "codes": {
+          "200": 1126
+        },
+        "count": 1126,
+        "max_ms": 61.506216,
+        "mean_ms": 13.58407414920071,
+        "p50_ms": 12.371876,
+        "p95_ms": 24.904812,
+        "p99_ms": 52.037701,
+        "samples": 1126
+      },
+      "players_25/http GET /chat/api/v1/history": {
+        "body_bytes": 4621480,
+        "codes": {
+          "200": 1126
+        },
+        "count": 1126,
+        "max_ms": 96.393409,
+        "mean_ms": 22.816171647424518,
+        "p50_ms": 22.770371,
+        "p95_ms": 35.644621,
+        "p99_ms": 50.840116,
+        "samples": 1126
+      },
+      "players_25/http GET /chat/api/v1/notifications": {
+        "body_bytes": 3378,
+        "codes": {
+          "200": 1126
+        },
+        "count": 1126,
+        "max_ms": 35.483135,
+        "mean_ms": 10.733137779751342,
+        "p50_ms": 10.449521,
+        "p95_ms": 18.326436,
+        "p99_ms": 24.72792,
+        "samples": 1126
+      },
+      "players_25/http GET /planet/api/v1/scene": {
+        "body_bytes": 6857873,
+        "codes": {
+          "200": 14
+        },
+        "count": 14,
+        "max_ms": 35.610706,
+        "mean_ms": 25.677772357142857,
+        "p50_ms": 24.219154,
+        "p95_ms": 35.610706,
+        "p99_ms": 35.610706,
+        "samples": 14
+      },
+      "players_25/http POST /api/expedition": {
+        "body_bytes": 814706,
+        "codes": {
+          "200": 53
+        },
+        "count": 53,
+        "max_ms": 19.977836,
+        "mean_ms": 7.234830754716983,
+        "p50_ms": 6.51831,
+        "p95_ms": 11.973057,
+        "p99_ms": 19.977836,
+        "samples": 53
+      },
+      "players_25/http POST /api/planet/handoff": {
+        "body_bytes": 2068,
+        "codes": {
+          "200": 9
+        },
+        "count": 9,
+        "max_ms": 21.352926,
+        "mean_ms": 13.24045777777778,
+        "p50_ms": 13.246922,
+        "p95_ms": 21.352926,
+        "p99_ms": 21.352926,
+        "samples": 9
+      },
+      "players_25/http POST /api/planner": {
+        "body_bytes": 60,
+        "codes": {
+          "200": 5
+        },
+        "count": 5,
+        "max_ms": 7.761979,
+        "mean_ms": 4.6843962,
+        "p50_ms": 4.022635,
+        "p95_ms": 7.761979,
+        "p99_ms": 7.761979,
+        "samples": 5
+      },
+      "players_25/http POST /api/workbench": {
+        "body_bytes": 252,
+        "codes": {
+          "200": 21
+        },
+        "count": 21,
+        "max_ms": 6.424747,
+        "mean_ms": 3.98485380952381,
+        "p50_ms": 3.643742,
+        "p95_ms": 5.965623,
+        "p99_ms": 6.424747,
+        "samples": 21
+      },
+      "players_25/planet.build_place": {
+        "body_bytes": 0,
+        "codes": {
+          "ok": 9
+        },
+        "count": 9,
+        "max_ms": 16.491095,
+        "mean_ms": 6.505071,
+        "p50_ms": 4.647697,
+        "p95_ms": 16.491095,
+        "p99_ms": 16.491095,
+        "samples": 9
+      },
+      "players_25/planet.build_remove": {
+        "body_bytes": 0,
+        "codes": {
+          "build_too_far": 2,
+          "ok": 6
+        },
+        "count": 8,
+        "max_ms": 6.325822,
+        "mean_ms": 4.6493301250000005,
+        "p50_ms": 4.555351,
+        "p95_ms": 6.325822,
+        "p99_ms": 6.325822,
+        "samples": 8
+      },
+      "players_25/planet.landing_ready": {
+        "body_bytes": 0,
+        "codes": {
+          "ok": 9
+        },
+        "count": 9,
+        "max_ms": 408.734488,
+        "mean_ms": 171.93190566666667,
+        "p50_ms": 74.409702,
+        "p95_ms": 408.734488,
+        "p99_ms": 408.734488,
+        "samples": 9
+      },
+      "players_25/planet.move_ack": {
+        "body_bytes": 0,
+        "codes": {
+          "ok": 55
+        },
+        "count": 55,
+        "max_ms": 13.60328,
+        "mean_ms": 3.3021876727272725,
+        "p50_ms": 2.342416,
+        "p95_ms": 7.569566,
+        "p99_ms": 13.60328,
+        "samples": 55
+      },
+      "players_25/terminal.snapshot": {
+        "body_bytes": 0,
+        "codes": {
+          "complete": 383
+        },
+        "count": 383,
+        "max_ms": 152.334836,
+        "mean_ms": 19.91762866318538,
+        "p50_ms": 17.423289,
+        "p95_ms": 34.638104,
+        "p99_ms": 50.582954,
+        "samples": 383
+      },
+      "players_50/chat.message_ack": {
+        "body_bytes": 33776,
+        "codes": {
+          "ok": 123
+        },
+        "count": 123,
+        "max_ms": 55.746663,
+        "mean_ms": 6.795789138211385,
+        "p50_ms": 3.7065,
+        "p95_ms": 24.447659,
+        "p99_ms": 50.099186,
+        "samples": 123
+      },
+      "players_50/chat.send_to_first_history": {
+        "body_bytes": 0,
+        "codes": {
+          "ok": 123
+        },
+        "count": 123,
+        "max_ms": 491.51854,
+        "mean_ms": 260.04857680487817,
+        "p50_ms": 273.376703,
+        "p95_ms": 409.863031,
+        "p99_ms": 463.803159,
+        "samples": 123
+      },
+      "players_50/http GET /api/estimate": {
+        "body_bytes": 3688,
+        "codes": {
+          "200": 26
+        },
+        "count": 26,
+        "max_ms": 12.320116,
+        "mean_ms": 4.452115692307692,
+        "p50_ms": 3.133334,
+        "p95_ms": 12.025883,
+        "p99_ms": 12.320116,
+        "samples": 26
+      },
+      "players_50/http GET /api/expedition": {
+        "body_bytes": 3195422,
+        "codes": {
+          "200": 790
+        },
+        "count": 790,
+        "max_ms": 92.850917,
+        "mean_ms": 11.152305808860765,
+        "p50_ms": 9.096722,
+        "p95_ms": 25.971003,
+        "p99_ms": 41.070958,
+        "samples": 790
+      },
+      "players_50/http GET /api/fleet": {
+        "body_bytes": 1638435,
+        "codes": {
+          "200": 790
+        },
+        "count": 790,
+        "max_ms": 94.864013,
+        "mean_ms": 10.321098618987348,
+        "p50_ms": 8.484212,
+        "p95_ms": 24.046713,
+        "p99_ms": 40.294032,
+        "samples": 790
+      },
+      "players_50/http GET /api/galaxy": {
+        "body_bytes": 4713625,
+        "codes": {
+          "200": 25
+        },
+        "count": 25,
+        "max_ms": 45.967994,
+        "mean_ms": 20.250275879999997,
+        "p50_ms": 18.150535,
+        "p95_ms": 34.273441,
+        "p99_ms": 45.967994,
+        "samples": 25
+      },
+      "players_50/http GET /api/gameplay": {
+        "body_bytes": 210706,
+        "codes": {
+          "200": 789
+        },
+        "count": 789,
+        "max_ms": 51.818395,
+        "mean_ms": 3.2856921013941687,
+        "p50_ms": 2.345206,
+        "p95_ms": 7.664881,
+        "p99_ms": 16.167769,
+        "samples": 789
+      },
+      "players_50/http GET /api/market/global": {
+        "body_bytes": 162863,
+        "codes": {
+          "200": 55
+        },
+        "count": 55,
+        "max_ms": 18.716804,
+        "mean_ms": 4.27963130909091,
+        "p50_ms": 3.488446,
+        "p95_ms": 9.967365,
+        "p99_ms": 18.716804,
+        "samples": 55
+      },
+      "players_50/http GET /api/notifications": {
+        "body_bytes": 131469,
+        "codes": {
+          "200": 789
+        },
+        "count": 789,
+        "max_ms": 64.015414,
+        "mean_ms": 3.492237775665399,
+        "p50_ms": 2.519196,
+        "p95_ms": 7.689684,
+        "p99_ms": 16.284023,
+        "samples": 789
+      },
+      "players_50/http GET /api/planet/visit": {
+        "body_bytes": 516,
+        "codes": {
+          "200": 6
+        },
+        "count": 6,
+        "max_ms": 9.804321,
+        "mean_ms": 4.880568833333333,
+        "p50_ms": 4.004031,
+        "p95_ms": 9.804321,
+        "p99_ms": 9.804321,
+        "samples": 6
+      },
+      "players_50/http GET /api/planner": {
+        "body_bytes": 4543,
+        "codes": {
+          "200": 96
+        },
+        "count": 96,
+        "max_ms": 14.983939,
+        "mean_ms": 1.8141205937500002,
+        "p50_ms": 1.376243,
+        "p95_ms": 4.236506,
+        "p99_ms": 14.983939,
+        "samples": 96
+      },
+      "players_50/http GET /api/profile": {
+        "body_bytes": 168782,
+        "codes": {
+          "200": 789
+        },
+        "count": 789,
+        "max_ms": 54.810957,
+        "mean_ms": 3.0196046615969605,
+        "p50_ms": 2.112084,
+        "p95_ms": 6.763605,
+        "p99_ms": 15.842679,
+        "samples": 789
+      },
+      "players_50/http GET /api/state": {
+        "body_bytes": 299565,
+        "codes": {
+          "200": 789
+        },
+        "count": 789,
+        "max_ms": 64.072658,
+        "mean_ms": 4.2952251609632475,
+        "p50_ms": 3.542837,
+        "p95_ms": 8.814733,
+        "p99_ms": 16.559767,
+        "samples": 789
+      },
+      "players_50/http GET /api/system": {
+        "body_bytes": 87015,
+        "codes": {
+          "200": 55
+        },
+        "count": 55,
+        "max_ms": 36.639539,
+        "mean_ms": 7.4952534909090955,
+        "p50_ms": 5.578805,
+        "p95_ms": 17.532432,
+        "p99_ms": 36.639539,
+        "samples": 55
+      },
+      "players_50/http GET /api/workbench": {
+        "body_bytes": 6089182,
+        "codes": {
+          "200": 790
+        },
+        "count": 790,
+        "max_ms": 102.653913,
+        "mean_ms": 22.247323546835457,
+        "p50_ms": 17.737384,
+        "p95_ms": 51.330275,
+        "p99_ms": 76.319214,
+        "samples": 790
+      },
+      "players_50/http GET /chat/api/v1/bootstrap": {
+        "body_bytes": 2536269,
+        "codes": {
+          "200": 3513
+        },
+        "count": 3513,
+        "max_ms": 65.944887,
+        "mean_ms": 21.273735777967577,
+        "p50_ms": 20.514691,
+        "p95_ms": 38.432924,
+        "p99_ms": 48.394616,
+        "samples": 3513
+      },
+      "players_50/http GET /chat/api/v1/history": {
+        "body_bytes": 57832659,
+        "codes": {
+          "200": 3513
+        },
+        "count": 3513,
+        "max_ms": 104.767711,
+        "mean_ms": 47.36880091403354,
+        "p50_ms": 47.090213,
+        "p95_ms": 78.164509,
+        "p99_ms": 90.099409,
+        "samples": 3513
+      },
+      "players_50/http GET /chat/api/v1/notifications": {
+        "body_bytes": 10539,
+        "codes": {
+          "200": 3513
+        },
+        "count": 3513,
+        "max_ms": 57.635835,
+        "mean_ms": 23.25426140848278,
+        "p50_ms": 23.030417,
+        "p95_ms": 35.430943,
+        "p99_ms": 45.784117,
+        "samples": 3513
+      },
+      "players_50/http GET /planet/api/v1/scene": {
+        "body_bytes": 6893193,
+        "codes": {
+          "200": 14
+        },
+        "count": 14,
+        "max_ms": 72.713723,
+        "mean_ms": 34.76909785714286,
+        "p50_ms": 29.157689,
+        "p95_ms": 72.713723,
+        "p99_ms": 72.713723,
+        "samples": 14
+      },
+      "players_50/http POST /api/expedition": {
+        "body_bytes": 1968574,
+        "codes": {
+          "200": 130
+        },
+        "count": 130,
+        "max_ms": 38.07982,
+        "mean_ms": 8.6499421,
+        "p50_ms": 6.139446,
+        "p95_ms": 23.752532,
+        "p99_ms": 35.908388,
+        "samples": 130
+      },
+      "players_50/http POST /api/planet/handoff": {
+        "body_bytes": 1380,
+        "codes": {
+          "200": 6
+        },
+        "count": 6,
+        "max_ms": 12.014677,
+        "mean_ms": 5.7197365,
+        "p50_ms": 4.332208,
+        "p95_ms": 12.014677,
+        "p99_ms": 12.014677,
+        "samples": 6
+      },
+      "players_50/http POST /api/planner": {
+        "body_bytes": 60,
+        "codes": {
+          "200": 5
+        },
+        "count": 5,
+        "max_ms": 4.916943,
+        "mean_ms": 4.036988599999999,
+        "p50_ms": 3.975087,
+        "p95_ms": 4.916943,
+        "p99_ms": 4.916943,
+        "samples": 5
+      },
+      "players_50/http POST /api/workbench": {
+        "body_bytes": 564,
+        "codes": {
+          "200": 47
+        },
+        "count": 47,
+        "max_ms": 25.72268,
+        "mean_ms": 5.052106957446808,
+        "p50_ms": 3.559051,
+        "p95_ms": 11.121077,
+        "p99_ms": 25.72268,
+        "samples": 47
+      },
+      "players_50/planet.build_place": {
+        "body_bytes": 0,
+        "codes": {
+          "build_occupied": 2,
+          "ok": 18
+        },
+        "count": 20,
+        "max_ms": 20.229968,
+        "mean_ms": 9.786593100000001,
+        "p50_ms": 8.848719,
+        "p95_ms": 19.014074,
+        "p99_ms": 20.229968,
+        "samples": 20
+      },
+      "players_50/planet.build_remove": {
+        "body_bytes": 0,
+        "codes": {
+          "build_too_far": 5,
+          "ok": 10
+        },
+        "count": 15,
+        "max_ms": 16.403891,
+        "mean_ms": 7.425428533333333,
+        "p50_ms": 5.675759,
+        "p95_ms": 16.403891,
+        "p99_ms": 16.403891,
+        "samples": 15
+      },
+      "players_50/planet.landing_ready": {
+        "body_bytes": 0,
+        "codes": {
+          "ok": 6
+        },
+        "count": 6,
+        "max_ms": 110.085285,
+        "mean_ms": 71.3551425,
+        "p50_ms": 62.3161,
+        "p95_ms": 110.085285,
+        "p99_ms": 110.085285,
+        "samples": 6
+      },
+      "players_50/planet.move_ack": {
+        "body_bytes": 0,
+        "codes": {
+          "ok": 133
+        },
+        "count": 133,
+        "max_ms": 26.583418,
+        "mean_ms": 3.6886854812030077,
+        "p50_ms": 2.310829,
+        "p95_ms": 10.079444,
+        "p99_ms": 20.415022,
+        "samples": 133
+      },
+      "players_50/terminal.snapshot": {
+        "body_bytes": 0,
+        "codes": {
+          "complete": 790
+        },
+        "count": 790,
+        "max_ms": 102.73111,
+        "mean_ms": 22.44985872784807,
+        "p50_ms": 17.943557,
+        "p95_ms": 51.593631,
+        "p99_ms": 76.590812,
+        "samples": 790
+      },
+      "setup/http GET /api/expedition": {
+        "body_bytes": 298253,
+        "codes": {
+          "200": 100
+        },
+        "count": 100,
+        "max_ms": 90.083462,
+        "mean_ms": 5.094774829999999,
+        "p50_ms": 3.824708,
+        "p95_ms": 7.035981,
+        "p99_ms": 15.416587,
+        "samples": 100
+      },
+      "setup/http GET /api/galaxy": {
+        "body_bytes": 188545,
+        "codes": {
+          "200": 1
+        },
+        "count": 1,
+        "max_ms": 16.876294,
+        "mean_ms": 16.876294,
+        "p50_ms": 16.876294,
+        "p95_ms": 16.876294,
+        "p99_ms": 16.876294,
+        "samples": 1
+      },
+      "setup/http GET /api/server-status": {
+        "body_bytes": 9900,
+        "codes": {
+          "200": 99
+        },
+        "count": 99,
+        "max_ms": 12.43063,
+        "mean_ms": 1.4353846161616164,
+        "p50_ms": 1.169448,
+        "p95_ms": 2.837674,
+        "p99_ms": 12.43063,
+        "samples": 99
+      },
+      "setup/http POST /api/register": {
+        "body_bytes": 1188,
+        "codes": {
+          "200": 99
+        },
+        "count": 99,
+        "max_ms": 77.298973,
+        "mean_ms": 61.86797536363637,
+        "p50_ms": 60.921781,
+        "p95_ms": 66.339254,
+        "p99_ms": 77.298973,
+        "samples": 99
+      }
+    },
+    "phase": "drain"
+  },
+  "run": "20261117T124245.096651128Z",
+  "setup": "accounts, knowledge, starting resources and colony access prepared before measurement; actions through actual HTTP/WS via Web",
+  "started_at": "2026-11-17T12:42:57.735105176Z",
+  "surface": "generated garden planet, prepared corporate colonies",
+  "version": "0.30.0",
+  "visible_cpus": 5
+}

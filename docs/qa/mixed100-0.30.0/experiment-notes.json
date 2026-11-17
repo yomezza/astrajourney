@@ -1,0 +1,18 @@
+{
+  "baseline": "Exact published Linux amd64 0.30.0 native binaries; all five SHA-256 values match downloads/astra-journey-v0.30.0-build.json",
+  "production_changed": false,
+  "chat": "b1 with TLS NATS and scoped ACL",
+  "instrumentation_correction": "Original test process tree helper relied on unsupported /proc/task/children. Supplemental process-trees.jsonl started before players_100 and supplies PostgreSQL, NATS and full Chromium CPU. Future harness has stat.ppid fallback.",
+  "browser_limitations": "Original probe locates sidebar buttons only: profile/notifications skipped; galaxy click times out because maps-navigation details is closed. These click timeouts are harness errors, not game/server latency. Successful market/tasks/studies openings are real.",
+  "media_probe": "680 extra public media transfers plus 11 revalidations under the running 100-player phase; separate asset-burst.json; not included in driver HTTP operation counters.",
+  "measurement_limits": [
+    "Loopback network, one physical browser renderer; other 99 use real HTTP/WS",
+    "Fresh 3000-system world and short chat history, six corporate sectors on one planet",
+    "No message read acknowledgements from programmatic clients; no chat search/private groups/moderation workload",
+    "One warehouse haul per planner actor, other activity and UI/chat polling continue",
+    "Successful chat history visibility is first observing client, not all recipients",
+    "HTTP latency distributions include all status codes for the operation",
+    "Cgroup CPU/memory includes load generator, Chromium, PG and observation; memory includes log file cache",
+    "No a1 comparison, no NATS fault injection, no maximum-capacity search"
+  ]
+}

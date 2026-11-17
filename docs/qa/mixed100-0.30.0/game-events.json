@@ -1,0 +1,18 @@
+{
+  "at": "2026-11-17T13:14:38.037139+00:00",
+  "events_by_kind": {
+    "arrival": 843,
+    "buy": 1123,
+    "research_complete": 185,
+    "store": 1241,
+    "withdraw": 1112,
+    "move": 224,
+    "sell": 1109,
+    "mine": 1667,
+    "travel": 600,
+    "scan": 185,
+    "refuel": 150,
+    "mining_complete": 1667
+  },
+  "note": "Read-only observation shortly before final drain."
+}

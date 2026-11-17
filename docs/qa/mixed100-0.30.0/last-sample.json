@@ -1,0 +1,423 @@
+{
+  "activity": {
+    "chat_ack_ok": 7361,
+    "chat_sent": 7361,
+    "http_body_bytes": 5986946417,
+    "http_requests": 1199361
+  },
+  "at": "2026-11-17T13:15:02.740171736Z",
+  "cdn": {
+    "data": {
+      "bytes": 10463040,
+      "goroutines": 11,
+      "heap_bytes": 907728,
+      "invalid_hints": 0,
+      "media_hints": 0,
+      "missing": 0,
+      "nats": {
+        "connect_attempts": 1,
+        "dropped_hints": 0,
+        "enabled": true,
+        "healthy": true,
+        "last_error_code": "",
+        "published_hints": 1,
+        "registrations": 1,
+        "transport_failures": 0
+      },
+      "not_modified": 11,
+      "requests": 696
+    },
+    "http": 200
+  },
+  "cgroup": {
+    "cpu.max": "400000 100000",
+    "cpu.stat": "usage_usec 11472252623\nuser_usec 9300068168\nsystem_usec 2172184455\nnice_usec 0\nnr_periods 76032\nnr_throttled 12693\nthrottled_usec 676826761\nnr_bursts 0\nburst_usec 0",
+    "memory.current": "8127090688",
+    "memory.max": "34359738368",
+    "memory.peak": "8147607552"
+  },
+  "chat_diagnostics": {
+    "level": "INFO",
+    "metrics": {
+      "coalesced_sync": 1,
+      "connections": 100,
+      "dispatcher": {
+        "deduplicated_rows": 1523823,
+        "degraded": false,
+        "highwater": 7312,
+        "rows": 1531135,
+        "scan_errors": 0,
+        "scans": 6617,
+        "spatial_rechecks": 481,
+        "state_reconcile_interval_seconds": 30,
+        "state_reconciliations": 50,
+        "wakes": 6578
+      },
+      "mode": "b1",
+      "process": {
+        "gc_cycles": 8613,
+        "go_sys_bytes": 31840520,
+        "goroutines": 253,
+        "heap_alloc_bytes": 8401888,
+        "heap_inuse_bytes": 12959744,
+        "pool": {
+          "acquire_ms": 54882817.27346,
+          "acquired": 7,
+          "acquires": 1422009,
+          "canceled_acquires": 0,
+          "empty_acquires": 1310012,
+          "empty_wait_ms": 54882685.109306,
+          "max": 8,
+          "total": 8
+        },
+        "sql_calls": 5763012,
+        "sql_errors": 0
+      },
+      "queued_sync": 426626,
+      "service": {
+        "changes_calls": 0,
+        "scope_checks": 92256
+      },
+      "sync_writes": 427179,
+      "wake_source": {
+        "authentication_failures": 0,
+        "authorization_failures": 0,
+        "coalesced_publishes": 0,
+        "connect_attempts": 1,
+        "corporate_signals": 0,
+        "disconnects": 0,
+        "dropped_hints": 0,
+        "duplicate_signals": 0,
+        "healthy": true,
+        "invalid_signals": 0,
+        "last_error_code": "",
+        "network_failures": 0,
+        "optional_permission_failures": 0,
+        "published_hints": 7504,
+        "received_signals": 7504,
+        "registrations": 1,
+        "spatial_dropped": 0,
+        "spatial_signals": 454,
+        "spatial_subscription_failures": 0,
+        "tls_failures": 0,
+        "visit_signals": 30
+      }
+    },
+    "msg": "chat dispatcher diagnostics",
+    "pid": 108692,
+    "service": "chat",
+    "time": "2026-11-17T13:14:50.74365217Z"
+  },
+  "chat_health": {
+    "data": {
+      "cosmic": true,
+      "maintenance": "ready",
+      "nats": {
+        "connected": true,
+        "enabled": true,
+        "mode": "b1",
+        "state": "connected"
+      },
+      "planet": true,
+      "ready": true,
+      "schema_version": 1,
+      "service": "chat",
+      "status": "ready",
+      "version": "0.30.0"
+    },
+    "http": 200
+  },
+  "cosmos": {
+    "data": {
+      "process": {
+        "gc_cycles": 37462,
+        "go_sys_bytes": 90892568,
+        "goroutines": 44,
+        "heap_alloc_bytes": 21535848,
+        "heap_inuse_bytes": 25591808,
+        "pool": {
+          "acquire_ms": 1431612.486019,
+          "acquired": 6,
+          "acquires": 2283957,
+          "canceled_acquires": 0,
+          "empty_acquires": 427292,
+          "empty_wait_ms": 1430611.268419,
+          "max": 8,
+          "total": 8
+        },
+        "sql_calls": 4876547,
+        "sql_errors": 1
+      },
+      "service": "cosmic",
+      "simulation_loop_lag": {
+        "count": 1932,
+        "max_ms": 599.036228,
+        "p50_ms": 51.518835,
+        "p95_ms": 220.619987,
+        "p99_ms": 350.577377,
+        "total_ms": 144355.280282,
+        "window_samples": 1932
+      },
+      "tick_errors": 0,
+      "ticks": {
+        "count": 183,
+        "max_ms": 209.457786,
+        "p50_ms": 42.205449,
+        "p95_ms": 139.125595,
+        "p99_ms": 195.186876,
+        "total_ms": 9392.095571,
+        "window_samples": 183
+      },
+      "version": "0.30.0"
+    },
+    "http": 200
+  },
+  "logs_bytes": {
+    "browser.console.log": 0,
+    "cdn.console.log": 694980,
+    "cdn.install.log": 61,
+    "cdn.jsonl": 694919,
+    "chat.console.log": 1080875770,
+    "chat.jsonl": 1080875709,
+    "cosmos.console.log": 341113453,
+    "cosmos.jsonl": 341113392,
+    "planet.console.log": 125787031,
+    "planet.jsonl": 125786970,
+    "planet.legacy.log": 125786970,
+    "web.console.log": 776374910,
+    "web.install.log": 117,
+    "web.jsonl": 776374849
+  },
+  "nats": {
+    "data": {
+      "auth_required": true,
+      "auth_timeout": 3,
+      "cluster": {},
+      "config_digest": "sha256:2e5489b23ec3d2c08e65a5a6366676afc80c1e163a38fa000d767c177e3790c2",
+      "config_load_time": "2026-11-17T12:42:49.250256608Z",
+      "connections": 5,
+      "cores": 5,
+      "cpu": 1,
+      "gateway": {},
+      "git_commit": "450a519",
+      "go": "go1.25.5",
+      "gomaxprocs": 4,
+      "host": "127.0.0.1",
+      "http_base_path": "",
+      "http_host": "127.0.0.1",
+      "http_port": 33299,
+      "http_req_stats": {
+        "/varz": 386
+      },
+      "https_port": 0,
+      "in_bytes": 1631591,
+      "in_msgs": 8045,
+      "jetstream": {},
+      "leaf": {},
+      "leafnodes": 0,
+      "max_connections": 65536,
+      "max_control_line": 4096,
+      "max_payload": 1048576,
+      "max_pending": 67108864,
+      "mem": 11870208,
+      "mqtt": {},
+      "now": "2026-11-17T13:15:02.7424928Z",
+      "out_bytes": 1631345,
+      "out_msgs": 8044,
+      "ping_interval": 120000000000,
+      "ping_max": 2,
+      "port": 37783,
+      "proto": 1,
+      "remotes": 0,
+      "routes": 0,
+      "server_id": "NADVIX2JYOAT7ZELR3FRCR5IIVR24W2KT3ZJKFC6CKNI5HVDFBCMIFDO",
+      "server_name": "n3-disposable",
+      "slow_consumer_stats": {
+        "clients": 0,
+        "gateways": 0,
+        "leafs": 0,
+        "routes": 0
+      },
+      "slow_consumers": 0,
+      "stale_connection_stats": {
+        "clients": 0,
+        "gateways": 0,
+        "leafs": 0,
+        "routes": 0
+      },
+      "stale_connections": 0,
+      "stalled_clients": 0,
+      "start": "2026-11-17T12:42:49.250256608Z",
+      "subscriptions": 75,
+      "system_account": "$SYS",
+      "tls_required": true,
+      "tls_timeout": 2,
+      "total_connections": 6,
+      "uptime": "32m13s",
+      "version": "2.12.3",
+      "websocket": {},
+      "write_deadline": 10000000000
+    },
+    "http": 200
+  },
+  "phase": "players_100",
+  "planet": {
+    "data": {
+      "checkpoint_errors": 0,
+      "checkpoints": {
+        "count": 10170,
+        "max_ms": 289.198246,
+        "p50_ms": 14.784916,
+        "p95_ms": 91.036206,
+        "p99_ms": 132.812423,
+        "total_ms": 235803.799362,
+        "window_samples": 2048
+      },
+      "connections": 30,
+      "movement": {
+        "actors": 30,
+        "mailbox_coalesced": 3890,
+        "path_budget": 0,
+        "path_canceled": 0,
+        "path_compute": {
+          "count": 9421,
+          "max_ms": 43.717385,
+          "p50_ms": 0.002143,
+          "p95_ms": 2.517699,
+          "p99_ms": 12.125885,
+          "total_ms": 4937.497686,
+          "window_samples": 2048
+        },
+        "path_queue_wait": {
+          "count": 9421,
+          "max_ms": 20.606775,
+          "p50_ms": 0.007371,
+          "p95_ms": 0.079447,
+          "p99_ms": 0.194415,
+          "total_ms": 285.742347,
+          "window_samples": 2048
+        },
+        "path_queued": 9421,
+        "path_rejected": 0,
+        "sectors": 6,
+        "tick_lag": {
+          "count": 213220,
+          "max_ms": 51.862128,
+          "p50_ms": 0.763024,
+          "p95_ms": 12.212948,
+          "p99_ms": 16.839896,
+          "total_ms": 404283.688985,
+          "window_samples": 2048
+        }
+      },
+      "process": {
+        "gc_cycles": 2870,
+        "go_sys_bytes": 35510536,
+        "goroutines": 88,
+        "heap_alloc_bytes": 8200048,
+        "heap_inuse_bytes": 11649024,
+        "pool": {
+          "acquire_ms": 9462.443837,
+          "acquired": 1,
+          "acquires": 153133,
+          "canceled_acquires": 0,
+          "empty_acquires": 480,
+          "empty_wait_ms": 9261.00918,
+          "max": 8,
+          "total": 8
+        },
+        "sql_calls": 1607378,
+        "sql_errors": 4
+      },
+      "scenes": {
+        "cache_hits": 971,
+        "cached": 6,
+        "cold_load": {
+          "count": 7,
+          "max_ms": 794.65709,
+          "p50_ms": 292.806018,
+          "p95_ms": 794.65709,
+          "p99_ms": 794.65709,
+          "total_ms": 2271.787983,
+          "window_samples": 7
+        },
+        "evicted": 1,
+        "loading": 0,
+        "pins": 30
+      },
+      "service": "planet",
+      "transport": {
+        "json_bytes": 502871303,
+        "packets": 584237,
+        "write_errors": 0
+      },
+      "version": "0.30.0"
+    },
+    "http": 200
+  },
+  "postgres_activity": {
+    "active": 7,
+    "connections": 28,
+    "lock_waiting": 6,
+    "oldest_active_seconds": 0.008673
+  },
+  "postgres_database": {
+    "blks_hit": 817398171,
+    "blks_read": 482,
+    "xact_commit": 3870810,
+    "xact_rollback": 6969
+  },
+  "processes": {
+    "browser_probe_tree": {
+      "cpu_seconds": 17.43,
+      "rss_bytes": 262328320
+    },
+    "cdn": {
+      "cpu_seconds": 0.6,
+      "rss_bytes": 14200832
+    },
+    "chat": {
+      "cpu_seconds": 525.52,
+      "rss_bytes": 33275904
+    },
+    "cosmos": {
+      "cpu_seconds": 1062.39,
+      "rss_bytes": 47271936
+    },
+    "generator": {
+      "cpu_seconds": 348.79,
+      "rss_bytes": 141910016
+    },
+    "planet": {
+      "cpu_seconds": 201.82,
+      "rss_bytes": 32923648
+    },
+    "postgres_cluster": {
+      "cpu_seconds": 2.47,
+      "rss_bytes": 12451840
+    },
+    "web": {
+      "cpu_seconds": 398.45,
+      "rss_bytes": 69296128
+    }
+  },
+  "web": {
+    "data": {
+      "api_contract": "astra-api-v1",
+      "nats": {
+        "connected": true,
+        "enabled": true,
+        "state": "connected"
+      },
+      "ready": true,
+      "revision": "9618375919da5e329b249e0ec6201efa56c8ea67e0da9f7395058d2bb28ea1ab",
+      "service": "astra-journey-web",
+      "status": "ready",
+      "sync_error": "",
+      "sync_last_checked": "",
+      "uptime_seconds": 1932,
+      "version": "0.30.0"
+    },
+    "http": 200
+  }
+}
