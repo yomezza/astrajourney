@@ -72,6 +72,10 @@ jobs:
           RUN_GALAXY_EDITOR_BROWSER: '1'
           RUN_NOTIFICATIONS_BROWSER: '1'
   server-contracts:
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
     runs-on: ubuntu-latest
     timeout-minutes: 20
     services:
@@ -95,8 +99,10 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-      - run: go test ./... -count=1 -timeout=15m
+      - run: python3 scripts/test-integration-shard.py --index ${{ matrix.shard }} --count 4
         env:
           CHAT_BACKUP_DOCKER_CONTAINER: ${{ job.services.postgres.id }}
-      - run: go test -race ./... -count=1 -timeout=5m -run '^(TestConcurrentLogistics080|TestLastHullPurchase040|TestBatchLogistics100|TestOpenDoesNotInitializeGame|TestDatabaseConfig|TestColdCacheSaturatedPool|TestBenchmarkCompositionIsolation|TestPlanetFoundation150|TestPlanetSchema150|TestPlanetFencing150|TestPlanetRestrictedRole150|TestLandingBackfillAndConcurrentCompletion160|TestLocalScenes170|TestLocalSceneFencingAndSourceCAS170|TestLocalSceneRetirement170|TestRegistry.*|TestPlanetHandoff180|TestPlanetTicketRecovery180|TestPlanetCorporateAndAtomicActivation180|TestAdminServices200|TestPlanetTransitions210|TestPlanetTransitionRevocation210|TestPlanetTransitionCapacity210|TestPlanetPresence200|TestPlanetDatabaseRecovery200|TestSectorPresenceCoalesces|TestSlowStreamDeadline|TestPlanetMovement190|TestPlanetCheckpoints190|TestMovementDistanceAndLifecycle|TestLatestGoalAndPermit|TestBoundedPathsAndCorners|TestConcurrentBoundedObservations|TestServiceMetrics230|TestAuthoritativeFacing220|TestChat240Transactions|TestChat240CorporateFencesAndCleanup|TestChat240LateCommittedOutbox|TestChat240FiftyConnections|TestChat240SpatialPresence)$'
-      - run: go vet ./...
+      - if: matrix.shard == 0
+        run: go test -race ./... -count=1 -timeout=12m -run '^(TestConcurrentLogistics080|TestLastHullPurchase040|TestBatchLogistics100|TestOpenDoesNotInitializeGame|TestDatabaseConfig|TestColdCacheSaturatedPool|TestBenchmarkCompositionIsolation|TestPlanetFoundation150|TestPlanetSchema150|TestPlanetFencing150|TestPlanetRestrictedRole150|TestLandingBackfillAndConcurrentCompletion160|TestLocalScenes170|TestLocalSceneFencingAndSourceCAS170|TestLocalSceneRetirement170|TestRegistry.*|TestPlanetHandoff180|TestPlanetTicketRecovery180|TestPlanetCorporateAndAtomicActivation180|TestAdminServices200|TestPlanetTransitions210|TestPlanetTransitionRevocation210|TestPlanetTransitionCapacity210|TestPlanetPresence200|TestPlanetDatabaseRecovery200|TestSectorPresenceCoalesces|TestSlowStreamDeadline|TestPlanetMovement190|TestPlanetCheckpoints190|TestMovementDistanceAndLifecycle|TestLatestGoalAndPermit|TestBoundedPathsAndCorners|TestConcurrentBoundedObservations|TestServiceMetrics230|TestAuthoritativeFacing220|TestChat240Transactions|TestChat240CorporateFencesAndCleanup|TestChat240LateCommittedOutbox|TestChat240FiftyConnections|TestChat240SpatialPresence)$'
+      - if: matrix.shard == 0
+        run: go vet ./...
