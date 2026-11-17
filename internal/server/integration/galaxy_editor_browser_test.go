@@ -23,9 +23,10 @@ func TestGalaxyEditorBrowser(t *testing.T) {
 	f.exec(`UPDATE users SET role='admin' WHERE id=$1`, uid)
 	initial := f.integer(`SELECT count(*) FROM star_systems`)
 	nonce := fmt.Sprintf("terminal-test-%d", time.Now().UnixNano())
+	handler := browserCDN(t, f, f.handler)
 	web := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Cosmos-Test-Run", nonce)
-		f.handler.ServeHTTP(w, r)
+		handler.ServeHTTP(w, r)
 	}))
 	defer web.Close()
 	script, err := filepath.Abs("../../../tests/ui/galaxy-editor-live.mjs")

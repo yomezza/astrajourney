@@ -374,8 +374,9 @@ try {
   await open("notifications");
   await page
     .locator("#window-notifications")
-    .getByRole("button", { name: "Очистить все", exact: true })
+    .getByRole("button", { name: "Действия с уведомлениями", exact: true })
     .click();
+  await page.getByRole("menuitem", { name: "Очистить все", exact: true }).click();
   await settle();
   await close("notifications");
   console.log(

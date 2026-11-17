@@ -19,7 +19,7 @@ try {
   ws.on('framereceived',e=>{const f=JSON.parse(String(e.payload));if(f.type==='state.delta')snapshots.push(f.payload)});
  });
  await page.goto(base.href);await page.locator('#startup-screen').waitFor({state:'hidden'});
- assert.equal(assets.some(p=>p.startsWith('/planet/pixelart-v1/')),false,'planet art loaded before entry');
+ assert.equal(assets.some(p=>p.includes('/planet/pixelart-v1/')),false,'planet art loaded before entry');
  await page.evaluate(async site=>{const {openVisit}=await import('/features/planet/visit.js');await openVisit(site)},input.site);
  const canvas=page.locator('#planet-host canvas[data-ready="true"]');await canvas.waitFor({state:'visible'});
  assert.equal(await canvas.getAttribute('data-art'),'ready');

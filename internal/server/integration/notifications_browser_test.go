@@ -48,9 +48,10 @@ func TestNotificationsCompactBrowser(t *testing.T) {
 		t.Fatal("notification ownership was bypassed")
 	}
 	nonce := fmt.Sprintf("terminal-test-%d", time.Now().UnixNano())
+	handler := browserCDN(t, f, f.handler)
 	web := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Cosmos-Test-Run", nonce)
-		f.handler.ServeHTTP(w, r)
+		handler.ServeHTTP(w, r)
 	}))
 	defer web.Close()
 	input, _ := json.Marshal(map[string]any{"cookie_name": cookie.Name, "cookie": cookie.Value, "peer_cookie": peer.Value, "ids": ids, "ship": ship, "second": second, "project": project})

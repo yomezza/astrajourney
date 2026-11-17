@@ -132,7 +132,7 @@ func planetBrowser210(t *testing.T, transition bool, custom ...string) {
 		}
 	}
 	nonce := fmt.Sprintf("terminal-test-%d", time.Now().UnixNano())
-	handler := f.app.Handler()
+	handler := browserCDN(t, f, f.app.Handler())
 	web.Config.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Cosmos-Test-Run", nonce)
 		handler.ServeHTTP(w, r)

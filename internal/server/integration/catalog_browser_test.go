@@ -63,9 +63,10 @@ func TestCatalogProductionBrowser(t *testing.T) {
 	f.exec(`DELETE FROM surveys WHERE user_id=$1`, peerID)
 	private := addColony160(f, peerID, surface, sectors[4], nil, true)
 	nonce := fmt.Sprintf("terminal-test-%d", time.Now().UnixNano())
+	handler := browserCDN(t, f, f.handler)
 	web := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Cosmos-Test-Run", nonce)
-		f.handler.ServeHTTP(w, r)
+		handler.ServeHTTP(w, r)
 	}))
 	defer web.Close()
 	input, _ := json.Marshal(map[string]any{"cookie_name": cookie.Name, "cookie": cookie.Value, "peer_cookie": peerCookie.Value, "funding": funding, "building": building, "complete": complete, "private": private})

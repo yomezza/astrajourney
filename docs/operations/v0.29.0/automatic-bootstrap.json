@@ -1,0 +1,12 @@
+{
+  "version": "0.29.0",
+  "ready": true,
+  "automatic_download_from_published_release": true,
+  "no_database_configured": true,
+  "cosmic_unavailable_public_graphics_work": true,
+  "storage_created_automatically": true,
+  "revision": "20a1d7843a0cc33da44528af6fbe08b09a0322ec56613b91252b8693156557ab",
+  "image_sha256": "d5c53be43c8716935a48dc83e355c5eca0ab0a92605edb02c5df5af1a2187918",
+  "cache_control": "public, max-age=31536000, immutable",
+  "etag": "\"d5c53be43c8716935a48dc83e355c5eca0ab0a92605edb02c5df5af1a2187918\""
+}
