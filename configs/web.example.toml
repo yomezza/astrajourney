@@ -1,0 +1,21 @@
+# No database or CDN service token is needed. Paths resolve against CONFIG_FILE.
+[web]
+http_addr = '127.0.0.1:8083'
+storage_root = '../data/web'
+cosmic_internal_url = 'http://127.0.0.1:8080'
+cdn_internal_url = 'http://127.0.0.1:8084'
+planet_internal_url = 'http://127.0.0.1:8081'
+chat_internal_url = 'http://127.0.0.1:8082'
+sync_enabled = true
+repository = 'yomezza/astrajourney'
+release_tag = 'v0.30.0'
+sync_interval = '30m'
+
+[nats]
+enabled = false
+servers = ['nats://127.0.0.1:4222']
+service_identity = 'web'
+username = 'web'
+# password_file = '/etc/astra-journey/secrets/web-nats.password'
+connect_timeout = '2s'
+reconnect_wait = '1s'

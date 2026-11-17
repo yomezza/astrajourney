@@ -31,4 +31,4 @@ reconnect_wait = '1s'
 
 # С 0.24.13: для подключения без TLS используйте nats://host:4222,
 # удалите ca_file/password_file и задайте password = 'YOUR_NATS_PASSWORD'.
-# Общий конфиг четырёх служб: shared.example.toml.
+# Общий конфиг пяти служб: shared.example.toml.

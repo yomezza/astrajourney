@@ -24,6 +24,7 @@ const (
 	Planet Service = "planet"
 	Chat   Service = "chat"
 	CDN    Service = "cdn"
+	Web    Service = "web"
 )
 
 // Source is an immutable TOML snapshot or an environment lookup. File mode never
@@ -43,7 +44,7 @@ func (s *Source) Getenv(name string) string {
 // Load reads CONFIG_FILE from the supplied environment. An explicit bad path or
 // invalid document is an error, never a reason to silently select another source.
 func Load(getenv func(string) string, service Service) (*Source, error) {
-	if service != Cosmos && service != Planet && service != Chat && service != CDN {
+	if service != Cosmos && service != Planet && service != Chat && service != CDN && service != Web {
 		return nil, errors.New("unknown configuration service")
 	}
 	path := getenv(FileVariable)
@@ -88,14 +89,14 @@ func Load(getenv func(string) string, service Service) (*Source, error) {
 	}
 	if n := document.NATS; n != nil && n.profiled() {
 		if n.Username != "" || n.Password != "" || n.PasswordFile != "" || n.ServiceIdentity != "" {
-			return nil, errors.New("put NATS credentials in per-service profiles when using [nats.cosmos/planet/chat/cdn]")
+			return nil, errors.New("put NATS credentials in per-service profiles when using [nats.cosmos/planet/chat/cdn/web]")
 		}
 		if n.Enabled != nil && *n.Enabled && n.profile(service) == nil {
 			return nil, errors.New("missing NATS profile for this service")
 		}
 	}
 	values := document.values(service)
-	for _, name := range []string{"PLANET_LOG_FILE", "CHAT_ERASURE_JOURNAL", "NATS_PASSWORD_FILE", "NATS_CA_FILE", "GUIDE_MEDIA_DIR", "CDN_SERVICE_TOKEN_FILE", "CDN_STORAGE_ROOT", "CDN_TOKEN_FILE"} {
+	for _, name := range []string{"PLANET_LOG_FILE", "CHAT_ERASURE_JOURNAL", "NATS_PASSWORD_FILE", "NATS_CA_FILE", "GUIDE_MEDIA_DIR", "CDN_SERVICE_TOKEN_FILE", "CDN_STORAGE_ROOT", "CDN_TOKEN_FILE", "WEB_STORAGE_ROOT"} {
 		if value := values[name]; value != "" && !filepath.IsAbs(value) {
 			values[name] = filepath.Join(base, value)
 		}
@@ -110,7 +111,7 @@ func Load(getenv func(string) string, service Service) (*Source, error) {
 		}
 	}
 	if n := document.NATS; n != nil {
-		for _, profile := range []*NATSSettings{&n.NATSSettings, n.Cosmos, n.Planet, n.Chat, n.CDN} {
+		for _, profile := range []*NATSSettings{&n.NATSSettings, n.Cosmos, n.Planet, n.Chat, n.CDN, n.Web} {
 			if profile == nil {
 				continue
 			}
@@ -140,6 +141,8 @@ func inactiveServiceField(service Service, key toml.Key) bool {
 		return service != Chat
 	case "cdn":
 		return service != CDN
+	case "web":
+		return service != Web
 	case "admin":
 		return service != Cosmos
 	case "nats":
@@ -155,6 +158,8 @@ func inactiveServiceField(service Service, key toml.Key) bool {
 			return service != Chat
 		case "cdn":
 			return service != CDN
+		case "web":
+			return service != Web
 		}
 	}
 	return false

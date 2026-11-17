@@ -1,12 +1,13 @@
 # Скопируйте в cosmos.toml, заполните url и задайте CONFIG_FILE полным путём.
-# Этот пример для HTTP в LAN, все четыре процесса работают на одном компьютере.
+# Этот пример для HTTP в LAN, все пять процессов работают на одном компьютере.
 [database]
 url = 'postgres://cosmos:CHANGE_ME@127.0.0.1:5432/existing_database?sslmode=disable'
 schema = 'astra_journey' # Новая установка; при обновлении сохраните прежнее имя схемы.
 
 [cosmos]
-# Open the game through CDN's public address; keep this Cosmic listener private.
-cdn_internal_url = 'http://127.0.0.1:8083'
+# Open the game through Web's public address; keep this Cosmic listener private.
+cdn_internal_url = 'http://127.0.0.1:8084'
+web_internal_url = 'http://127.0.0.1:8083'
 cdn_service_token_file = '../data/cdn/state/service.token'
 
 # Общий срок миграций и загрузки мира; подключение PostgreSQL проверяется отдельно.
@@ -41,4 +42,4 @@ reconnect_wait = '1s'
 
 # С 0.24.13: для подключения без TLS используйте nats://host:4222,
 # удалите ca_file/password_file и задайте password = 'YOUR_NATS_PASSWORD'.
-# Общий конфиг четырёх служб: shared.example.toml.
+# Общий конфиг пяти служб: shared.example.toml.

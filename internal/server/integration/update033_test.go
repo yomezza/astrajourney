@@ -135,8 +135,8 @@ func Test033ResearchDataAndNotifications(t *testing.T) {
 	f := newFixture033(t)
 	one, id1 := f.signup("scout033")
 	two, id2 := f.signup("buyer033")
-	if f.integer(`SELECT count(*) FROM companies WHERE founder`) != 2 {
-		t.Fatal("two founder placeholders required")
+	if f.integer(`SELECT count(*) FROM companies WHERE founder`) != 4 {
+		t.Fatal("four founder placeholders required")
 	}
 	f.req(one, "GET", "/api/workbench", nil, 200)
 	request := httptest.NewRequest("GET", "/api/workbench", nil)
@@ -416,7 +416,7 @@ func Test033UpgradePreservesLegacyAssets(t *testing.T) {
 		t.Fatal("legacy mining assignment", err)
 	}
 	var founderCount int
-	if err = db.QueryRow(ctx, `SELECT count(*) FROM companies WHERE founder`).Scan(&founderCount); err != nil || founderCount != 2 {
+	if err = db.QueryRow(ctx, `SELECT count(*) FROM companies WHERE founder`).Scan(&founderCount); err != nil || founderCount != 4 {
 		t.Fatal("founder tag collision", founderCount, err)
 	}
 	var oldOwner int64

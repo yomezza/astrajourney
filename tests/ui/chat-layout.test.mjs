@@ -242,7 +242,7 @@ test("Planet Mode reuses a docked chat, draft and transport, then restores home 
   await root.getByRole("button", { name: "На главную", exact: true }).click();
   assert.equal(await g.page.locator("#chat-home-slot .chat-root").count(), 1);
   await g.page.evaluate(async () => {
-    const { PlanetMode } = await import("/features/planet/mode.js");
+    const { PlanetMode } = await import(new URL("./features/planet/mode.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
     PlanetMode.enter();
   });
   assert.equal(await g.page.locator("#window-chat .chat-root").count(), 1);
@@ -264,7 +264,7 @@ test("Planet Mode reuses a docked chat, draft and transport, then restores home 
     true,
   );
   await g.page.evaluate(async () => {
-    const { PlanetMode } = await import("/features/planet/mode.js");
+    const { PlanetMode } = await import(new URL("./features/planet/mode.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
     PlanetMode.leave();
   });
   assert.equal(await g.page.locator("#chat-home-slot .chat-root").count(), 1);
@@ -274,7 +274,7 @@ test("Planet Mode reuses a docked chat, draft and transport, then restores home 
   );
   assert.equal(
     await g.page.evaluate(async () => {
-      const { Preferences } = await import("/core/preferences.js");
+      const { Preferences } = await import(new URL("./core/preferences.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
       return Preferences.read("chat-settings:51", {}).docked;
     }),
     true,

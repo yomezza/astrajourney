@@ -23,8 +23,8 @@ test("admin service cards show connectivity, centered names and outlined status 
     ],
   };
   await g.ready();
-  await g.page.locator("#admin-menu summary").click();
-  await g.page.locator('#admin-menu [data-open="services"]').click();
+  await g.page.locator("#admin-menu").click();
+  await g.page.locator('#window-administration [data-open="services"]').click();
   const root = g.page.locator("#window-services");
   await root.locator(".service-card").nth(1).waitFor();
   assert.equal(await root.locator(".service-card").count(), 2);
@@ -56,7 +56,7 @@ test("admin service cards show connectivity, centered names and outlined status 
   await g.page.evaluate(() => window.__testApp.I18n.set("en"));
   await root.getByText("Planetary service", { exact: true }).waitFor();
   await root.getByText("Disabled", { exact: true }).waitFor();
-  await g.page.locator("#admin-menu summary").click();
+  await g.page.locator("#admin-menu").click();
   if (process.env.SERVICES_TEST_SCREENSHOT)
     await root.screenshot({ path: process.env.SERVICES_TEST_SCREENSHOT });
   await g.page.evaluate(() => window.__testApp.Modules.close("services"));

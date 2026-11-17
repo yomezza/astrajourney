@@ -23,6 +23,7 @@ type natsDocument struct {
 	Planet *NATSSettings `toml:"planet"`
 	Chat   *NATSSettings `toml:"chat"`
 	CDN    *NATSSettings `toml:"cdn"`
+	Web    *NATSSettings `toml:"web"`
 }
 
 func (n *natsDocument) profile(service Service) *NATSSettings {
@@ -35,11 +36,13 @@ func (n *natsDocument) profile(service Service) *NATSSettings {
 		return n.Chat
 	case CDN:
 		return n.CDN
+	case Web:
+		return n.Web
 	}
 	return nil
 }
 func (n *natsDocument) profiled() bool {
-	return n.Cosmos != nil || n.Planet != nil || n.Chat != nil || n.CDN != nil
+	return n.Cosmos != nil || n.Planet != nil || n.Chat != nil || n.CDN != nil || n.Web != nil
 }
 func (n *natsDocument) selected(service Service) NATSSettings {
 	out := n.NATSSettings
@@ -80,6 +83,7 @@ type document struct {
 		StartupTimeout      string   `toml:"startup_timeout"`
 		GuideMediaDir       string   `toml:"guide_media_dir"`
 		CDNInternalURL      string   `toml:"cdn_internal_url"`
+		WebInternalURL      string   `toml:"web_internal_url"`
 		CDNServiceTokenFile string   `toml:"cdn_service_token_file"`
 		HTTPAddr            string   `toml:"http_addr"`
 		PublicOrigin        string   `toml:"public_origin"`
@@ -132,6 +136,21 @@ type document struct {
 		Repository        string `toml:"repository"`
 		SyncInterval      string `toml:"sync_interval"`
 	} `toml:"cdn"`
+	Web struct {
+		HTTPAddr          string `toml:"http_addr"`
+		StorageRoot       string `toml:"storage_root"`
+		CosmicInternalURL string `toml:"cosmic_internal_url"`
+		CDNInternalURL    string `toml:"cdn_internal_url"`
+		PlanetInternalURL string `toml:"planet_internal_url"`
+		ChatInternalURL   string `toml:"chat_internal_url"`
+		SyncEnabled       *bool  `toml:"sync_enabled"`
+		Repository        string `toml:"repository"`
+		ReleaseTag        string `toml:"release_tag"`
+		SyncInterval      string `toml:"sync_interval"`
+		PlanetEnabled     *bool  `toml:"planet_enabled"`
+		ChatEnabled       *bool  `toml:"chat_enabled"`
+	} `toml:"web"`
+
 	NATS *natsDocument `toml:"nats"`
 }
 
@@ -152,6 +171,19 @@ func value[T bool | int | float64](v *T) string {
 
 func (d document) values(service Service) map[string]string {
 	values := map[string]string{
+		"WEB_INTERNAL_URL":              d.Cosmos.WebInternalURL,
+		"WEB_PLANET_ENABLED":            value(d.Web.PlanetEnabled),
+		"WEB_CHAT_ENABLED":              value(d.Web.ChatEnabled),
+		"WEB_HTTP_ADDR":                 d.Web.HTTPAddr,
+		"WEB_STORAGE_ROOT":              d.Web.StorageRoot,
+		"WEB_COSMIC_INTERNAL_URL":       d.Web.CosmicInternalURL,
+		"WEB_CDN_INTERNAL_URL":          d.Web.CDNInternalURL,
+		"WEB_PLANET_INTERNAL_URL":       d.Web.PlanetInternalURL,
+		"WEB_CHAT_INTERNAL_URL":         d.Web.ChatInternalURL,
+		"WEB_REPOSITORY":                d.Web.Repository,
+		"WEB_RELEASE_TAG":               d.Web.ReleaseTag,
+		"WEB_SYNC_ENABLED":              value(d.Web.SyncEnabled),
+		"WEB_SYNC_INTERVAL":             d.Web.SyncInterval,
 		"DIAGNOSTICS_DIRECTORY":         d.Diagnostics.Directory,
 		"DIAGNOSTICS_ENABLED":           value(d.Diagnostics.Enabled),
 		"DATABASE_URL":                  d.Database.URL,
@@ -205,7 +237,7 @@ func (d document) values(service Service) map[string]string {
 	if service == Chat {
 		values["PLANET_INTERNAL_URL"] = d.Chat.PlanetInternalURL
 	}
-	if service == Chat || service == Planet || service == Cosmos || service == CDN {
+	if service == Chat || service == Planet || service == Cosmos || service == CDN || service == Web {
 		if d.NATS != nil {
 			n := d.NATS.selected(service)
 			values["NATS_ENABLED"] = value(n.Enabled)

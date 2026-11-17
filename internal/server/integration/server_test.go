@@ -178,5 +178,5 @@ func TestIntegration(t *testing.T) {
 		t.Fatal(err)
 	}
 	assert(request("GET", "/api/health", "", nil), 200)
-	assert(request("GET", "/", "", nil), 200)
+	assert(request("GET", "/", "", nil), 404)
 }

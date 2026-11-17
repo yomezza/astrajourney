@@ -1,4 +1,4 @@
-# Один CONFIG_FILE для Cosmic, Planet, Chat и CDN 0.24.13+ на Debian 13.
+# Один CONFIG_FILE для Cosmic, Planet, Chat, CDN и Web 0.30.0 на Debian 13.
 # Подставьте адрес игры, PostgreSQL и настоящие NATS-пароли.
 [diagnostics]
 # Separate cosmos.jsonl, planet.jsonl, chat.jsonl; also mirrored to stderr.
@@ -17,7 +17,8 @@ startup_timeout = '5m'
 # guide_media_dir = 'D:\astrajourney\guide-media'
 http_addr = '127.0.0.1:8080'
 public_origin = 'http://192.168.111.44:8083'
-cdn_internal_url = 'http://127.0.0.1:8083'
+cdn_internal_url = 'http://127.0.0.1:8084'
+web_internal_url = 'http://127.0.0.1:8083'
 cdn_service_token_file = '../data/cdn/state/service.token'
 cookie_secure = false
 trusted_proxies = ['127.0.0.1/32', '::1/128']
@@ -72,9 +73,9 @@ password = 'YOUR_PLANET_NATS_PASSWORD'
 username = 'chat'
 password = 'YOUR_CHAT_NATS_PASSWORD'
 
-# Browser entry point: serves graphics, forwards the remaining routes to Cosmic.
+# Internal graphics service; the browser enters through Web.
 [cdn]
-http_addr = '0.0.0.0:8083'
+http_addr = '127.0.0.1:8084'
 storage_root = '../data/cdn'
 cosmic_internal_url = 'http://127.0.0.1:8080'
 service_token_file = '../data/cdn/state/service.token'
@@ -85,3 +86,20 @@ sync_interval = '30m'
 [nats.cdn]
 username = 'cdn'
 password = 'YOUR_CDN_NATS_PASSWORD'
+
+# Public HTTP entry point. Web has no database connection.
+[web]
+http_addr = '0.0.0.0:8083'
+storage_root = '../data/web'
+cosmic_internal_url = 'http://127.0.0.1:8080'
+cdn_internal_url = 'http://127.0.0.1:8084'
+planet_internal_url = 'http://127.0.0.1:8081'
+chat_internal_url = 'http://127.0.0.1:8082'
+sync_enabled = true
+repository = 'yomezza/astrajourney'
+release_tag = 'v0.30.0'
+sync_interval = '30m'
+
+[nats.web]
+username = 'web'
+password = 'YOUR_WEB_NATS_PASSWORD'

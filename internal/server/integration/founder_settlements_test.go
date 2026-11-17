@@ -60,7 +60,7 @@ func TestFounderColoniesAndFrontier(t *testing.T) {
 			}
 		}
 	}
-	if len(owners) != 2 || len(d.Territories) < 4 || footprint > .12 || claimed == 0 || claimed > 1200 {
+	if len(owners) != 4 || len(d.Territories) < 4 || footprint > .12 || claimed == 0 || claimed > 1200 {
 		t.Fatal("colonies cover too much of the galaxy", owners, len(d.Territories), footprint, claimed)
 	}
 	if inner < 50 || innerPorts < 5 || outer < 300 || outerPorts != 0 {

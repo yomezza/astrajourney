@@ -135,7 +135,7 @@ test("station personalization is a view projection and keeps the raw snapshot in
   await g.ready();
   await g.refresh();
   const values = await g.page.evaluate(async () => {
-    const { application } = await import("/bootstrap.js");
+    const { application } = await import(new URL("./bootstrap.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
     return {
       raw: application.session.snapshot.workbench.stations[0].name,
       view: application.session.data.workbench.stations[0].name,

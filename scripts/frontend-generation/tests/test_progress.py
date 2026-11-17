@@ -23,7 +23,7 @@ class ProgressTests(unittest.TestCase):
             tmp=Path(td)
             file=tmp/'test.zip'
             with zipfile.ZipFile(file,'w') as z:
-                for i in range(3):z.writestr(f'cosmosimulator-v0.23.0/internal/server/web/test-{i}.txt','hello')
+                for i in range(3):z.writestr(f'cosmosimulator-v0.23.0/web/test-{i}.txt','hello')
             old_target=prepare.TARGET
             try:
                 prepare.TARGET=tmp/'original-web'

@@ -15,7 +15,7 @@ try {
   const page = await context.newPage();
   const errors = []; page.on("pageerror", e => errors.push(e.message));
   const load = async () => page.evaluate(async () => {
-    const { ART_PATHS } = await import("/features/planet/art-pack.js");
+    const { ART_PATHS } = await import(new URL("./features/planet/art-pack.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
     const keys = ["ground_grass", "ground_dry", "ground_sand", "ground_rock", "ground_snow", "ground_volcanic", "atlas"];
     const result = [];
     for (const key of keys) {
@@ -33,7 +33,7 @@ try {
   });
   await page.goto(new URL("/?cache-check=1", base).href);
   await page.locator("#game:not([hidden])").waitFor();
-  await page.evaluate(async () => (await import("/bootstrap.js")).application.Modules.open("ship"));
+  await page.evaluate(async () => (await import(new URL("./bootstrap.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src))).application.Modules.open("ship"));
   await page.locator(".hologram-surface svg").first().waitFor();
   await page.waitForFunction(() => document.querySelector(".profile-symbol")?.getBBox().width > 0);
   const first = await load(); assert.ok(first.every(n => n > 0), "initial textures must cross HTTP");

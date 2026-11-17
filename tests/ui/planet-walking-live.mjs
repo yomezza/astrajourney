@@ -42,7 +42,7 @@ try {
   await page.goto(base.href);
   await page.locator("#startup-screen").waitFor({ state: "hidden" });
   await page.evaluate(async (site) => {
-    const { openVisit } = await import("/features/planet/visit.js");
+    const { openVisit } = await import(new URL("./features/planet/visit.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
     await openVisit(site);
   }, input.site);
   const canvas = page.locator('#planet-host canvas[data-ready="true"]');

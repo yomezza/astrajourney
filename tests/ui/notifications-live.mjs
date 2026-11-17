@@ -44,14 +44,14 @@ try {
   const module = async (id, open = true) =>
     page.evaluate(
       async ({ id, open }) => {
-        const a = (await import("/bootstrap.js")).application;
+        const a = (await import(new URL("./bootstrap.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src))).application;
         a.Modules[open ? "open" : "close"](id);
       },
       { id, open },
     );
   const refresh = () =>
     page.evaluate(async () =>
-      (await import("/core/snapshot-store.js")).refresh(true),
+      (await import(new URL("./core/snapshot-store.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src))).refresh(true),
     );
   mkdirSync(new URL("./artifacts/notifications/", import.meta.url), {
     recursive: true,
@@ -329,7 +329,7 @@ try {
   await idle();
   assert.equal((await api("notifications")).count, 513);
   await page.evaluate(async () =>
-    (await import("/bootstrap.js")).application.I18n.set("en"),
+    (await import(new URL("./bootstrap.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src))).application.I18n.set("en"),
   );
   await root.getByRole("button", { name: "Read all", exact: true }).waitFor();
   assert.equal(
@@ -347,7 +347,7 @@ try {
   assert.equal((await api("notifications")).count, 0);
   // A new account never inherits the previous selection or text.
   await page.evaluate(async () =>
-    (await import("/bootstrap.js")).application.showAuth(),
+    (await import(new URL("./bootstrap.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src))).application.showAuth(),
   );
   await context.clearCookies();
   await context.addCookies([

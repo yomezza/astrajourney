@@ -133,7 +133,7 @@ func TestKnowledgeMedia251(t *testing.T) {
 	endpoint := httptest.NewServer(cdn.Handler())
 	t.Cleanup(func() { endpoint.Close(); cosmic.Close(); cdn.Close() })
 	f.app.Knowledge.MediaStore = &mediastore.Client{BaseURL: endpoint.URL, TokenFile: filepath.Join(mediaRoot, "state", "service.token"), HTTP: endpoint.Client()}
-	f.handler = cdn.Handler()
+	f.handler = browserWebGateway(t, cosmic.URL, endpoint.URL, "http://127.0.0.1:1", "http://127.0.0.1:1")
 	upload := func(c *http.Cookie, op string, body []byte, status int) map[string]any {
 		t.Helper()
 		var content bytes.Buffer

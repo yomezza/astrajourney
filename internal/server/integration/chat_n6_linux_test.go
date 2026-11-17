@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -166,12 +167,14 @@ func TestN6NativeThreeServices(t *testing.T) {
 	wire.FlushTimeout(time.Second)
 	pilot, other := n1Dial(t, chat, cosmic, owner.Value), n1Dial(t, chat, cosmic, member.Value)
 	eventuallyN1(t, func() bool { return pilot.syncs.Load() > 0 && other.syncs.Load() > 0 })
-	// A separate process provides the gateway as well as Cosmic readiness.
-	status, _ := n5HTTP(t, cosmic, "bootstrap", cosmic, owner)
+	// Web now owns the public gateway; Cosmic only answers game API requests.
+	gateway := httptest.NewServer(browserWebGateway(t, cosmic, cosmic, planet, chat))
+	defer gateway.Close()
+	status, _ := n5HTTP(t, gateway.URL, "bootstrap", cosmic, owner)
 	if status != 200 {
-		t.Fatal("existing Chat gateway", status)
+		t.Fatal("Web Chat gateway", status)
 	}
-	t.Log("three native -race processes ready; existing HTTP/WS routes retained")
+	t.Log("three native core processes ready; Web provides the public HTTP gateway")
 	companyAction := func(c *http.Cookie, in any) {
 		n6API(t, cosmic, "/api/companies", c, in, 200)
 		n6Event(t, events, gamesignal.MembershipSubject)

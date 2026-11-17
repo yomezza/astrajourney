@@ -17,6 +17,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -30,6 +31,11 @@ func TestChat240FiftyConnections(t *testing.T) {
 		json.NewEncoder(w).Encode(map[string]string{"status": "ready"})
 	}))
 	defer planet.Close()
+	gateway := httptest.NewUnstartedServer(nil)
+	defer gateway.Close()
+	publicOrigin := "http://" + gateway.Listener.Addr().String()
+	var nonceHeader atomic.Value
+	nonceHeader.Store("")
 	s := &chat.Service{DB: f.db}
 	journal, e := chat.OpenJournal(f.ctx, s, filepath.Join(t.TempDir(), "journal"))
 	if e != nil {
@@ -44,7 +50,7 @@ func TestChat240FiftyConnections(t *testing.T) {
 	chatURL := "http://" + listener.Addr().String()
 	t.Setenv("CHAT_INTERNAL_URL", chatURL)
 	f.handler = f.app.Handler()
-	config := chatserver.Config{DatabaseURL: "configured", Journal: "configured", Addr: listener.Addr().String(), CosmicURL: cosmic.URL, PlanetURL: planet.URL, Origins: []string{cosmic.URL}}
+	config := chatserver.Config{DatabaseURL: "configured", Journal: "configured", Addr: listener.Addr().String(), CosmicURL: cosmic.URL, PlanetURL: planet.URL, Origins: []string{publicOrigin}}
 	app, e := chatserver.New(s, config)
 	if e != nil {
 		t.Fatal(e)
@@ -60,7 +66,16 @@ func TestChat240FiftyConnections(t *testing.T) {
 		}
 	}()
 	<-started
-	wsURL := "ws" + strings.TrimPrefix(cosmic.URL, "http") + "/chat/ws/v1"
+	t.Setenv("PLANET_INTERNAL_URL", planet.URL)
+	handler := browserCDN(t, f, f.handler)
+	gateway.Config.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if nonce := nonceHeader.Load().(string); nonce != "" {
+			w.Header().Set("X-Cosmos-Test-Run", nonce)
+		}
+		handler.ServeHTTP(w, r)
+	})
+	gateway.Start()
+	wsURL := "ws" + strings.TrimPrefix(gateway.URL, "http") + "/chat/ws/v1"
 	ctx, cancelDial := context.WithTimeout(f.ctx, 120*time.Second)
 	defer cancelDial()
 	tokens := []string{}
@@ -78,7 +93,7 @@ func TestChat240FiftyConnections(t *testing.T) {
 		}
 		f.exec(`INSERT INTO sessions(token_hash,user_id,expires_at) VALUES($1,$2,clock_timestamp()+interval '1 hour')`, account.TokenHash(token), id)
 		tokens = append(tokens, token)
-		c, r, e := websocket.Dial(ctx, wsURL, &websocket.DialOptions{HTTPHeader: http.Header{"Origin": {cosmic.URL}, "Cookie": {"session=" + token}}})
+		c, r, e := websocket.Dial(ctx, wsURL, &websocket.DialOptions{HTTPHeader: http.Header{"Origin": {publicOrigin}, "Cookie": {"session=" + token}}})
 		if e != nil {
 			t.Fatalf("dial %d %v response %v", i, e, r)
 		}
@@ -91,7 +106,7 @@ func TestChat240FiftyConnections(t *testing.T) {
 	if f.integer(`SELECT count(*) FROM chat_ws_leases WHERE expires_at>clock_timestamp()`) != 50 {
 		t.Fatal("leases")
 	}
-	_, r, e := websocket.Dial(ctx, wsURL, &websocket.DialOptions{HTTPHeader: http.Header{"Origin": {cosmic.URL}, "Cookie": {"session=" + tokens[0]}}})
+	_, r, e := websocket.Dial(ctx, wsURL, &websocket.DialOptions{HTTPHeader: http.Header{"Origin": {publicOrigin}, "Cookie": {"session=" + tokens[0]}}})
 	if e == nil || r.StatusCode != 409 {
 		t.Fatal("second connection accepted")
 	}
@@ -147,14 +162,10 @@ func TestChat240FiftyConnections(t *testing.T) {
 	if os.Getenv("RUN_CHAT_BROWSER") == "1" {
 		cookie, _ := f.signup("chat_browser")
 		nonce := "terminal-test-" + chat.UUID()
-		handler := f.handler
-		f.handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("x-cosmos-test-run", nonce)
-			handler.ServeHTTP(w, r)
-		})
+		nonceHeader.Store(nonce)
 		raw, _ := json.Marshal(map[string]string{"token": cookie.Value})
 		command := exec.CommandContext(ctx, "node", "../../../tests/ui/chat-live.mjs")
-		command.Env = append(os.Environ(), "TERMINAL_TEST_URL="+cosmic.URL, "TERMINAL_TEST_NONCE="+nonce)
+		command.Env = append(os.Environ(), "TERMINAL_TEST_URL="+gateway.URL, "TERMINAL_TEST_NONCE="+nonce)
 		command.Stdin = bytes.NewReader(raw)
 		output, e := command.CombinedOutput()
 		if e != nil {

@@ -1,6 +1,6 @@
 # Проверки интерфейса Astra Journey
 
-Тесты запускают production HTML/ES modules/CSS/SVG из `internal/server/web` на временном loopback-порту. API перехватываются; неожиданный endpoint, мутация, внешний URL или JavaScript exception проваливают сценарий. Адрес настоящего сервера не настраивается. Go, PostgreSQL и реальные аккаунты браузерным тестам не нужны.
+Тесты запускают production HTML/ES modules/CSS/SVG из `web` на временном loopback-порту. API перехватываются; неожиданный endpoint, мутация, внешний URL или JavaScript exception проваливают сценарий. Адрес настоящего сервера не настраивается. Go, PostgreSQL и реальные аккаунты браузерным тестам не нужны.
 
 Node 22+ и Playwright нужны **только разработчику и CI**. Windows-служба запускается одним EXE, без npm.
 

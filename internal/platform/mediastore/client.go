@@ -44,7 +44,7 @@ type Client struct {
 func Defaults() *Client {
 	base := configuration.Getenv("CDN_INTERNAL_URL")
 	if base == "" {
-		base = "http://127.0.0.1:8083"
+		base = "http://127.0.0.1:8084"
 	}
 	token := configuration.Getenv("CDN_SERVICE_TOKEN_FILE")
 	if token == "" {

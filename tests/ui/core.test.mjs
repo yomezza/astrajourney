@@ -3,12 +3,12 @@ import { test } from "node:test";
 import {
   Session,
   RequestScope,
-} from "../../internal/server/web/core/session.js";
-import { Preferences } from "../../internal/server/web/core/preferences.js";
-import { request } from "../../internal/server/web/core/api-client.js";
-import { AssetCache } from "../../internal/server/web/core/asset-cache.js";
-import { I18n } from "../../internal/server/web/core/i18n.js";
-import { Format } from "../../internal/server/web/core/format.js";
+} from "../../web/core/session.js";
+import { Preferences } from "../../web/core/preferences.js";
+import { request } from "../../web/core/api-client.js";
+import { AssetCache } from "../../web/core/asset-cache.js";
+import { I18n } from "../../web/core/i18n.js";
+import { Format } from "../../web/core/format.js";
 
 test("scope invalidates old generations, aborts reads and rejects another session", () => {
   Session.signedIn = true;

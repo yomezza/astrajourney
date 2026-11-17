@@ -93,7 +93,7 @@ func TestPlanetHandoff180(t *testing.T) {
 	defer stop()
 	// Exercise the actual same-origin reverse proxy including WebSocket upgrade.
 	t.Setenv("PLANET_INTERNAL_URL", base)
-	terminal := httptest.NewServer(f.app.Handler())
+	terminal := httptest.NewServer(browserCDN(t, f, f.app.Handler()))
 	defer terminal.Close()
 	operation := op180(t)
 	ticket := ticket180(t, f, c, operation, site, ship)

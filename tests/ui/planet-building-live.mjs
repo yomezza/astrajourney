@@ -12,7 +12,7 @@ try{
  page.on('response',async r=>{if(r.url().includes('/planet/api/v1/scene?'))scene=await r.json()});
  page.on('websocket',ws=>{if(!ws.url().includes('/planet/ws/'))return;ws.on('framereceived',e=>{const f=JSON.parse(String(e.payload));frames.push(f);if(f.type==='build.result')results.push(f.payload);if(f.type==='state.delta')states.push(f.payload)})});
  await page.goto(base.href);await page.locator('#startup-screen').waitFor({state:'hidden'});
- const enter=()=>page.evaluate(async site=>{const{openVisit}=await import('/features/planet/visit.js');await openVisit(site)},input.site);
+ const enter=()=>page.evaluate(async site=>{const{openVisit}=await import(new URL("./features/planet/visit.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));await openVisit(site)},input.site);
  await enter();const canvas=page.locator('#planet-host canvas[data-ready=true]');await canvas.waitFor({state:'visible'});await page.waitForTimeout(300);
  assert.ok(scene.building.allowed);assert.ok(scene.building.catalog.length>=30);
  await page.getByRole('button',{name:'Настройки',exact:true}).click();await page.locator('#planet-control-method').selectOption('keyboard');await page.locator('#planet-settings').getByRole('button',{name:'Закрыть',exact:true}).click();
@@ -40,7 +40,7 @@ try{
  const peerContext=await browser.newContext({viewport:{width:1500,height:1000}});await peerContext.addCookies([{name:'session',value:input.peer_cookie,url:base.href}]);
  const peerPage=await peerContext.newPage();const peerErrors=[];peerPage.on('pageerror',e=>peerErrors.push(e.message));
  await peerPage.goto(base.href);await peerPage.locator('#startup-screen').waitFor({state:'hidden'});
- await peerPage.evaluate(async site=>{const{openVisit}=await import('/features/planet/visit.js');await openVisit(site)},input.site);
+ await peerPage.evaluate(async site=>{const{openVisit}=await import(new URL("./features/planet/visit.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));await openVisit(site)},input.site);
  const peerCanvas=peerPage.locator('#planet-host canvas[data-ready=true]');await peerCanvas.waitFor({state:'visible'});
  await peerPage.waitForFunction(()=>document.querySelector('#planet-host canvas').dataset.buildCount==='2');
  // Mouse A* refuses the new solid object, using the authoritative grid.
@@ -53,7 +53,7 @@ try{
  const output=process.env.PLANET_BUILD_SCREENSHOT;if(output){mkdirSync(output.slice(0,output.lastIndexOf('/')),{recursive:true});await page.screenshot({path:output})}
  await canvas.focus();await page.keyboard.press('Escape');await panel.waitFor({state:'hidden'});
  // A full client re-entry must load the committed objects from the scene endpoint.
- scene=null;await page.evaluate(async()=>{const{openVisit}=await import('/features/planet/visit.js');await openVisit()});await canvas.waitFor({state:'visible'});await page.waitForTimeout(300);
+ scene=null;await page.evaluate(async()=>{const{openVisit}=await import(new URL("./features/planet/visit.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));await openVisit()});await canvas.waitFor({state:'visible'});await page.waitForTimeout(300);
  assert.equal(scene.building.snapshot.objects.length,2);assert.equal(scene.building.snapshot.objects[0].rotation,1);
  await canvas.click({position:{x:point.px,y:point.py},button:'right'});await page.getByRole('menuitem',{name:'Убрать',exact:true}).click();await page.waitForFunction(()=>document.querySelector('#planet-host canvas').dataset.buildCount==='1');
  await page.waitForTimeout(350);await canvas.click({position:{x:point.px,y:point.py},button:'right'});await page.getByRole('menuitem',{name:'Убрать',exact:true}).click();await page.waitForFunction(()=>document.querySelector('#planet-host canvas').dataset.buildCount==='0');

@@ -59,7 +59,7 @@ func assignFounderTerritories(g *Galaxy, id string) {
 			}
 		}
 		if !covered {
-			d.Territories = append(d.Territories, FounderTerritory{s.ID, fmt.Sprintf("founder-%02d", 1+stablePercent(d.Seed, s.ID, 53)%2), radius})
+			d.Territories = append(d.Territories, FounderTerritory{s.ID, fmt.Sprintf("founder-%02d", 1+stablePercent(d.Seed, s.ID, 53)%4), radius})
 		}
 	}
 	for i := range g.Stars {

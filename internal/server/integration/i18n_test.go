@@ -2,13 +2,14 @@ package integration
 
 import (
 	"encoding/json"
+	"io/fs"
 	"testing"
 )
 
 func TestTranslationCatalogs(t *testing.T) {
 	catalogs := map[string]map[string]string{}
 	for _, lang := range []string{"ru", "en"} {
-		data, err := testAssets.ReadFile("web/" + lang + ".json")
+		data, err := fs.ReadFile(browserAssets, lang+".json")
 		if err != nil {
 			t.Fatal(err)
 		}

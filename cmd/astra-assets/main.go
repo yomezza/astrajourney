@@ -15,7 +15,7 @@ func main() {
 	root := flag.String("root", "assets/game", "source graphics")
 	out := flag.String("out", "downloads", "archive destination")
 	tag := flag.String("tag", "v0.29.0", "release tag")
-	client := flag.String("client", "internal/server/web/core/generated-assets.js", "browser URL table; empty disables writing")
+	client := flag.String("client", "web/core/generated-assets.js", "browser URL table; empty disables writing")
 	check := flag.Bool("check", false, "check generated browser/HTML references without changing them")
 	flag.Parse()
 	release, urls, err := assetpack.Build(*root, *out, *tag)
@@ -36,7 +36,7 @@ func main() {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
-		index := "internal/server/web/index.html"
+		index := "web/index.html"
 		html, e := os.ReadFile(index)
 		if e != nil {
 			fmt.Fprintln(os.Stderr, e)

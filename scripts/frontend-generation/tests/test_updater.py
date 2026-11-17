@@ -18,7 +18,7 @@ class MirrorUpdateTests(unittest.TestCase):
     def test_remote_manifest_filters_out_other_paths(self):
         sources={'update.py':b'print("updated")\n','README.md':b'Readme\n'}
         tree=[{'path':'scripts/frontend-generation/'+name,'type':'blob','size':len(body),'sha':blob(body)} for name,body in sources.items()]
-        tree += [{'path':'internal/server/web/index.html','type':'blob','size':1,'sha':'a'*40},
+        tree += [{'path':'web/index.html','type':'blob','size':1,'sha':'a'*40},
                  {'path':'scripts/frontend-generation/original-web/secret.py','type':'blob','size':1,'sha':'b'*40},
                  {'path':'scripts/frontend-generation/../README.md','type':'blob','size':1,'sha':'c'*40}]
         def fetch(url):

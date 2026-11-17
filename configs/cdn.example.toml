@@ -1,7 +1,7 @@
 # No [database] is needed. Relative filesystem paths resolve against CONFIG_FILE.
-# Open http://127.0.0.1:8083 in the browser. Cosmic remains on private :8080.
+# Graphics-only internal endpoint; open the separate Web service on :8083.
 [cdn]
-http_addr = '127.0.0.1:8083'
+http_addr = '127.0.0.1:8084'
 storage_root = '../data/cdn'
 cosmic_internal_url = 'http://127.0.0.1:8080'
 service_token_file = '../data/cdn/state/service.token'

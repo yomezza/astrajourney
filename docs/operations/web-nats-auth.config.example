@@ -1,0 +1,13 @@
+# Merge into your own broker configuration after replacing the password hash.
+# This is a fragment, not a replacement for the current service accounts.
+{
+  user: "web"
+  password: "<BCRYPT_HASH_WEB>"
+  permissions: {
+    publish: { deny: [">"] }
+    subscribe: { allow: [
+      "cosmos.v1.signal.cdn.assets.ready",
+      "cosmos.v1.signal.cdn.assets.changed"
+    ] }
+  }
+}

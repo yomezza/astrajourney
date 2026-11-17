@@ -45,7 +45,7 @@ class UiLabTests(unittest.TestCase):
         self.assertEqual(ids, {item["category"] for item in self.data["components"]})
 
     def test_references_do_not_escape_source_roots(self):
-        roots = ("internal/server/web/", "scripts/frontend-generation/")
+        roots = ("web/", "scripts/frontend-generation/")
         for item in self.data["components"]:
             for source in item["source"] + item["sourceJs"] + item["sourceCss"]:
                 with self.subTest(item=item["id"], source=source):
@@ -97,7 +97,7 @@ class UiLabTests(unittest.TestCase):
     def test_approved_snapshots_stay_available(self):
         self.assertTrue((ROOT / "prototype" / "approved-chat-v13.html").is_file())
         self.assertTrue((ROOT / "prototype" / "approved-studies-v13-offline.html").is_file())
-        self.assertEqual(self.data["source_root"], "internal/server/web/")
+        self.assertEqual(self.data["source_root"], "web/")
 
 
 if __name__ == "__main__":

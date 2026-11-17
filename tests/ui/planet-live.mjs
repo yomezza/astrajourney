@@ -62,7 +62,7 @@ try {
   await page.locator("#startup-screen").waitFor({ state: "hidden" });
   assert.equal(artRequests.length, 0);
   await page.evaluate(async (site) => {
-    const { openVisit } = await import("/features/planet/visit.js");
+    const { openVisit } = await import(new URL("./features/planet/visit.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
     await openVisit(site);
   }, input.site);
   const view = page.locator("#planet-host");
@@ -107,7 +107,7 @@ try {
   await peerPage.locator("#game").waitFor({ state: "visible" });
   await peerPage.locator("#startup-screen").waitFor({ state: "hidden" });
   await peerPage.evaluate(async (site) => {
-    const { openVisit } = await import("/features/planet/visit.js");
+    const { openVisit } = await import(new URL("./features/planet/visit.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
     await openVisit(site);
   }, input.site);
   await peerPage
@@ -167,7 +167,7 @@ try {
     start.x,
   );
   const beforeReconnect = await page.evaluate(async () => {
-    const { api } = await import("/core/api.js");
+    const { api } = await import(new URL("./core/api.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
     return api("planet/visit");
   });
   // Cut a real proxied WS, then let the production reconnect code recover it.
@@ -178,7 +178,7 @@ try {
   );
   await view.locator('canvas[data-ready="true"]').waitFor({ state: "visible" });
   const recovered = await page.evaluate(async () => {
-    const { api } = await import("/core/api.js");
+    const { api } = await import(new URL("./core/api.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
     return api("planet/visit");
   });
   assert.equal(recovered.visit, beforeReconnect.visit);
@@ -210,14 +210,14 @@ try {
     await view.screenshot({ path: process.env.PLANET_TEST_SCREENSHOT });
   assert.ok(artRequests.length >= 2, "scene art was not requested lazily");
   const first = await page.evaluate(async () => {
-    const { api } = await import("/core/api.js");
+    const { api } = await import(new URL("./core/api.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
     return api("planet/visit");
   });
   assert.equal(first.state, "active");
   await page.reload();
   await view.locator('canvas[data-ready="true"]').waitFor({ state: "visible" });
   const second = await page.evaluate(async () => {
-    const { api } = await import("/core/api.js");
+    const { api } = await import(new URL("./core/api.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
     return api("planet/visit");
   });
   assert.equal(second.visit, first.visit);
@@ -229,7 +229,7 @@ try {
     goalX,
   );
   const landing = await page.evaluate(async () => {
-    const { api } = await import("/core/api.js");
+    const { api } = await import(new URL("./core/api.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
     const visit = await api("planet/visit");
     const epoch =
       document.querySelector(".visit-canvas").dataset.connectionEpoch;

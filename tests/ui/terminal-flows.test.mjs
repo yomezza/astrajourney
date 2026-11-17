@@ -182,8 +182,8 @@ test("object quota countdown does not insert a fictitious zero stock", async (t)
   const g = await game(t, { signedIn: true });
   await g.ready();
   await g.page.evaluate(async () => {
-    const { showObject } = await import("/features/objects/cards.js");
-    const { world, loadWorld } = await import("/core/world-store.js");
+    const { showObject } = await import(new URL("./features/objects/cards.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
+    const { world, loadWorld } = await import(new URL("./core/world-store.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
     await loadWorld();
     showObject(
       {

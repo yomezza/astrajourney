@@ -81,7 +81,7 @@ class AdvancedUiLabTests(unittest.TestCase):
         for component in self.catalog["components"]:
             if component["id"] not in ADVANCED:
                 continue
-            self.assertTrue(any(s.startswith("internal/server/web/")
+            self.assertTrue(any(s.startswith("web/")
                                 for s in component["source"]))
             self.assertTrue(any(s.startswith("scripts/frontend-generation/")
                                 for s in component["source"]))

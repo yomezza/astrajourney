@@ -68,8 +68,8 @@ try {
     0,
   );
   const denied = await page.evaluate(async () => {
-    const { api } = await import("/core/api.js");
-    const { uuid } = await import("/core/uuid.js");
+    const { api } = await import(new URL("./core/api.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
+    const { uuid } = await import(new URL("./core/uuid.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
     const visit = await api("planet/visit");
     const response = await fetch("/api/planet/return", {
       method: "POST",

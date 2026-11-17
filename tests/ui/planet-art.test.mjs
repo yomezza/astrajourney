@@ -4,8 +4,8 @@ import { game } from "./harness.mjs";
 import { localArtScene } from "./planet-art-fixture.mjs";
 async function open(g, scene) {
   await g.page.evaluate(async (scene) => {
-    const { Modules } = await import("/ui/runtime.js");
-    const { createController } = await import("/features/planet/controller.js");
+    const { Modules } = await import(new URL("./ui/runtime.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
+    const { createController } = await import(new URL("./features/planet/controller.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
     const root = Modules.create("art-test", "Планетарная локация", 1000, 760);
     root.classList.add("visit-content");
     const viewport = document.createElement("div");
@@ -93,9 +93,9 @@ test("local art uses saved masks, global texture UV, one atlas and server-facing
   assert.equal(JSON.stringify(scene), before);
   const uv = await g.page.evaluate(
     async (scene) => {
-      const { acquireArt } = await import("/features/planet/scene-art.js");
+      const { acquireArt } = await import(new URL("./features/planet/scene-art.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
       const { makeGround, groundKeys } =
-        await import("/features/planet/scene-ground.js");
+        await import(new URL("./features/planet/scene-ground.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
       const a = await acquireArt(groundKeys(scene));
       const first = makeGround(scene, a),
         other = makeGround({ ...scene, origin: { x: 1.25, y: 1 } }, a);
@@ -113,7 +113,7 @@ test("local art uses saved masks, global texture UV, one atlas and server-facing
   assert.deepEqual(uv[0], uv[1]);
   await g.page.setViewportSize({ width: 720, height: 800 });
   await g.page.evaluate(async () => {
-    const { I18n } = await import("/core/i18n.js");
+    const { I18n } = await import(new URL("./core/i18n.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
     I18n.set("en");
   });
   assert.match(await canvas.getAttribute("aria-label"), /sector|surface/i);
@@ -126,7 +126,7 @@ test("local art uses saved masks, global texture UV, one atlas and server-facing
   assert.ok(dimensions.height >= 240);
   assert.ok(Math.abs(dimensions.x - 100.4 * 1024) < 2);
   await g.page.evaluate(async () => {
-    const { I18n } = await import("/core/i18n.js");
+    const { I18n } = await import(new URL("./core/i18n.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
     I18n.set("ru");
   });
   assert.match(await canvas.getAttribute("aria-label"), /Поверхность/);
@@ -135,7 +135,7 @@ test("local art uses saved masks, global texture UV, one atlas and server-facing
     window.__testApp.artAbort.abort();
   });
   const stats = await g.page.evaluate(async () => {
-    const { artCacheStats } = await import("/features/planet/scene-art.js");
+    const { artCacheStats } = await import(new URL("./features/planet/scene-art.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
     return artCacheStats();
   });
   assert.equal(stats.pinned, 0);
@@ -166,7 +166,7 @@ test("missing atlas degrades explicitly, releases leases and retries without sta
     window.__testApp.artAbort.abort();
   });
   const stats = await g.page.evaluate(async () => {
-    const { artCacheStats } = await import("/features/planet/scene-art.js");
+    const { artCacheStats } = await import(new URL("./features/planet/scene-art.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
     return artCacheStats();
   });
   assert.equal(stats.pinned, 0);

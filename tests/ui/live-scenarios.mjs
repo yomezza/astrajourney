@@ -47,7 +47,7 @@ async function settle() {
 }
 async function open(id) {
   await page.evaluate(
-    async (id) => (await import("/bootstrap.js")).application.Modules.open(id),
+    async (id) => (await import(new URL("./bootstrap.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src))).application.Modules.open(id),
     id,
   );
   await page.waitForFunction(
@@ -68,7 +68,7 @@ async function open(id) {
 }
 async function close(id) {
   await page.evaluate(
-    async (id) => (await import("/bootstrap.js")).application.Modules.close(id),
+    async (id) => (await import(new URL("./bootstrap.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src))).application.Modules.close(id),
     id,
   );
 }
@@ -86,7 +86,7 @@ try {
   for (const language of ["ru", "en"]) {
     await page.evaluate(
       async (lang) =>
-        (await import("/bootstrap.js")).application.I18n.set(lang),
+        (await import(new URL("./bootstrap.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src))).application.I18n.set(lang),
       language,
     );
     await settle();
@@ -119,7 +119,7 @@ try {
     }
   }
   await page.evaluate(async () =>
-    (await import("/bootstrap.js")).application.I18n.set("ru"),
+    (await import(new URL("./bootstrap.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src))).application.I18n.set("ru"),
   );
   await settle();
   await page.locator("#nav-colonies").click();
@@ -214,7 +214,8 @@ try {
   await settle();
   assert.equal((await snapshot()).ship.cargo.iron, beforeTrade.ship.cargo.iron);
   await close("market");
-  await page.locator("#nav-shipyards").click();
+  await page.locator('#sidebar [data-open="market"]').click();
+  await page.locator('#window-market [data-tab="shipyards"]').click();
   await settle();
   await page
     .locator('.shipyard-card[data-hull="pilgrim"]')
@@ -366,11 +367,12 @@ try {
   await settle();
   await close("colony-settings");
   await close("gameplay");
-  await page.locator("#admin-menu summary").click();
-  await page.locator("#admin-tick").click();
+  await page.locator("#admin-menu").click();
+  await page.locator('#window-administration [data-category="world"]').click();
+  await page.locator("#window-administration").getByRole("button", {name:"Пропустить тик",exact:true}).click();
   await settle();
-  assert.equal(await page.locator("#admin-menu").getAttribute("open"), "");
-  await page.locator("#admin-menu summary").click();
+  assert.equal(await page.locator("#window-administration").getAttribute("open"), "");
+  await page.locator("#window-administration .window-actions button").last().click();
   await open("notifications");
   await page
     .locator("#window-notifications")

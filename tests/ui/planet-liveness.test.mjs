@@ -5,7 +5,7 @@ import {
   STREAM_PROBE_MS,
   STREAM_TIMEOUT_MS,
   WELCOME_GRACE_MS,
-} from "../../internal/server/web/features/planet/liveness.js";
+} from "../../web/features/planet/liveness.js";
 
 test("Planet waits for slow scene initialization instead of closing after 6 seconds", () => {
   assert.equal(livenessAction(6_000, 0, 0, false), "wait");

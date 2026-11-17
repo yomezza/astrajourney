@@ -31,17 +31,17 @@ page.on("response", (r) => {
 });
 const open = (id) =>
   page.evaluate(
-    async (id) => (await import("/bootstrap.js")).application.Modules.open(id),
+    async (id) => (await import(new URL("./bootstrap.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src))).application.Modules.open(id),
     id,
   );
 const close = (id) =>
   page.evaluate(
-    async (id) => (await import("/bootstrap.js")).application.Modules.close(id),
+    async (id) => (await import(new URL("./bootstrap.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src))).application.Modules.close(id),
     id,
   );
 const refresh = () =>
   page.evaluate(async () =>
-    (await import("/core/snapshot-store.js")).refresh(),
+    (await import(new URL("./core/snapshot-store.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src))).refresh(),
   );
 const api = async (path, body) => {
   const r = body
@@ -174,14 +174,14 @@ try {
   ];
   for (const model of expectedModels) {
     const img = objects
-      .locator(`.research-system-art img[src="object-${model}.svg"]`)
+      .locator(`.research-system-art img[src$="object-${model}.svg"]`)
       .first();
     await img.scrollIntoViewIfNeeded();
     await page.waitForFunction(
       (src) =>
         [...document.images].some(
           (i) =>
-            i.getAttribute("src") === src && i.complete && i.naturalWidth > 0,
+            i.getAttribute("src")?.endsWith(src) && i.complete && i.naturalWidth > 0,
         ),
       `object-${model}.svg`,
     );
@@ -192,7 +192,7 @@ try {
     const system = await api("system?id=" + id);
     const src = await page.evaluate(
       async (system) =>
-        (await import("/features/research/system-view.js")).assetFor(
+        (await import(new URL("./features/research/system-view.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src))).assetFor(
           { kind: "Звезда" },
           system.star,
         ),
@@ -220,7 +220,7 @@ try {
       () =>
         document
           .querySelector(".colony-catalog-planet")
-          ?.getAttribute("src") === "object-garden.svg",
+          ?.getAttribute("src")?.endsWith("object-garden.svg"),
     );
     const system = await api("system?id=" + project.star),
       planet = system.sites.find(
@@ -248,7 +248,7 @@ try {
   await page.locator("#window-confirm").waitFor({ state: "hidden" });
   await close("colony-project-" + fixture.funding);
   await click(colonies, "Поверхность планеты");
-  await page.locator("#window-galaxy[open] canvas").waitFor();
+  await page.locator("#window-galaxy[open] #planet-map").waitFor();
   await close("galaxy");
   await colonies.locator(".colony-catalog-refunds button").first().click();
   await page.waitForFunction(
@@ -332,7 +332,7 @@ try {
       .pathname,
   });
   await page.evaluate(async () =>
-    (await import("/bootstrap.js")).application.I18n.set("en"),
+    (await import(new URL("./bootstrap.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src))).application.I18n.set("en"),
   );
   await colonies
     .locator(".colony-catalog-heading h3")
@@ -343,7 +343,7 @@ try {
   await click(studies.locator(".studies-current"), "Details");
   await objects.locator(".research-system-object").first().waitFor();
   await page.evaluate(async () =>
-    (await import("/bootstrap.js")).application.I18n.set("ru"),
+    (await import(new URL("./bootstrap.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src))).application.I18n.set("ru"),
   );
   await objects
     .locator(".research-system-back")
@@ -374,7 +374,7 @@ try {
   ).json();
   assert.equal(hidden.sites.length, 0);
   await peerPage.evaluate(async () => {
-    const a = (await import("/bootstrap.js")).application;
+    const a = (await import(new URL("./bootstrap.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src))).application;
     a.Modules.open("studies");
   });
   await peerPage.locator(".study-entry-current").waitFor();
@@ -387,15 +387,14 @@ try {
     "Звезда",
   );
   await peerPage.evaluate(async () =>
-    (await import("/bootstrap.js")).application.Modules.close("studies"),
+    (await import(new URL("./bootstrap.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src))).application.Modules.close("studies"),
   );
   assert.equal(await peerPage.locator(".research-system-tooltip").count(), 0);
   // Use an existing player-owned project with no disclosed planet metadata.
   await peerPage.locator("#nav-colonies").click();
   await peerPage.waitForFunction(
     () =>
-      document.querySelector(".colony-catalog-planet")?.getAttribute("src") ===
-      "object-unknown.svg",
+      document.querySelector(".colony-catalog-planet")?.getAttribute("src")?.endsWith("object-unknown.svg"),
   );
   await peerPage
     .locator(".colony-catalog-detail")

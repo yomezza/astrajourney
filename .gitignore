@@ -10,3 +10,8 @@
 
 # Python build tool bytecode
 __pycache__/
+
+# Local Web packages and runtime state
+/dist/
+/data/
+/web.toml

@@ -20,7 +20,7 @@ import (
 )
 
 func TestCosmicHasNoEmbeddedGraphics290(t *testing.T) {
-	err := fs.WalkDir(server.Assets, "web", func(path string, d fs.DirEntry, err error) error {
+	err := fs.WalkDir(server.Assets, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -28,7 +28,7 @@ func TestCosmicHasNoEmbeddedGraphics290(t *testing.T) {
 			return nil
 		}
 		switch filepath.Ext(path) {
-		case ".svg", ".png", ".jpg", ".webp", ".gif", ".ico":
+		case ".svg", ".png", ".jpg", ".webp", ".gif", ".ico", ".html", ".css", ".js":
 			t.Errorf("graphics still embedded: %s", path)
 		}
 		raw, err := server.Assets.ReadFile(path)
@@ -71,13 +71,16 @@ func TestCDNProductionBrowserCache290(t *testing.T) {
 	if err = cdn.Install(filepath.Join(out, release.Archive)); err != nil {
 		t.Fatal(err)
 	}
+	internal := httptest.NewServer(cdn.Handler())
+	defer internal.Close()
+	handler := browserWebGateway(t, cosmic.URL, internal.URL, "http://127.0.0.1:8081", "http://127.0.0.1:8082")
 	nonce := fmt.Sprintf("cdn-test-%d", time.Now().UnixNano())
 	endpoint := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Cosmos-Test-Run", nonce)
 		if strings.HasSuffix(r.URL.Path, ".png") {
 			cdnPNGs.Add(1)
 		}
-		cdn.Handler().ServeHTTP(w, r)
+		handler.ServeHTTP(w, r)
 	}))
 	defer endpoint.Close()
 	input, _ := json.Marshal(map[string]string{"cookie_name": cookie.Name, "cookie": cookie.Value})

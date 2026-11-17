@@ -11,6 +11,7 @@ import (
 )
 
 var testAssets = server.Assets
+var browserAssets = os.DirFS("../../../web")
 var graphicAssets = os.DirFS("../../../assets/game")
 
 // Always called with a fixture-owned schema in a disposable _test database.

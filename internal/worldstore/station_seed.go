@@ -15,7 +15,7 @@ import (
 
 func EnsureStations(ctx context.Context, tx pgx.Tx, g *universe.Galaxy) error {
 	founders := map[string]int64{}
-	rows, err := tx.Query(ctx, `SELECT id,founder_key FROM companies WHERE founder_key IN('founder-01','founder-02') ORDER BY founder_key`)
+	rows, err := tx.Query(ctx, `SELECT id,founder_key FROM companies WHERE founder_key IN('founder-01','founder-02','founder-03','founder-04') ORDER BY founder_key`)
 	if err != nil {
 		return err
 	}

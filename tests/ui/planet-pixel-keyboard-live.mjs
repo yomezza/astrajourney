@@ -20,7 +20,7 @@ try {
  });
  await page.goto(base.href);await page.locator('#startup-screen').waitFor({state:'hidden'});
  assert.equal(assets.some(p=>p.includes('/planet/pixelart-v1/')),false,'planet art loaded before entry');
- await page.evaluate(async site=>{const {openVisit}=await import('/features/planet/visit.js');await openVisit(site)},input.site);
+ await page.evaluate(async site=>{const {openVisit}=await import(new URL("./features/planet/visit.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));await openVisit(site)},input.site);
  const canvas=page.locator('#planet-host canvas[data-ready="true"]');await canvas.waitFor({state:'visible'});
  assert.equal(await canvas.getAttribute('data-art'),'ready');
  assert.ok(assets.some(p=>p.includes('/compatibility-atlases/player_')));
@@ -50,11 +50,11 @@ try {
  await page.evaluate(()=>window.dispatchEvent(new KeyboardEvent('keyup',{code:'KeyD',key:'в',bubbles:true,cancelable:true})));
  assert.ok(distance(stopped,await settled())>.5,'Russian layout physical key ignored');
  // A focused real chat composer must not send movement intents.
- await page.evaluate(async()=>{const {Modules}=await import('/ui/runtime.js');Modules.open('chat')});
+ await page.evaluate(async()=>{const {Modules}=await import(new URL("./ui/runtime.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));Modules.open('chat')});
  const composer=page.locator('#window-chat textarea').first();await composer.waitFor({state:'visible'});await composer.focus();
  const chatStart=pos(),count=steering.length;await page.keyboard.type('wasd');await page.waitForTimeout(350);
  assert.equal(steering.length,count,'typing generated steering frames');assert.ok(distance(chatStart,pos())<.01,'chat typing moved player');
- await page.evaluate(async()=>{const {Modules}=await import('/ui/runtime.js');Modules.close('chat')});await canvas.focus();
+ await page.evaluate(async()=>{const {Modules}=await import(new URL("./ui/runtime.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));Modules.close('chat')});await canvas.focus();
  // Losing focus clears held keys immediately, independent of the server lease.
  await page.keyboard.down('d');await page.waitForTimeout(150);await page.evaluate(()=>window.dispatchEvent(new Event('blur')));
  const blurStop=await settled();await page.waitForTimeout(400);assert.ok(distance(blurStop,pos())<.01,'blur did not stop');await page.keyboard.up('d');
@@ -70,7 +70,7 @@ try {
  await page.keyboard.down('s');await page.waitForTimeout(100);await page.keyboard.up('s');await settled();
  assert.equal(await canvas.getAttribute('data-control'),'keyboard');
  // Re-entry retains preference but not keys or duplicate handlers.
- await page.evaluate(async()=>{const {openVisit}=await import('/features/planet/visit.js');await openVisit()});
+ await page.evaluate(async()=>{const {openVisit}=await import(new URL("./features/planet/visit.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));await openVisit()});
  await canvas.waitFor({state:'visible'});await page.waitForTimeout(350);
  assert.equal(await canvas.getAttribute('data-control-method'),'keyboard');
  const reentryStart=pos(),beforeFrames=steering.length;await canvas.focus();await page.keyboard.down('d');await page.waitForTimeout(350);await page.keyboard.up('d');await settled();

@@ -17,6 +17,7 @@ SERVICES = {
     "planet": ("astra-journey-planet", "internal/planetserver/app.go"),
     "chat": ("astra-journey-chat", "internal/chatserver/server.go"),
     "cdn": ("astra-journey-cdn", "internal/cdnserver/server.go"),
+    "web": ("astra-journey-web", "internal/webserver/server.go"),
 }
 
 
@@ -51,20 +52,28 @@ def main():
     parser.add_argument("--platform", choices=["both", "linux", "windows"], default="linux")
     parser.add_argument("--service", choices=list(SERVICES), action="append")
     parser.add_argument("--source-ref", help="build an exact Git commit/tag instead of the working tree")
+    parser.add_argument("--out", type=Path, default=ROOT / "downloads", help="output directory inside repository; use dist/review for unpublished builds")
     args = parser.parse_args()
     if not re.fullmatch(r"v[0-9]+\.[0-9]+\.[0-9]+", args.tag):
         parser.error("tag must be vMAJOR.MINOR.PATCH")
     services = list(dict.fromkeys(args.service or SERVICES))
     platforms = ["windows", "linux"] if args.platform == "both" else [args.platform]
-    output = ROOT / "downloads"
-    output.mkdir(exist_ok=True)
+    output = args.out.resolve()
+    if not output.is_relative_to(ROOT):
+        parser.error("output must be inside the repository")
+    source_commit = capture("git", "rev-parse", "--verify", f"{args.source_ref or 'HEAD'}^{{commit}}")
+    has_web = not args.source_ref or bool(capture("git", "ls-tree", "--name-only", source_commit, "web"))
+    if not has_web and "web" in services:
+        if args.service:
+            parser.error("selected source has no Web service")
+        services.remove("web")
+    output.mkdir(parents=True, exist_ok=True)
     targets = [(service, platform, output / f"{SERVICES[service][0]}-{args.tag}-{platform}-amd64{'.exe' if platform == 'windows' else ''}")
                for service in services for platform in platforms]
     for _, _, path in targets:
         if path.exists():
             parser.error(f"refusing to overwrite {path.name}; choose a new version or select only a missing platform/service")
-    source_commit = capture("git", "rev-parse", "--verify", f"{args.source_ref or 'HEAD'}^{{commit}}")
-    dirty = not args.source_ref and bool(capture("git", "status", "--porcelain", "--", "cmd", "internal", "assets", "go.mod", "go.sum"))
+    dirty = not args.source_ref and bool(capture("git", "status", "--porcelain", "--", "cmd", "internal", "assets", "web", "go.mod", "go.sum"))
     manifest_path = output / f"astra-journey-{args.tag}-build.json"
     manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {"tag": args.tag, "builds": []}
     additions = []
@@ -74,7 +83,8 @@ def main():
         if args.source_ref:
             archive = temporary / "source.tar"
             with archive.open("wb") as stream:
-                subprocess.run(["git", "archive", source_commit, "cmd", "internal", "assets", "go.mod", "go.sum"], cwd=ROOT, stdout=stream, check=True)
+                paths = ["cmd", "internal", "assets", "go.mod", "go.sum"] + (["web"] if has_web else [])
+                subprocess.run(["git", "archive", source_commit, *paths], cwd=ROOT, stdout=stream, check=True)
             source = temporary / "source"
             source.mkdir()
             with tarfile.open(archive) as stream:
@@ -88,6 +98,10 @@ def main():
         asset_release = json.loads((pack_output / "astra-journey-assets.json").read_text())
         if "cosmos" in services:
             subprocess.run(["go", "run", "./cmd/astra-guide-assets", "-check"], cwd=source, check=True)
+        web_release = None
+        if has_web:
+            subprocess.run(["go", "run", "./cmd/astra-web-assets", "-tag", args.tag, "-out", str(pack_output)], cwd=source, check=True)
+            web_release = json.loads((pack_output / "astra-journey-web.json").read_text())
         compiler = capture("go", "version", cwd=source)
         for service, platform, target in targets:
             environment = os.environ.copy()
@@ -106,19 +120,22 @@ def main():
             digest = hashlib.sha256(target.read_bytes()).hexdigest()
             additions.append({"file": target.name, "service": service, "goos": platform, "goarch": "amd64", "goamd64": "v1", "cgo_enabled": False, "source_ref": args.source_ref, "source_commit": source_commit, "source_dirty": dirty, "compiler": compiler, "build_label": args.tag, "sha256": digest})
             print(f"{target.name}  {digest}", flush=True)
-        for filename in [asset_release["archive"], "astra-journey-assets.json"]:
+        package_files = [asset_release["archive"], "astra-journey-assets.json"] + ([web_release["archive"], "astra-journey-web.json"] if web_release else [])
+        for filename in package_files:
             target = output / filename
             body = (pack_output / filename).read_bytes()
-            if filename != "astra-journey-assets.json" and target.exists() and target.read_bytes() != body:
+            if filename.endswith(".zip") and target.exists() and target.read_bytes() != body:
                 raise ValueError(f"refusing to overwrite asset pack {filename}")
             staged = target.with_suffix(target.suffix + ".partial")
             staged.write_bytes(body)
             staged.replace(target)
     manifest["assets"] = asset_release
+    if web_release:
+        manifest["web"] = web_release
     manifest["builds"].extend(additions)
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")
     sums = output / "SHA256SUMS"
-    paths = [output / item["file"] for item in additions] + [manifest_path, output / asset_release["archive"], output / "astra-journey-assets.json"]
+    paths = [output / item["file"] for item in additions] + [manifest_path] + [output / filename for filename in package_files]
     replace = {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest() for path in paths}
     lines = sums.read_text().splitlines() if sums.exists() else []
     lines = [line for line in lines if line.split(maxsplit=1)[-1].strip() not in replace]

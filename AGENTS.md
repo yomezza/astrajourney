@@ -22,7 +22,7 @@
 
 ## 3. Карта проекта
 
-- `cmd/`, `internal/` — Go-службы и реализация игры (Cosmic, Planet, Chat); клиент игры — `internal/server/web/` (HTML/CSS/vanilla JS/SVG).
+- `cmd/`, `internal/` — Go-службы и реализация игры (Cosmic, Planet, Chat, CDN, Web); клиент игры — `web/` (HTML/CSS/vanilla JS), графика — `assets/game/`. Web хранит интерфейс внешним пакетом, CDN — графику.
 - `configs/`, `tests/`, `scripts/` — конфигурация, проверки и инструменты.
 - `docs/README.md` — [навигатор](docs/README.md) по документации; `docs/ideas/README.md` — [реестр идей](docs/ideas/README.md). `docs/ideas/` — **предложения**, не разрешение на внедрение. `docs/design/` — визуальные материалы; `docs/operations/` — эксплуатация; `docs/archive/` — исторические документы.
 - `scripts/frontend-generation/` — изолированная frontend-демосреда с mock-данными; изменения там **не означают** изменений рабочего интерфейса.

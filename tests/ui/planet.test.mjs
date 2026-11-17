@@ -24,7 +24,7 @@ test("planet scenes load public art lazily, reuse six textures and keep geograph
   ]) {
     g.data["planet/surface"].kind = kind;
     await g.page.evaluate(async () => {
-      const { openPlanet } = await import("/features/planet/loader.js");
+      const { openPlanet } = await import(new URL("./features/planet/loader.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
       await openPlanet(1, 1);
     });
     await g.page.waitForSelector('#planet-map[data-textures="ready"]');
@@ -49,7 +49,7 @@ test("texture failure falls back and retries without replacing geography", async
   await g.ready();
   await g.context.route("**/planet/pixelart-v1/terrain/**/*.png*", (r) => r.abort());
   await g.page.evaluate(async () => {
-    const { openPlanet } = await import("/features/planet/loader.js");
+    const { openPlanet } = await import(new URL("./features/planet/loader.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
     await openPlanet(1, 1);
   });
   await g.page.waitForSelector('#planet-map[data-textures="partial"]');
@@ -80,7 +80,7 @@ test("late images cannot resurrect a scene after logout", async (t) => {
   });
   try {
     await g.page.evaluate(async () => {
-      const { openPlanet } = await import("/features/planet/loader.js");
+      const { openPlanet } = await import(new URL("./features/planet/loader.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
       await openPlanet(1, 1);
     });
     await allRequested;
@@ -139,7 +139,7 @@ test("surface cards locate shared landing infrastructure and reflect current acc
     false,
   );
   await g.page.evaluate(async () => {
-    const { openPlanet } = await import("/features/planet/loader.js");
+    const { openPlanet } = await import(new URL("./features/planet/loader.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
     await openPlanet(1, 1);
   });
   await g.page.waitForSelector('#planet-map[data-textures="ready"]');

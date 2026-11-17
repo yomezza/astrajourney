@@ -9,7 +9,6 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"net/http/httputil"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -27,7 +26,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/platform/telemetry"
 )
 
-const Version = "0.29.0"
+const Version = "0.30.0"
 
 type Config struct {
 	Address, StorageRoot, CosmicURL, TokenFile, Repository string
@@ -38,7 +37,7 @@ type Config struct {
 func LoadConfig() (Config, error) {
 	c := Config{Address: configuration.Getenv("CDN_HTTP_ADDR"), StorageRoot: configuration.Getenv("CDN_STORAGE_ROOT"), CosmicURL: configuration.Getenv("CDN_COSMIC_INTERNAL_URL"), TokenFile: configuration.Getenv("CDN_TOKEN_FILE"), Repository: configuration.Getenv("CDN_REPOSITORY"), SyncEnabled: configuration.Getenv("CDN_SYNC_ENABLED") != "false", SyncInterval: 30 * time.Minute}
 	if c.Address == "" {
-		c.Address = "127.0.0.1:8083"
+		c.Address = "127.0.0.1:8084"
 	}
 	if c.StorageRoot == "" {
 		c.StorageRoot = filepath.Join("data", "cdn")
@@ -84,7 +83,6 @@ type Service struct {
 	media               *mediaFiles
 	token               string
 	internal            *http.Client
-	proxy               *httputil.ReverseProxy
 	nats                *natscore.SignalClient
 	started             time.Time
 	syncMu              sync.Mutex
@@ -145,22 +143,8 @@ func New(c Config) (*Service, error) {
 		store.Close()
 		return nil, err
 	}
-	target, err := url.Parse(c.CosmicURL)
-	if err != nil || target.Host == "" {
-		root.Close()
-		store.Close()
-		return nil, errors.New("invalid Cosmic URL")
-	}
-	proxy := &httputil.ReverseProxy{Rewrite: func(p *httputil.ProxyRequest) {
-		p.SetURL(target)
-		p.Out.Host = p.In.Host
-		p.SetXForwarded() // Rebuild forwarding headers; never trust browser-supplied XFF.
-		p.Out.Header.Del(mediastore.Header)
-	}}
-	proxy.Transport = httpkit.InternalTransport()
-	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, e error) { httpkit.Fail(w, 503, "Cosmic unavailable") }
 	opened = true
-	return &Service{owner: owner, config: c, store: store, media: &mediaFiles{root: root, directory: store.Directory, slots: make(chan struct{}, 2)}, token: token, proxy: proxy, started: time.Now(), internal: &http.Client{Transport: httpkit.InternalTransport(), Timeout: 3 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}, nil
+	return &Service{owner: owner, config: c, store: store, media: &mediaFiles{root: root, directory: store.Directory, slots: make(chan struct{}, 2)}, token: token, started: time.Now(), internal: &http.Client{Transport: httpkit.InternalTransport(), Timeout: 3 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}, nil
 }
 func (s *Service) Close() error {
 	s.media.root.Close()
@@ -206,8 +190,7 @@ func (s *Service) Handler() http.Handler {
 			http.NotFound(w, r)
 			return
 		}
-		w.Header().Del("Cache-Control")
-		s.proxy.ServeHTTP(w, r)
+		http.NotFound(w, r)
 	})
 	return telemetry.TraceHTTP("cdn", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Content-Type-Options", "nosniff")

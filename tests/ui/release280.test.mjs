@@ -8,7 +8,7 @@ test("system and route selectors follow viewed galaxy; market follows the active
   g.data.galaxy.stars[1].galaxy = "asterion";
   g.data.galaxy.galaxies = [{id:"edem",name:"Edem",opened:true,radius:1200},{id:"asterion",name:"Asterion",opened:true,radius:1200}];
   await g.page.evaluate(async data => {
-    (await import("/core/world-store.js")).acceptWorld(data);
+    (await import(new URL("./core/world-store.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src))).acceptWorld(data);
     window.dispatchEvent(new Event("universechange"));
   },g.data.galaxy);
   await g.open("galaxy");
@@ -48,7 +48,7 @@ test("profile retains its actions and every page version uses server metadata", 
 test("colony filters, progress, actions and refresh preserve the selected project at narrow widths",async t=>{
  const g=await game(t,{signedIn:true});await g.ready();
  await g.page.evaluate(async()=>{
-  const {mountColonyCatalog}=await import("/features/planet/colony-catalog.js");
+  const {mountColonyCatalog}=await import(new URL("./features/planet/colony-catalog.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
   const root=window.__testApp.Modules.create("colonies","Колонии",950,700);
   const data={projects:[{id:1,star:1,planet:1,name:"Haven",status:"building",progress:12,build_ticks:24,owner_user:51,owner:"test_pilot",sector:7},{id:2,star:1,planet:2,name:"Harbor",status:"complete"}]};
   window.__colonyActions=[];

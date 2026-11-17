@@ -10,7 +10,7 @@ ARCHIVES=[
     f'https://codeload.github.com/yomezza/astrajourney/zip/{REVISION}',
     f'https://github.com/yomezza/astrajourney/archive/{REVISION}.zip',
 ]
-PREFIX='internal/server/web/'
+PREFIX='web/'
 
 # Display only during actual copying/downloading, not during normal server use.
 class Progress:
@@ -134,12 +134,12 @@ EXPECTED_ASSET_SHAS={
 
 def main():
     p=argparse.ArgumentParser(description='Установить оригинальный frontend + SVG кораблей/объектов + PNG планет')
-    p.add_argument('--from',dest='local',help='локальный checkout Astra Journey либо его internal/server/web/')
+    p.add_argument('--from',dest='local',help='локальный checkout Astra Journey либо его web/')
     p.add_argument('--archive',type=Path,help='заранее скачанный ZIP исходников с GitHub')
     p.add_argument('--check-only',action='store_true',help='проверить полноту, ничего не загружая')
     p.add_argument('--force',action='store_true')
     args=p.parse_args()
-    checkout=BASE.parents[1]/'internal'/'server'/'web'
+    checkout=BASE.parents[1]/'web'
     if not args.check_only and (args.force or not (TARGET/'bootstrap.js').is_file()):
         if TARGET.exists(): shutil.rmtree(TARGET)
         TARGET.mkdir(parents=True,exist_ok=True)

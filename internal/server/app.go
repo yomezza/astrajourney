@@ -5,7 +5,6 @@ import (
 	"context"
 	"github.com/yomezza/cosmosimulator/internal/knowledge"
 	"github.com/yomezza/cosmosimulator/internal/platform/natscore"
-	"io/fs"
 	"net/http"
 	"net/netip"
 	"sync/atomic"
@@ -33,7 +32,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/worldstore"
 )
 
-const Version = "0.29.0"
+const Version = "0.30.0"
 
 type Config struct {
 	Secure         bool
@@ -72,8 +71,7 @@ func New(db *pgxpool.Pool, config Config) *App {
 	a := &App{DB: db, origin: config.Origin, startedAt: time.Now()}
 	a.Transfer = &transfer.Service{DB: db, Enabled: configuration.Getenv("PLANET_ENABLED") == "true"}
 	a.Auth = &account.Service{DB: db, Secure: config.Secure, TrustedProxies: config.TrustedProxies}
-	web, _ := fs.Sub(Assets, "web")
-	a.Knowledge = knowledge.New(db, a.Auth, web)
+	a.Knowledge = knowledge.New(db, a.Auth, nil)
 	a.World = &worldstore.Service{DB: db, Auth: a.Auth}
 	a.Discoveries = &discovery.Service{DB: db, Auth: a.Auth, World: a.World}
 	a.Commerce = &commerce.Service{DB: db, Auth: a.Auth, World: a.World}

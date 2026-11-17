@@ -5,7 +5,7 @@ import { chromium } from "playwright";
 import { fixture } from "./fixtures.mjs";
 
 const graphics = new URL("../../assets/game/", import.meta.url);
-const web = new URL("../../internal/server/web/", import.meta.url);
+const web = new URL("../../web/", import.meta.url);
 const mime = {
   html: "text/html",
   js: "text/javascript",
@@ -87,7 +87,7 @@ export async function game(
     window.addEventListener(
       "DOMContentLoaded",
       async () => {
-        const { application: app } = await import("/bootstrap.js");
+        const { application: app } = await import(new URL("./bootstrap.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
         window.__testApp = app;
         window.__testReady = true;
       },

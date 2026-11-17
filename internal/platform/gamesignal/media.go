@@ -54,3 +54,22 @@ func EncodeAssets(subject, revision string) (Message, bool) {
 	b, e := json.Marshal(Envelope[AssetChange]{1, id, "cdn", kind, time.Now().UTC(), AssetChange{revision}})
 	return Message{subject, b}, e == nil
 }
+
+func DecodeAssets(subject string, b []byte) bool {
+	var e Envelope[AssetChange]
+	kind := "cdn.assets.ready"
+	if subject == AssetsChangedSubject {
+		kind = "cdn.assets.changed"
+	} else if subject != AssetsReadySubject {
+		return false
+	}
+	if !strict(b, &e) || !header(e, "cdn", kind) || len(e.Data.Revision) != 64 {
+		return false
+	}
+	for _, r := range e.Data.Revision {
+		if !((r >= '0' && r <= '9') || (r >= 'a' && r <= 'f')) {
+			return false
+		}
+	}
+	return true
+}

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { readFile } from "node:fs/promises";
 import { chromium } from "playwright";
-import { uuid } from "../../internal/server/web/core/uuid.js";
+import { uuid } from "../../web/core/uuid.js";
 test("UUID v4 preserves cryptographic randomness and canonical version bits", () => {
   const ids = new Set(Array.from({ length: 100 }, () => uuid()));
   assert.equal(ids.size, 100);
@@ -22,7 +22,7 @@ test("UUID works on an insecure HTTP IP origin with strict CSP and no randomUUID
   try {
     const page = await browser.newPage();
     const code = await readFile(
-      new URL("../../internal/server/web/core/uuid.js", import.meta.url),
+      new URL("../../web/core/uuid.js", import.meta.url),
       "utf8",
     );
     await page.route("**/*", (route) => {

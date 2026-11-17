@@ -43,7 +43,7 @@ try {
   await page.goto(base.href);
   await page.locator("#game:not([hidden])").waitFor();
   await page.evaluate(async () =>
-    (await import("/bootstrap.js")).application.Modules.open("galaxies"),
+    (await import(new URL("./bootstrap.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src))).application.Modules.open("galaxies"),
   );
   const root = page.locator("#window-galaxies");
   await root.locator(".galaxy-create-button").waitFor();
@@ -202,8 +202,8 @@ try {
   let renameRequest;
   page.on("request",r=>{if(r.url().includes("/api/admin/discovery/name"))renameRequest=r.postDataJSON()});
   await page.evaluate(async()=>{
-    (await import("/ui/runtime.js")).Modules.close("galaxies");
-    const panel=(await import("/features/research/names.js")).discoveryPanel(1);
+    (await import(new URL("./ui/runtime.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src))).Modules.close("galaxies");
+    const panel=(await import(new URL("./features/research/names.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src))).discoveryPanel(1);
     panel.element.id="tabular-naming-check";document.querySelector("#game").append(panel.element);
   });
   const record=page.locator("#tabular-naming-check .discovery-record").first();

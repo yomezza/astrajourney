@@ -12,7 +12,7 @@ try{
  await context.addCookies([{name:fixture.cookie_name,value:fixture.cookie,url:base.href}]);
  const page=await context.newPage();page.setDefaultTimeout(15000);const errors=[];page.on("pageerror",e=>errors.push(e.message));
  const openStudies=async()=>{
-  await page.evaluate(async()=>(await import("/bootstrap.js")).application.Modules.open("studies"));
+  await page.evaluate(async()=>(await import(new URL("./bootstrap.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src))).application.Modules.open("studies"));
   await page.locator(`#window-studies .study-entry[data-star="${fixture.star}"]`).first().click();
  };
  await page.goto(base.href);await page.locator("#game:not([hidden])").waitFor();await openStudies();

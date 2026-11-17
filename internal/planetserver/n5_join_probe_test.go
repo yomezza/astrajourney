@@ -110,7 +110,7 @@ func TestN5PostcommitJoinFailureProbe(t *testing.T) {
 		}
 		hub.Close() // Deliberate RAM-only failure; SQL/presence and original service remain valid.
 		offerID, _ := access.UUID()
-		a := &App{visits: &visits.Service{DB: db}, motion: hub, publisher: publisher}
+		a := &App{db: db, buildGate: make(chan struct{}, 1), visits: &visits.Service{DB: db}, motion: hub, publisher: publisher}
 		_, next, err := a.commitCrossing(ctx, id, w, f, member, &crossingOffer{Ready: true, pin: to, ID: offerID, Expires: time.Now().Add(time.Second)}, in.Operation, make(chan struct{}, 1))
 		if errors.Is(err, visits.ErrReplaced) {
 			continue

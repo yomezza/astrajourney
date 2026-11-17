@@ -1,7 +1,7 @@
 """Build the production fleet holograms: transparent, line-only, 16 s orbit.
 
 Uses the standard-library mesh/projector from the approved design studies.
-Run from any directory. The generated SVGs are committed and embedded by Go;
+Run from any directory. The generated SVGs are committed and delivered by CDN;
 Python is not required to build or run the game.
 """
 
@@ -311,6 +311,6 @@ def render(model_id, settings):
 
 if __name__ == "__main__":
     for model_id, settings in MODELS.items():
-        destination = ROOT / "internal/server/web" / (model_id + ".svg")
+        destination = ROOT / "assets/game/space/ships" / (model_id + ".svg")
         destination.write_text(render(model_id, settings), encoding="utf-8")
         print(destination.name, destination.stat().st_size, "bytes")

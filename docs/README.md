@@ -19,6 +19,7 @@
 | NATS: проект и отдельные этапы внедрения | [Идея NATS](ideas/nats-event-bus/README.md) · [N6](operations/nats-n6/README.ru.md) | Architecture, backend, DBA |
 | Схемы PostgreSQL и обновление 0.27.0 | [Структура, проверка и перенос](operations/database-schemas.ru.md) | Backend, DBA, DevOps |
 | Текущая инфраструктура Go | [Архитектура серверов](refactoring/server/README.ru.md) | Backend |
+| Web и CDN · 0.30.0 | [Настройка Web, кеш и контракт модулей](operations/web.ru.md) | Frontend, backend, DevOps |
 | Браузерный интерфейс | [Архитектура frontend](refactoring/ui/IMPLEMENTATION-0.13.0.ru.md) | Frontend |
 | Изолированная UI-демосреда | [frontend-generation](../scripts/frontend-generation/README.md) | Frontend |
 | Текущие тесты и ревизии | [QA](qa/terminal-0.14.1.ru.md) · [Аудиты](audits/2026-10-28/) | QA, разработчики |

@@ -17,9 +17,9 @@ class ColonyCatalogueTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.demo_js = (ROOT / "mock/colony-catalog.js").read_text(encoding="utf-8")
-        cls.game_js = (REPO / "internal/server/web/features/planet/colony-catalog.js").read_text(encoding="utf-8") if (REPO / "internal/server/web/features/planet/colony-catalog.js").exists() else None
+        cls.game_js = (REPO / "web/features/planet/colony-catalog.js").read_text(encoding="utf-8") if (REPO / "web/features/planet/colony-catalog.js").exists() else None
         cls.demo_css = (ROOT / "mock/colony-catalog.css").read_text(encoding="utf-8")
-        cls.game_css = (REPO / "internal/server/web/styles/colony-catalog.css").read_text(encoding="utf-8") if (REPO / "internal/server/web/styles/colony-catalog.css").exists() else None
+        cls.game_css = (REPO / "web/styles/colony-catalog.css").read_text(encoding="utf-8") if (REPO / "web/styles/colony-catalog.css").exists() else None
         cls.overlay = (ROOT / "mock/ui-overlay.js").read_text(encoding="utf-8")
 
     def test_shared_sources_match_when_game_checkout_is_present(self):

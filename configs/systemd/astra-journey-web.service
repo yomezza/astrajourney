@@ -1,0 +1,21 @@
+[Unit]
+Description=Astra Journey Web
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=astrajourney
+Group=astrajourney
+StateDirectory=astra-journey/web
+StateDirectoryMode=0700
+WorkingDirectory=/var/lib/astra-journey/web
+Environment=CONFIG_FILE=/etc/astra-journey/shared.toml
+ExecStart=/opt/astra-journey/bin/astra-journey-web
+Restart=on-failure
+RestartSec=5s
+TimeoutStopSec=15s
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

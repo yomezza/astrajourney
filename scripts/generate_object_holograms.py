@@ -1,5 +1,5 @@
 """Transparent animated SVG objects, using the approved orthographic projector.
-Python standard library only; generated files are embedded and need no runtime.
+Python standard library only; generated files are delivered by CDN and need no runtime.
 """
 from pathlib import Path
 import math, importlib.util, sys
@@ -91,4 +91,4 @@ def render(name,build,color):
  return f'''<svg xmlns="http://www.w3.org/2000/svg" width="900" height="560" viewBox="0 0 900 560" fill="none" role="img" aria-labelledby="title" data-object="{name}"><title id="title">{name} hologram</title><desc>Transparent wireframe object. Full 3D orbit in 16 seconds.</desc><defs><filter id="glow" x="-25%" y="-25%" width="150%" height="150%"><feGaussianBlur stdDeviation="1.1"/></filter><path id="body" d="{paths[0]}"><animate attributeName="d" values="{';'.join(paths)}" dur="16s" repeatCount="indefinite"/></path></defs><g stroke="{color}" stroke-linecap="round" stroke-linejoin="round"><use href="#body" opacity=".24" stroke-width="3" filter="url(#glow)"/><use href="#body" opacity=".85" stroke-width="1.3"/><use href="#body" opacity=".72" stroke-width="1.9" stroke-dasharray="10 210"><animate attributeName="stroke-dashoffset" from="0" to="-220" dur="5s" repeatCount="indefinite"/></use></g></svg>'''
 if __name__=='__main__':
  for name,(build,color) in MODELS.items():
-  p=ROOT/'internal/server/web'/('object-'+name+'.svg');p.write_text(render(name,build,color));print(p.name,p.stat().st_size)
+  p=ROOT/'assets/game/space/objects'/('object-'+name+'.svg');p.write_text(render(name,build,color));print(p.name,p.stat().st_size)

@@ -6,7 +6,7 @@ import { parse } from "acorn";
 import { analyze } from "eslint-scope";
 import globals from "globals";
 
-const root = new URL("../../internal/server/web/", import.meta.url);
+const root = new URL("../../web/", import.meta.url);
 const allowed = new Set([
   ...Object.keys(globals.browser),
   ...Object.keys(globals.es2026),

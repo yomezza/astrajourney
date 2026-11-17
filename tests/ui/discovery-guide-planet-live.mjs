@@ -36,7 +36,7 @@ try {
   const api = async (path, body) =>
     page.evaluate(
       async ({ path, body }) => {
-        const { api } = await import("/core/api.js");
+        const { api } = await import(new URL("./core/api.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
         return api(path, body);
       },
       { path, body },
@@ -70,7 +70,7 @@ try {
     action: "publish",
   });
   await page.evaluate(async () => {
-    const { Modules } = await import("/ui/runtime.js");
+    const { Modules } = await import(new URL("./ui/runtime.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
     Modules.open("ship");
     Modules.open("guide");
   });
@@ -130,7 +130,7 @@ try {
     });
   }
   await page.evaluate(async () => {
-    const { I18n } = await import("/core/i18n.js");
+    const { I18n } = await import(new URL("./core/i18n.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
     I18n.set("en");
   });
   await guide.getByRole("button", { name: /Планетарная экспедиция/ }).waitFor();
@@ -141,12 +141,12 @@ try {
     /Планетарная экспедиция/,
   );
   await page.evaluate(async () => {
-    const { I18n } = await import("/core/i18n.js");
+    const { I18n } = await import(new URL("./core/i18n.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
     I18n.set("ru");
   });
   // Administrator edits the existing published article without changing its live version.
   await page.evaluate(async () => {
-    const { Modules } = await import("/ui/runtime.js");
+    const { Modules } = await import(new URL("./ui/runtime.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
     Modules.open("guide-admin");
   });
   const admin = page.locator("#window-guide-admin");
@@ -163,7 +163,7 @@ try {
     path: new URL("guide-admin.png", screenshots).pathname,
   });
   await page.evaluate(async () => {
-    const { Modules } = await import("/ui/runtime.js");
+    const { Modules } = await import(new URL("./ui/runtime.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
     Modules.close("guide-admin");
   });
   const geometry = await guide.evaluate((e) => ({
@@ -174,7 +174,7 @@ try {
     open: e.open,
   }));
   await page.evaluate(async (site) => {
-    const { openVisit } = await import("/features/planet/visit.js");
+    const { openVisit } = await import(new URL("./features/planet/visit.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
     await openVisit(site);
   }, input.site);
   const host = page.locator("#planet-host"),
@@ -212,7 +212,7 @@ try {
   // Click the real server landing object's projected ground contact.
   // Epoch comes from the server; the fixture exposes no browser position setter.
   const landing = await page.evaluate(async () => {
-    const { api } = await import("/core/api.js");
+    const { api } = await import(new URL("./core/api.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
     const v = await api("planet/visit");
     const epoch = Number(
       document.querySelector(".visit-canvas").dataset.connectionEpoch,

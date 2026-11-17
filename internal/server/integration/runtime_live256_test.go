@@ -15,7 +15,7 @@ func TestPlanetLiveVisitSurvivesRenewalContention256(t *testing.T) {
 	base, stop := startPlanet150(t, f.db)
 	defer stop()
 	t.Setenv("PLANET_INTERNAL_URL", base)
-	proxy := httptest.NewServer(f.app.Handler())
+	proxy := httptest.NewServer(browserCDN(t, f, f.app.Handler()))
 	defer proxy.Close()
 	base = proxy.URL
 	conn, w := ws180(t, base, c, map[string]any{"ticket": ticket180(t, f, c, op180(t), site, ship)["ticket"]})

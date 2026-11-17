@@ -5,21 +5,24 @@ import (
 	"embed"
 	"github.com/yomezza/cosmosimulator/internal/platform/natscore"
 	"github.com/yomezza/cosmosimulator/internal/platform/telemetry"
-	"io/fs"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/yomezza/cosmosimulator/internal/administration"
 	planetruntime "github.com/yomezza/cosmosimulator/internal/planet/runtime"
+	"github.com/yomezza/cosmosimulator/internal/platform/clientcontract"
 	"github.com/yomezza/cosmosimulator/internal/platform/httpkit"
 )
 
-//go:embed *.sql web/*
+//go:embed *.sql
 var Assets embed.FS
 
 func (a *App) Handler() http.Handler {
 	m := http.NewServeMux()
+	m.HandleFunc("GET /api/client-contract", func(w http.ResponseWriter, r *http.Request) {
+		httpkit.Reply(w, 200, map[string]string{"api_contract": clientcontract.API})
+	})
 	m.HandleFunc("GET /api/guide/catalog", a.Knowledge.Catalog)
 	m.HandleFunc("GET /api/guide/articles/{id}", a.Knowledge.Article)
 	m.HandleFunc("GET /api/guide/assets", a.Knowledge.AssetsView)
@@ -69,8 +72,6 @@ func (a *App) Handler() http.Handler {
 	m.HandleFunc("POST /api/admin/galaxies/apply", a.World.AdminGalaxies)
 	m.HandleFunc("GET /api/admin/planet/surface", a.Colonies.AdminPlanetSurface)
 	m.HandleFunc("POST /api/admin/planet/surface", a.Colonies.AdminPlanetSurface)
-	m.Handle("GET /planet/", a.planetProxy())
-	m.Handle("GET /chat/", a.chatProxy())
 	m.HandleFunc("POST /api/planet/handoff", a.Transfer.Handoff)
 	m.HandleFunc("GET /api/planet/visit", a.Transfer.State)
 	m.HandleFunc("POST /api/planet/return", a.Transfer.Return)
@@ -109,8 +110,7 @@ func (a *App) Handler() http.Handler {
 	m.HandleFunc("GET /api/expedition", a.Terminal.Expedition)
 	m.HandleFunc("POST /api/expedition", a.Terminal.Expedition)
 	m.HandleFunc("GET /api/admin/users", a.Administration.UserPages)
-	web, _ := fs.Sub(Assets, "web")
-	m.Handle("GET /", http.FileServer(http.FS(web)))
+	m.HandleFunc("/", http.NotFound)
 	return telemetry.TraceHTTP("cosmos", httpkit.GzipAPI(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Header().Set("X-Frame-Options", "DENY")

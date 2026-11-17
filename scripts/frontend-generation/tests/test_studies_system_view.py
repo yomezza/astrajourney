@@ -143,12 +143,12 @@ class SystemViewTests(unittest.TestCase):
             thread.join(timeout=2)
 
     def test_original_and_demo_share_same_renderer(self):
-        actual = REPO / "internal" / "server" / "web" / "features" / "research" / "system-view.js"
+        actual = REPO / "web" / "features" / "research" / "system-view.js"
         if not actual.is_file():
             self.skipTest("Only standalone frontend-generation installed")
         self.assertEqual(actual.read_bytes(),
                          (self.prototype / "system-view.js").read_bytes())
-        production = (REPO / "internal" / "server" / "web" /
+        production = (REPO / "web" /
                       "features" / "research" / "index.js").read_text("utf-8")
         self.assertIn('mountSystemLineup } from "./system-view.js"', production)
         self.assertIn('b("Подробнее", () => showSystem(item.star))', production)
@@ -156,8 +156,8 @@ class SystemViewTests(unittest.TestCase):
     @unittest.skipUnless(shutil.which("node"), "Node.js not installed")
     def test_js_syntax(self):
         scripts = [self.prototype / "system-view.js", self.prototype / "app.js"]
-        if (REPO / "internal" / "server" / "web" / "features" / "research" / "index.js").is_file():
-            scripts += [REPO / "internal" / "server" / "web" /
+        if (REPO / "web" / "features" / "research" / "index.js").is_file():
+            scripts += [REPO / "web" /
                         "features" / "research" / "index.js"]
         for script in scripts:
             with self.subTest(script=script):
