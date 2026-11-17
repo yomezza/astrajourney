@@ -9,6 +9,8 @@ on:
       - 'assets/**'
       - 'cmd/**'
       - 'tests/ui/**'
+      - 'scripts/ci-check.py'
+      - 'scripts/test-integration-shard.py'
       - '.github/workflows/ui-contracts.yml'
       - 'go.mod'
       - 'go.sum'
@@ -19,6 +21,8 @@ on:
       - 'assets/**'
       - 'cmd/**'
       - 'tests/ui/**'
+      - 'scripts/ci-check.py'
+      - 'scripts/test-integration-shard.py'
       - '.github/workflows/ui-contracts.yml'
       - 'go.mod'
       - 'go.sum'
@@ -58,7 +62,7 @@ jobs:
           cache-dependency-path: tests/ui/package-lock.json
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npx playwright install --with-deps chromium
-      - run: npm test
+      - run: python3 ../../scripts/ci-check.py --log /tmp/astra-ui-contracts.log -- npm test
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
@@ -115,7 +119,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-      - run: python3 scripts/test-integration-shard.py --index ${{ matrix.shard }} --count 4
+      - run: python3 scripts/ci-check.py --log /tmp/astra-server-contracts.log -- python3 scripts/test-integration-shard.py --index ${{ matrix.shard }} --count 4
         env:
           CHAT_BACKUP_DOCKER_CONTAINER: ${{ job.services.postgres.id }}
       - if: matrix.shard == 0
