@@ -2,9 +2,9 @@
   "schema_version": 1,
   "client_contract": "astra-web-v1",
   "api_contract": "astra-api-v1",
-  "tag": "v0.30.1",
-  "revision": "50407066c438b6051bc2a9a056e06fa4e293aac211d9ee886673ca56f2db331e",
-  "archive": "astra-journey-web-50407066c438b6051bc2a9a056e06fa4e293aac211d9ee886673ca56f2db331e.zip",
-  "sha256": "78d32e698054268cecde55de4666b835a211095c6ca2e607c0c626528f278efa",
-  "size": 438310
+  "tag": "v0.30.2",
+  "revision": "72866b1a608b457c88850f29a74072e4ba1235342a1e0086dfea51c2071338da",
+  "archive": "astra-journey-web-72866b1a608b457c88850f29a74072e4ba1235342a1e0086dfea51c2071338da.zip",
+  "sha256": "9e43dc0e6a494438d602d8d0648b12c04c36d54a3a34eab6917b76015e286662",
+  "size": 438752
 }
