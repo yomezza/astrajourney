@@ -15,9 +15,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/events"
 	"github.com/yomezza/cosmosimulator/internal/fleet"
 	"github.com/yomezza/cosmosimulator/internal/platform/httpkit"
-	"github.com/yomezza/cosmosimulator/internal/platform/postgres"
 	"github.com/yomezza/cosmosimulator/internal/research"
-	"github.com/yomezza/cosmosimulator/internal/universe"
 	"github.com/yomezza/cosmosimulator/internal/wallet"
 )
 
@@ -41,7 +39,7 @@ func (a *Service) Workbench(w http.ResponseWriter, r *http.Request) {
 		httpkit.Internal(w, err)
 		return
 	}
-	if _, err = a.DB.Exec(ctx, `UPDATE users SET last_active=now() WHERE id=$1`, u.ID); err != nil {
+	if _, err = a.DB.Exec(ctx, `UPDATE users SET last_active=now() WHERE id=$1 AND (last_active IS NULL OR last_active<now()-interval '30 seconds')`, u.ID); err != nil {
 		httpkit.Internal(w, err)
 		return
 	}
@@ -50,7 +48,8 @@ func (a *Service) Workbench(w http.ResponseWriter, r *http.Request) {
 		httpkit.Internal(w, err)
 		return
 	}
-	out := map[string]any{"universe_revision": g.Revision, "research": research.ResearchView(ctx, a.DB, u.ID), "core_systems": universe.CoreSystems(g), "portal_cores": universe.PortalCores(g), "server_name": "Иггдрасиль", "ship_classes": fleet.Catalogue, "trade_profiles": tradecatalog.TradeProfiles, "extractor_price": 250, "reservation_policy": "full_refund", "time": time.Now()}
+	navigation := a.World.NavigationMetadata(g)
+	out := map[string]any{"universe_revision": g.Revision, "research": research.ResearchView(ctx, a.DB, u.ID), "core_systems": navigation.Cores, "portal_cores": navigation.PortalCores, "server_name": "Иггдрасиль", "ship_classes": fleet.Catalogue, "trade_profiles": tradecatalog.TradeProfiles, "extractor_price": 250, "reservation_policy": "full_refund", "time": time.Now()}
 	queries := []struct {
 		key, sql string
 		args     []any
@@ -76,8 +75,19 @@ func (a *Service) Workbench(w http.ResponseWriter, r *http.Request) {
 		{"reputation", `SELECT r.*,c.name FROM reputation r JOIN companies c ON c.id=r.company_id WHERE user_id=$1`, []any{u.ID}},
 		{"population", `SELECT count(*) FILTER(WHERE NOT is_bot AND virtual_run IS NULL AND last_active>now()-interval '5 minutes') AS players,count(*) FILTER(WHERE is_bot AND virtual_run IS NULL) AS bots FROM users`, nil},
 	}
+	batch := &pgx.Batch{}
 	for _, q := range queries {
-		v, e := postgres.QueryMaps(ctx, a.DB, q.sql, q.args...)
+		batch.Queue(q.sql, q.args...)
+	}
+	results := a.DB.SendBatch(ctx, batch)
+	defer results.Close()
+	for _, q := range queries {
+		rows, e := results.Query()
+		if e != nil {
+			httpkit.Internal(w, e)
+			return
+		}
+		v, e := pgx.CollectRows(rows, pgx.RowToMap)
 		if e != nil {
 			httpkit.Internal(w, e)
 			return
@@ -104,6 +114,11 @@ func (a *Service) Workbench(w http.ResponseWriter, r *http.Request) {
 			v = visible
 		}
 		out[q.key] = v
+	}
+	// Release the connection before the authorization and balance queries below.
+	if err = results.Close(); err != nil {
+		httpkit.Internal(w, err)
+		return
 	}
 	if company != nil {
 		var credits int64

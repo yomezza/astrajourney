@@ -39,7 +39,8 @@ func (a *Service) Galaxy(w http.ResponseWriter, r *http.Request) {
 			httpkit.Internal(w, e)
 			return
 		}
-		httpkit.Reply(w, 200, map[string]any{"name": public.Name, "version": public.Version, "revision": g.Revision, "galaxies": universe.PublicGalaxies(g), "founders": founders, "stars": public.Stars, "regions": public.Regions, "lanes": public.Lanes, "black_holes": universe.BlackHoles(g), "black_hole": map[string]any{"x": 0, "y": 0, "systems": universe.CoreSystems(g)}})
+		navigation := a.NavigationMetadata(g)
+		httpkit.Reply(w, 200, map[string]any{"name": public.Name, "version": public.Version, "revision": g.Revision, "galaxies": universe.PublicGalaxies(g), "founders": founders, "stars": public.Stars, "regions": public.Regions, "lanes": public.Lanes, "black_holes": navigation.BlackHoles, "black_hole": map[string]any{"x": 0, "y": 0, "systems": navigation.Cores}})
 		return
 	}
 	from, e1 := strconv.Atoi(r.URL.Query().Get("from"))

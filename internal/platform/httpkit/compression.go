@@ -1,29 +1,18 @@
 package httpkit
 
 import (
-	"compress/gzip"
-	"io"
 	"net/http"
+	"strconv"
 	"strings"
 )
-
-type compressedResponse struct {
-	http.ResponseWriter
-	stream io.Writer
-}
-
-func (w compressedResponse) Write(data []byte) (int, error) { return w.stream.Write(data) }
 
 // Static world/catalogue responses are large; browsers and standard HTTP clients
 // negotiate and decode gzip without a frontend dependency or a second service.
 func GzipAPI(next http.Handler) http.Handler {
+	compressed := GzipJSON(next)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "GET" && strings.HasPrefix(r.URL.Path, "/api/") && acceptsGzip(r.Header.Get("Accept-Encoding")) {
-			stream, _ := gzip.NewWriterLevel(w, gzip.BestSpeed)
-			defer stream.Close()
-			w.Header().Set("Content-Encoding", "gzip")
-			w.Header().Add("Vary", "Accept-Encoding")
-			next.ServeHTTP(compressedResponse{w, stream}, r)
+		if strings.HasPrefix(r.URL.Path, "/api/") {
+			compressed.ServeHTTP(w, r)
 			return
 		}
 		next.ServeHTTP(w, r)
@@ -31,21 +20,29 @@ func GzipAPI(next http.Handler) http.Handler {
 }
 
 func acceptsGzip(header string) bool {
+	wildcard := false
 	for _, encoding := range strings.Split(header, ",") {
 		parts := strings.Split(encoding, ";")
-		if strings.TrimSpace(parts[0]) != "gzip" {
+		name := strings.ToLower(strings.TrimSpace(parts[0]))
+		if name != "gzip" && name != "*" {
 			continue
 		}
-		disabled := false
+		quality := 1.0
 		for _, p := range parts[1:] {
-			value := strings.TrimSpace(p)
-			if value == "q=0" || value == "q=0.0" || value == "q=0.00" || value == "q=0.000" {
-				disabled = true
+			key, value, found := strings.Cut(p, "=")
+			if found && strings.EqualFold(strings.TrimSpace(key), "q") {
+				parsed, err := strconv.ParseFloat(strings.TrimSpace(value), 64)
+				if err != nil || parsed < 0 || parsed > 1 {
+					quality = 0
+				} else {
+					quality = parsed
+				}
 			}
 		}
-		if !disabled {
-			return true
+		if name == "gzip" {
+			return quality > 0
 		}
+		wildcard = quality > 0
 	}
-	return false
+	return wildcard
 }

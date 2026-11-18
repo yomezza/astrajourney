@@ -74,6 +74,10 @@ export function makeGround(scene, art) {
       ? scene.materials
       : [{ x: origin.x + 1, y: origin.y + 1, biome: scene.biome }]
   ).map((p) => ({ ...p, material: material(p.biome) }));
+  const nearPoints = new Array(3),
+    nearDistances = new Float64Array(3),
+    nearCount = Math.min(3, points.length),
+    weights = Object.fromEntries(names.map((name) => [name, 0]));
   for (let y = 0; y < N; y++)
     for (let x = 0; x < N; x++) {
       const i = y * N + x,
@@ -86,13 +90,27 @@ export function makeGround(scene, art) {
       }
       const wx = origin.x + (x + 0.5) / 128,
         wy = origin.y + (y + 0.5) / 128;
-      const near = points
-        .map((p) => ({ p, d: (p.x - wx) ** 2 + (p.y - wy) ** 2 }))
-        .sort((a, b) => a.d - b.d)
-        .slice(0, 3);
-      const weights = {};
+      // Only three points contribute. Keep their stable distance order without
+      // allocating and sorting the full materials list for every ground cell.
+      nearDistances.fill(Infinity);
+      for (const p of points) {
+        const d = (p.x - wx) ** 2 + (p.y - wy) ** 2;
+        for (let k = 0; k < nearCount; k++) {
+          if (d >= nearDistances[k]) continue;
+          for (let n = nearCount - 1; n > k; n--) {
+            nearDistances[n] = nearDistances[n - 1];
+            nearPoints[n] = nearPoints[n - 1];
+          }
+          nearDistances[k] = d;
+          nearPoints[k] = p;
+          break;
+        }
+      }
+      for (const name of names) weights[name] = 0;
       let sum = 0;
-      for (const { p, d } of near) {
+      for (let k = 0; k < nearCount; k++) {
+        const p = nearPoints[k],
+          d = nearDistances[k];
         const w = 1 / (d + 0.06) ** 2;
         weights[p.material] = (weights[p.material] || 0) + w;
         sum += w;

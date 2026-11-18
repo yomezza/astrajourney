@@ -21,6 +21,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/assetpack"
 	"github.com/yomezza/cosmosimulator/internal/platform/clientcontract"
 	"github.com/yomezza/cosmosimulator/internal/platform/fileatom"
+	"github.com/yomezza/cosmosimulator/internal/platform/httpkit"
 )
 
 const Schema = 1
@@ -193,6 +194,7 @@ type Store struct {
 	packs     map[string]*installed
 	active    activation
 	install   sync.Mutex
+	content   contentCache
 }
 
 func Open(directory string) (*Store, error) {
@@ -470,28 +472,37 @@ func (s *Store) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/web/"+revision+"/"+name, 307)
 		return
 	}
-	f, e := p.root.Open(name)
+	content, e := s.content.get(r.Context(), revision+"/"+entry.SHA256+"/"+name, func() (*httpkit.StaticContent, error) {
+		f, err := p.root.Open(name)
+		if err != nil {
+			return nil, err
+		}
+		defer f.Close()
+		body, err := io.ReadAll(io.LimitReader(f, entry.Size+1))
+		if err != nil {
+			return nil, err
+		}
+		if int64(len(body)) != entry.Size {
+			return nil, errors.New("Web file size changed")
+		}
+		if name == "index.html" {
+			// Relative imports and styles always stay within this revision.
+			html := strings.ReplaceAll(string(body), `href="styles/`, `href="/web/`+revision+`/styles/`)
+			html = strings.ReplaceAll(html, `src="bootstrap.js"`, `src="/web/`+revision+`/bootstrap.js"`)
+			body = []byte(html)
+		}
+		return httpkit.NewStaticContent(body), nil
+	})
 	if e != nil {
-		http.NotFound(w, r)
+		http.Error(w, "Web bundle unavailable", 503)
 		return
 	}
-	defer f.Close()
 	w.Header().Set("Content-Type", mime(name))
 	w.Header().Set("X-Astra-Web-Revision", revision)
 	if name == "index.html" {
-		// Every relative module import and stylesheet stays within this one revision.
-		b, e := io.ReadAll(io.LimitReader(f, entry.Size+1))
-		if e != nil {
-			http.Error(w, "Web bundle unavailable", 503)
-			return
-		}
-		html := strings.ReplaceAll(string(b), `href="styles/`, `href="/web/`+revision+`/styles/`)
-		html = strings.ReplaceAll(html, `src="bootstrap.js"`, `src="/web/`+revision+`/bootstrap.js"`)
 		w.Header().Set("Cache-Control", "no-cache")
-		http.ServeContent(w, r, name, time.Time{}, strings.NewReader(html))
-		return
+	} else {
+		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
 	}
-	w.Header().Set("ETag", `"`+entry.SHA256+`"`)
-	w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
-	http.ServeContent(w, r, name, time.Time{}, f)
+	content.ServeHTTP(w, r)
 }

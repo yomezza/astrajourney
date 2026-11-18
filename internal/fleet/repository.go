@@ -10,10 +10,36 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/platform/postgres"
 )
 
+const shipColumns = `star,destination,arrival,fuel,cargo,id,name,object_id,position_mode,departure,travel_path,local_target,local_mode,local_started,local_arrival,extractor,reserved_fuel,active,waypoints,class`
+
 func ReadShip(ctx context.Context, q postgres.Querier, id int64) (Ship, error) {
+	return scanShip(q.QueryRow(ctx, `SELECT `+shipColumns+` FROM ships WHERE id=$1`, id))
+}
+
+// ReadShips loads a fleet in one query, using the same decoding as ReadShip.
+func ReadShips(ctx context.Context, q interface {
+	Query(context.Context, string, ...any) (pgx.Rows, error)
+}, uid int64) ([]Ship, error) {
+	rows, err := q.Query(ctx, `SELECT `+shipColumns+` FROM ships WHERE user_id=$1 ORDER BY id`, uid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	ships := []Ship{}
+	for rows.Next() {
+		ship, err := scanShip(rows)
+		if err != nil {
+			return nil, err
+		}
+		ships = append(ships, ship)
+	}
+	return ships, rows.Err()
+}
+
+func scanShip(row pgx.Row) (Ship, error) {
 	var s Ship
 	var raw, path, way []byte
-	err := q.QueryRow(ctx, `SELECT star,destination,arrival,fuel,cargo,id,name,object_id,position_mode,departure,travel_path,local_target,local_mode,local_started,local_arrival,extractor,reserved_fuel,active,waypoints,class FROM ships WHERE id=$1`, id).Scan(&s.Star, &s.Destination, &s.Arrival, &s.Fuel, &raw, &s.ID, &s.Name, &s.ObjectID, &s.PositionMode, &s.Departure, &path, &s.LocalTarget, &s.LocalMode, &s.LocalStarted, &s.LocalArrival, &s.Extractor, &s.ReservedFuel, &s.Active, &way, &s.Class)
+	err := row.Scan(&s.Star, &s.Destination, &s.Arrival, &s.Fuel, &raw, &s.ID, &s.Name, &s.ObjectID, &s.PositionMode, &s.Departure, &path, &s.LocalTarget, &s.LocalMode, &s.LocalStarted, &s.LocalArrival, &s.Extractor, &s.ReservedFuel, &s.Active, &way, &s.Class)
 	if err != nil {
 		return s, err
 	}

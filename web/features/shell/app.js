@@ -268,6 +268,7 @@ export function initApp() {
   });
   setInterval(() => {
     if (
+      !document.hidden &&
       Session.signedIn &&
       Date.now() - Session.lastPoll >=
         Math.min(
@@ -277,6 +278,10 @@ export function initApp() {
     )
       refresh();
   }, 1000);
+
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && Session.signedIn) refresh(true);
+  });
 
   return { showAuth };
 }

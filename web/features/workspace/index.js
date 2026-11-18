@@ -281,6 +281,19 @@ export function initExpedition() {
     "corporations",
     "services",
   ]);
+  const mapModules = new Set([
+    "ship",
+    "cargo",
+    "research",
+    "market",
+    "corporations",
+    "galaxies",
+    "adminchanges",
+    "notifications",
+    "guide",
+    "tasks",
+    "portal",
+  ]);
   function renderVisible(force = false) {
     if (
       !Session.signedIn ||
@@ -320,7 +333,7 @@ export function initExpedition() {
   for (const [id, render] of Object.entries(renderers)) {
     Modules.prepare(id, async (signal) => {
       const epoch = Session.epoch;
-      await ensureMap();
+      if (mapModules.has(id)) await ensureMap();
       if (signal.aborted || epoch !== Session.epoch || !Session.signedIn) return;
       const accepted = await render();
       if (accepted === false && !signal.aborted && epoch === Session.epoch && Session.signedIn) throw new Error(I18n.t("Не удалось загрузить модуль"));

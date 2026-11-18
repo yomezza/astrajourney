@@ -27,7 +27,7 @@ func (a *Service) Fleet(w http.ResponseWriter, r *http.Request) {
 		httpkit.Internal(w, err)
 		return
 	}
-	s, err := fleet.EnsureShip(r.Context(), tx, u.ID)
+	_, err = fleet.EnsureShip(r.Context(), tx, u.ID)
 	if err != nil {
 		httpkit.Internal(w, err)
 		return
@@ -36,36 +36,10 @@ func (a *Service) Fleet(w http.ResponseWriter, r *http.Request) {
 		httpkit.Internal(w, err)
 		return
 	}
-	_ = s
-	rows, err := a.DB.Query(r.Context(), `SELECT id FROM ships WHERE user_id=$1 ORDER BY id`, u.ID)
+	ships, err := fleet.ReadShips(r.Context(), a.DB, u.ID)
 	if err != nil {
 		httpkit.Internal(w, err)
 		return
-	}
-	ids := []int64{}
-	for rows.Next() {
-		var id int64
-		if err = rows.Scan(&id); err != nil {
-			rows.Close()
-			httpkit.Internal(w, err)
-			return
-		}
-		ids = append(ids, id)
-	}
-	err = rows.Err()
-	rows.Close()
-	if err != nil {
-		httpkit.Internal(w, err)
-		return
-	}
-	ships := []fleet.Ship{}
-	for _, id := range ids {
-		ship, e := fleet.ReadShip(r.Context(), a.DB, id)
-		if e != nil {
-			httpkit.Internal(w, e)
-			return
-		}
-		ships = append(ships, ship)
 	}
 	public, err := postgres.QueryMaps(r.Context(), a.DB, `SELECT s.id,s.name,s.star,s.destination,s.arrival,s.departure,s.travel_path AS path,s.object_id,s.position_mode,s.local_target,s.local_started,s.local_arrival,u.id AS owner,u.username AS owner_name FROM ships s JOIN users u ON u.id=s.user_id WHERE s.user_id<>$1 AND NOT u.is_bot ORDER BY s.id`, u.ID)
 	if err != nil {

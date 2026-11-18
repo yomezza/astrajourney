@@ -128,12 +128,28 @@ func (g Galaxy) Path(from, to int) []int {
 	if from < 1 || to < 1 || from > len(g.Stars) || to > len(g.Stars) {
 		return nil
 	}
-	adj := make([][]int, len(g.Stars)+1)
-	for _, e := range g.Lanes {
-		adj[e.From] = append(adj[e.From], e.To)
-		adj[e.To] = append(adj[e.To], e.From)
+	if from == to {
+		return []int{from}
 	}
-	prev := make([]int, len(adj))
+	// Store all neighbors in one array, in the original lane order. This avoids
+	// growing a separate slice for every star on each route calculation.
+	offsets := make([]int, len(g.Stars)+2)
+	for _, e := range g.Lanes {
+		offsets[e.From+1]++
+		offsets[e.To+1]++
+	}
+	for i := 1; i < len(offsets); i++ {
+		offsets[i] += offsets[i-1]
+	}
+	next := append([]int(nil), offsets...)
+	neighbors := make([]int, len(g.Lanes)*2)
+	for _, e := range g.Lanes {
+		neighbors[next[e.From]] = e.To
+		next[e.From]++
+		neighbors[next[e.To]] = e.From
+		next[e.To]++
+	}
+	prev := make([]int, len(g.Stars)+1)
 	prev[from] = -1
 	queue := []int{from}
 	for head := 0; head < len(queue); head++ {
@@ -149,7 +165,7 @@ func (g Galaxy) Path(from, to int) []int {
 			}
 			return route
 		}
-		for _, n := range adj[v] {
+		for _, n := range neighbors[offsets[v]:offsets[v+1]] {
 			if prev[n] == 0 {
 				prev[n] = v
 				queue = append(queue, n)

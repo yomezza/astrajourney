@@ -37,14 +37,17 @@ export function initGalaxyAdmin() {
     galaxy_delete: "Удаление галактики",
   };
   Object.assign(GalaxyAdmin, {
-    async render(root) {
+    async render(root, cached = null) {
       if (!admin()) {
         root.replaceChildren();
         return false;
       }
       const key = ++request,
         epoch = Session.epoch,
-        result = await api("admin/galaxies");
+        source =
+          cached?.epoch === epoch
+            ? cached.result
+            : await api("admin/galaxies");
       if (
         key !== request ||
         epoch !== Session.epoch ||
@@ -52,6 +55,10 @@ export function initGalaxyAdmin() {
         !Modules.isOpen("galaxies")
       )
         return false;
+      // Local navigation reuses this accepted response. Clone it because the
+      // editor applies unsaved values and appends its draft to the view.
+      const snapshot = { epoch, result: source },
+        result = structuredClone(source);
       root.replaceChildren();
       root.classList.add("galaxy-admin");
       if (draft) result.galaxies.push(draft);
@@ -60,7 +67,7 @@ export function initGalaxyAdmin() {
         () => {
           if (draft) {
             selected = draft.definition.id;
-            return GalaxyAdmin.render(root);
+            return GalaxyAdmin.render(root, snapshot);
           }
           draft = {
             definition: {
@@ -76,7 +83,7 @@ export function initGalaxyAdmin() {
           };
           selected = draft.definition.id;
           root.replaceChildren(n("p", tr("Загрузка…")));
-          return GalaxyAdmin.render(root);
+          return GalaxyAdmin.render(root, snapshot);
         },
       );
       const header = n("div", undefined, "galaxy-admin-heading"),
@@ -112,7 +119,7 @@ export function initGalaxyAdmin() {
           card = UI.button("", () => {
             selected = d.id;
             editor.replaceChildren(n("p", tr("Загрузка…"), "muted"));
-            return GalaxyAdmin.render(root);
+            return GalaxyAdmin.render(root, snapshot);
           });
         card.classList.add("galaxy-admin-card");
         card.dataset.galaxy = d.id;
@@ -724,7 +731,7 @@ export function initGalaxyAdmin() {
             draft = null;
             selected = "edem";
           }
-          return GalaxyAdmin.render(root);
+          return GalaxyAdmin.render(root, snapshot);
         },
       );
       const tabbar = n("div", undefined, "galaxy-editor-tabs");

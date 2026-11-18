@@ -22,4 +22,6 @@ type Service struct {
 	universe           *universe.Galaxy
 	stationMu          sync.Mutex
 	stationCount       int
+	galaxyStats        galaxyStatsCache
+	navigation         navigationCache
 }

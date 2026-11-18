@@ -114,7 +114,9 @@ func repriceQueuedRoutes(ctx context.Context, tx pgx.Tx, g *universe.Galaxy) err
 }
 
 // Ports with player property or live obligations are exempt from redistribution.
-func protectedPorts(ctx context.Context, tx pgx.Tx) (map[string]bool, error) {
+func protectedPorts(ctx context.Context, tx interface {
+	Query(context.Context, string, ...any) (pgx.Rows, error)
+}) (map[string]bool, error) {
 	rows, err := tx.Query(ctx, `SELECT star,object_id FROM stations s WHERE company_id IS NOT NULL
  OR EXISTS(SELECT 1 FROM ships p WHERE p.star=s.star AND (p.object_id=s.object_id OR p.local_target=s.object_id))
  OR EXISTS(SELECT 1 FROM warehouses w WHERE w.star=s.star AND w.station=s.object_id AND w.cargo<>'{}')
@@ -367,6 +369,33 @@ func (a *Service) AdminGalaxies(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ctx := r.Context()
+	if r.Method == "GET" {
+		// Read-only lists reuse the validated immutable world. Do not hold a
+		// transaction/pool connection while calculating generation statistics.
+		g, err := a.LoadReadOnly(ctx, a.DB)
+		if err != nil {
+			httpkit.Internal(w, err)
+			return
+		}
+		ports, err := protectedPorts(ctx, a.DB)
+		if err != nil {
+			httpkit.Internal(w, err)
+			return
+		}
+		stats, err := a.galaxyStats.statistics(ctx, g, ports)
+		if err != nil {
+			httpkit.Internal(w, err)
+			return
+		}
+		list := []map[string]any{}
+		for _, d := range g.Catalog {
+			if !d.Deleted {
+				list = append(list, map[string]any{"definition": d, "stats": stats[d.ID]})
+			}
+		}
+		httpkit.Reply(w, 200, map[string]any{"galaxies": list, "revision": g.Revision})
+		return
+	}
 	tx, err := a.DB.Begin(ctx)
 	if err != nil {
 		httpkit.Internal(w, err)
@@ -386,22 +415,6 @@ func (a *Service) AdminGalaxies(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	g := *loaded
-	if r.Method == "GET" {
-		ports, e := protectedPorts(ctx, tx)
-		if e != nil {
-			httpkit.Internal(w, e)
-			return
-		}
-		list := []map[string]any{}
-		for _, d := range g.Catalog {
-			if d.Deleted {
-				continue
-			}
-			list = append(list, map[string]any{"definition": d, "stats": galaxyStatistics(&g, d.ID, ports)})
-		}
-		httpkit.Reply(w, 200, map[string]any{"galaxies": list, "revision": g.Revision})
-		return
-	}
 	var in universe.GalaxyEdit
 	if !httpkit.Decode(w, r, &in) {
 		return

@@ -43,7 +43,7 @@ func (w *jsonGzipResponse) Write(data []byte) (int, error) {
 	return w.ResponseWriter.Write(data)
 }
 
-// GzipJSON compresses Chat HTTP views without buffering WebSocket upgrades or
+// GzipJSON compresses JSON HTTP views without buffering WebSocket upgrades or
 // writing a gzip body for 304/204 responses. Writers are reused across requests.
 func GzipJSON(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

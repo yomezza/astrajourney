@@ -99,7 +99,8 @@ func LoadConfig() (Config, error) {
 
 type mapCache struct {
 	sync.Mutex
-	body       []byte
+	content    *httpkit.StaticContent
+	loading    *mapFetch
 	until      time.Time
 	generation uint64
 }
@@ -152,43 +153,6 @@ func (s *Service) ConfigureNATS(c natscore.Config) error {
 		s.nats = client
 	}
 	return e
-}
-func (s *Service) assetMap(w http.ResponseWriter, r *http.Request) {
-	s.cache.Lock()
-	defer s.cache.Unlock()
-	generation := s.generation.Load()
-	if time.Now().Before(s.cache.until) && s.cache.generation == generation {
-		w.Header().Set("Content-Type", "application/json")
-		w.Header().Set("Cache-Control", "no-cache")
-		w.Write(s.cache.body)
-		return
-	}
-	req, e := http.NewRequestWithContext(r.Context(), "GET", s.config.CDNURL+"/cdn/api/v1/asset-map", nil)
-	if e != nil {
-		httpkit.Fail(w, 503, "Каталог графики недоступен")
-		return
-	}
-	response, e := s.client.Do(req)
-	if e != nil {
-		httpkit.Fail(w, 503, "Каталог графики недоступен")
-		return
-	}
-	defer response.Body.Close()
-	b, e := io.ReadAll(io.LimitReader(response.Body, 2<<20+1))
-	var m struct {
-		Schema   int    `json:"schema_version"`
-		Contract string `json:"client_contract"`
-	}
-	if e != nil || response.StatusCode != 200 || len(b) > 2<<20 || json.Unmarshal(b, &m) != nil || m.Schema != assetpack.Schema || m.Contract != assetpack.Contract {
-		httpkit.Fail(w, 503, "Каталог графики недоступен")
-		return
-	}
-	s.cache.body = b
-	s.cache.until = time.Now().Add(30 * time.Second)
-	s.cache.generation = generation
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Cache-Control", "no-cache")
-	w.Write(b)
 }
 func (s *Service) health(w http.ResponseWriter, r *http.Request) {
 	revision := s.bundle.Revision()

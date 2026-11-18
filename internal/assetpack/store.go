@@ -2,7 +2,6 @@ package assetpack
 
 import (
 	"archive/zip"
-	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -19,6 +18,7 @@ import (
 	"time"
 
 	"github.com/yomezza/cosmosimulator/internal/platform/fileatom"
+	"github.com/yomezza/cosmosimulator/internal/platform/httpkit"
 )
 
 type stored struct {
@@ -26,7 +26,7 @@ type stored struct {
 	File string
 }
 type Store struct {
-	publicMap []byte
+	publicMap *httpkit.StaticContent
 	Directory string
 	root      *os.Root
 	mu        sync.RWMutex
@@ -146,23 +146,23 @@ func (s *Store) add(m Manifest, base string) {
 			}
 		}
 	}
-	s.publicMap, _ = json.Marshal(map[string]any{"schema_version": Schema, "client_contract": Contract, "revision": m.Revision, "urls": urls})
+	raw, _ := json.Marshal(map[string]any{"schema_version": Schema, "client_contract": Contract, "revision": m.Revision, "urls": urls})
+	s.publicMap = httpkit.NewStaticContent(raw)
 }
 
 // ServeMap advertises a complete, verified pack. Clients freeze one map per page
 // and check required logical aliases before accepting a newer compatible pack.
 func (s *Store) ServeMap(w http.ResponseWriter, r *http.Request) {
 	s.mu.RLock()
-	raw := s.publicMap
+	content := s.publicMap
 	s.mu.RUnlock()
-	if len(raw) == 0 {
+	if content == nil {
 		http.Error(w, "assets not installed", 503)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Cache-Control", "no-cache")
-	w.Header().Set("ETag", `"`+Hash(raw)+`"`)
-	http.ServeContent(w, r, "asset-map.json", time.Time{}, bytes.NewReader(raw))
+	content.ServeHTTP(w, r)
 }
 func (s *Store) Has(revision string) bool {
 	s.mu.RLock()
