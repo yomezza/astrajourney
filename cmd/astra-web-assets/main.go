@@ -10,7 +10,7 @@ import (
 func main() {
 	root := flag.String("root", "web", "browser source directory")
 	output := flag.String("out", "dist/web", "archive output directory")
-	tag := flag.String("tag", "v0.30.0", "published release tag")
+	tag := flag.String("tag", "v0.30.1", "published release tag")
 	flag.Parse()
 	release, e := webbundle.Build(*root, *output, *tag)
 	if e != nil {
