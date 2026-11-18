@@ -222,7 +222,7 @@ func OpenDatabase(ctx context.Context, dsn, schema string, schemas fs.ReadFileFS
 		}
 	}
 
-	for _, file := range []string{"schema250.sql", "schema251.sql", "schema252.sql", "schema253.sql", "schema254.sql", "schema259.sql", "schema2510.sql", "schema280.sql", "schema290.sql", "schema300.sql", "schema301.sql"} {
+	for _, file := range []string{"schema250.sql", "schema251.sql", "schema252.sql", "schema253.sql", "schema254.sql", "schema259.sql", "schema2510.sql", "schema280.sql", "schema290.sql", "schema300.sql", "schema301.sql", "schema302.sql"} {
 		upgrade, e := schemas.ReadFile(file)
 		if e != nil {
 			return nil, e

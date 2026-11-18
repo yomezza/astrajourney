@@ -8,7 +8,7 @@ planet_internal_url = 'http://127.0.0.1:8081'
 chat_internal_url = 'http://127.0.0.1:8082'
 sync_enabled = true
 repository = 'yomezza/astrajourney'
-release_tag = 'v0.30.1'
+release_tag = 'v0.30.2'
 sync_interval = '30m'
 
 [nats]

@@ -28,7 +28,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/platform/postgres"
 )
 
-const Version = "0.30.1"
+const Version = "0.30.2"
 
 type Config struct {
 	DatabaseURL, Schema, Addr, CosmicURL, PlanetURL, Journal string
