@@ -10,13 +10,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Determine release scope
+        id: scope
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          python3 - <<'PYRELEASE'
+          import json, os
+          from pathlib import Path
+          manifest = json.loads(Path(f"downloads/astra-journey-{os.environ['RELEASE_TAG']}-build.json").read_text())
+          web_only = {build['service'] for build in manifest['builds']} == {'web'}
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write(f"web_only={str(web_only).lower()}\n")
+          PYRELEASE
       - name: Verify release files
         run: |
           set -euo pipefail
           sha256sum -c downloads/SHA256SUMS
           test -f "release-notes/$RELEASE_TAG.md"
           found=false
-          for suffix in '' '-planet' '-chat' '-cdn' '-web'; do
+          suffixes=('' '-planet' '-chat' '-cdn' '-web')
+          if test "$WEB_ONLY" = true; then suffixes=('-web'); fi
+          for suffix in "${suffixes[@]}"; do
             linux="downloads/astra-journey${suffix}-${RELEASE_TAG}-linux-amd64"
             test -f "$linux"
             found=true
@@ -24,7 +39,9 @@ jobs:
           test "$found" = true
         env:
           RELEASE_TAG: ${{ github.ref_name }}
+          WEB_ONLY: ${{ steps.scope.outputs.web_only }}
       - name: Verify external graphics
+        if: steps.scope.outputs.web_only != 'true'
         env:
           RELEASE_TAG: ${{ github.ref_name }}
         run: python3 scripts/verify-asset-release.py "$RELEASE_TAG"
@@ -34,6 +51,7 @@ jobs:
         run: python3 scripts/verify-web-release.py "$RELEASE_TAG"
       - name: Publish Linux amd64 binaries, graphics, frontend and checksums
         env:
+          WEB_ONLY: ${{ steps.scope.outputs.web_only }}
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ github.ref_name }}
@@ -48,6 +66,16 @@ jobs:
           done
           if test -f "downloads/astra-journey-${RELEASE_TAG}-build.json"; then
             executables+=("downloads/astra-journey-${RELEASE_TAG}-build.json")
+          fi
+          if test "$WEB_ONLY" = true; then
+            web_archive="$(python3 -c 'import json; print(json.load(open("downloads/astra-journey-web.json"))["archive"])')"
+            gh release create "$RELEASE_TAG" \
+              "${executables[@]}" \
+              "downloads/$web_archive" \
+              downloads/astra-journey-web.json configs/web.example.toml downloads/SHA256SUMS \
+              --verify-tag --latest=false --title "Astra Journey Web $RELEASE_TAG" \
+              --notes-file "release-notes/$RELEASE_TAG.md"
+            exit 0
           fi
           asset_archive="$(python3 -c 'import json; print(json.load(open("downloads/astra-journey-assets.json"))["archive"])')"
           web_archive="$(python3 -c 'import json; print(json.load(open("downloads/astra-journey-web.json"))["archive"])')"

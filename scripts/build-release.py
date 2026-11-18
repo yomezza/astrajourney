@@ -57,6 +57,7 @@ def main():
     if not re.fullmatch(r"v[0-9]+\.[0-9]+\.[0-9]+", args.tag):
         parser.error("tag must be vMAJOR.MINOR.PATCH")
     services = list(dict.fromkeys(args.service or SERVICES))
+    web_only = services == ["web"]
     platforms = ["windows", "linux"] if args.platform == "both" else [args.platform]
     output = args.out.resolve()
     if not output.is_relative_to(ROOT):
@@ -94,8 +95,10 @@ def main():
             if not version or version[1] != args.tag[1:]:
                 parser.error(f"{service} source version does not match {args.tag}")
         pack_output = temporary / "assets"
-        subprocess.run(["go", "run", "./cmd/astra-assets", "-tag", args.tag, "-out", str(pack_output), "-check"], cwd=source, check=True)
-        asset_release = json.loads((pack_output / "astra-journey-assets.json").read_text())
+        asset_release = None
+        if not web_only:
+            subprocess.run(["go", "run", "./cmd/astra-assets", "-tag", args.tag, "-out", str(pack_output), "-check"], cwd=source, check=True)
+            asset_release = json.loads((pack_output / "astra-journey-assets.json").read_text())
         if "cosmos" in services:
             subprocess.run(["go", "run", "./cmd/astra-guide-assets", "-check"], cwd=source, check=True)
         web_release = None
@@ -120,7 +123,7 @@ def main():
             digest = hashlib.sha256(target.read_bytes()).hexdigest()
             additions.append({"file": target.name, "service": service, "goos": platform, "goarch": "amd64", "goamd64": "v1", "cgo_enabled": False, "source_ref": args.source_ref, "source_commit": source_commit, "source_dirty": dirty, "compiler": compiler, "build_label": args.tag, "sha256": digest})
             print(f"{target.name}  {digest}", flush=True)
-        package_files = [asset_release["archive"], "astra-journey-assets.json"] + ([web_release["archive"], "astra-journey-web.json"] if web_release else [])
+        package_files = ([asset_release["archive"], "astra-journey-assets.json"] if asset_release else []) + ([web_release["archive"], "astra-journey-web.json"] if web_release else [])
         for filename in package_files:
             target = output / filename
             body = (pack_output / filename).read_bytes()
@@ -129,7 +132,8 @@ def main():
             staged = target.with_suffix(target.suffix + ".partial")
             staged.write_bytes(body)
             staged.replace(target)
-    manifest["assets"] = asset_release
+    if asset_release:
+        manifest["assets"] = asset_release
     if web_release:
         manifest["web"] = web_release
     manifest["builds"].extend(additions)

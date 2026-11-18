@@ -453,6 +453,7 @@ export function initGalaxy() {
   }
   function setMode(value) {
     mode = value;
+    root.dataset.mapMode = value;
     syncMapNavigation();
   }
   const starGalaxy = (id) => galaxy?.stars[id - 1]?.galaxy || "edem";
@@ -747,6 +748,22 @@ export function initGalaxy() {
     ctx.shadowBlur = 0;
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
     ctx.clearRect(0, 0, w, h);
+    // Presentation only: this grid never participates in projection or hits.
+    const gridStep = 80,
+      gridX = ((cam().x % gridStep) + gridStep) % gridStep,
+      gridY = ((cam().y % gridStep) + gridStep) % gridStep;
+    ctx.strokeStyle = "#8db9cf0b";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let x = gridX; x < w; x += gridStep) {
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, h);
+    }
+    for (let y = gridY; y < h; y += gridStep) {
+      ctx.moveTo(0, y);
+      ctx.lineTo(w, y);
+    }
+    ctx.stroke();
     shipHits = [];
     if (mode === "system" && local) {
       sites = [];
@@ -798,7 +815,7 @@ export function initGalaxy() {
                 : 8) * Math.min(2.5, Math.sqrt(cam().zoom));
         sites.push({ ...s, x: p.x, y: p.y, baseX, baseY, radius, visible });
         if (!visible) continue;
-        ctx.strokeStyle = "#28394b";
+        ctx.strokeStyle = "#54728b55";
         ctx.setLineDash(s.planet >= 101 ? [2, 5] : []);
         ctx.beginPath();
         ctx.ellipse(
@@ -817,8 +834,10 @@ export function initGalaxy() {
           ctx.strokeStyle = "#efad58";
           ctx.lineWidth = 1.5;
           ctx.beginPath();
-          ctx.arc(p.x, p.y, radius + 5, 0, Math.PI * 2);
+          ctx.arc(p.x, p.y, radius + 7, 0, Math.PI * 2);
           ctx.stroke();
+          ctx.fillStyle = "#efad5812";
+          ctx.fill();
         }
         if (flags.labels) {
           ctx.fillStyle = "#c7d4df";
@@ -868,7 +887,7 @@ export function initGalaxy() {
     }
     projectGalaxy(w, h);
     drawTerritories();
-    ctx.strokeStyle = "#273749";
+    ctx.strokeStyle = "#4d728755";
     ctx.lineWidth = 0.6;
     ctx.beginPath();
     for (const lane of flags.lanes ? galaxy.lanes : []) {
@@ -935,9 +954,20 @@ export function initGalaxy() {
       (point) => point.star.id === selected,
     );
     if (selectedPoint) {
+      ctx.fillStyle = "#efad5818";
+      ctx.beginPath();
+      ctx.arc(selectedPoint.x, selectedPoint.y, 15, 0, Math.PI * 2);
+      ctx.fill();
       ctx.strokeStyle = "#efad58";
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.arc(selectedPoint.x, selectedPoint.y, 8, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
+        ctx.moveTo(selectedPoint.x + dx * 12, selectedPoint.y + dy * 12);
+        ctx.lineTo(selectedPoint.x + dx * 18, selectedPoint.y + dy * 18);
+      }
       ctx.stroke();
     }
     drawNearbyLabels(w, h);
