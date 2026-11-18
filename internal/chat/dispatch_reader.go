@@ -3,6 +3,8 @@ package chat
 import (
 	"context"
 	"time"
+
+	"github.com/jackc/pgx/v5"
 )
 
 // DispatchEvent contains metadata only. Message bodies never enter the dispatcher.
@@ -29,7 +31,17 @@ func (s *Service) OutboxWindow(ctx context.Context, overlap time.Duration) (Disp
 	return w, err
 }
 func (s *Service) OutboxPage(ctx context.Context, window DispatchWindow, highwater, after int64, limit int) ([]DispatchEvent, error) {
-	rows, err := s.DB.Query(ctx, `SELECT id,event_kind,channel_id::text,target_user_id,reference_id::text,created_at FROM chat_outbox WHERE id>$1 AND id<=$2 AND (id>$3 OR created_at>=$4) ORDER BY id LIMIT $5`, after, window.Max, highwater, window.Cutoff, limit)
+	// Keep the new-ID range and the timestamp overlap separate. An OR here
+	// makes an ordered primary-key scan revisit the entire retained outbox on
+	// every wake. The existing (created_at,id) index bounds the overlap branch;
+	// the disjoint ID ranges preserve ordering, paging and late-commit recovery.
+	// Plan this parameter-sensitive query per execution: a cached generic plan
+	// cannot estimate the moving time/ID bounds and can scan retained history.
+	rows, err := s.DB.Query(ctx, `SELECT id,event_kind,channel_id::text,target_user_id,reference_id::text,created_at FROM (
+ (SELECT id,event_kind,channel_id,target_user_id,reference_id,created_at FROM chat_outbox WHERE id>GREATEST($1::bigint,$3::bigint) AND id<=$2 ORDER BY id LIMIT $5)
+ UNION ALL
+ (SELECT id,event_kind,channel_id,target_user_id,reference_id,created_at FROM chat_outbox WHERE id>$1 AND id<=LEAST($2::bigint,$3::bigint) AND created_at>=$4 ORDER BY id LIMIT $5)
+) events ORDER BY id LIMIT $5`, pgx.QueryExecModeExec, after, window.Max, highwater, window.Cutoff, limit)
 	if err != nil {
 		return nil, err
 	}

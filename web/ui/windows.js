@@ -399,6 +399,11 @@ export function initWindows() {
     wait(id, work) {
       return windows.get(id)?.loading.wait(work);
     },
+    // Background updates reuse the open window without focus, inert content or
+    // a readiness overlay. Foreground open/load keeps the full loading boundary.
+    update(id, work) {
+      return windows.get(id)?.loading.refresh(work) ?? Promise.resolve(false);
+    },
     load(id, work) {
       if (document.body.classList.contains("planet-mode") && id !== "chat") return;
       return windows.get(id)?.show(work);

@@ -26,7 +26,7 @@ export function moduleLoading(dialog, content) {
   card.append(mark, label, title, message, retry);
   overlay.append(card);
   dialog.append(overlay);
-  let current, serial = 0, errorText = "";
+  let current, background, serial = 0, errorText = "";
   function paint() {
     title.textContent = I18n.t(errorText ? "Не удалось загрузить модуль" : "Загрузка модуля");
     message.textContent = I18n.t(errorText || "Загружаем данные и оформление…");
@@ -42,6 +42,8 @@ export function moduleLoading(dialog, content) {
   }
   function cancel() {
     current?.controller.abort();
+    background?.controller.abort();
+    background = null;
     current = null;
     visible(false);
   }
@@ -106,7 +108,47 @@ export function moduleLoading(dialog, content) {
       paint();
     } finally { clearTimeout(timer); }
   }
+  function refresh(prepare) {
+    if (!dialog.open || current) return Promise.resolve(false);
+    if (background) {
+      background.prepare = prepare;
+      background.again = true;
+      return background.promise;
+    }
+    const state = {controller:new AbortController(), epoch:Session.epoch, prepare, again:true};
+    background = state;
+    const signal = state.controller.signal;
+    const timer = setTimeout(() => state.controller.abort(), 30000);
+    const work = Promise.resolve().then(async () => {
+      let accepted;
+      do {
+        state.again = false;
+        if (signal.aborted || state.epoch !== Session.epoch || !dialog.open) return false;
+        accepted = await state.prepare(signal);
+        if (signal.aborted || state.epoch !== Session.epoch || !dialog.open) return false;
+        if (accepted !== false) {
+          await UI.moduleAssets?.(content);
+          await images(signal);
+        }
+      } while (state.again && !signal.aborted);
+      return !signal.aborted && accepted !== false;
+    });
+    let abort;
+    const aborted = new Promise(resolve => {
+      abort = () => resolve(false);
+      signal.addEventListener("abort", abort, {once:true});
+    });
+    state.promise = Promise.race([work, aborted]).catch(error => {
+      if (signal.aborted || state.epoch !== Session.epoch || error?.name === "AbortError") return false;
+      throw error;
+    }).finally(() => {
+      clearTimeout(timer);
+      signal.removeEventListener("abort", abort);
+      if (background === state) background = null;
+    });
+    return state.promise;
+  }
   const language = () => paint();
   window.addEventListener("languagechange", language);
-  return { run, wait, cancel, get pending() { return !!current; }, get signal() { return current?.controller.signal; }, dispose() { cancel(); window.removeEventListener("languagechange", language); } };
+  return { run, refresh, wait, cancel, get pending() { return !!current; }, get signal() { return current?.controller.signal; }, dispose() { cancel(); window.removeEventListener("languagechange", language); } };
 }

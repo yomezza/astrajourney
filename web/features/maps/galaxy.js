@@ -1490,6 +1490,23 @@ export function initGalaxy() {
     if (Modules.isLoading("galaxy")) return Modules.wait("galaxy", loadSystem(id, notifySelection, Modules.signal("galaxy")));
     return Modules.load("galaxy", signal => loadSystem(id, notifySelection, signal));
   }
+  function refreshSystem() {
+    if (!local || root.classList.contains("planet-open") || Modules.isLoading("galaxy")) return;
+    const id = local.star.id, selection = request, epoch = Session.epoch;
+    return Modules.update("galaxy", async signal => {
+      const data = await api("system?id=" + id, undefined, signal);
+      if (selection !== request || epoch !== Session.epoch || !Session.signedIn ||
+          !Modules.isOpen("galaxy") || Modules.isLoading("galaxy") || mode !== "system" ||
+          local?.star.id !== id || root.classList.contains("planet-open") || signal.aborted) return;
+      local = data;
+      label.textContent = data.star.name + " · " + tr(data.region);
+      if (panelTab === "system") systemPanel();
+      draw();
+    }).catch(error => {
+      if (error.name !== "AbortError" && selection === request && epoch === Session.epoch && Session.signedIn)
+        notify(error.message, "error");
+    });
+  }
   async function loadSystem(id, notifySelection, signal) {
     if (!Number.isInteger(id) || id < 1 || id > (galaxy?.stars.length || 0)) {
       notify("Некорректная система");
@@ -1965,7 +1982,7 @@ export function initGalaxy() {
       !side.contains(document.activeElement) &&
       !document.querySelector(".picker-popover")
     )
-      openSystem(local.star.id, false);
+      refreshSystem();
   });
   window.addEventListener("signedout", () => {
     galaxy = null;

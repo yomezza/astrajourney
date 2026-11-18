@@ -8,6 +8,7 @@ import { openPlanet } from "../planet/loader.js";
 import { Game } from "../runtime.js";
 import { initChatTooltips } from "./tooltips.js";
 import { ChatClient } from "./transport.js";
+import { RefreshQueue } from "./refresh.js";
 import { moderationPanel, corporateModeration } from "./moderation.js";
 import { renderMessages, emojiPicker } from "./messages.js";
 
@@ -100,7 +101,7 @@ export function initChat() {
     viewGeneration = 0,
     drafts = new Map(),
     observer,
-    refreshTimer,
+    refreshQueue,
     readTimer,
     readIDs = new Set(),
     seenIDs = new Set(),
@@ -487,7 +488,7 @@ export function initChat() {
     }
     saveSettings();
     count();
-    loadFeed();
+    if (visible()) loadFeed();
   }
   function title() {
     return tab === "private"
@@ -498,62 +499,68 @@ export function initChat() {
       : tr(tabs.find((t) => t[0] === tab)?.[1] || "Чат");
   }
   async function sync() {
+    return refreshQueue?.run();
+  }
+  async function syncOnce() {
     if (!client || !active()) return;
-    const generation = epoch;
-    try {
-      const next = await client.get("bootstrap");
+    const generation = epoch, connection = client;
+    const next = await connection.get("bootstrap");
+    if (generation !== epoch) return;
+    boot = next;
+    if (!visible()) readIDs.clear();
+    await notifications(connection, generation);
+    if (generation !== epoch) return;
+    moderation.hidden = !(
+      boot.user?.role === "admin" ||
+      boot.user?.game_moderator ||
+      boot.corporation?.[0]?.owner === String(boot.user?.id) ||
+      boot.corporation?.[0]?.permissions?.includes("chat.moderate")
+    );
+    for (const [k, b] of tabButtons) {
+      const label = tr(tabs.find((t) => t[0] === k)[1]),
+        fresh = boot.public_new?.some((c) => c.kind === k && c.fresh);
+      b.replaceChildren(n("span", label));
+      if (fresh) b.append(n("span", undefined, "chat-dot-new"));
+      if (k === "private") {
+        const unread =
+          boot.conversations?.reduce(
+            (a, c) => a + Number(c.unread_count),
+            0,
+          ) || 0;
+        if (unread)
+          b.append(
+            n("span", unread > 99 ? "99+" : String(unread), "chat-count"),
+          );
+      }
+      b.disabled =
+        (k === "corporation" && !boot.corporation?.length) ||
+        (["planet", "sector"].includes(k) &&
+          (!boot.presence?.length || !health.planet));
+    }
+    if (unresolved) {
+      const op = await connection.get("operation", { id: unresolved.id });
       if (generation !== epoch) return;
-      boot = next;
-      if (!visible()) readIDs.clear();
-      await notifications();
-      moderation.hidden = !(
-        boot.user?.role === "admin" ||
-        boot.user?.game_moderator ||
-        boot.corporation?.[0]?.owner === String(boot.user?.id) ||
-        boot.corporation?.[0]?.permissions?.includes("chat.moderate")
-      );
-      for (const [k, b] of tabButtons) {
-        const label = tr(tabs.find((t) => t[0] === k)[1]),
-          fresh = boot.public_new?.some((c) => c.kind === k && c.fresh);
-        b.replaceChildren(n("span", label));
-        if (fresh) b.append(n("span", undefined, "chat-dot-new"));
-        if (k === "private") {
-          const unread =
-            boot.conversations?.reduce(
-              (a, c) => a + Number(c.unread_count),
-              0,
-            ) || 0;
-          if (unread)
-            b.append(
-              n("span", unread > 99 ? "99+" : String(unread), "chat-count"),
-            );
-        }
-        b.disabled =
-          (k === "corporation" && !boot.corporation?.length) ||
-          (["planet", "sector"].includes(k) &&
-            (!boot.presence?.length || !health.planet));
+      if (op.state === "completed") {
+        drafts.delete(unresolved.key);
+        if (key() === unresolved.key) textarea.value = "";
+        unresolved = null;
+      } else if (
+        op.state === "not_found" &&
+        Date.now() > unresolved.notBefore
+      ) {
+        unresolved = null;
+        showError(Error("operation_not_committed"));
       }
-      if (unresolved) {
-        const op = await client.get("operation", { id: unresolved.id });
-        if (op.state === "completed") {
-          drafts.delete(unresolved.key);
-          if (key() === unresolved.key) textarea.value = "";
-          unresolved = null;
-        } else if (
-          op.state === "not_found" &&
-          Date.now() > unresolved.notBefore
-        ) {
-          unresolved = null;
-          showError(Error("operation_not_committed"));
-        }
-      }
-      await loadFeed();
-    } catch (e) {
-      showError(e);
+    }
+    if (visible()) await loadFeed();
+    else {
+      observer?.disconnect();
+      feed.replaceChildren();
     }
   }
-  async function notifications() {
-    const notices = await client.get("notifications");
+  async function notifications(connection = client, generation = epoch) {
+    const notices = await connection.get("notifications");
+    if (generation !== epoch) return;
     let sound = false;
     const ids = [];
     for (const item of notices) {
@@ -577,12 +584,11 @@ export function initChat() {
         o.onended = () => ctx.close();
       } catch {}
     }
-    if (ids.length) await client.command("notification.read", { ids });
+    if (ids.length) await connection.command("notification.read", { ids });
     while (seenIDs.size > 500) seenIDs.delete(seenIDs.values().next().value);
   }
   function queueSync() {
-    clearTimeout(refreshTimer);
-    refreshTimer = setTimeout(() => sync(), 150);
+    refreshQueue?.schedule();
   }
   async function loadFeed(before = "", append = false) {
     if (!client || !active()) return;
@@ -1310,6 +1316,7 @@ export function initChat() {
     stop();
     account = String(id);
     epoch++;
+    refreshQueue = new RefreshQueue(syncOnce, showError);
     client = new ChatClient((event) => {
       if (event.health) updateHealth(event.health);
       if (event.type === "hello") {
@@ -1346,11 +1353,12 @@ export function initChat() {
   function stop() {
     viewGeneration++;
     epoch++;
+    refreshQueue?.close();
+    refreshQueue = null;
     client?.close();
     client = null;
     account = null;
     observer?.disconnect();
-    clearTimeout(refreshTimer);
     clearTimeout(readTimer);
     clearTimeout(searchTimer);
     drafts.clear();
@@ -1409,7 +1417,7 @@ export function initChat() {
     if (client) loadFeed();
   });
   document.addEventListener("visibilitychange", () => {
-    if (visible()) loadFeed();
+    if (visible()) sync();
   });
   window.addEventListener("chatinsertlink", ({ detail }) => {
     if (!client) return;

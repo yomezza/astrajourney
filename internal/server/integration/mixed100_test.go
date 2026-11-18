@@ -35,6 +35,23 @@ func mixedDuration(t *testing.T, key string, fallback time.Duration) time.Durati
 	}
 	return d
 }
+
+// Optional comparison artifacts must stay in the owned build directory. The
+// published downloads remain untouched, and no remote target is configurable.
+func mixedOwnedArtifact(root, path string) (string, error) {
+	absolute, err := filepath.Abs(path)
+	if err != nil || !strings.HasPrefix(absolute, filepath.Join(root, "dist")+string(os.PathSeparator)) {
+		return "", fmt.Errorf("comparison artifact must be inside this repository's dist directory")
+	}
+	info, err := os.Stat(absolute)
+	if err != nil {
+		return "", err
+	}
+	if !info.Mode().IsRegular() {
+		return "", fmt.Errorf("comparison artifact must be a regular file")
+	}
+	return absolute, nil
+}
 func mixedDatabase(t *testing.T) (string, int) {
 	t.Helper()
 	u, e := url.Parse(os.Getenv("TEST_DATABASE_URL"))
@@ -282,6 +299,12 @@ func TestMixedPlayers100(t *testing.T) {
 			suffix = ""
 		}
 		path := filepath.Join(root, "downloads", "astra-journey"+suffix+"-v0.30.0-linux-amd64")
+		if service == "chat" && os.Getenv("MIXED100_CHAT_BINARY") != "" {
+			path, e = mixedOwnedArtifact(root, os.Getenv("MIXED100_CHAT_BINARY"))
+			if e != nil {
+				t.Fatal(e)
+			}
+		}
 		raw, e := os.ReadFile(path)
 		if e != nil {
 			t.Fatal(e)
@@ -301,7 +324,14 @@ func TestMixedPlayers100(t *testing.T) {
 		t.Fatal("web index")
 	}
 	mixedInstall(t, binaries["cdn"], configFile, root, filepath.Join(root, "downloads", assetIndex.Archive), filepath.Join(logs, "cdn.install.log"))
-	mixedInstall(t, binaries["web"], configFile, root, filepath.Join(root, "downloads", webIndex.Archive), filepath.Join(logs, "web.install.log"))
+	webArchive := filepath.Join(root, "downloads", webIndex.Archive)
+	if os.Getenv("MIXED100_WEB_PACK") != "" {
+		webArchive, e = mixedOwnedArtifact(root, os.Getenv("MIXED100_WEB_PACK"))
+		if e != nil {
+			t.Fatal(e)
+		}
+	}
+	mixedInstall(t, binaries["web"], configFile, root, webArchive, filepath.Join(logs, "web.install.log"))
 	processes := map[string]*loadProcess230{}
 	pids := map[string]int{"generator": os.Getpid(), "postgres_cluster": pgPID}
 	defer func() {
@@ -365,6 +395,7 @@ func TestMixedPlayers100(t *testing.T) {
 		neighbors[edge.To] = append(neighbors[edge.To], edge.From)
 	}
 	baseReport := map[string]any{"run": runID, "version": "0.30.0", "started_at": time.Now().UTC(), "planned_users": n, "chat_writers_percent": 80, "planet_percent": 30, "dispatcher": "b1", "logging_all_services": true, "nats_tls": true, "pool_max_per_service": 8, "go": runtime.Version(), "visible_cpus": runtime.NumCPU(), "cgroup": mixedCgroup(), "binary_sha256": hashes, "database": name, "landing_sites": len(sites), "surface": "generated garden planet, prepared corporate colonies", "setup": "accounts, knowledge, starting resources and colony access prepared before measurement; actions through actual HTTP/WS via Web", "graph_systems": f.integer(`SELECT count(*) FROM star_systems`), "phase_result": "running"}
+	baseReport["variant"] = os.Getenv("MIXED100_LABEL")
 	var wg sync.WaitGroup
 	run, cancel := context.WithCancel(context.Background())
 	defer func() { cancel(); wg.Wait() }()

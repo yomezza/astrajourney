@@ -9,19 +9,46 @@ export class ChatClient {
     this.closed = false;
     this.attempt = 0;
     this.controller = new AbortController();
+    this.reads = new Map();
+    this.views = new Map();
   }
-  async get(route, params = {}) {
+  get(route, params = {}) {
+    const query = new URLSearchParams(params);
+    query.sort();
+    const key = route + "?" + query;
+    if (this.reads.has(key)) return this.reads.get(key);
+    const task = this.read(route, query, key).finally(() => {
+      if (this.reads.get(key) === task) this.reads.delete(key);
+    });
+    this.reads.set(key, task);
+    return task;
+  }
+  async read(route, query, key) {
+    const prior = this.views.get(key);
     const r = await fetch(
-      "/chat/api/v1/" + route + "?" + new URLSearchParams(params),
+      "/chat/api/v1/" + route + "?" + query,
       {
         credentials: "same-origin",
-        headers: {"X-Request-ID": requestID()},
+        headers: {"X-Request-ID": requestID(), ...(prior ? {"If-None-Match": prior.tag} : {})},
         signal: this.controller.signal,
         cache: "no-store",
       },
     );
-    const v = await r.json();
-    if (!r.ok) throw Error(v.error || "chat_unavailable");
+    if (r.status === 304 && prior) return JSON.parse(prior.json);
+    const json = await r.text(), v = JSON.parse(json);
+    if (!r.ok) {
+      if (r.status === 401 || r.status === 403) this.views.clear();
+      throw Object.assign(Error(v.error || "chat_unavailable"), {
+        status: r.status,
+        retryAfter: Math.min(5000, Math.max(1000, Number(r.headers.get("Retry-After") || 1) * 1000)),
+      });
+    }
+    const tag = r.headers.get("ETag");
+    if (tag && !this.closed) {
+      this.views.delete(key);
+      this.views.set(key, {tag, json});
+      while (this.views.size > 32) this.views.delete(this.views.keys().next().value);
+    }
     return v;
   }
   connect() {
@@ -128,5 +155,7 @@ export class ChatClient {
       p.reject(Error("auth_required"));
     }
     this.pending.clear();
+    this.views.clear();
+    this.reads.clear();
   }
 }

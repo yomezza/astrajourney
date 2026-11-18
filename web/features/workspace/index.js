@@ -291,21 +291,17 @@ export function initExpedition() {
     for (const [id, render] of Object.entries(renderers)) {
       if (!Modules.isOpen(id) || Modules.isLoading(id) || (!force && onDemand.has(id))) continue;
       const root = roots[id];
-      if (id === "tasks") {
-        render();
-        continue;
-      }
       if (
-        root.querySelector('[data-dirty="true"]') ||
+        id !== "tasks" && (root.querySelector('[data-dirty="true"]') ||
         (!force &&
           root.contains(document.activeElement) &&
           document.activeElement.matches("input,select,.picker-button")) ||
-        document.querySelector(".picker-popover")
+        document.querySelector(".picker-popover"))
       )
         continue;
       const scroll = root.scrollTop,
         epoch = Session.epoch;
-      Promise.resolve(render())
+      Modules.update(id, render)
         .then((accepted) => {
           if (accepted === false || epoch !== Session.epoch) return;
           root.scrollTop = scroll;

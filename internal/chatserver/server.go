@@ -241,11 +241,11 @@ func (a *App) Handler() http.Handler {
 	})
 	m.HandleFunc("GET /chat/ws/v1", a.socket)
 	m.HandleFunc("GET /chat/api/v1/{route}", a.query)
-	return telemetry.TraceHTTP("chat", bounded(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return telemetry.TraceHTTP("chat", httpkit.GzipJSON(bounded(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		m.ServeHTTP(w, r)
-	})))
+	}))))
 }
 func (a *App) identity(ctx context.Context, r *http.Request) (chat.Identity, error) {
 	c, e := r.Cookie("session")
@@ -292,6 +292,13 @@ func (a *App) query(w http.ResponseWriter, r *http.Request) {
 			status = 403
 		}
 		httpkit.Fail(w, status, code(e))
+		return
+	}
+	// Conditional reads still run the current authorization and SQL query.
+	// A matching tag only avoids re-transmitting an unchanged private view;
+	// it never substitutes cached permissions or persists data in browser cache.
+	if r.PathValue("route") == "history" || r.PathValue("route") == "bootstrap" || r.PathValue("route") == "notifications" {
+		httpkit.ReplyConditional(w, r, v)
 		return
 	}
 	httpkit.Reply(w, 200, v)
