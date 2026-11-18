@@ -1,0 +1,94 @@
+{
+  "tag": "v0.30.1",
+  "builds": [
+    {
+      "file": "astra-journey-v0.30.1-linux-amd64",
+      "service": "cosmos",
+      "goos": "linux",
+      "goarch": "amd64",
+      "goamd64": "v1",
+      "cgo_enabled": false,
+      "source_ref": "HEAD",
+      "source_commit": "130d865e29325a81e3e1aeb9a520b7a597afcf3e",
+      "source_dirty": false,
+      "compiler": "go version go1.26.0 linux/amd64",
+      "build_label": "v0.30.1",
+      "sha256": "46a28ba279ea1b7bbaa8ec194c8ad7b8eb46baa7987ebf2b607e9d5435aae7e5"
+    },
+    {
+      "file": "astra-journey-planet-v0.30.1-linux-amd64",
+      "service": "planet",
+      "goos": "linux",
+      "goarch": "amd64",
+      "goamd64": "v1",
+      "cgo_enabled": false,
+      "source_ref": "HEAD",
+      "source_commit": "130d865e29325a81e3e1aeb9a520b7a597afcf3e",
+      "source_dirty": false,
+      "compiler": "go version go1.26.0 linux/amd64",
+      "build_label": "v0.30.1",
+      "sha256": "dce5d06c38d4e4bc165f294384bcb54d7f62aa391e5407928d853d3290362290"
+    },
+    {
+      "file": "astra-journey-chat-v0.30.1-linux-amd64",
+      "service": "chat",
+      "goos": "linux",
+      "goarch": "amd64",
+      "goamd64": "v1",
+      "cgo_enabled": false,
+      "source_ref": "HEAD",
+      "source_commit": "130d865e29325a81e3e1aeb9a520b7a597afcf3e",
+      "source_dirty": false,
+      "compiler": "go version go1.26.0 linux/amd64",
+      "build_label": "v0.30.1",
+      "sha256": "cafe26c847e1a1bdb381077018ebf69b61c785e178bd4c1470f4cde7c483e0e7"
+    },
+    {
+      "file": "astra-journey-cdn-v0.30.1-linux-amd64",
+      "service": "cdn",
+      "goos": "linux",
+      "goarch": "amd64",
+      "goamd64": "v1",
+      "cgo_enabled": false,
+      "source_ref": "HEAD",
+      "source_commit": "130d865e29325a81e3e1aeb9a520b7a597afcf3e",
+      "source_dirty": false,
+      "compiler": "go version go1.26.0 linux/amd64",
+      "build_label": "v0.30.1",
+      "sha256": "054e5cb1475f2ca5f0e9917fb727a9d903f9516bb2aa3a9d7a89dacab99e6e63"
+    },
+    {
+      "file": "astra-journey-web-v0.30.1-linux-amd64",
+      "service": "web",
+      "goos": "linux",
+      "goarch": "amd64",
+      "goamd64": "v1",
+      "cgo_enabled": false,
+      "source_ref": "HEAD",
+      "source_commit": "130d865e29325a81e3e1aeb9a520b7a597afcf3e",
+      "source_dirty": false,
+      "compiler": "go version go1.26.0 linux/amd64",
+      "build_label": "v0.30.1",
+      "sha256": "68a0ede75714f638d2eaebb3171ae830dc4e46d66d5919c83a19c32b3166add1"
+    }
+  ],
+  "assets": {
+    "schema_version": 1,
+    "client_contract": "astra-assets-v1",
+    "tag": "v0.30.1",
+    "revision": "20a1d7843a0cc33da44528af6fbe08b09a0322ec56613b91252b8693156557ab",
+    "archive": "astra-journey-assets-20a1d7843a0cc33da44528af6fbe08b09a0322ec56613b91252b8693156557ab.zip",
+    "sha256": "b50745e8df48c08af06d653eebb9dbd5de562eefc45599753771e9fa0f708512",
+    "size": 8166453
+  },
+  "web": {
+    "schema_version": 1,
+    "client_contract": "astra-web-v1",
+    "api_contract": "astra-api-v1",
+    "tag": "v0.30.1",
+    "revision": "50407066c438b6051bc2a9a056e06fa4e293aac211d9ee886673ca56f2db331e",
+    "archive": "astra-journey-web-50407066c438b6051bc2a9a056e06fa4e293aac211d9ee886673ca56f2db331e.zip",
+    "sha256": "78d32e698054268cecde55de4666b835a211095c6ca2e607c0c626528f278efa",
+    "size": 438310
+  }
+}
