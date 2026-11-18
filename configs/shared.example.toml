@@ -1,4 +1,4 @@
-# Один CONFIG_FILE для Cosmic, Planet, Chat, CDN и Web 0.30.2 на Debian 13.
+# Один CONFIG_FILE для Cosmic, Planet, Chat, CDN и Web 0.30.3 на Debian 13.
 # Подставьте адрес игры, PostgreSQL и настоящие NATS-пароли.
 [diagnostics]
 # Separate cosmos.jsonl, planet.jsonl, chat.jsonl; also mirrored to stderr.
@@ -97,7 +97,7 @@ planet_internal_url = 'http://127.0.0.1:8081'
 chat_internal_url = 'http://127.0.0.1:8082'
 sync_enabled = true
 repository = 'yomezza/astrajourney'
-release_tag = 'v0.30.2'
+release_tag = 'v0.30.3'
 sync_interval = '30m'
 
 [nats.web]

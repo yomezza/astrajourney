@@ -1,6 +1,6 @@
-# AstraJourney Web · 0.30.2
+# AstraJourney Web · 0.30.3
 
-Пятая Go-служба владеет браузерным интерфейсом и публичным HTTP-шлюзом. Официальная поставка 0.30.2 — Linux amd64. [Релиз и файлы](https://github.com/yomezza/astrajourney/releases/tag/v0.30.2).
+Пятая Go-служба владеет браузерным интерфейсом и публичным HTTP-шлюзом. Официальная поставка 0.30.3 — Linux amd64. [Релиз и файлы](https://github.com/yomezza/astrajourney/releases/tag/v0.30.3).
 
 ## Пять служб
 
@@ -21,17 +21,17 @@ Web и CDN не подключаются к SQL. Cosmic больше не сод
 Требуется Go 1.26.0. Node.js нужен только для браузерных тестов.
 
 ```bash
-python3 scripts/build-release.py v0.30.2 --platform linux --out dist/review
-python3 scripts/verify-web-release.py v0.30.2 --directory dist/review
+python3 scripts/build-release.py v0.30.3 --platform linux --out dist/review
+python3 scripts/verify-web-release.py v0.30.3 --directory dist/review
 sha256sum -c dist/review/SHA256SUMS
 ```
 
-Команды создают локальные сборки, два внешних пакета, JSON-индексы и контрольные суммы. Они не публикуют релиз. Старые файлы `downloads/` не перезаписываются. Для проверки неопубликованных изменений или офлайн-установки установить оба пакета локально и использовать `sync_enabled=false`. Официальный выпуск получает пакеты с GitHub при `sync_enabled=true` и `web.release_tag='v0.30.2'`.
+Команды создают локальные сборки, два внешних пакета, JSON-индексы и контрольные суммы. Они не публикуют релиз. Старые файлы `downloads/` не перезаписываются. Для проверки неопубликованных изменений или офлайн-установки установить оба пакета локально и использовать `sync_enabled=false`. Официальный выпуск получает пакеты с GitHub при `sync_enabled=true` и `web.release_tag='v0.30.3'`.
 
 Отдельно собрать интерфейс:
 
 ```bash
-go run ./cmd/astra-web-assets -root web -tag v0.30.2 -out dist/web
+go run ./cmd/astra-web-assets -root web -tag v0.30.3 -out dist/web
 ```
 
 Исходники интерфейса находятся в `web/`; графика — в `assets/game/`. Пакет Web принимает только HTML, CSS, JS и JSON. Имена путей, количество/размеры файлов, SHA-256 каждого файла, ревизия и контракты `astra-web-v1` / `astra-api-v1` проверяются до активации. Символические ссылки, обход каталогов, повторяющиеся и незаявленные файлы отклоняются.
@@ -44,13 +44,13 @@ go run ./cmd/astra-web-assets -root web -tag v0.30.2 -out dist/web
 2. Остановить старые процессы. Перевести CDN на `127.0.0.1:8084`, исправить `[cosmos] cdn_internal_url` на этот же адрес. `storage_root` и `service_token_file` оставить прежними.
 3. Добавить `[web]` из примера: внешний адрес `:8083`, внутренние адреса остальных четырёх служб. Для доступа из LAN слушать `0.0.0.0:8083`.
 4. `[cosmos] public_origin`, `[planet] allowed_origins` и `[chat] allowed_origins` должны содержать адрес **Web**, который игрок открывает в браузере. В `cosmos.trusted_proxies` доверять только адресу Web.
-5. Для автоматической загрузки оставить `sync_enabled=true` в Web/CDN и `web.release_tag='v0.30.2'`; дождаться готовности пакетов. Для офлайн-установки использовать команды ниже. `CONFIG_FILE` должен быть абсолютным. Все пути из TOML разрешаются относительно самого файла.
+5. Для автоматической загрузки оставить `sync_enabled=true` в Web/CDN и `web.release_tag='v0.30.3'`; дождаться готовности пакетов. Для офлайн-установки использовать команды ниже. `CONFIG_FILE` должен быть абсолютным. Все пути из TOML разрешаются относительно самого файла.
 
 ```bash
 export CONFIG_FILE='/etc/astra-journey/shared.toml'
-chmod +x ./astra-journey*-v0.30.2-linux-amd64
-./astra-journey-cdn-v0.30.2-linux-amd64 --install-pack './astra-journey-assets-<revision>.zip'
-./astra-journey-web-v0.30.2-linux-amd64 --install-pack './astra-journey-web-<revision>.zip'
+chmod +x ./astra-journey*-v0.30.3-linux-amd64
+./astra-journey-cdn-v0.30.3-linux-amd64 --install-pack './astra-journey-assets-<revision>.zip'
+./astra-journey-web-v0.30.3-linux-amd64 --install-pack './astra-journey-web-<revision>.zip'
 ```
 
 `--install-pack` устанавливает пакет и **завершается**; это не запуск службы. Затем запустить Cosmic (он применяет миграцию), Planet, Chat, CDN и Web обычными командами без этого флага. Web сообщает установку в консоли. Отдельный токен для Web не требуется.
@@ -73,7 +73,7 @@ Web получает пакет из **опубликованного тега**
 
 HTML отдаётся с `no-cache` и ссылается на `/web/<revision>/...`. Эти файлы и графика `/assets/sha256/...` имеют длительный immutable-кеш. Открытая вкладка продолжает импортировать свою версию JavaScript даже после обновления; сохранённые пакеты автоматически не удаляются. Локализации также берутся из конкретной ревизии. Пользовательские API и приватные медиа не получают публичный кеш.
 
-Для отката остановить Web, отключить синхронизацию, выполнить `./astra-journey-web-v0.30.2-linux-amd64 --activate <previous-revision>` и снова запустить. Не удалять старые пакеты, пока ими могут пользоваться открытые страницы. Резервировать `data/web` можно отдельно от БД: этот каталог содержит только публичный интерфейс и состояние активации.
+Для отката остановить Web, отключить синхронизацию, выполнить `./astra-journey-web-v0.30.3-linux-amd64 --activate <previous-revision>` и снова запустить. Не удалять старые пакеты, пока ими могут пользоваться открытые страницы. Резервировать `data/web` можно отдельно от БД: этот каталог содержит только публичный интерфейс и состояние активации.
 
 Readiness: `GET /web/api/v1/health/ready` — пакет установлен и Cosmic подтверждает совместимый HTTP-контракт. Liveness: `/web/api/v1/health/live`. Все пять служб доступны администратору в категории «Службы и диагностика».
 

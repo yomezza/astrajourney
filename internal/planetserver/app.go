@@ -18,7 +18,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/platform/telemetry"
 )
 
-const Version = "0.30.2"
+const Version = "0.30.3"
 const Stage = "P2-9"
 
 // App wires only planetary components. New does not start goroutines or migrate.

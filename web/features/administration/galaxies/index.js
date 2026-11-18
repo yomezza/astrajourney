@@ -57,7 +57,7 @@ export function initGalaxyAdmin() {
         return false;
       // Local navigation reuses this accepted response. Clone it because the
       // editor applies unsaved values and appends its draft to the view.
-      const snapshot = { epoch, result: source },
+      const catalogSnapshot = { epoch, result: source },
         result = structuredClone(source);
       root.replaceChildren();
       root.classList.add("galaxy-admin");
@@ -67,7 +67,7 @@ export function initGalaxyAdmin() {
         () => {
           if (draft) {
             selected = draft.definition.id;
-            return GalaxyAdmin.render(root, snapshot);
+            return GalaxyAdmin.render(root, catalogSnapshot);
           }
           draft = {
             definition: {
@@ -83,7 +83,7 @@ export function initGalaxyAdmin() {
           };
           selected = draft.definition.id;
           root.replaceChildren(n("p", tr("Загрузка…")));
-          return GalaxyAdmin.render(root, snapshot);
+          return GalaxyAdmin.render(root, catalogSnapshot);
         },
       );
       const header = n("div", undefined, "galaxy-admin-heading"),
@@ -119,7 +119,7 @@ export function initGalaxyAdmin() {
           card = UI.button("", () => {
             selected = d.id;
             editor.replaceChildren(n("p", tr("Загрузка…"), "muted"));
-            return GalaxyAdmin.render(root, snapshot);
+            return GalaxyAdmin.render(root, catalogSnapshot);
           });
         card.classList.add("galaxy-admin-card");
         card.dataset.galaxy = d.id;
@@ -731,7 +731,7 @@ export function initGalaxyAdmin() {
             draft = null;
             selected = "edem";
           }
-          return GalaxyAdmin.render(root, snapshot);
+          return GalaxyAdmin.render(root, catalogSnapshot);
         },
       );
       const tabbar = n("div", undefined, "galaxy-editor-tabs");

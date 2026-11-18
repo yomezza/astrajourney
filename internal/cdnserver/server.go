@@ -26,7 +26,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/platform/telemetry"
 )
 
-const Version = "0.30.2"
+const Version = "0.30.3"
 
 type Config struct {
 	Address, StorageRoot, CosmicURL, TokenFile, Repository string
