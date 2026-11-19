@@ -69,7 +69,7 @@ jobs:
       - name: Terminal browser against real Go and PostgreSQL
         working-directory: .
         run: |
-          if go test ./internal/server/integration -run '^(TestCDNProductionBrowserCache290|TestTerminalBrowser|TestPlanetBrowser180|TestPlanetWalkingBrowser257|TestPlanetTransitionsBrowser210|TestDiscoveryGuidePlanetBrowser250|TestChat240FiftyConnections|TestGalaxyEditorBrowser|TestNotificationsCompactBrowser)$' -count=1 -timeout=5m -v > /tmp/astra-browser.log 2>&1; then
+          if go test ./internal/server/integration -run '^(TestCDNProductionBrowserCache290|TestTerminalBrowser|TestWorkspacesProductionBrowser|TestPlanetBrowser180|TestPlanetWalkingBrowser257|TestPlanetTransitionsBrowser210|TestDiscoveryGuidePlanetBrowser250|TestChat240FiftyConnections|TestGalaxyEditorBrowser|TestNotificationsCompactBrowser)$' -count=1 -timeout=5m -v > /tmp/astra-browser.log 2>&1; then
             cat /tmp/astra-browser.log
           else
             cat /tmp/astra-browser.log
@@ -86,6 +86,7 @@ jobs:
         env:
           RUN_CDN_BROWSER: '1'
           RUN_TERMINAL_BROWSER: '1'
+          RUN_WORKSPACES_BROWSER: '1'
           RUN_PLANET_BROWSER: '1'
           RUN_DISCOVERY_BROWSER: '1'
           RUN_CHAT_BROWSER: '1'
