@@ -42,16 +42,27 @@ func TestCurrentMiningStats092(t *testing.T) {
 		}
 		return out.Ship
 	}
+	// Explicit C equipment keeps the original hull-output assertions independent
+	// of the new mining hulls' default B loadout.
+	equip := func(kind string) int64 {
+		t.Helper()
+		f.exec(`INSERT INTO ship_modules(ship_id,catalog_id,definition) SELECT $1,id,(to_jsonb(c)-'id')||jsonb_build_object('catalog_id',id) FROM ship_module_catalog c WHERE id=$2`, sid, "extractor-"+kind+"-C")
+		id := f.integer(`SELECT max(id) FROM ship_modules WHERE ship_id=$1 AND catalog_id=$2`, sid, "extractor-"+kind+"-C")
+		f.cmd(cookie, map[string]any{"action": "module_install", "ship": sid, "id": id}, 200)
+		return id
+	}
 	for _, class := range []string{"pilgrim", "forge", "titan"} {
 		t.Run(class, func(t *testing.T) {
 			f.exec(`UPDATE ships SET class=$2,star=1,object_id='station',position_mode='docked',fuel=20,cargo='{}' WHERE id=$1`, sid, class)
-			f.cmd(cookie, map[string]any{"action": "extractor", "target": "universal"}, 200)
+			f.exec(`DELETE FROM ship_modules WHERE ship_id=$1 AND definition->>'kind'='extractor'`, sid)
+			standard := equip("universal")
 			base := view()
 			want := map[string]int{"pilgrim": 3, "forge": 5, "titan": 8}[class]
 			if base.Spec.Mining != want || base.Mining.Current == nil || *base.Mining.Current != want || base.Mining.Min != want || base.Mining.Max != want {
 				t.Fatalf("incorrect standard output: %+v %+v", base.Spec, base.Mining)
 			}
-			f.cmd(cookie, map[string]any{"action": "extractor", "target": "ore"}, 200)
+			f.cmd(cookie, map[string]any{"action": "module_remove", "ship": sid, "id": standard}, 200)
+			equip("ore")
 			upgraded := view()
 			if upgraded.Mining.Current != nil || upgraded.Mining.Min != want+1 || upgraded.Mining.Max != want+3 {
 				t.Fatalf("installed extractor not reflected at port: %+v", upgraded.Mining)
