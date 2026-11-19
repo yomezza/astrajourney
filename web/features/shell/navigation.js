@@ -49,6 +49,7 @@ export function initNavigation() {
   ])
     Modules.create(id, title, w, h, {
       private: id !== "galaxy" && id !== "settings",
+      avoidSidebar: id === "galaxy",
       minContentWidth: id === "notifications" ? 300 : undefined,
       audience: [
         "users",

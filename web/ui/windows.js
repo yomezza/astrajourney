@@ -188,10 +188,15 @@ export function initWindows() {
                 Preferences.write("layout:ship-inline-v1", true);
               } catch {}
             }
-            d.style.width = Math.min(l.w || width, innerWidth - 12) + "px";
+            const sidebar = options.avoidSidebar && l.x == null && l.w == null
+              ? document.querySelector("#sidebar:not([hidden])")
+              : null;
+            const inset = sidebar ? Math.ceil(sidebar.getBoundingClientRect().right) + 6 : 6;
+            const fitWidth = Math.min(l.w || width, innerWidth - inset - 6);
+            d.style.width = fitWidth + "px";
             d.style.height = Math.min(l.h || height, innerHeight - 106) + "px";
             d.style.left =
-              (l.x ?? Math.max(6, (innerWidth - width) / 2)) + "px";
+              (l.x ?? Math.max(inset, (innerWidth - width) / 2)) + "px";
             d.style.top =
               (l.y ?? Math.max(64, (innerHeight - height) / 2)) + "px";
             w.pinned = !!l.pinned;
