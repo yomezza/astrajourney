@@ -1,0 +1,29 @@
+{
+  "tag": "v0.30.5",
+  "builds": [
+    {
+      "file": "astra-journey-web-v0.30.5-linux-amd64",
+      "service": "web",
+      "goos": "linux",
+      "goarch": "amd64",
+      "goamd64": "v1",
+      "cgo_enabled": false,
+      "source_ref": "HEAD",
+      "source_commit": "466a6399e1c9790d233086db6f3ecdb65574c076",
+      "source_dirty": false,
+      "compiler": "go version go1.26.0 linux/amd64",
+      "build_label": "v0.30.5",
+      "sha256": "ebd4b586438a01dca3df200f36cb49beeaf1fa2a68cee1b1b0672136f459b6a4"
+    }
+  ],
+  "web": {
+    "schema_version": 1,
+    "client_contract": "astra-web-v1",
+    "api_contract": "astra-api-v1",
+    "tag": "v0.30.5",
+    "revision": "c895edfdf47ff870ef2e73f2d9b70a29c77f1b310f966bdb630d0f5e19bc61f4",
+    "archive": "astra-journey-web-c895edfdf47ff870ef2e73f2d9b70a29c77f1b310f966bdb630d0f5e19bc61f4.zip",
+    "sha256": "26cd34fc7609bb9c712c8c549d7d6d54f80c647a980a3fc7eac89b7d69ad9e0f",
+    "size": 447488
+  }
+}
