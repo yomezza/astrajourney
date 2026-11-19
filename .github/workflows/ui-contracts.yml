@@ -127,3 +127,29 @@ jobs:
         run: go test -race ./... -count=1 -timeout=12m -run '^(TestConcurrentLogistics080|TestLastHullPurchase040|TestBatchLogistics100|TestOpenDoesNotInitializeGame|TestDatabaseConfig|TestColdCacheSaturatedPool|TestBenchmarkCompositionIsolation|TestPlanetFoundation150|TestPlanetSchema150|TestPlanetFencing150|TestPlanetRestrictedRole150|TestLandingBackfillAndConcurrentCompletion160|TestLocalScenes170|TestLocalSceneFencingAndSourceCAS170|TestLocalSceneRetirement170|TestRegistry.*|TestPlanetHandoff180|TestPlanetTicketRecovery180|TestPlanetCorporateAndAtomicActivation180|TestAdminServices200|TestPlanetTransitions210|TestPlanetTransitionRevocation210|TestPlanetTransitionCapacity210|TestPlanetPresence200|TestPlanetDatabaseRecovery200|TestSectorPresenceCoalesces|TestSlowStreamDeadline|TestPlanetMovement190|TestPlanetCheckpoints190|TestMovementDistanceAndLifecycle|TestLatestGoalAndPermit|TestBoundedPathsAndCorners|TestConcurrentBoundedObservations|TestServiceMetrics230|TestAuthoritativeFacing220|TestChat240Transactions|TestChat240CorporateFencesAndCleanup|TestChat240LateCommittedOutbox|TestChat240FiftyConnections|TestChat240SpatialPresence)$'
       - if: matrix.shard == 0
         run: go vet ./...
+
+  matrix-release-candidate:
+    if: github.event_name == 'pull_request' && github.head_ref == 'feature/matrix-studio-workspaces'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Build Cosmic and Web assets
+        run: |
+          python3 scripts/build-release.py v0.31.2 --platform linux --service cosmos --out dist/matrix
+          go run ./cmd/astra-web-assets -tag v0.31.2 -out dist/matrix
+          python3 scripts/verify-web-release.py v0.31.2 --directory dist/matrix
+          cp docs/operations/matrix-studio-update.ru.md dist/matrix/UPDATE.ru.md
+          git rev-parse HEAD > dist/matrix/SOURCE_COMMIT
+          cd dist/matrix
+          sha256sum astra-journey-v0.31.2-linux-amd64 astra-journey-web-*.zip astra-journey-web.json > SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: astra-journey-v0.31.2-linux-amd64
+          path: dist/matrix/
+          if-no-files-found: error

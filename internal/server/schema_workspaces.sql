@@ -9,3 +9,7 @@ CREATE TABLE IF NOT EXISTS pilot_workspace_ids (
  user_id bigint NOT NULL REFERENCES pilot_workspace_preferences(user_id) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS pilot_workspace_ids_owner ON pilot_workspace_ids(user_id);
+
+INSERT INTO game_release(id,version,migration) VALUES(1,'0.31.2',312)
+ ON CONFLICT(id) DO UPDATE SET version=excluded.version,migration=excluded.migration,updated_at=now()
+ WHERE game_release.migration<excluded.migration;
