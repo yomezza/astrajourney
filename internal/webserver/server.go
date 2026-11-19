@@ -30,7 +30,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/webbundle"
 )
 
-const Version = "0.31.0"
+const Version = "0.31.1"
 
 type Config struct {
 	Address, StorageRoot, CosmicURL, CDNURL, PlanetURL, ChatURL, Repository, ReleaseTag string

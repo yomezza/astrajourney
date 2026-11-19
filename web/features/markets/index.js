@@ -84,12 +84,19 @@ export function createMarkets({ roots, act, command, renderShipyards }) {
     // Keep the current table while loading; only the latest render may replace it.
     if (!current()) return false;
     Modules.title("market", tr(tab === "shipyards" ? "Верфи" : "Рынок"));
-    reset(root);
     const port = station();
+    const location = (port?.name || d().system.name) + " · " + d().system.name;
+    const existingModules = tab === "modules" && root.querySelector('[data-modules-market]');
+    if (existingModules && existingModules.dataset.language === I18n.language) {
+      const strip = root.querySelector(".location-strip");
+      if (strip.textContent !== location) strip.textContent = location;
+      return views.modules(existingModules, current);
+    }
+    reset(root);
     root.append(
       n(
         "div",
-        (port?.name || d().system.name) + " · " + d().system.name,
+        location,
         "location-strip",
       ),
     );
@@ -114,7 +121,11 @@ export function createMarkets({ roots, act, command, renderShipyards }) {
       { panel },
     );
     root.append(panel);
-    if (tab === "modules") return views.modules(panel,current);
+    if (tab === "modules") {
+      panel.dataset.modulesMarket = "";
+      panel.dataset.language = I18n.language;
+      return views.modules(panel, current);
+    }
     if (tab === "shipyards") {
       renderShipyards(panel);
       return;
@@ -137,6 +148,9 @@ export function createMarkets({ roots, act, command, renderShipyards }) {
   );
   function clear() {
     state.target = null;
+    state.moduleLocation = "";
+    state.moduleKind = "";
+    state.moduleRating = "";
     drafts.clear();
     state.resource = "agni";
     state.order = null;
