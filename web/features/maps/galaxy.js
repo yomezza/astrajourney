@@ -1,3 +1,4 @@
+import { createCartography } from "./cartography.js";
 import { sceneLoop } from "../../core/scene-loop.js";
 import { openPlanet } from "../planet/loader.js";
 import { adminPlanetSurface } from "../planet/loader.js";
@@ -27,6 +28,17 @@ export function initGalaxy() {
     tr = (s) => I18n.t(s),
     e = UI.node;
   root.classList.add("galaxy-content");
+  const cartography = createCartography();
+  const atlasHeader = e("div", undefined, "atlas-header"),
+    atlasIdentity = e("div", undefined, "atlas-identity"),
+    atlasTitle = e("h2"), atlasSubtitle = e("p"),
+    atlasModes = e("div", undefined, "atlas-modes"),
+    galaxyMode = UI.button("Галактика", () => showGalaxy()),
+    systemMode = UI.button("Карта текущей системы", () => openSystem(Session.data.expedition.ship.star));
+  atlasIdentity.append(atlasTitle, atlasSubtitle);
+  atlasModes.append(galaxyMode, systemMode);
+  atlasHeader.append(atlasIdentity, atlasModes);
+  root.append(atlasHeader);
   const top = e("div", undefined, "map-toolbar"),
     back = UI.button("К галактике", () => {});
   back.hidden = true;
@@ -161,9 +173,19 @@ export function initGalaxy() {
   }
   mapLegend();
   window.addEventListener("languagechange", mapLegend);
-  view.append(canvas, tools, legend);
+  const atlasDock = e("section", undefined, "atlas-selection"),
+    selectionCopy = e("div"), selectionTitle = e("strong"), selectionMeta = e("span"),
+    selectionOpen = UI.button("Открыть систему", () => openSystem(selected)),
+    selectionRoute = UI.button("Маршрут", () => { panelTab = "route"; body.classList.remove("inspector-hidden"); routePanel(); draw(); }),
+    atlasStatus = e("div", undefined, "atlas-status"),
+    statusScale = e("span"), statusContext = e("span"),
+    atlasBadge = e("div", undefined, "atlas-badge");
+  selectionCopy.append(selectionTitle, selectionMeta);
+  atlasDock.append(selectionCopy, selectionOpen, selectionRoute);
+  atlasStatus.append(statusContext, statusScale);
+  view.append(canvas, tools, legend, atlasDock, atlasBadge);
   body.append(view, side);
-  root.append(top, body);
+  root.append(top, body, atlasStatus);
   const ctx = canvas.getContext("2d");
   const summary = e("div", undefined, "map-system-summary");
   summary.id = "map-system-summary";
@@ -719,6 +741,27 @@ export function initGalaxy() {
       placed.push({ left, top, right, bottom });
     }
   }
+  let atlasSource = null, atlasGalaxy = null, atlasStars = [];
+  function syncAtlas() {
+    if (atlasSource !== galaxy || atlasGalaxy !== viewedGalaxy) {
+      atlasSource = galaxy; atlasGalaxy = viewedGalaxy;
+      atlasStars = galaxy.stars.filter(star => !star.deleted && star.galaxy === viewedGalaxy);
+    }
+    const systemView = mode === "system" && local;
+    const star = systemView ? local.star : galaxy.stars[selected - 1];
+    const object = systemView && local.sites.find(site => site.id === selectedSite);
+    const put = (node, text) => { if (node.textContent !== text) node.textContent = text; };
+    put(atlasTitle, systemView ? local.star.name : tr(definition()?.name || "Edem"));
+    put(atlasSubtitle, tr(systemView ? "Звёздная система" : "Галактическая карта") + " / " + tr(systemView ? local.region : "Навигация"));
+    galaxyMode.setAttribute("aria-pressed", String(!systemView));
+    systemMode.setAttribute("aria-pressed", String(!!systemView));
+    put(selectionTitle, object?.name || star?.name || "—");
+    put(selectionMeta, object ? tr(object.kind) : star ? tr("Класс звезды") + " " + star.class + " · " + tr(Game.known(star.id) ? "Система исследована" : "Неизвестная система") : "");
+    selectionOpen.hidden = !!systemView;
+    put(atlasBadge, systemView ? tr("Объекты") + " / " + local.sites.length : tr("Системы") + " / " + Format.number(atlasStars.length));
+    put(statusContext, tr(systemView ? "Карта текущей системы" : "Галактическая карта") + " · " + tr("Мой флот") + " " + fleet().length);
+    put(statusScale, tr("Масштаб") + " " + cam().zoom.toFixed(1) + "×");
+  }
   function draw() {
     if (document.hidden || !Modules.isOpen("galaxy") || !Session.signedIn)
       return;
@@ -748,22 +791,8 @@ export function initGalaxy() {
     ctx.shadowBlur = 0;
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
     ctx.clearRect(0, 0, w, h);
-    // Presentation only: this grid never participates in projection or hits.
-    const gridStep = 80,
-      gridX = ((cam().x % gridStep) + gridStep) % gridStep,
-      gridY = ((cam().y % gridStep) + gridStep) % gridStep;
-    ctx.strokeStyle = "#8db9cf0b";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    for (let x = gridX; x < w; x += gridStep) {
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, h);
-    }
-    for (let y = gridY; y < h; y += gridStep) {
-      ctx.moveTo(0, y);
-      ctx.lineTo(w, y);
-    }
-    ctx.stroke();
+    syncAtlas();
+    cartography.background(ctx, w, h, cam(), mode);
     shipHits = [];
     if (mode === "system" && local) {
       sites = [];
@@ -771,24 +800,8 @@ export function initGalaxy() {
         cy = h / 2,
         max = Math.max(1, ...local.sites.map((s) => Math.log(1 + s.orbit)));
       const center = localPoint({ x: cx, y: cy });
-      ctx.fillStyle =
-        {
-          O: "#96baff",
-          B: "#bdd5ff",
-          A: "#edf1ff",
-          F: "#fff0c4",
-          G: "#ffdb78",
-          K: "#f5ad65",
-          M: "#ee8277",
-        }[local.star.class] || "#efad58";
-      ctx.shadowColor = ctx.fillStyle;
-      ctx.shadowBlur = 18;
-      ctx.beginPath();
-      ctx.arc(center.x, center.y, 12 * Math.sqrt(cam().zoom), 0, Math.PI * 2);
-      ctx.fill();
-      ctx.shadowBlur = 0;
-      ctx.font = "11px monospace";
-      ctx.fillText(local.star.name, center.x + 18, center.y);
+      cartography.sun(ctx, center.x, center.y, 22 * Math.sqrt(cam().zoom), local.star.class);
+      if (flags.labels) cartography.label(ctx, local.star.name, center.x + 32, center.y - 12, "#f2cf8c");
       for (let i = 0; i < local.sites.length; i++) {
         const s = local.sites[i],
           r =
@@ -807,12 +820,12 @@ export function initGalaxy() {
               : flags.planets;
         const radius =
           (s.kind === "Газовый гигант"
-            ? 13
+            ? 22
             : s.planet >= 101
-              ? 13
+              ? 18
               : s.kind === "Орбитальная станция"
-                ? 10
-                : 8) * Math.min(2.5, Math.sqrt(cam().zoom));
+                ? 16
+                : 14) * Math.min(2.5, Math.sqrt(cam().zoom));
         sites.push({ ...s, x: p.x, y: p.y, baseX, baseY, radius, visible });
         if (!visible) continue;
         ctx.strokeStyle = "#54728b55";
@@ -829,7 +842,7 @@ export function initGalaxy() {
         );
         ctx.stroke();
         ctx.setLineDash([]);
-        Visuals.object(ctx, p.x, p.y, radius, s);
+        cartography.object(ctx, p.x, p.y, radius, s, Visuals.object);
         if (s.id === selectedSite || s.id === hoveredSite) {
           ctx.strokeStyle = "#efad58";
           ctx.lineWidth = 1.5;
@@ -840,9 +853,7 @@ export function initGalaxy() {
           ctx.fill();
         }
         if (flags.labels) {
-          ctx.fillStyle = "#c7d4df";
-          ctx.font = "10px monospace";
-          ctx.fillText(s.name, p.x + radius + 5, p.y - 5);
+          cartography.label(ctx, s.name, p.x + radius + 8, p.y - 6, s.kind === "Орбитальная станция" ? "#88d9c1" : "#b6cdda");
         }
       }
       const entry = localPoint(objectBase("entry"));
@@ -854,6 +865,7 @@ export function initGalaxy() {
         ctx.fillStyle = "#79a4bc";
         ctx.fillText(tr("Точка гиперперехода"), entry.x + 14, entry.y);
       }
+      const localLabelRows = new Map();
       if (flags.ships || flags.others)
         for (const ship of mapShips()) {
           const inSystem =
@@ -873,14 +885,13 @@ export function initGalaxy() {
             ctx.stroke();
             ctx.setLineDash([]);
           }
-          Visuals.ship(ctx, p.x, p.y, 10, p.angle || 0, shipColor(ship));
-          ctx.fillStyle = shipColor(ship);
-          ctx.fillText(
-            tr(ship.name) +
-              (ship.destination ? " · " + tr("Гиперпереход") : ""),
-            p.x + 12,
-            p.y - 13,
-          );
+          cartography.ship(ctx, p.x, p.y, p.angle || 0, shipColor(ship), Visuals.ship);
+          const labelKey = Math.round(p.x / 24) + ":" + Math.round(p.y / 24),
+            labelRank = localLabelRows.get(labelKey) || 0;
+          localLabelRows.set(labelKey, labelRank + 1);
+          cartography.label(ctx,
+            tr(ship.name) + (ship.destination ? " · " + tr("Гиперпереход") : ""),
+            p.x + 16, p.y - 18 - labelRank * 28, shipColor(ship));
           shipHits.push({ ship, x: p.x, y: p.y });
         }
       return;
@@ -918,38 +929,10 @@ export function initGalaxy() {
           continue;
         const a = galaxyPoint(galaxy.stars[path[i - 1] - 1]),
           b = galaxyPoint(galaxy.stars[path[i] - 1]);
-        ctx.moveTo(a.x, a.y);
-        ctx.lineTo(b.x, b.y);
+        cartography.route(ctx, a, b);
       }
-    ctx.stroke();
-    const colors = {
-      O: "#96baff",
-      B: "#bdd5ff",
-      A: "#edf1ff",
-      F: "#fff0c4",
-      G: "#ffdb78",
-      K: "#f5ad65",
-      M: "#ee8277",
-    };
-    const groups = new Map(),
-      dotRadius = Math.min(3.2, 1.15 * Math.sqrt(cam().zoom));
-    for (const point of visibleStars) {
-      const color = knownStars.has(point.star.id)
-          ? colors[point.star.class] || "#fff"
-          : "#6d8296",
-        group = groups.get(color) || [];
-      group.push(point);
-      groups.set(color, group);
-    }
-    for (const [color, points] of groups) {
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      for (const point of points) {
-        ctx.moveTo(point.x + dotRadius, point.y);
-        ctx.arc(point.x, point.y, dotRadius, 0, Math.PI * 2);
-      }
-      ctx.fill();
-    }
+    const dotRadius = Math.min(4.2, 1.8 * Math.sqrt(cam().zoom));
+    cartography.stars(ctx, visibleStars, dotRadius, knownStars);
     const selectedPoint = visibleStars.find(
       (point) => point.star.id === selected,
     );
@@ -1038,7 +1021,7 @@ export function initGalaxy() {
         ctx.beginPath();
         ctx.arc(p.x, p.y, 15, 0, Math.PI * 2);
         ctx.stroke();
-        Visuals.ship(ctx, p.x, p.y, 10, p.angle || 0, shipColor(ship));
+        cartography.ship(ctx, p.x, p.y, p.angle || 0, shipColor(ship), Visuals.ship);
         ctx.fillStyle = shipColor(ship);
         ctx.font = "11px monospace";
         ctx.fillText(
@@ -1496,12 +1479,14 @@ export function initGalaxy() {
         icon.width = 50;
         icon.height = 50;
         Visuals.object(icon.getContext("2d"), 25, 25, 15, site);
-        button.append(
-          icon,
+        const objectCopy = e("div", undefined, "atlas-object-copy");
+        objectCopy.append(
           site.kind === "Орбитальная станция"
             ? stationLabel(local.star.id, site.id, site.name)
             : e("span", site.name),
+          e("small", tr(site.kind)),
         );
+        button.append(icon, objectCopy);
         button.classList.toggle("selected", selectedSite === site.id);
         button.onpointerenter = () => {
           hoveredSite = site.id;
@@ -2023,6 +2008,9 @@ export function initGalaxy() {
     presenceSource = null;
     presence.clear();
     label.textContent = "";
+    for (const node of [atlasTitle, atlasSubtitle, selectionTitle, selectionMeta, statusContext, statusScale, atlasBadge]) node.textContent = "";
+    atlasSource = null; atlasGalaxy = null; atlasStars = [];
+    cartography.clear();
     system.replaceChildren();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     hideSummary();

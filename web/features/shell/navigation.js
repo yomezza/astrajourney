@@ -27,7 +27,7 @@ export function initNavigation() {
     window.dispatchEvent(new Event("showcurrentsystem"));
   };
   for (const [id, title, w, h] of [
-    ["galaxy", "Галактическая карта", 1180, 700],
+    ["galaxy", "Галактическая карта", 1280, 800],
     ["ship", "Корабль", 860, 660],
     ["cargo", "Трюм", 360, 590],
     ["research", "Добыча", 1000, 660],

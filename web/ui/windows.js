@@ -15,6 +15,7 @@ export function initWindows() {
     read = (key, fallback) => Preferences.read(key, fallback);
 
   const node = createNode;
+  const windowTop = () => (parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header")) || 58) + 4;
   function active(w) {
     for (const entry of windows.values())
       entry.dialog.classList.toggle("window-active", entry === w);
@@ -64,7 +65,7 @@ export function initWindows() {
       r = d.getBoundingClientRect();
     d.style.left = Math.max(4, Math.min(r.x, innerWidth - r.width - 4)) + "px";
     d.style.top =
-      Math.max(62, Math.min(r.y, innerHeight - r.height - 36)) + "px";
+      Math.max(windowTop(), Math.min(r.y, innerHeight - r.height - 36)) + "px";
   }
   function linkedPeers(id) {
     const seen = new Set([id]),
@@ -96,7 +97,7 @@ export function initWindows() {
         if (options.resizeOnReuse && !existing.pinned && !existing.maximized) {
           existing.dialog.style.width = Math.min(width, innerWidth - 12) + "px";
           existing.dialog.style.height =
-            Math.min(height, innerHeight - 106) + "px";
+            Math.min(height, innerHeight - windowTop() - 44) + "px";
           clamp(existing);
         }
         return existing.content;
@@ -173,11 +174,11 @@ export function initWindows() {
               } catch {}
             }
             d.style.width = Math.min(l.w || width, innerWidth - 12) + "px";
-            d.style.height = Math.min(l.h || height, innerHeight - 106) + "px";
+            d.style.height = Math.min(l.h || height, innerHeight - windowTop() - 44) + "px";
             d.style.left =
               (l.x ?? Math.max(6, (innerWidth - width) / 2)) + "px";
             d.style.top =
-              (l.y ?? Math.max(64, (innerHeight - height) / 2)) + "px";
+              (l.y ?? Math.max(windowTop() + 2, (innerHeight - height) / 2)) + "px";
             w.pinned = !!l.pinned;
             d.classList.toggle("pinned", w.pinned);
             pin.setAttribute("aria-pressed", String(w.pinned));
@@ -221,9 +222,9 @@ export function initWindows() {
           const r = d.getBoundingClientRect();
           w.restore = { x: r.x, y: r.y, w: r.width, h: r.height };
           d.style.left = "5px";
-          d.style.top = "62px";
+          d.style.top = windowTop() + "px";
           d.style.width = innerWidth - 10 + "px";
-          d.style.height = innerHeight - 101 + "px";
+          d.style.height = innerHeight - windowTop() - 39 + "px";
         } else {
           const r = w.restore;
           d.style.left = r.x + "px";
@@ -295,7 +296,7 @@ export function initWindows() {
             Math.min(e.clientX - drag.x - r.x, innerWidth - 4 - right),
           ),
           dy = Math.max(
-            62 - top,
+            windowTop() - top,
             Math.min(e.clientY - drag.y - r.y, innerHeight - 36 - bottom),
           );
         for (let i = 0; i < moving.length; i++) {
@@ -375,7 +376,7 @@ export function initWindows() {
       w.life.listen(window, "resize", () => {
         if (!d.open) return;
         d.style.width = Math.min(d.offsetWidth, innerWidth - 12) + "px";
-        d.style.height = Math.min(d.offsetHeight, innerHeight - 106) + "px";
+        d.style.height = Math.min(d.offsetHeight, innerHeight - windowTop() - 44) + "px";
         clamp(w);
       });
       return content;

@@ -1,0 +1,84 @@
+/* The console keeps the existing module/window contracts and keyboard behavior. */
+:root {
+  --bg: #090f18; --panel: #121e2b; --panel-alt: #0e1926;
+  --border: #314557; --text: #dfe8ef; --muted: #91a4b6;
+  --focus: #9bd2d6; --accent: #e5c18b; --header: 70px;
+  --action-radius: 6px; --action-bg: #1b3040; --action-border: #3c596d;
+  --action-hover-bg: #29485a; --action-hover-border: #8cb8c3;
+}
+body.journey-console { background: radial-gradient(ellipse at 75% 0, #1c354136, transparent 70%), #090f18; font-family: Inter, "Segoe UI", system-ui, sans-serif; }
+.journey-console > header { background: #0e1824; border-bottom: 1px solid #365064; padding: 0 24px; box-shadow: 0 4px 24px #0004; }
+.journey-console .brand { font-size: 16px; font-weight: 600; letter-spacing: .14em; color: #e9f1f5; }
+.journey-console .brand small { margin-top: 5px; color: #8babbc; letter-spacing: .2em; font-size: 9px; }
+.journey-console .header-actions > button,
+.journey-console .header-actions .dropdown > summary { padding: 9px 12px; border-radius: 9px; border: 1px solid #3b566b; background: #162838; }
+.journey-console #window-switcher button { border-radius: 6px; background: #192d3d; border-color: #344f63; }
+.journey-console #sidebar { top: var(--header); bottom: 32px; width: 204px; padding: 16px 12px; background: #0f1a27; border-right: 1px solid #314a60; scrollbar-width: thin; }
+.journey-console .sidebar-heading { height: 36px; margin-bottom: 16px; }
+.journey-console .sidebar-title { justify-content: flex-start; padding-left: 10px; color: #7695aa; font-size: 9px; letter-spacing: .2em; }
+.journey-console #sidebar #sidebar-toggle { border: 0; background: #233748; border-radius: 6px; }
+.journey-console #sidebar > button,
+.journey-console #sidebar .maps-navigation > button { min-height: 42px; height: auto; gap: 11px; padding: 10px; margin-bottom: 5px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: #a3b7c7; text-align: left; }
+.journey-console #sidebar .nav-icon { width: 22px; flex-basis: 22px; color: #729bb6; }
+.journey-console #sidebar .nav-label { font-size: 12px; font-weight: 500; }
+.journey-console #sidebar > button:hover,
+.journey-console #sidebar .maps-navigation > button:hover { background: #1b3041; color: #e7f1f5; }
+.journey-console #sidebar > button.module-open,
+.journey-console #sidebar .maps-navigation > button.module-open { background: #91c8ce12; color: #b6e1e3; border-color: #78aab52e; box-shadow: inset 3px 0 #a2d2d2; }
+.journey-console #sidebar .maps-navigation { border: 1px solid #597b9226; border-radius: 9px; padding: 3px; margin-bottom: 8px; background: #0a1420; }
+.journey-console #sidebar .maps-navigation > summary { padding: 10px 8px; color: #7796ad; letter-spacing: .08em; font-size: 10px; }
+.journey-console #sidebar.collapsed { width: 62px; padding-inline: 7px; }
+.journey-console #sidebar.collapsed > button,
+.journey-console #sidebar.collapsed .maps-navigation > button { justify-content: center; padding-inline: 0; }
+.journey-console #sidebar.collapsed .sidebar-title { display: none; }
+body.journey-console:has(#sidebar:not([hidden])) main { margin-left: 204px; }
+body.journey-console:has(#sidebar.collapsed:not([hidden])) main { margin-left: 62px; }
+.journey-console main { padding: 98px 30px 64px; }
+.journey-console > footer { height: 32px; min-height: 32px; background: #0d1723; border-top: 1px solid #31495c; color: #8cabbc; font-size: 10px; }
+.journey-console .module-window { border: 1px solid #425d72; border-radius: 14px; background: #111e2c; box-shadow: 0 20px 70px #0008; }
+.journey-console .module-window.window-active { border-color: #82acb7; box-shadow: 0 25px 90px #000a; }
+.journey-console .module-titlebar { min-height: 46px; padding: 8px 12px; background: #182c3d; border-bottom: 1px solid #5d7a8d33; border-radius: 13px 13px 0 0; }
+.journey-console .window-active .module-titlebar { background: #203b4b; }
+.journey-console .module-titlebar h2 { font-size: 12px; font-weight: 600; letter-spacing: .02em; }
+.journey-console .window-actions button { width: 28px; height: 28px; border-radius: 7px; color: #b0c4d2; }
+.journey-console .module-content { padding: 20px; }
+.journey-console .module-content.galaxy-content { padding: 0; }
+.journey-console .module-content h3 { letter-spacing: -.02em; }
+.journey-console .module-content .panel,
+.journey-console .overview-stats article { background: #142333; border: 1px solid #365167; border-radius: 12px; padding: 18px; }
+.journey-console .overview-stats strong { font-weight: 500; letter-spacing: -.03em; }
+.journey-console .overview-stats small { color: #8ca8ba; }
+.journey-console .tabs { display: flex; flex-wrap: wrap; gap: 5px; border-bottom: 1px solid #365167; padding-bottom: 10px; }
+.journey-console .tabs button { border-radius: 7px; border-color: transparent; background: #152738; padding: 8px 12px; color: #8faabd; }
+.journey-console .tabs button.active { background: #acd5d4; color: #10252c; border-color: #c3e0df; }
+.journey-console button.terminal-action { border-radius: 6px; padding: 6px 11px; min-height: 31px; }
+.journey-console input:not([type="checkbox"]):not([type="range"]):not([type="color"]),
+.journey-console select,
+.journey-console textarea { background: #091725; border-color: #3a596e; border-radius: 7px; color: #deebf2; }
+.journey-console input:focus-visible,
+.journey-console button:focus-visible,
+.journey-console summary:focus-visible { outline-color: #a7dedf; outline-offset: 3px; }
+.journey-console .table-wrap { border: 1px solid #304b60; border-radius: 10px; }
+.journey-console th { background: #1a3041; color: #9fb8c9; font-size: 10px; letter-spacing: .04em; }
+.journey-console td { border-bottom-color: #36516750; padding-block: 12px; }
+.journey-console .dropdown .menu { border-radius: 10px; background: #172a3a; border-color: #46657a; box-shadow: 0 14px 40px #0008; }
+.journey-console .startup-card { background: #122437; border-color: #628b9c; border-radius: 18px; padding: 36px 30px; }
+.journey-console #startup-screen { background: radial-gradient(ellipse at 50% 30%, #213f52, #080f19 70%); }
+@media (max-width: 900px) {
+  .journey-console #sidebar { width: 62px; padding-inline: 7px; }
+  .journey-console #sidebar .nav-label, .journey-console #sidebar .sidebar-title { display: none; }
+  .journey-console #sidebar > button, .journey-console #sidebar .maps-navigation > button { justify-content: center; padding-inline: 0; }
+  body.journey-console:has(#sidebar:not([hidden])) main { margin-left: 62px; }
+  .journey-console main { padding-inline: 16px; }
+  .journey-console .header-actions { gap: 6px; }
+  .journey-console .brand { font-size: 12px; }
+}
+@media (max-width: 560px) {
+  .journey-console > header { padding-inline: 12px; }
+  .journey-console .header-actions > button { padding-inline: 7px; font-size: 10px; }
+  .journey-console .brand { letter-spacing: .06em; font-size: 11px; }
+  .journey-console .module-content { padding: 12px; }
+}
+
+.journey-console .module-window { max-height: calc(100dvh - var(--header) - 44px); }
+.journey-console .module-loading { inset: 46px 0 0; }

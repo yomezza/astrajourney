@@ -3,8 +3,8 @@
 Пятая Go-служба владеет браузерным интерфейсом и публичным HTTP-шлюзом. Официальная поставка 0.30.3 — Linux amd64. [Релиз и файлы](https://github.com/yomezza/astrajourney/releases/tag/v0.30.3).
 
 Поверх полного комплекта 0.30.3 доступно отдельное обновление
-[Web 0.30.4](../../release-notes/v0.30.4.md) с новым оформлением карт.
-Замените только Web-бинарник и задайте `[web].release_tag='v0.30.4'`;
+[Web 0.30.5](../../release-notes/v0.30.5.md) с переработкой карт и общей оболочки терминала.
+Замените только Web-бинарник и задайте `[web].release_tag='v0.30.5'`;
 Cosmic, Planet, Chat, CDN и БД остаются прежними. После синхронизации пакета
 обновите страницу. Общий GitHub Latest остаётся полным выпуском 0.30.3.
 
@@ -37,11 +37,11 @@ sha256sum -c dist/review/SHA256SUMS
 Отдельно собрать интерфейс:
 
 ```bash
-go run ./cmd/astra-web-assets -root web -tag v0.30.4 -out dist/web
+go run ./cmd/astra-web-assets -root web -tag v0.30.5 -out dist/web
 ```
 
 Для текущего отдельного обновления Web используйте
-`python3 scripts/build-release.py v0.30.4 --platform linux --service web --out dist/review-web`.
+`python3 scripts/build-release.py v0.30.5 --platform linux --service web --out dist/review-web`.
 Он создаёт один Web-бинарник и Web-пакет, не меняя графический индекс.
 
 Исходники интерфейса находятся в `web/`; графика — в `assets/game/`. Пакет Web принимает только HTML, CSS, JS и JSON. Имена путей, количество/размеры файлов, SHA-256 каждого файла, ревизия и контракты `astra-web-v1` / `astra-api-v1` проверяются до активации. Символические ссылки, обход каталогов, повторяющиеся и незаявленные файлы отклоняются.

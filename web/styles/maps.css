@@ -206,3 +206,57 @@
   .galaxy-content > .map-workspace.inspector-hidden { grid-template-rows: minmax(240px, 1fr); }
   .galaxy-content .map-inspector { border-left: 0; border-top: 1px solid var(--map-line); }
 }
+
+/* Atlas workspace: title deck, navigation strip, scene and a selection dock. */
+.galaxy-content .atlas-header {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 20px; padding: 20px 24px 16px; flex-shrink: 0;
+  background: #0b1420; border-bottom: 1px solid #8ab8d226;
+}
+.galaxy-content .atlas-identity { min-width: 0; }
+.galaxy-content .atlas-identity h2 { margin: 0; font: 500 26px/1.15 system-ui; letter-spacing: -.04em; color: #f1f5f9; overflow-wrap: anywhere; }
+.galaxy-content .atlas-identity p { margin: 7px 0 0; font: 10px/1.4 monospace; text-transform: uppercase; letter-spacing: .15em; color: #8babc0; }
+.galaxy-content .atlas-modes { display: flex; padding: 4px; gap: 4px; background: #050c16; border: 1px solid #52778c40; border-radius: 10px; }
+.galaxy-content .atlas-modes button { margin: 0; min-height: 34px; border: 0; border-radius: 6px; background: transparent; color: #9bb0c2; padding: 8px 14px; }
+.galaxy-content .atlas-modes button[aria-pressed="true"] { color: #082028; background: #a8d4d5; }
+.galaxy-content > .map-toolbar { min-height: 48px; padding: 8px 16px; background: #0e1927; box-shadow: none; }
+.galaxy-content > .map-workspace { background: #07111d; grid-template-columns: minmax(0, 1fr) 300px; }
+.galaxy-content .map-inspector { margin: 12px 12px 12px 0; border: 1px solid #67879b40; border-radius: 14px; background: #101d2c; padding: 16px; box-shadow: 0 10px 28px #0004; }
+.galaxy-content .map-inspector > .tabs { background: #101d2c; top: -16px; padding-block: 12px; }
+.galaxy-content .map-canvas-wrap { background: #050b14; box-shadow: none; }
+.galaxy-content .atlas-badge { position: absolute; top: 20px; left: 20px; pointer-events: none; color: #9ab5c8; font: 10px/1.4 monospace; text-transform: uppercase; letter-spacing: .14em; padding: 7px 10px; border-left: 2px solid #a5cfd0; background: #091522c9; }
+.galaxy-content .map-tools { top: 16px; right: 16px; left: auto; bottom: auto; background: #0c1928ee; border-radius: 30px; padding: 4px 8px; }
+.galaxy-content .map-tools button { border-radius: 50%; }
+.galaxy-content .map-legend { bottom: 114px; left: 20px; right: auto; background: #0b1827dc; border-radius: 8px; }
+.galaxy-content .atlas-selection { position: absolute; left: 16px; right: 16px; bottom: 16px; display: flex; gap: 10px; align-items: center; padding: 16px; border: 1px solid #9ec3d449; border-radius: 12px; background: #0e1c2cf2; box-shadow: 0 12px 35px #0006; }
+.galaxy-content .atlas-selection > div { flex: 1; min-width: 0; display: grid; gap: 5px; }
+.galaxy-content .atlas-selection strong { font: 500 17px/1.3 system-ui; color: #edf5fa; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.galaxy-content .atlas-selection span { font: 10px/1.4 system-ui; color: #95adbd; }
+.galaxy-content .atlas-selection button { flex-shrink: 0; margin: 0; border-radius: 7px; padding: 9px 12px; background: #accfd1; color: #0b252b; border: 1px solid #c5e3e4; }
+.galaxy-content .atlas-selection button:last-child { background: #1b3042; color: #c6dbe7; border-color: #4c6e85; }
+.galaxy-content .atlas-status { display: flex; justify-content: space-between; gap: 12px; background: #0b1521; padding: 8px 18px; font: 10px/1.4 monospace; color: #819eaf; border-top: 1px solid #59768d33; flex-shrink: 0; }
+.galaxy-content .atlas-object-copy { display: grid; gap: 5px; text-align: left; }
+.galaxy-content .atlas-object-copy > span { font-size: 12px; color: #dfeaf2; }
+.galaxy-content .atlas-object-copy small { color: #88a7bb; font: 10px system-ui; }
+.galaxy-content .map-inspector .object-row { min-height: 68px; border: 0; border-bottom: 1px solid #5c7d9426; border-radius: 7px; background: transparent; padding: 10px 6px; }
+.galaxy-content .object-row canvas { width: 42px; height: 42px; }
+.galaxy-content .map-inspector .object-row.selected { background: #eed09c0d; box-shadow: inset 2px 0 #eed09c; }
+.galaxy-content .map-inspector > h3 { font-size: 22px; font-weight: 400; letter-spacing: -.03em; }
+@container (max-width: 850px) {
+  .galaxy-content .atlas-header { padding: 16px; gap: 12px; }
+  .galaxy-content .atlas-identity h2 { font-size: 22px; }
+  .galaxy-content .atlas-modes button { padding: 7px 9px; font-size: 10px; }
+  .galaxy-content > .map-workspace { grid-template-columns: minmax(0, 1fr) 250px; }
+  .galaxy-content .map-inspector { padding: 12px; }
+  .galaxy-content .atlas-selection { padding: 12px; flex-wrap: wrap; }
+  .galaxy-content .atlas-selection > div { flex-basis: 100%; }
+  .galaxy-content .map-legend { bottom: 150px; }
+}
+@container (max-width: 560px) {
+  .galaxy-content .atlas-header { align-items: flex-start; flex-direction: column; gap: 12px; }
+  .galaxy-content > .map-workspace { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(300px, 1fr) minmax(160px, .7fr); }
+  .galaxy-content .map-inspector { margin: 0 10px 10px; }
+  .galaxy-content .atlas-badge { top: 60px; left: 16px; }
+  .galaxy-content .atlas-status span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+.galaxy-content > .map-workspace.inspector-hidden { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
