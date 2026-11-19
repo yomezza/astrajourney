@@ -29,6 +29,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/platform/configuration"
 	"github.com/yomezza/cosmosimulator/internal/simulation"
 	"github.com/yomezza/cosmosimulator/internal/terminal"
+	"github.com/yomezza/cosmosimulator/internal/workspaces"
 	"github.com/yomezza/cosmosimulator/internal/worldstore"
 )
 
@@ -61,6 +62,7 @@ type App struct {
 	Administration *administration.Service
 	Terminal       *terminal.Service
 	Notifications  *notifications.Service
+	Workspaces     *workspaces.Service
 	Ideas          *ideas.Service
 	Benchmark      *benchmark.Service
 	startedAt      time.Time
@@ -84,6 +86,7 @@ func New(db *pgxpool.Pool, config Config) *App {
 	a.Administration = &administration.Service{DB: db, Auth: a.Auth, Simulation: a.Simulation}
 	a.Terminal = &terminal.Service{DB: db, Auth: a.Auth, World: a.World, Navigation: a.Navigation, Commerce: a.Commerce, Corporations: a.Corporations}
 	a.Notifications = &notifications.Service{DB: db, Auth: a.Auth}
+	a.Workspaces = &workspaces.Service{DB: db, Auth: a.Auth}
 	a.Ideas = &ideas.Service{DB: db, Auth: a.Auth}
 	a.Benchmark = &benchmark.Service{DB: db, Auth: a.Auth,
 		OpenDatabase: func(ctx context.Context, dsn, schema string) (*pgxpool.Pool, error) {

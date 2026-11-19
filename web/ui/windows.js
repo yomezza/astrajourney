@@ -40,6 +40,7 @@ export function initWindows() {
         w.dialog.classList.contains("window-active"),
       );
       b.onclick = () => {
+        if (w.minimized) w.minimize(false);
         active(w);
         w.bar.focus();
       };
@@ -49,15 +50,16 @@ export function initWindows() {
   function save(id, w) {
     if (resetting || !w.dialog.open || w.maximized) return;
     const r = w.dialog.getBoundingClientRect();
-    try {
-      Preferences.write("module:" + id, {
-        x: r.x,
-        y: r.y,
-        w: r.width,
-        h: r.height,
-        pinned: w.pinned,
+    if (w.layout) {
+      if (!w.minimized && innerWidth > 550) w.layout.save({
+        x: Math.round(r.x), y: Math.round(r.y),
+        w: Math.round(r.width), h: Math.round(r.height), pinned: w.pinned,
       });
-    } catch {}
+      return;
+    }
+    Preferences.write("module:" + id, {
+      x: r.x, y: r.y, w: r.width, h: r.height, pinned: w.pinned,
+    });
   }
   function clamp(w) {
     const d = w.dialog,
@@ -130,12 +132,26 @@ export function initWindows() {
         b.setAttribute("aria-label", tr(label));
       }
       pin.setAttribute("aria-pressed", "false");
+      if (options.layout) {
+        const minimize = node("button", "−");
+        minimize.type = "button";
+        minimize.dataset.label = "Свернуть окно";
+        minimize.setAttribute("aria-label", tr(minimize.dataset.label));
+        minimize.onclick = () => w.minimize(!w.minimized);
+        actions.append(minimize);
+      }
       actions.append(pin, max, close);
       bar.append(h, actions);
       d.append(bar, content, small);
       document.body.append(d);
       const w = {
         life: new Lifetime(),
+        layout: options.layout,
+        minimize(value, persist = true) {
+          w.minimized = value;
+          d.classList.toggle("studio-minimized", value);
+          if (persist) w.layout.minimize(value);
+        },
         transient: !!options.transient,
         private: options.private !== false,
         audience: options.audience,
@@ -160,7 +176,7 @@ export function initWindows() {
         if (!d.open) {
           d.show();
           if (!w.initialized) {
-            const l = read("module:" + id, {});
+            const l = w.layout ? w.layout.read() : read("module:" + id, {});
             if (
               id === "ship" &&
               innerWidth >= 1000 &&
@@ -181,6 +197,7 @@ export function initWindows() {
             w.pinned = !!l.pinned;
             d.classList.toggle("pinned", w.pinned);
             pin.setAttribute("aria-pressed", String(w.pinned));
+            if (w.layout) w.minimize(!!l.minimized, false);
             w.initialized = true;
           }
           clamp(w);
@@ -302,7 +319,7 @@ export function initWindows() {
           const [peerID, peer] = moving[i];
           peer.dialog.style.left = rects[i].x + dx + "px";
           peer.dialog.style.top = rects[i].y + dy + "px";
-          save(peerID, peer);
+          if (!peer.layout) save(peerID, peer);
         }
       };
       d.addEventListener("pointermove", (e) => {
@@ -319,9 +336,13 @@ export function initWindows() {
         if (resize.bottom) d.style.height = Math.max(170, r.height + dy) + "px";
       });
       const finish = () => {
+        if (drag) for (const [peerID, peer] of linkedPeers(id)) {
+          if (peer.layout) save(peerID, peer);
+        }
+        const changed = drag || resize;
         drag = null;
         resize = null;
-        save(id, w);
+        if (!w.layout || changed) save(id, w);
       };
       for (const event of [
         "pointerup",
@@ -364,7 +385,7 @@ export function initWindows() {
           r.width < w.minContentWidth || r.height < 220,
         );
         clearTimeout(timer);
-        timer = setTimeout(() => save(id, w), 200);
+        if (!w.layout) timer = setTimeout(() => save(id, w), 200);
         window.dispatchEvent(new CustomEvent("moduleresize", { detail: id }));
       });
       observer.observe(d);
@@ -500,9 +521,11 @@ export function initWindows() {
     resetLayout() {
       resetting = true;
       for (const [id, w] of [...windows]) {
+        if (w.layout) continue;
         w.hide();
         Preferences.remove("module:" + id);
       }
+      resetting = false;
     },
   });
 }

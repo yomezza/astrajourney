@@ -134,6 +134,13 @@ export async function game(
     }
     if (!session.authenticated)
       return json({ error: "Войдите в аккаунт" }, 401);
+    if (key === "workspaces" && method === "GET")
+      return json({
+        revision: 1,
+        layout: { version: 1, active: "42000000-0000-4000-8000-000000000001",
+          default: "42000000-0000-4000-8000-000000000001",
+          workspaces: [{ id: "42000000-0000-4000-8000-000000000001", name: "Астра", ship_id: 0, modules: [] }] },
+      });
     if (method !== "GET") {
       unexpected.push(`unconfigured mutation ${key}`);
       return json({ error: "Unconfigured test mutation" }, 501);

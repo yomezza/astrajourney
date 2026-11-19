@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="styles/knowledge-admin.css" />
     <link rel="stylesheet" href="styles/maps.css" />
     <link rel="stylesheet" href="styles/equipment.css" />
+    <link rel="stylesheet" href="styles/studio.css" />
     <script type="module" src="bootstrap.js"></script>
   </head>
   <body>
@@ -54,6 +55,7 @@
         >◈ ASTRA JOURNEY <small>EDEM / <span data-game-version>…</span></small></a
       >
       <div class="header-actions">
+        <button id="studio-shortcut" type="button" data-label="Рабочие пространства" aria-label="Рабочие пространства" hidden>▥</button>
         <div
           id="window-switcher"
           data-label="Открытые окна"
@@ -300,6 +302,7 @@
         </form>
       </section>
       <section id="game" hidden>
+        <section id="studio" hidden></section>
         <p class="eyebrow">EDEM / COMMAND TERMINAL</p>
         <div class="toolbar">
           <div>
