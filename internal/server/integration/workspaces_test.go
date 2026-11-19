@@ -57,14 +57,20 @@ func TestWorkspacePreferences(t *testing.T) {
 	d.Layout.Workspaces[0].ShipID = f.integer("SELECT id FROM ships WHERE user_id=$1 AND active", otherUID)
 	f.req(cookie, "POST", path, d, 400)
 	d.Layout.Workspaces[0].ShipID = active
+	d.Layout.Workspaces[0].Customized = true
 	d.Layout.Workspaces[0].Modules = []workspaces.Module{{
 		ID: "72820000-0000-4000-8000-000000000001", Type: "cargo", Binding: "fixed", ShipID: active, Filter: "quantity",
 		Geometry: &workspaces.Geometry{X: 60, Y: 120, W: 420, H: 340, Pinned: true, Minimized: true},
+	}, {
+		ID: "72820000-0000-4000-8000-000000000002", Type: "map", Binding: "none", View: "card", Wide: true,
 	}}
+	d.Layout.Workspaces[0].Modules[1].View = "modal"
+	f.req(cookie, "POST", path, d, 400)
+	d.Layout.Workspaces[0].Modules[1].View = "card"
 	// Names may contain 32 multi-codepoint graphemes.
 	saved := read(f.req(cookie, "POST", path, d, 200))
 	replay := read(f.req(cookie, "POST", path, d, 200))
-	if saved.Revision != 2 || replay.Revision != 2 {
+	if saved.Revision != 2 || replay.Revision != 2 || !saved.Layout.Workspaces[0].Modules[1].Wide || !saved.Layout.Workspaces[0].Customized {
 		t.Fatalf("save/replay: %+v %+v", saved, replay)
 	}
 	d.Layout.Workspaces[0].Name = "Stale"

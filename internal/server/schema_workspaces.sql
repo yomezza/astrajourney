@@ -10,6 +10,6 @@ CREATE TABLE IF NOT EXISTS pilot_workspace_ids (
 );
 CREATE INDEX IF NOT EXISTS pilot_workspace_ids_owner ON pilot_workspace_ids(user_id);
 
-INSERT INTO game_release(id,version,migration) VALUES(1,'0.31.2',312)
+INSERT INTO game_release(id,version,migration) VALUES(1,'0.31.3',313)
  ON CONFLICT(id) DO UPDATE SET version=excluded.version,migration=excluded.migration,updated_at=now()
  WHERE game_release.migration<excluded.migration;

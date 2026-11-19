@@ -60,7 +60,7 @@ try {
   assert.equal(await b.locator(".studio-window").count(),0);
   await login(b,"studio_peer");
   assert.equal(await button(b,"Retired ship").count(),0);
-  assert.equal(await b.locator("#studio .studio-tabs button").count(),1);
+  assert.deepEqual(await b.locator("#studio .studio-tabs button").allTextContents(), ["Командование","Добыча","Торговля"]);
 
   const fresh = await browser.newPage({viewport:{width:320,height:720}});
   fresh.setDefaultTimeout(10000);

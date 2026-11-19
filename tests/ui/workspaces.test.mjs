@@ -10,11 +10,11 @@ test("Studio keeps two ship contexts and the same communication windows across s
     revision:1,
     layout:{version:1,active:ids[0],default:ids[0],workspaces:[
       {id:ids[0],name:"Alpha",ship_id:41,modules:[
-        {id:moduleID,type:"cargo",binding:"workspace",ship_id:0,filter:"quantity",
+        {id:moduleID,type:"cargo",view:"window",binding:"workspace",ship_id:0,filter:"quantity",
           geometry:{x:235,y:240,w:400,h:300,pinned:false,minimized:false}},
       ]},
       {id:ids[1],name:"Beta",ship_id:82,modules:[
-        {id:"72000000-0000-4000-8000-000000000002",type:"cargo",binding:"workspace",ship_id:0},
+        {id:"72000000-0000-4000-8000-000000000002",type:"cargo",view:"window",binding:"workspace",ship_id:0},
       ]},
     ]},
   };
@@ -151,4 +151,53 @@ test("Studio saves CRUD in order and requires a fresh read after conflict", asyn
   await named("Загрузить сохранённую раскладку").click();
   await studio.getByRole("button",{name:"Alpha",exact:true}).waitFor();
   assert.equal(stored.layout.workspaces[0].name,"Alpha");
+});
+
+test("Matrix command deck loads presets and persists card order and width", async (t) => {
+  const id = "42000000-0000-4000-8000-000000000001";
+  let saved;
+  const g = await game(t,{signedIn:true,faults:[["workspaces",({req,json}) => {
+    if (req.method() === "GET") return json(saved || {revision:1,layout:{
+      version:1,active:id,default:id,workspaces:[{id,name:"Астра",ship_id:0,modules:[]}],
+    }});
+    const {revision,layout} = req.postDataJSON();
+    saved = {revision:revision+1,layout};
+    return json(saved);
+  }]]});
+  await g.ready();
+  const {page} = g;
+  await page.locator(".matrix-map canvas").waitFor();
+  const grid = page.locator(".matrix-grid");
+  const overview = grid.locator('[data-module="overview"]');
+  assert.equal(await grid.locator(".matrix-card").count(),5);
+  assert.deepEqual(await page.locator(".studio-tabs button").allTextContents(),["Командование","Добыча","Торговля"]);
+  assert.equal(await overview.locator("tbody tr").count(),2);
+  assert.equal(await page.locator(".studio-window[open]").count(),0);
+  await overview.getByRole("button",{name:"Широкая карточка"}).click();
+  await overview.getByRole("button",{name:"Переместить карточку вправо"}).click();
+  await page.locator("#studio").getByText("Раскладка сохранена").waitFor();
+  assert.equal(saved.layout.workspaces[0].modules[0].type,"operations");
+  assert.equal(saved.layout.workspaces[0].modules[1].type,"overview");
+  assert.ok(!saved.layout.workspaces[0].modules[1].wide);
+  await page.reload();
+  await g.ready();
+  assert.equal(await grid.locator(".matrix-card").first().getAttribute("data-module"),"operations");
+  const map = grid.locator('[data-module="map"]');
+  await map.getByRole("button",{name:"Открыть игровой модуль"}).click();
+  await page.locator("#window-galaxy[open]").waitFor();
+  await page.evaluate(() => window.__testApp.Modules.close("galaxy"));
+  for (const width of [1440, 1024, 768, 390, 320]) {
+    await page.setViewportSize({width,height:800});
+    await grid.waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `horizontal overflow at ${width}`);
+    const bounds = await grid.boundingBox();
+    const sidebar = await page.locator("#sidebar").boundingBox();
+    assert.ok(bounds.x >= sidebar.x + sidebar.width - 1, `sidebar overlays cards at ${width}px`);
+    const cards = await grid.locator(".matrix-card").evaluateAll(items => items.map(item => {
+      const {left,right} = item.getBoundingClientRect();
+      return {left,right};
+    }));
+    assert.ok(cards.every(card => card.left >= bounds.x - 1 && card.right <= bounds.x + bounds.width + 1), `card outside grid at ${width}`);
+  }
+  assert.equal(g.requests.filter(r => r.method === "POST" && r.path !== "workspaces").length,0);
 });

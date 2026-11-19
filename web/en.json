@@ -2289,5 +2289,20 @@
   "Свернуть окно": "Minimize window",
   "Минимальная добыча": "Minimum yield",
   "Максимальная добыча": "Maximum yield",
-  "Текущая добыча": "Current yield"
+  "Текущая добыча": "Current yield",
+  "Активные операции": "Active operations",
+  "Карта доступна в игровом окне": "Open the game window to view the map",
+  "Состыкован": "Docked",
+  "Готов": "Ready",
+  "Широкая карточка": "Wide card",
+  "Переместить карточку влево": "Move card left",
+  "Переместить карточку вправо": "Move card right",
+  "Убрать карточку": "Remove card",
+  "Настройки карточки": "Card settings",
+  "Открыть игровой модуль": "Open game module",
+  "Открыть отдельное окно": "Open separate window",
+  "Командование": "Command",
+  "Активный корабль": "Active ship",
+  "Состояние": "Status",
+  "Пункт назначения": "Destination"
 }
