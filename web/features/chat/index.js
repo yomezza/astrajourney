@@ -1276,6 +1276,8 @@ export function initChat() {
           ),
         );
         Modules.close("chat-form");
+        if (dialog.open) Modules.focus("chat");
+        queueSync();
       } catch (e) {
         inline.textContent = tr(errors[e.message] || e.message);
         for (const field of Object.values(controls))

@@ -223,18 +223,26 @@ try {
     if (!r.ok) throw Error("scene " + r.status);
     return (await r.json()).landing;
   });
-  const position = await canvas.evaluate((e) => ({
-    x: Number(e.dataset.xq),
-    y: Number(e.dataset.yq),
-    zoom: Number(e.dataset.zoom),
-  }));
-  const box = await canvas.boundingBox();
-  await canvas.click({
-    position: {
-      x: box.width / 2 + ((landing.X - position.x) / 1024) * position.zoom,
-      y: box.height / 2 + ((landing.Y - position.y) / 1024) * position.zoom,
-    },
-  });
+  // The sprite ground anchor can land on a transparent pixel. Verify the
+  // hit using the real hover UI before clicking and sending a return request.
+  const landingHint = host.getByText(/Площадка высадки и возврата к кораблю/);
+  let hitLanding = false;
+  for (const [dx, dy] of [[0, -4], [0, 0], [-4, -5], [4, -5], [0, -8], [-5, -9], [5, -9]]) {
+    const point = await canvas.evaluate((el, { landing, dx, dy }) => {
+      const bounds = el.getBoundingClientRect();
+      const zoom = Number(el.dataset.zoom);
+      return {
+        x: bounds.left + bounds.width / 2 + ((landing.X - Number(el.dataset.xq)) / 1024 + dx) * zoom,
+        y: bounds.top + bounds.height / 2 + ((landing.Y - Number(el.dataset.yq)) / 1024 + dy) * zoom,
+      };
+    }, { landing, dx, dy });
+    await page.mouse.move(point.x, point.y);
+    if (!await landingHint.isVisible()) continue;
+    await page.mouse.click(point.x, point.y);
+    hitLanding = true;
+    break;
+  }
+  assert.ok(hitLanding, "landing sprite should be reachable through its visible pixels");
   await page
     .getByRole("menuitem", { name: "Вернуться на корабль", exact: true })
     .click();

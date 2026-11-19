@@ -38,13 +38,25 @@ try {
   await root.getByRole("button", { name: "Остаться", exact: true }).click();
   await root.locator(".visit-transition").waitFor({ state: "hidden" });
   assert.equal(await canvas.getAttribute("data-sector"), "1");
-  // The fixture is at the portal. Selecting it explicitly re-arms an offer.
-  await canvas.click({
-    position: {
-      x: (await canvas.boundingBox()).width / 2,
-      y: (await canvas.boundingBox()).height / 2,
-    },
+  // Re-select the actual exit, using Shift to bypass overlapping scenery.
+  const exit = await page.evaluate(async () => {
+    const { api } = await import(new URL("./core/api.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
+    const visit = await api("planet/visit");
+    const epoch = document.querySelector(".visit-canvas").dataset.connectionEpoch;
+    const response = await fetch(`/planet/api/v1/scene?visit=${visit.visit}&epoch=${epoch}`);
+    if (!response.ok) throw Error(`Scene request failed: ${response.status}`);
+    return (await response.json()).exits.find(exit => exit.neighbor === 2);
   });
+  assert.ok(exit, "sector 2 exit");
+  const position = await canvas.evaluate((element, exit) => {
+    const { width, height } = element.getBoundingClientRect();
+    const { xq, yq, zoom } = element.dataset;
+    return {
+      x: width / 2 + ((exit.x_q - Number(xq)) / 1024) * Number(zoom),
+      y: height / 2 + ((exit.y_q - Number(yq)) / 1024) * Number(zoom),
+    };
+  }, exit);
+  await canvas.click({ position, modifiers: ["Shift"] });
   await root.getByText("Соседняя локация готова", { exact: true }).waitFor();
   await root
     .getByRole("button", { name: "Перейти в соседний сектор", exact: true })

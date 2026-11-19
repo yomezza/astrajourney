@@ -60,6 +60,8 @@ func (a *App) Handler() http.Handler {
 	m.HandleFunc("POST /api/logout", a.Auth.Logout)
 	m.HandleFunc("GET /api/state", a.Terminal.State)
 	m.HandleFunc("GET /api/fleet", a.Terminal.Fleet)
+	m.HandleFunc("GET /api/workspaces", a.Workspaces.Preferences)
+	m.HandleFunc("POST /api/workspaces", a.Workspaces.Preferences)
 	m.HandleFunc("GET /api/ship/modules", a.Terminal.ShipModules)
 	a.registerTerminalRoutes(m)
 	m.HandleFunc("GET /api/gameplay", a.Administration.Gameplay)

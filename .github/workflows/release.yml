@@ -7,6 +7,7 @@ permissions:
   contents: write
 jobs:
   release:
+    if: github.ref_name != 'v0.31.2'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -83,3 +84,28 @@ jobs:
           if not full: args += ['--latest=false']
           subprocess.run(args,check=True)
           PYRELEASE
+
+  matrix-studio:
+    if: github.ref_name == 'v0.31.2'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Build and verify Linux release
+        run: |
+          python3 scripts/build-release.py v0.31.2 --platform linux --service cosmos --out dist/matrix
+          go run ./cmd/astra-web-assets -tag v0.31.2 -out dist/matrix
+          python3 scripts/verify-web-release.py v0.31.2 --directory dist/matrix
+          cp docs/operations/matrix-studio-update.ru.md dist/matrix/UPDATE.ru.md
+          git rev-parse HEAD > dist/matrix/SOURCE_COMMIT
+          cd dist/matrix
+          sha256sum astra-journey-v0.31.2-linux-amd64 astra-journey-web-*.zip astra-journey-web.json astra-journey-v0.31.2-build.json UPDATE.ru.md SOURCE_COMMIT > SHA256SUMS
+          sha256sum -c SHA256SUMS
+      - name: Publish release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create v0.31.2 dist/matrix/* --verify-tag --latest=false             --title 'Astra Journey 0.31.2 — MATRIX × STUDIO'             --notes-file docs/operations/matrix-studio-update.ru.md

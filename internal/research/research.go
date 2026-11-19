@@ -32,7 +32,7 @@ func StartResearch(ctx context.Context, tx pgx.Tx, uid int64, s *fleet.Ship, sta
 		if existing != s.ID {
 			return errors.New("Исследование выполняет другой корабль")
 		}
-		_, err = tx.Exec(ctx, `UPDATE research_jobs SET paused=FALSE,seconds=$2,next_at=now()+make_interval(secs=>$2) WHERE ship_id=$1`, s.ID, seconds)
+		_, err = tx.Exec(ctx, `UPDATE research_jobs SET paused=FALSE,seconds=$2,next_at=now()+make_interval(secs=>$2::integer) WHERE ship_id=$1`, s.ID, seconds)
 		return err
 	}
 	if !errors.Is(err, pgx.ErrNoRows) {
@@ -49,7 +49,7 @@ func StartResearch(ctx context.Context, tx pgx.Tx, uid int64, s *fleet.Ship, sta
 	if err != nil {
 		return err
 	}
-	_, err = tx.Exec(ctx, `INSERT INTO research_jobs(ship_id,user_id,star,total,next_at,seconds) VALUES($1,$2,$3,$4,COALESCE($5,now())+make_interval(secs=>$6),$6)`, s.ID, uid, star.ID, len(researchSites), s.Arrival, seconds)
+	_, err = tx.Exec(ctx, `INSERT INTO research_jobs(ship_id,user_id,star,total,next_at,seconds) VALUES($1,$2,$3,$4,COALESCE($5,now())+make_interval(secs=>$6::integer),$6)`, s.ID, uid, star.ID, len(researchSites), s.Arrival, seconds)
 	return err
 }
 

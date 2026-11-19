@@ -1,3 +1,4 @@
+import { initStudio } from "./features/studio/index.js";
 import { initOutfitting } from "./features/outfitting/index.js";
 import { initTooltip } from "./ui/tooltip.js";
 import { loadAssetMap } from "./core/assets.js";
@@ -60,6 +61,7 @@ initOutfitting();
 initStudies();
 initGalaxy();
 initChat();
+initStudio();
 
 export const application = {
   session: Session,

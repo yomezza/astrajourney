@@ -106,12 +106,15 @@ func TestFleetPurchases060(t *testing.T) {
 		}
 	}
 	for _, id := range []string{"crucible", "titan"} {
-		c, _ := fleet.Hull(id)
 		sid := f.integer(`SELECT id FROM ships WHERE user_id=$1 AND class=$2`, uid, id)
 		f.cmd(cookie, map[string]any{"action": "select_ship", "ship": sid}, 200)
 		f.exec(`UPDATE ships SET star=1,destination=NULL,arrival=NULL,departure=NULL,travel_path='[]',waypoints='[]',object_id='asteroids',position_mode='approach' WHERE id=$1`, sid)
 		f.req(cookie, "POST", "/api/expedition", map[string]any{"action": "mine", "ship": sid, "planet": 101, "resource": resource}, 200)
-		if n := f.integer(`SELECT quantity FROM mining_jobs WHERE ship_id=$1`, sid); n != int64(3+c.MiningBonus) {
+		ship, err := fleet.ReadShip(f.ctx, f.db, sid)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if n := f.integer(`SELECT quantity FROM mining_jobs WHERE ship_id=$1`, sid); n != int64(ship.ExtractionYieldFor(1, 101, resource)) {
 			t.Fatal("wrong extraction bonus", id, n)
 		}
 	}
