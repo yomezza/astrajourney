@@ -3,7 +3,7 @@
 19 ноября 2026. Ветка `fix/module-market-refresh` от main `07d3ce3`.
 Поручение: устранить постоянное обновление вкладки «Модули корабля».
 
-**Статус: исправлено в исходниках, готовится выпуск только Web.**
+**Статус: исправлено, отдельная Linux-поставка Web собрана; публикация ожидается.**
 
 ## Причина и исправление
 
@@ -43,3 +43,12 @@ Planet/Chat/CDN — 0.30.3. Миграций/изменений API/график
 [Release notes](../../../release-notes/v0.31.1.md).
 
 Следующий шаг: опубликовать и подтвердить отдельную Web-поставку.
+
+## Сборка
+
+Исходный коммит `288cf77ce5d09c81a59c0307b8fe9b5e9c1c60f7`.
+`python3 scripts/build-release.py v0.31.1 --platform linux --service web --source-ref HEAD`
+— успешно: только Web, linux/amd64, CGO=0, Go 1.26.0, source_dirty=false.
+`python3 scripts/verify-web-release.py v0.31.1` — успешно, 135 файлов.
+Web revision `8ab838945840d271bc0d581385639299fc9f2f993716e8dcc3a0ae34054dc604`,
+ZIP 455942 байта. Графический индекс не изменялся, в manifest нет assets.
