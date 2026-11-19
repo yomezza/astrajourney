@@ -70,7 +70,7 @@ func TradeBots(ctx context.Context, tx pgx.Tx) error {
 			stock[res]++
 			credits += int64(offer.Sell)
 			wallet -= int64(offer.Sell)
-		} else if ship.Cargo[res] == 0 && stock[res] > 0 && credits >= int64(offer.Buy) && fleet.CargoSize(ship.Cargo) < ship.Capacity() && wallet <= wallets.MaxCredits-int64(offer.Buy) {
+		} else if ship.Cargo[res] == 0 && stock[res] > 0 && credits >= int64(offer.Buy) && ship.CargoUsed() < ship.Capacity() && wallet <= wallets.MaxCredits-int64(offer.Buy) {
 			ship.Cargo[res]++
 			stock[res]--
 			credits -= int64(offer.Buy)

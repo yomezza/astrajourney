@@ -1,3 +1,5 @@
+import { usedCargo } from "../../core/ship-capacity.js";
+import { moduleTile, packedModules, moduleMime, isModuleDragging } from "../outfitting/index.js";
 import { inPlayerGalaxy } from "../navigation/pickers.js";
 import { arrangeShip } from "./layout.js";
 import { resourceTile } from "../inventory/resource-tile.js";
@@ -85,11 +87,11 @@ export function createFleet({ roots, act, command }) {
     );
   }
   function renderCargo() {
-    if (Logistics?.dragging) return;
+    if (Logistics?.dragging || isModuleDragging()) return;
     const root = roots.cargo;
     reset(root);
     Modules.title("cargo", tr("Трюм") + " · " + shipName(d().ship));
-    const used = Object.values(d().ship.cargo).reduce((a, b) => a + b, 0),
+    const used = usedCargo(d().ship),
       reserved = d().job?.quantity || 0;
     root.append(UI.bar(used + reserved, cargoCapacity(), "Вместимость"));
     row(root, "Занято", num(used));
@@ -100,6 +102,7 @@ export function createFleet({ roots, act, command }) {
       "Категория",
       [
         ["all", "Все категории"],
+        ["modules", "Модули корабля"],
         ...new Set(d().resources.map((r) => r.kind)),
       ].map((x) => (Array.isArray(x) ? x : [x, x])),
       cargoCategory,
@@ -143,8 +146,13 @@ export function createFleet({ roots, act, command }) {
       Logistics?.draggable(tile, { kind: "ship", ship: d().ship.id }, id, q);
       grid.append(tile);
     }
-    if (!items.length) UI.empty(grid, "Трюм пуст");
+    const equipment=["all","modules"].includes(cargoCategory)?packedModules(d().ship):[];
+    for(const m of equipment) grid.append(moduleTile(m,d().ship,()=>{Modules.open("outfitting");}));
+    if (!items.length && !equipment.length) UI.empty(grid, "Трюм пуст");
     Logistics?.dropzone(root, { kind: "ship", ship: d().ship.id });
+    const resourceOver=root.ondragover,resourceDrop=root.ondrop,ship=d().ship;
+    root.ondragover=event=>{if([...event.dataTransfer.types].includes(moduleMime)){event.preventDefault();return;}resourceOver?.(event);};
+    root.ondrop=event=>{if([...event.dataTransfer.types].includes(moduleMime)){event.preventDefault();event.stopPropagation();try{const value=JSON.parse(event.dataTransfer.getData(moduleMime));if(value.ship===ship.id && ship.modules?.some(m=>m.id===value.id && m.installed))command({action:"module_remove",ship:ship.id,id:value.id});}catch{}return;}resourceDrop?.(event);};
     root.append(
       grid,
       b(
@@ -225,7 +233,7 @@ export function createFleet({ roots, act, command }) {
     meters.append(
       UI.bar(s.fuel, s.spec.fuel, "Топливо"),
       UI.bar(
-        Object.values(s.cargo).reduce((a, b) => a + b, 0) +
+        usedCargo(s) +
           (d().job?.quantity || 0),
         s.spec.cargo,
         "Груз",
@@ -297,35 +305,9 @@ export function createFleet({ roots, act, command }) {
       ),
     );
     controls.append(tools);
-    const equip = UI.fold("ship:equipment");
-    equip.append(n("summary", tr("Оборудование")));
-    choice(
-      equip,
-      "Добытчик",
-      [
-        [
-          "universal",
-          tr("Базовый добытчик") + " · " + s.spec.mining + " " + tr("ед./цикл"),
-        ],
-        ["ore", "Рудный добытчик"],
-        ["ice", "Ледовый добытчик"],
-        ["gas", "Газовый добытчик"],
-      ],
-      s.extractor,
-      (target) =>
-        UI.confirm("Установка добытчика", tr("Стоимость") + ": 250 CR", () =>
-          command({ action: "extractor", target }),
-        ),
-    );
-    equip.append(
-      n(
-        "p",
-        tr(
-          "Установка в порту. Итоговая добыча учитывает корпус, установленный добытчик и условия месторождения.",
-        ),
-        "muted",
-      ),
-    );
+    const equip=UI.fold("ship:equipment",true);
+    equip.append(n("summary",tr("Оборудование")),n("p",`${tr("Размер оснащения")}: ${(s.modules||[]).filter(m=>m.installed).reduce((sum,m)=>sum+m.size,0)} / ${s.module_limit||s.spec.module_limit||0}`),b("Оснащение корабля",()=>Modules.open("outfitting")));
+    if(s.modules?.some(m=>m.installed && m.kind==="scoop"))equip.append(b("Собрать топливо",()=>command({action:"module_scoop",ship:s.id}),fly(s)||d().docked||s.fuel>=s.spec.fuel));
     controls.append(equip);
     controls.append(
       b("Верфи", () => Game.openShipyards(d().ship.star, d().ship.object_id)),
@@ -354,6 +336,7 @@ export function createFleet({ roots, act, command }) {
     row(root, "Требуемый стаж", c.required_level);
     row(root, "Длина корпуса", c.length + " " + tr("м"));
     row(root, "Вместимость", c.cargo);
+    row(root, "Размер оснащения", c.module_limit || "—");
     row(root, "Топливный бак", c.fuel);
     row(root, "Время перехода", c.jump_seconds + " s");
     row(root, "Расход за переход", c.jump_fuel);

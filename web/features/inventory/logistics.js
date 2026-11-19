@@ -1,3 +1,4 @@
+import { usedCargo } from "../../core/ship-capacity.js";
 import { resourceTile } from "./resource-tile.js";
 import { shipName } from "../fleet/presentation.js";
 import { stationLabel } from "../stations/index.js";
@@ -255,7 +256,7 @@ export function initLogistics() {
           .reduce((a, j) => a + j.quantity, 0);
       free =
         target.spec.cargo -
-        Object.values(target.cargo).reduce((a, v) => a + v, 0) -
+        usedCargo(target) -
         reserved;
     }
     const list = n("div", undefined, "cargo-transfer-items");
@@ -627,7 +628,7 @@ export function initLogistics() {
         .reduce((a, j) => a + j.quantity, 0);
       hold.append(
         UI.bar(
-          Object.values(s.cargo).reduce((a, v) => a + v, 0) + reserved,
+          usedCargo(s) + reserved,
           s.spec.cargo,
           "Трюм",
         ),

@@ -19,6 +19,7 @@ import (
 
 type ShipClass struct {
 	ID            string `json:"id"`
+	ModuleLimit   int    `json:"module_limit"`
 	Name          string `json:"name"`
 	Role          string `json:"role"`
 	Description   string `json:"description"`
@@ -61,6 +62,7 @@ func priceShipClasses(classes []ShipClass) []ShipClass {
 		c.RequiredLevel = map[string]int{"pilgrim": 6, "wanderer": 6, "forge": 10, "ark": 10, "hermes": 10, "vesper": 10, "astra": 15, "argus": 20, "crucible": 15, "titan": 20, "atlas": 15, "leviathan": 20, "iris": 10, "zephyr": 15, "lightning": 20}[c.ID]
 		value := int64(100000 + (c.Cargo-60)*1000 + (c.Fuel-40)*2000 + 600000/c.JumpSeconds - 120000 + 120000/c.JumpFuel - 60000 + c.MiningBonus*90000)
 		c.Price = (max(int64(100000), value) + 4999) / 5000 * 5000
+		c.ModuleLimit = min(80, 8+int(c.Price/50000))
 	}
 	return classes
 }
@@ -97,7 +99,22 @@ func Hull(id string) (ShipClass, bool) {
 	return Catalogue[0], false
 }
 
-func (s Ship) Hull() ShipClass { c, _ := Hull(s.Class); return c }
+func (s Ship) Hull() ShipClass {
+	c, _ := Hull(s.Class)
+	if s.ModulesReady {
+		c.Cargo = max(0, c.Cargo-10)
+	}
+	for _, m := range s.Modules {
+		if m.Installed && m.Kind == "cargo" {
+			c.Cargo += m.Effects.Cargo
+		}
+	}
+	c.JumpSeconds = max(1, (c.JumpSeconds*(100-s.ModuleEffect("drive").Jump)+99)/100)
+	if s.ModuleLimit > 0 {
+		c.ModuleLimit = s.ModuleLimit
+	}
+	return c
+}
 
 func (s Ship) Capacity() int { return s.Hull().Cargo }
 
@@ -108,31 +125,69 @@ type MiningStats struct {
 }
 
 func (s Ship) ExtractionYield(star, planet int) int {
-	return resourcecatalog.ExtractorYield(s.Extractor, star, planet) + s.Hull().MiningBonus
+	if !s.ModulesReady {
+		return resourcecatalog.ExtractorYield(s.Extractor, star, planet) + s.Hull().MiningBonus
+	}
+	best := 0
+	for _, m := range s.Modules {
+		if m.Installed && m.Kind == "extractor" {
+			best = max(best, resourcecatalog.ExtractorYield(m.Effects.Extractor, star, planet)+s.Hull().MiningBonus+m.Effects.Yield)
+		}
+	}
+	return best
+}
+func (s Ship) ExtractionYieldFor(star, planet int, resource string) int {
+	if !s.ModulesReady {
+		if !resourcecatalog.ExtractorAccepts(s.Extractor, resource) {
+			return 0
+		}
+		return s.ExtractionYield(star, planet)
+	}
+	best := 0
+	for _, m := range s.Modules {
+		if m.Installed && m.Kind == "extractor" && resourcecatalog.ExtractorAccepts(m.Effects.Extractor, resource) {
+			best = max(best, resourcecatalog.ExtractorYield(m.Effects.Extractor, star, planet)+s.Hull().MiningBonus+m.Effects.Yield)
+		}
+	}
+	return best
 }
 
-// Only revealed, compatible deposits can contribute a location-specific figure.
-// Cargo space and shared quotas limit the job, not the ship's mining capability.
+// Only revealed deposits are used to report a location-specific mining yield.
 func (s Ship) MiningStats(sites []universe.Site) MiningStats {
-	lo, hi := resourcecatalog.ExtractorRange(s.Extractor)
-	bonus := s.Hull().MiningBonus
-	stats := MiningStats{Min: lo + bonus, Max: hi + bonus}
-	if lo == hi {
-		value := stats.Min
-		stats.Current = &value
-		return stats
-	}
-	for _, site := range sites {
-		if !NearObject(s, site.ID) {
-			continue
+	stats := MiningStats{Min: 0, Max: 0}
+	found := false
+	add := func(kind string, bonus int) {
+		lo, hi := resourcecatalog.ExtractorRange(kind)
+		if !found || lo+bonus < stats.Min {
+			stats.Min = lo + bonus
 		}
-		for _, resource := range site.Resources {
-			if resourcecatalog.ExtractorAccepts(s.Extractor, resource) {
-				value := s.ExtractionYield(s.Star, site.Planet)
-				stats.Current = &value
-				return stats
+		stats.Max = max(stats.Max, hi+bonus)
+		found = true
+	}
+	if s.ModulesReady {
+		for _, m := range s.Modules {
+			if m.Installed && m.Kind == "extractor" {
+				add(m.Effects.Extractor, s.Hull().MiningBonus+m.Effects.Yield)
 			}
 		}
+	} else if s.Extractor != "none" {
+		add(s.Extractor, s.Hull().MiningBonus)
+	}
+	if stats.Min == stats.Max {
+		n := stats.Min
+		stats.Current = &n
+		return stats
+	}
+	current := 0
+	for _, site := range sites {
+		if NearObject(s, site.ID) {
+			for _, r := range site.Resources {
+				current = max(current, s.ExtractionYieldFor(s.Star, site.Planet, r))
+			}
+		}
+	}
+	if current > 0 {
+		stats.Current = &current
 	}
 	return stats
 }

@@ -301,7 +301,7 @@ func (a *Service) CorporationCommand(ctx context.Context, tx pgx.Tx, u account.U
 			if err = tx.QueryRow(ctx, `SELECT COALESCE(sum(quantity),0) FROM mining_jobs WHERE ship_id=$1`, s.ID).Scan(&reserved); err != nil {
 				return true, err
 			}
-			if stock[in.Resource] < in.Quantity || fleet.CargoSize(s.Cargo)+reserved+in.Quantity > s.Capacity() {
+			if stock[in.Resource] < in.Quantity || s.CargoUsed()+reserved+in.Quantity > s.Capacity() {
 				return true, errors.New("Недостаточно товара или места")
 			}
 			stock[in.Resource] -= in.Quantity

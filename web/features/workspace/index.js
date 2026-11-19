@@ -186,6 +186,7 @@ export function initExpedition() {
   const renderPortal = (...args) => portalFeature.renderPortal(...args);
 
   Object.assign(Game, {
+    openModuleMarket() { marketsFeature.show("modules");Modules.open("market"); },
     command,
     teleport(to) {
       return act(

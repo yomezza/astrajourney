@@ -8,7 +8,6 @@ import (
 	"github.com/jackc/pgx/v5"
 
 	"github.com/yomezza/cosmosimulator/internal/fleet"
-	resourcecatalog "github.com/yomezza/cosmosimulator/internal/resources"
 	"github.com/yomezza/cosmosimulator/internal/universe"
 )
 
@@ -41,14 +40,14 @@ func BeginExtraction(ctx context.Context, tx pgx.Tx, uid int64, s fleet.Ship, st
 	if !fleet.NearObject(s, source) {
 		return nil, errors.New("Приблизьтесь к объекту добычи")
 	}
-	if !resourcecatalog.ExtractorAccepts(s.Extractor, res) {
+	count := s.ExtractionYieldFor(s.Star, planet, res)
+	if count <= 0 {
 		return nil, errors.New("Установите подходящий добытчик")
 	}
-	count := s.ExtractionYield(s.Star, planet)
 	if limit > 0 {
 		count = min(count, limit)
 	}
-	if s.Capacity()-fleet.CargoSize(s.Cargo) < count {
+	if s.Capacity()-s.CargoUsed() < count {
 		return nil, errors.New("Трюм заполнен")
 	}
 	count, start, err := reserveExtraction(ctx, tx, s.Star, planet, res, count)

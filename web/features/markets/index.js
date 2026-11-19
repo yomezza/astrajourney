@@ -1,3 +1,4 @@
+import { createModulesMarket } from "./modules.js";
 import { createLocalMarket } from "./local.js";
 import { createGlobalMarket } from "./global.js";
 import { createOrdersMarket } from "./orders.js";
@@ -49,6 +50,7 @@ export function createMarkets({ roots, act, command, renderShipyards }) {
     global: createGlobalMarket(deps),
     orders: createOrdersMarket(deps),
     data: createDataMarket(deps),
+    modules: createModulesMarket(deps),
   };
   const renderMarketScope = new RequestScope(
     () => Session.signedIn && Modules.isOpen("market"),
@@ -102,6 +104,7 @@ export function createMarkets({ roots, act, command, renderShipyards }) {
         ["data", "Разведданные"],
         ["delivery", "Перевозки"],
         ["shipyards", "Верфи"],
+        ["modules", "Модули корабля"],
       ],
       tab,
       (id) => {
@@ -111,6 +114,7 @@ export function createMarkets({ roots, act, command, renderShipyards }) {
       { panel },
     );
     root.append(panel);
+    if (tab === "modules") return views.modules(panel,current);
     if (tab === "shipyards") {
       renderShipyards(panel);
       return;

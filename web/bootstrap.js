@@ -1,3 +1,4 @@
+import { initOutfitting } from "./features/outfitting/index.js";
 import { initTooltip } from "./ui/tooltip.js";
 import { loadAssetMap } from "./core/assets.js";
 import { initI18n, I18n } from "./core/i18n.js";
@@ -55,6 +56,7 @@ initKnowledgeAdmin();
 initLogistics();
 initIdeas();
 initExpedition();
+initOutfitting();
 initStudies();
 initGalaxy();
 initChat();

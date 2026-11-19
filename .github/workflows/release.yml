@@ -18,80 +18,68 @@ jobs:
           python3 - <<'PYRELEASE'
           import json, os
           from pathlib import Path
-          manifest = json.loads(Path(f"downloads/astra-journey-{os.environ['RELEASE_TAG']}-build.json").read_text())
-          web_only = {build['service'] for build in manifest['builds']} == {'web'}
+          tag = os.environ['RELEASE_TAG']
+          manifest = json.loads(Path(f'downloads/astra-journey-{tag}-build.json').read_text())
+          services = {build['service'] for build in manifest['builds']}
+          assert services and services <= {'cosmos','planet','chat','cdn','web'}
+          assert manifest['tag'] == tag
           with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
-              output.write(f"web_only={str(web_only).lower()}\n")
+              output.write(f"graphics={str('assets' in manifest).lower()}\n")
+              output.write(f"frontend={str('web' in manifest).lower()}\n")
           PYRELEASE
       - name: Verify release files
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
         run: |
           set -euo pipefail
           sha256sum -c downloads/SHA256SUMS
           test -f "release-notes/$RELEASE_TAG.md"
-          found=false
-          suffixes=('' '-planet' '-chat' '-cdn' '-web')
-          if test "$WEB_ONLY" = true; then suffixes=('-web'); fi
-          for suffix in "${suffixes[@]}"; do
-            linux="downloads/astra-journey${suffix}-${RELEASE_TAG}-linux-amd64"
-            test -f "$linux"
-            found=true
-          done
-          test "$found" = true
-        env:
-          RELEASE_TAG: ${{ github.ref_name }}
-          WEB_ONLY: ${{ steps.scope.outputs.web_only }}
+          python3 - <<'PYRELEASE'
+          import json, os
+          from pathlib import Path
+          tag = os.environ['RELEASE_TAG']
+          manifest = json.loads(Path(f'downloads/astra-journey-{tag}-build.json').read_text())
+          suffix = {'cosmos':'','planet':'-planet','chat':'-chat','cdn':'-cdn','web':'-web'}
+          for build in manifest['builds']:
+              assert build['goos'] == 'linux' and build['goarch'] == 'amd64'
+              assert build['file'] == f"astra-journey{suffix[build['service']]}-{tag}-linux-amd64"
+              assert Path('downloads',build['file']).is_file()
+          PYRELEASE
       - name: Verify external graphics
-        if: steps.scope.outputs.web_only != 'true'
+        if: steps.scope.outputs.graphics == 'true'
         env:
           RELEASE_TAG: ${{ github.ref_name }}
         run: python3 scripts/verify-asset-release.py "$RELEASE_TAG"
       - name: Verify external frontend
+        if: steps.scope.outputs.frontend == 'true'
         env:
           RELEASE_TAG: ${{ github.ref_name }}
         run: python3 scripts/verify-web-release.py "$RELEASE_TAG"
-      - name: Publish Linux amd64 binaries, graphics, frontend and checksums
+      - name: Publish selected Linux services and packages
         env:
-          WEB_ONLY: ${{ steps.scope.outputs.web_only }}
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
-          set -euo pipefail
-          executables=()
-          for suffix in '' '-planet' '-chat' '-cdn' '-web'; do
-            linux="downloads/astra-journey${suffix}-${RELEASE_TAG}-linux-amd64"
-            if test -f "$linux"; then
-              executables+=("$linux")
-            fi
-          done
-          if test -f "downloads/astra-journey-${RELEASE_TAG}-build.json"; then
-            executables+=("downloads/astra-journey-${RELEASE_TAG}-build.json")
-          fi
-          if test "$WEB_ONLY" = true; then
-            web_archive="$(python3 -c 'import json; print(json.load(open("downloads/astra-journey-web.json"))["archive"])')"
-            gh release create "$RELEASE_TAG" \
-              "${executables[@]}" \
-              "downloads/$web_archive" \
-              downloads/astra-journey-web.json configs/web.example.toml downloads/SHA256SUMS \
-              --verify-tag --latest=false --title "Astra Journey Web $RELEASE_TAG" \
-              --notes-file "release-notes/$RELEASE_TAG.md"
-            exit 0
-          fi
-          asset_archive="$(python3 -c 'import json; print(json.load(open("downloads/astra-journey-assets.json"))["archive"])')"
-          web_archive="$(python3 -c 'import json; print(json.load(open("downloads/astra-journey-web.json"))["archive"])')"
-          gh release create "$RELEASE_TAG" \
-            "${executables[@]}" \
-            "downloads/$asset_archive" \
-            "downloads/$web_archive" \
-            downloads/astra-journey-web.json \
-            configs/web.example.toml \
-            downloads/astra-journey-assets.json \
-            configs/cdn.example.toml \
-            configs/cosmos.example.toml \
-            configs/planet.example.toml \
-            configs/chat.example.toml \
-            configs/shared.example.toml \
-            downloads/SHA256SUMS \
-            --verify-tag \
-            --title "Astra Journey $RELEASE_TAG" \
-            --notes-file "release-notes/$RELEASE_TAG.md"
+          python3 - <<'PYRELEASE'
+          import json, os, subprocess
+          from pathlib import Path
+          tag = os.environ['RELEASE_TAG']
+          manifest_path = Path(f'downloads/astra-journey-{tag}-build.json')
+          manifest = json.loads(manifest_path.read_text())
+          services = {build['service'] for build in manifest['builds']}
+          files = [str(Path('downloads',build['file'])) for build in manifest['builds']]
+          files += [str(manifest_path),'downloads/SHA256SUMS']
+          for key,index in [('assets','astra-journey-assets.json'),('web','astra-journey-web.json')]:
+              if key in manifest:
+                  files += [str(Path('downloads',manifest[key]['archive'])),str(Path('downloads',index))]
+          configs = {'cosmos':'cosmos','planet':'planet','chat':'chat','cdn':'cdn','web':'web'}
+          files += [f'configs/{configs[service]}.example.toml' for service in sorted(services)]
+          full = services == set(configs)
+          if full: files += ['configs/shared.example.toml']
+          title = f'Astra Journey Web {tag}' if services == {'web'} else f'Astra Journey {tag}'
+          args = ['gh','release','create',tag,*files,'--verify-tag','--title',title,'--notes-file',f'release-notes/{tag}.md']
+          # Keep the last complete graphics-bearing release as the CDN discovery target.
+          if not full: args += ['--latest=false']
+          subprocess.run(args,check=True)
+          PYRELEASE

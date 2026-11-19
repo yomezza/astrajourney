@@ -21,20 +21,21 @@ func StartResearch(ctx context.Context, tx pgx.Tx, uid int64, s *fleet.Ship, sta
 	if known {
 		return nil
 	}
+	settings, err := gameplay.ReadGameplay(ctx, tx)
+	if err != nil {
+		return err
+	}
+	seconds := s.ScanSeconds(settings.ScanSeconds)
 	var existing int64
-	err := tx.QueryRow(ctx, `SELECT ship_id FROM research_jobs WHERE user_id=$1 AND star=$2`, uid, star.ID).Scan(&existing)
+	err = tx.QueryRow(ctx, `SELECT ship_id FROM research_jobs WHERE user_id=$1 AND star=$2`, uid, star.ID).Scan(&existing)
 	if err == nil {
 		if existing != s.ID {
 			return errors.New("Исследование выполняет другой корабль")
 		}
-		_, err = tx.Exec(ctx, `UPDATE research_jobs SET paused=FALSE,next_at=now()+make_interval(secs=>seconds) WHERE ship_id=$1`, s.ID)
+		_, err = tx.Exec(ctx, `UPDATE research_jobs SET paused=FALSE,seconds=$2,next_at=now()+make_interval(secs=>$2) WHERE ship_id=$1`, s.ID, seconds)
 		return err
 	}
 	if !errors.Is(err, pgx.ErrNoRows) {
-		return err
-	}
-	settings, err := gameplay.ReadGameplay(ctx, tx)
-	if err != nil {
 		return err
 	}
 	tag, err := tx.Exec(ctx, `UPDATE users SET credits=credits-10 WHERE id=$1 AND credits>=10`, uid)
@@ -48,7 +49,7 @@ func StartResearch(ctx context.Context, tx pgx.Tx, uid int64, s *fleet.Ship, sta
 	if err != nil {
 		return err
 	}
-	_, err = tx.Exec(ctx, `INSERT INTO research_jobs(ship_id,user_id,star,total,next_at,seconds) VALUES($1,$2,$3,$4,COALESCE($5,now())+make_interval(secs=>$6),$6)`, s.ID, uid, star.ID, len(researchSites), s.Arrival, settings.ScanSeconds)
+	_, err = tx.Exec(ctx, `INSERT INTO research_jobs(ship_id,user_id,star,total,next_at,seconds) VALUES($1,$2,$3,$4,COALESCE($5,now())+make_interval(secs=>$6),$6)`, s.ID, uid, star.ID, len(researchSites), s.Arrival, seconds)
 	return err
 }
 

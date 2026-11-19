@@ -1,3 +1,4 @@
+import { usedCargo } from "../../core/ship-capacity.js";
 import { Session } from "../../core/session.js";
 
 import { I18n } from "../../core/i18n.js";
@@ -50,7 +51,7 @@ export function createTradeForm({ field, act, command }) {
       const count = Number(q.value),
         cost = offer.buy * count,
         used =
-          Object.values(d().ship.cargo).reduce((a, b) => a + b, 0) +
+          usedCargo(d().ship) +
           (d().job?.quantity || 0);
       quote.textContent = `${money(offer.buy)} × ${num(count)} = ${money(cost)}`;
       capacity.textContent = global

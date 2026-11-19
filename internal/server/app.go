@@ -32,7 +32,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/worldstore"
 )
 
-const Version = "0.30.3"
+const Version = "0.31.0"
 
 type Config struct {
 	Secure         bool

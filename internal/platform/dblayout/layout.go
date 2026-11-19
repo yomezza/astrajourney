@@ -19,8 +19,8 @@ func init() {
 		"dictionaries": "system_names planet_names station_names asteroid_names ice_field_names anomaly_names name_dictionary_state",
 		"identity":     "users sessions notifications reputation",
 		"universe":     "universe_state galaxy_catalog system_identity star_systems system_planets system_objects universe_lanes universe_regions portal portal_contributions",
-		"fleet":        "ships stations navigation_notes automation_tasks logistics_operations",
-		"economy":      "local_markets deposits mining_jobs reservations resource_quotas financial_ledger warehouses sell_orders deliveries shipyard_stock survey_offers",
+		"fleet":        "ship_module_catalog ship_module_hulls ship_modules ships stations navigation_notes automation_tasks logistics_operations",
+		"economy":      "station_module_stock local_markets deposits mining_jobs reservations resource_quotas financial_ledger warehouses sell_orders deliveries shipyard_stock survey_offers",
 		"corporations": "companies company_roles company_requests company_finance company_projects project_contributions company_storage",
 		"colonies":     "planet_settings planet_surfaces planet_sectors planet_projects planet_contributions planet_events planet_requests planet_refunds planet_colonies planet_surface_controls planet_runtime_controls planet_landing_sites aj_colony_names aj_colony_name_history",
 		"planet":       "planet_runtime_leases planet_local_locations planet_characters planet_visits planet_handoff_uses planet_transition_receipts planet_sector_buildings aj_planet_recovery_diagnostics",
@@ -60,6 +60,8 @@ func Domain(name string) string {
 		return "economy"
 	case "event_notification":
 		return "ops"
+	case "ship_module_initial_loadout":
+		return "fleet"
 	case "planet_reserved_ship":
 		return "integration"
 	case "planet_territory_dirty":

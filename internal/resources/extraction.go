@@ -10,6 +10,9 @@ func Concentration(star, object int) int { return 35 + (star*17+object*11)%61 }
 func Quality(star, object int) string { return fmt.Sprintf("Q%d", 1+(star*13+object*7)%5) }
 
 func ExtractorAccepts(e, res string) bool {
+	if e == "none" {
+		return false
+	}
 	if e == "universal" {
 		return true
 	}

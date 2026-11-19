@@ -238,7 +238,7 @@ func (a *Service) Logistics(w http.ResponseWriter, r *http.Request) {
 			httpkit.Internal(w, err)
 			return
 		}
-		if fleet.CargoSize(toShip.Cargo)+reserved+total > toShip.Capacity() {
+		if toShip.CargoUsed()+reserved+total > toShip.Capacity() {
 			httpkit.Fail(w, 409, "Трюм заполнен")
 			return
 		}

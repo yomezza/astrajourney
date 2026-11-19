@@ -44,7 +44,7 @@ func (a *Service) EconomyCommand(ctx context.Context, tx pgx.Tx, u account.User,
 			if err = tx.QueryRow(ctx, `SELECT COALESCE(sum(quantity),0) FROM mining_jobs WHERE ship_id=$1`, s.ID).Scan(&reserved); err != nil {
 				return true, err
 			}
-			if m[in.Resource] < in.Quantity || fleet.CargoSize(s.Cargo)+reserved+in.Quantity > s.Capacity() {
+			if m[in.Resource] < in.Quantity || s.CargoUsed()+reserved+in.Quantity > s.Capacity() {
 				return true, errors.New("Недостаточно товара или места в трюме")
 			}
 			m[in.Resource] -= in.Quantity
@@ -236,14 +236,14 @@ func (a *Service) deliveryCommand(ctx context.Context, tx pgx.Tx, u account.User
 		if status != "open" || owner == u.ID || !time.Now().Before(deadline) {
 			return errors.New("Заказ недоступен")
 		}
-		if !fleet.Docked(*s) || s.Star != from || s.ObjectID != fs || fleet.CargoSize(s.Cargo)+q > s.Capacity() {
+		if !fleet.Docked(*s) || s.Star != from || s.ObjectID != fs || s.CargoUsed()+q > s.Capacity() {
 			return errors.New("Прибудьте к отправителю и освободите трюм")
 		}
 		var reserved int
 		if err = tx.QueryRow(ctx, `SELECT COALESCE(sum(quantity),0) FROM mining_jobs WHERE ship_id=$1`, s.ID).Scan(&reserved); err != nil {
 			return err
 		}
-		if fleet.CargoSize(s.Cargo)+reserved+q > s.Capacity() {
+		if s.CargoUsed()+reserved+q > s.Capacity() {
 			return errors.New("Трюм заполнен")
 		}
 		if err = wallet.Debit(ctx, tx, u.ID, collateral); err != nil {

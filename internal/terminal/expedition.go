@@ -295,7 +295,7 @@ func (a *Service) Expedition(w http.ResponseWriter, r *http.Request) {
 					cost := int64(q * offer.Buy)
 					if stock[in.Resource] < q {
 						problem = "Нет товара на рынке"
-					} else if fleet.CargoSize(ship.Cargo)+reservedCargo+q > ship.Capacity() {
+					} else if ship.CargoUsed()+reservedCargo+q > ship.Capacity() {
 						problem = "Трюм заполнен"
 					} else if wallet > wallets.MaxCredits-cost {
 						problem = "Сумма превышает технический диапазон"

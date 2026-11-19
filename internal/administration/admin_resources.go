@@ -101,7 +101,7 @@ func (a *Service) AdminResources(w http.ResponseWriter, r *http.Request) {
 			httpkit.Internal(w, err)
 			return
 		}
-		if fleet.CargoSize(s.Cargo)+reserved+in.Quantity > s.Capacity() {
+		if s.CargoUsed()+reserved+in.Quantity > s.Capacity() {
 			httpkit.Fail(w, 409, "Трюм заполнен")
 			return
 		}

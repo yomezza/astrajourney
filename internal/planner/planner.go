@@ -385,7 +385,7 @@ func stepAutomation(ctx context.Context, tx pgx.Tx, t *AutomationTask, s *fleet.
 		if e != nil || !arrived {
 			return e
 		}
-		if fleet.CargoSize(s.Cargo)+t.Quantity > s.Capacity() {
+		if s.CargoUsed()+t.Quantity > s.Capacity() {
 			return errors.New("Трюм заполнен")
 		}
 		if e = taskStorage(ctx, tx, t, s, true, t.Quantity); e != nil {
@@ -433,8 +433,8 @@ func stepAutomation(ctx context.Context, tx pgx.Tx, t *AutomationTask, s *fleet.
 				planet = site.Planet
 			}
 		}
-		count := min(remaining, s.ExtractionYield(t.SourceStar, planet))
-		if s.Capacity()-fleet.CargoSize(s.Cargo) < count {
+		count := min(remaining, s.ExtractionYieldFor(t.SourceStar, planet, t.Resource))
+		if s.Capacity()-s.CargoUsed() < count {
 			if t.DestStation == "" || t.Carried == 0 {
 				return errors.New("Трюм заполнен")
 			}
@@ -459,7 +459,7 @@ func stepAutomation(ctx context.Context, tx pgx.Tx, t *AutomationTask, s *fleet.
 			if err != nil || !arrived {
 				return err
 			}
-			amount := min(t.Quantity-t.Progress, s.Capacity()-fleet.CargoSize(s.Cargo))
+			amount := min(t.Quantity-t.Progress, s.Capacity()-s.CargoUsed())
 			if amount < 1 {
 				return errors.New("Трюм заполнен")
 			}

@@ -1,0 +1,27 @@
+.equipment-workspace { display: flex; flex-direction: column; gap: 14px; }
+.equipment-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px; border: 1px solid #55758c; border-radius: 12px; background: #102637; font-size: 17px; }
+.equipment-heading strong { color: var(--focus); white-space: nowrap; }
+.equipment-columns { display: grid; grid-template-columns: 1.1fr 1fr; gap: 20px; }
+.equipment-slot { border: 1px dashed #4e6b7e; border-radius: 9px; padding: 12px; margin: 10px 0; min-height: 76px; background: #091724; }
+.equipment-slot h4 { font-size: 11px; color: var(--muted); margin: 0 0 9px; }
+.equipment-card { display: grid; grid-template-columns: 50px 1fr; gap: 5px 12px; text-align: left; width: 100%; min-height: 72px; padding: 12px !important; border: 1px solid #496477 !important; border-radius: 9px !important; background: #162d3d !important; cursor: grab; }
+.equipment-card:active { cursor: grabbing; }
+.equipment-card strong { font-size: 12px; }
+.equipment-card small { grid-column: 2; color: var(--muted); font-size: 10px; }
+.equipment-code { grid-row: span 2; font: 600 20px/1.5 monospace; color: #cedde8; }
+[data-rating="S"] > .equipment-code { color: #e9b9fc; }
+[data-rating="A"] > .equipment-code { color: #f5d29d; }
+[data-rating="B"] > .equipment-code { color: #a4d4e6; }
+.equipment-item { margin-block: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.equipment-item > button:last-child { margin-top: 7px; }
+.equipment-market { display: grid; grid-template-columns: repeat(auto-fit,minmax(230px,1fr)); gap: 14px; margin-top: 16px; }
+.equipment-offer { display: flex; flex-direction: column; gap: 8px; padding: 18px; border: 1px solid var(--border); border-radius: 12px; background: var(--panel-alt); }
+.equipment-offer h3,.equipment-offer p { margin: 0; }
+.equipment-offer small { color: var(--muted); line-height: 1.5; flex: 1; }
+.equipment-notice { padding: 12px; border-left: 3px solid var(--accent); background: #e5c18b12; }
+.cargo-grid .equipment-card { min-width: 150px; }
+@media (max-width: 700px) { .equipment-columns { grid-template-columns: 1fr; } }
+
+.cargo-grid .equipment-card { grid-column: span 2; }
+.equipment-card strong { min-width: 0; overflow-wrap: anywhere; }
+.equipment-hold { align-self: start; min-height: 180px; padding: 12px; border: 1px dashed #4e6b7e; border-radius: 9px; }

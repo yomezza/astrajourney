@@ -54,6 +54,7 @@ func (a *Service) Workbench(w http.ResponseWriter, r *http.Request) {
 		key, sql string
 		args     []any
 	}{
+		{"module_hulls", `SELECT class,capacity FROM ship_module_hulls ORDER BY class`, nil},
 		{"mining", `SELECT j.*,s.name AS ship_name FROM mining_jobs j JOIN ships s ON s.id=j.ship_id WHERE j.user_id=$1 ORDER BY j.ship_id`, []any{u.ID}},
 		{"shipyards", `SELECT y.*,s.name AS station_name,s.specialization FROM shipyard_stock y JOIN stations s ON s.star=y.star AND s.object_id=y.station WHERE s.shipyard AND s.active ORDER BY y.star,y.station,y.ship_class`, nil},
 		{"known", `SELECT star,received_at,source FROM surveys WHERE user_id=$1 ORDER BY star`, []any{u.ID}},
@@ -120,6 +121,24 @@ func (a *Service) Workbench(w http.ResponseWriter, r *http.Request) {
 		httpkit.Internal(w, err)
 		return
 	}
+	classes := append([]fleet.ShipClass(nil), fleet.Catalogue...)
+	for _, row := range out["module_hulls"].([]map[string]any) {
+		id, _ := row["class"].(string)
+		limit := 0
+		switch v := row["capacity"].(type) {
+		case int32:
+			limit = int(v)
+		case int64:
+			limit = int(v)
+		}
+		for i := range classes {
+			if classes[i].ID == id {
+				classes[i].ModuleLimit = limit
+			}
+		}
+	}
+	out["ship_classes"] = classes
+	delete(out, "module_hulls")
 	if company != nil {
 		var credits int64
 		var owner *int64
@@ -256,7 +275,7 @@ func (a *Service) Command(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	if err = events.RecordEvent(ctx, tx, u.ID, in.Action, map[string]any{"ship": s.ID, "star": s.Star, "resource": in.Resource, "quantity": in.Quantity, "amount": in.Amount}); err != nil {
+	if err = events.RecordEvent(ctx, tx, u.ID, in.Action, map[string]any{"ship": s.ID, "star": s.Star, "resource": in.Resource, "quantity": in.Quantity, "amount": in.Amount, "target": in.Target, "id": in.ID}); err != nil {
 		httpkit.Internal(w, err)
 		return
 	}

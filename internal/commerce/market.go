@@ -184,7 +184,7 @@ func (a *Service) GlobalMarket(w http.ResponseWriter, r *http.Request) {
 			}
 			if !fleet.Docked(ship) || ship.Star != star || ship.ObjectID != station {
 				problem = "Прибудьте на станцию получения"
-			} else if fleet.CargoSize(ship.Cargo)+pending+q > ship.Capacity() {
+			} else if ship.CargoUsed()+pending+q > ship.Capacity() {
 				problem = "Трюм заполнен"
 			} else {
 				ship.Cargo[res] += q

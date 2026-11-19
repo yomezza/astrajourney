@@ -83,6 +83,7 @@ func (a *Service) NavigationCommand(ctx context.Context, tx pgx.Tx, u account.Us
 			return true, errors.New("Укажите от 1 до 20 точек маршрута")
 		}
 		total := 0
+		jumpDuration := 0
 		from := s.Star
 		for _, to := range points {
 			if to == from {
@@ -93,6 +94,7 @@ func (a *Service) NavigationCommand(ctx context.Context, tx pgx.Tx, u account.Us
 				return true, errors.New("Нет допустимого маршрута")
 			}
 			total += s.Hull().JumpFuel * (len(path) - 1)
+			jumpDuration += s.Hull().JumpSeconds * (len(path) - 1)
 			from = to
 		}
 		if total > s.Fuel {
@@ -116,7 +118,7 @@ func (a *Service) NavigationCommand(ctx context.Context, tx pgx.Tx, u account.Us
 			}
 			s.Arrival = nil
 			if total > 0 {
-				at := time.Now().Add(time.Duration(total/2*5) * time.Second)
+				at := time.Now().Add(time.Duration(jumpDuration) * time.Second)
 				s.Arrival = &at
 			}
 			return true, research.StartResearch(ctx, tx, u.ID, s, g.Stars[in.To-1], g)
@@ -164,25 +166,10 @@ func (a *Service) NavigationCommand(ctx context.Context, tx pgx.Tx, u account.Us
 		return true, err
 	case "buy_ship":
 		return true, fleet.BuyShip(ctx, tx, u, *s, in)
+	case "module_buy", "module_install", "module_remove", "module_sell", "module_scoop":
+		return fleet.ModuleCommand(ctx, tx, u.ID, s, in)
 	case "extractor":
-		if err := fleet.Idle(ctx, tx, *s); err != nil {
-			return true, err
-		}
-		if !fleet.Docked(*s) {
-			return true, errors.New("Установка доступна в порту")
-		}
-		if !strings.Contains("|ore|ice|gas|universal|", "|"+in.Target+"|") {
-			return true, errors.New("Неизвестный добытчик")
-		}
-		tag, err := tx.Exec(ctx, `UPDATE users SET credits=credits-250 WHERE id=$1 AND credits>=250`, u.ID)
-		if err != nil {
-			return true, err
-		}
-		if tag.RowsAffected() == 0 {
-			return true, errors.New("Недостаточно кредитов")
-		}
-		_, err = tx.Exec(ctx, `UPDATE ships SET extractor=$2 WHERE id=$1`, s.ID, in.Target)
-		return true, err
+		return true, errors.New("Добытчики теперь устанавливаются в оснащении корабля")
 	case "portal_contribute", "portal_travel":
 		return true, a.portalCommand(ctx, tx, u, s, g, in)
 	}

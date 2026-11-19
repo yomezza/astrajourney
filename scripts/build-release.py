@@ -57,7 +57,7 @@ def main():
     if not re.fullmatch(r"v[0-9]+\.[0-9]+\.[0-9]+", args.tag):
         parser.error("tag must be vMAJOR.MINOR.PATCH")
     services = list(dict.fromkeys(args.service or SERVICES))
-    web_only = services == ["web"]
+    build_graphics = "cdn" in services
     platforms = ["windows", "linux"] if args.platform == "both" else [args.platform]
     output = args.out.resolve()
     if not output.is_relative_to(ROOT):
@@ -96,13 +96,13 @@ def main():
                 parser.error(f"{service} source version does not match {args.tag}")
         pack_output = temporary / "assets"
         asset_release = None
-        if not web_only:
+        if build_graphics:
             subprocess.run(["go", "run", "./cmd/astra-assets", "-tag", args.tag, "-out", str(pack_output), "-check"], cwd=source, check=True)
             asset_release = json.loads((pack_output / "astra-journey-assets.json").read_text())
         if "cosmos" in services:
             subprocess.run(["go", "run", "./cmd/astra-guide-assets", "-check"], cwd=source, check=True)
         web_release = None
-        if has_web:
+        if has_web and "web" in services:
             subprocess.run(["go", "run", "./cmd/astra-web-assets", "-tag", args.tag, "-out", str(pack_output)], cwd=source, check=True)
             web_release = json.loads((pack_output / "astra-journey-web.json").read_text())
         compiler = capture("go", "version", cwd=source)

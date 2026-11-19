@@ -28,7 +28,7 @@ func Idle(ctx context.Context, tx pgx.Tx, s Ship) error {
 
 func IsShipOperation(action string) bool {
 	switch action {
-	case "queue_route", "cancel_route", "explore", "rescue", "extractor", "portal_travel", "store", "withdraw", "delivery_accept", "delivery_finish", "company_store", "company_cargo_withdraw":
+	case "module_buy", "module_install", "module_remove", "module_sell", "module_scoop", "queue_route", "cancel_route", "explore", "rescue", "extractor", "portal_travel", "store", "withdraw", "delivery_accept", "delivery_finish", "company_store", "company_cargo_withdraw":
 		return true
 	}
 	return false

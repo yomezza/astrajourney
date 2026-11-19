@@ -8,6 +8,9 @@ import (
 )
 
 type Ship struct {
+	Modules      []ShipModule   `json:"modules"`
+	ModuleLimit  int            `json:"module_limit"`
+	ModulesReady bool           `json:"modules_ready"`
 	Class        string         `json:"class"`
 	Spec         ShipClass      `json:"spec"`
 	Star         int            `json:"star"`

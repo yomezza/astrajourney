@@ -10,7 +10,7 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/platform/postgres"
 )
 
-const shipColumns = `star,destination,arrival,fuel,cargo,id,name,object_id,position_mode,departure,travel_path,local_target,local_mode,local_started,local_arrival,extractor,reserved_fuel,active,waypoints,class`
+const shipColumns = `star,destination,arrival,fuel,cargo,id,name,object_id,position_mode,departure,travel_path,local_target,local_mode,local_started,local_arrival,extractor,reserved_fuel,active,waypoints,class,modules_initialized,COALESCE((SELECT capacity FROM ship_module_hulls WHERE class=ships.class),8),COALESCE((SELECT jsonb_agg(m.definition||jsonb_build_object('id',m.id,'installed',m.installed,'paid',m.purchased_price) ORDER BY m.id) FROM ship_modules m WHERE m.ship_id=ships.id),'[]'::jsonb)`
 
 func ReadShip(ctx context.Context, q postgres.Querier, id int64) (Ship, error) {
 	return scanShip(q.QueryRow(ctx, `SELECT `+shipColumns+` FROM ships WHERE id=$1`, id))
@@ -38,8 +38,8 @@ func ReadShips(ctx context.Context, q interface {
 
 func scanShip(row pgx.Row) (Ship, error) {
 	var s Ship
-	var raw, path, way []byte
-	err := row.Scan(&s.Star, &s.Destination, &s.Arrival, &s.Fuel, &raw, &s.ID, &s.Name, &s.ObjectID, &s.PositionMode, &s.Departure, &path, &s.LocalTarget, &s.LocalMode, &s.LocalStarted, &s.LocalArrival, &s.Extractor, &s.ReservedFuel, &s.Active, &way, &s.Class)
+	var raw, path, way, modules []byte
+	err := row.Scan(&s.Star, &s.Destination, &s.Arrival, &s.Fuel, &raw, &s.ID, &s.Name, &s.ObjectID, &s.PositionMode, &s.Departure, &path, &s.LocalTarget, &s.LocalMode, &s.LocalStarted, &s.LocalArrival, &s.Extractor, &s.ReservedFuel, &s.Active, &way, &s.Class, &s.ModulesReady, &s.ModuleLimit, &modules)
 	if err != nil {
 		return s, err
 	}
@@ -48,6 +48,17 @@ func scanShip(row pgx.Row) (Ship, error) {
 	}
 	if err = json.Unmarshal(path, &s.Path); err != nil {
 		return s, err
+	}
+	if err = json.Unmarshal(modules, &s.Modules); err != nil {
+		return s, err
+	}
+	if s.ModulesReady {
+		s.Extractor = "none"
+		for _, m := range s.Modules {
+			if m.Installed && m.Kind == "extractor" {
+				s.Extractor = m.Effects.Extractor
+			}
+		}
 	}
 	s.Spec = s.Hull()
 	s.Mining = s.MiningStats(nil)
