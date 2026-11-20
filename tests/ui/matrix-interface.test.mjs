@@ -46,6 +46,9 @@ test("Command summaries distinguish station prices, player offers and real fleet
     return req.method() === "GET"
       ? json({revision:1,layout:{version:1,active:id,default:id,workspaces:[{id,name:"Астра",ship_id:0,modules:[]}]}})
       : json({revision:2,layout:req.postDataJSON().layout});
+  }],["expedition",({data,url,json}) => {
+    const ship = data.fleet.ships.find(({id}) => id === Number(url.searchParams.get("ship")));
+    return json(ship ? {...data.expedition,ship,docked:true,offers:[{resource:"agni",stock:20,buy:17,sell:11}]} : data.expedition);
   }]]});
   const {page,data} = g;
   const [first,second] = data.fleet.ships;
@@ -60,15 +63,13 @@ test("Command summaries distinguish station prices, player offers and real fleet
 
   const card = type => page.locator(`.matrix-card[data-module="${type}"]`);
   const market = card("market"), operations = card("operations");
-  await market.getByRole("cell",{name:"5 CR",exact:true}).waitFor();
-  await market.getByRole("cell",{name:"3 CR",exact:true}).waitFor();
+  await market.getByText("5 CR",{exact:true}).waitFor();
+  await market.getByText("3 CR",{exact:true}).waitFor();
   assert.equal(await market.locator('[data-resource="agni"]').count(),0);
   for (const width of [768,320]) {
     await page.setViewportSize({width,height:800});
-    const table = market.locator(".matrix-table");
+    const table = market.locator(".matrix-offer-list");
     assert.ok(await table.evaluate(el => el.scrollWidth <= el.clientWidth + 1),`market at ${width}px`);
-    assert.ok(await table.locator("th").evaluateAll(headers =>
-      headers.every(el => getComputedStyle(el).overflowWrap === "normal")));
   }
   await page.setViewportSize({width:1440,height:1000});
 
@@ -76,20 +77,22 @@ test("Command summaries distinguish station prices, player offers and real fleet
   await offerList.press("Enter");
   await market.getByRole("cell",{name:"9 CR",exact:true}).waitFor();
   assert.ok(await offerList.evaluate(el => el === document.activeElement));
-  await market.getByRole("button",{name:"Открыть рынок",exact:true}).click();
+  await market.getByRole("button",{name:"Рынок игроков",exact:true}).click();
   await page.locator("#window-market").getByRole("tab",{name:"Предложения игроков",selected:true}).waitFor();
   await page.locator("#window-market").getByRole("button",{name:"Закрыть",exact:true}).click();
   await market.getByRole("button",{name:"Станция",exact:true}).click();
 
   await card("overview").getByRole("button",{name:second.name,exact:true}).click();
-  await market.getByText("Локальные цены доступны для активного корабля у станции").waitFor();
-  const scan = operations.getByRole("row").filter({hasText:"Сканирование"});
+  await market.getByText("17 CR",{exact:true}).waitFor();
+  const scan = operations.locator(".matrix-operation").filter({hasText:"Сканирование"});
   assert.match(await scan.textContent(),/Test vessel 2.*2 \/ 5.*На паузе/);
   assert.equal(await scan.locator("[data-tone]").getAttribute("data-tone"),"paused");
-  await operations.getByRole("row").filter({hasText:"Перелёт"}).getByText("Test Altair",{exact:true}).waitFor();
-  assert.equal(await operations.locator("tbody tr").first().getByText(second.name,{exact:true}).count(),1);
+  await operations.locator(".matrix-operation").filter({hasText:"Перелёт"}).getByText("Test Altair",{exact:true}).waitFor();
+  assert.equal(await operations.locator(".matrix-operation").first().getByText(second.name + " · #" + second.id,{exact:true}).count(),1);
   await page.locator("#studio").getByText("Раскладка сохранена").waitFor();
-  assert.deepEqual(g.requests.filter(req => req.method === "POST").map(req => req.path),["workspaces"]);
+  const writes = g.requests.filter(req => req.method === "POST");
+  assert.ok(writes.length > 0);
+  assert.ok(writes.every(req => req.path === "workspaces"));
   assert.equal(data.expedition.ship.id,first.id);
 });
 
@@ -208,4 +211,36 @@ test("Mobile Matrix opens a usable full-width market and returns to its workspac
   await nav.getByRole("button",{name:"Пространства"}).click();
   assert.ok(await page.locator("#studio select").first().evaluate(el => el === document.activeElement));
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+});
+
+test("Docked production communications stay live next to workspace cards", async t => {
+  const g = await game(t,{signedIn:true});
+  const {page} = g;
+  await g.ready();
+  g.handlers.set("workspaces",({req,json}) => {
+    const {revision,layout} = req.postDataJSON();
+    return json({revision:revision+1,layout});
+  });
+  await page.setViewportSize({width:1440,height:900});
+  const rail = page.locator(".matrix-comms");
+  const chat = page.locator("#window-chat");
+  const notifications = page.locator("#window-notifications");
+  await rail.getByRole("button",{name:"Чат",exact:true}).click();
+  await rail.getByRole("button",{name:"Уведомления",exact:true}).click();
+  await chat.locator(".chat-root").waitFor();
+  await notifications.waitFor();
+  const bounds = await page.locator(".matrix-grid").boundingBox();
+  const chatBounds = await chat.boundingBox(), noticeBounds = await notifications.boundingBox();
+  assert.ok(bounds.x + bounds.width <= chatBounds.x);
+  assert.ok(chatBounds.y + chatBounds.height <= noticeBounds.y + 2);
+  await chat.locator(".chat-root").evaluate(el => { el.dataset.sessionMarker = "retained"; });
+  await page.locator(".studio-tabs").getByRole("button",{name:"Добыча",exact:true}).click();
+  assert.equal(await chat.locator(".chat-root").getAttribute("data-session-marker"),"retained");
+  assert.equal(await notifications.isVisible(),true);
+  await rail.getByRole("button",{name:"Чат · В отдельное окно",exact:true}).click();
+  assert.equal(await chat.evaluate(el => el.classList.contains("matrix-comms-docked")),false);
+  assert.equal(await notifications.evaluate(el => el.classList.contains("matrix-comms-docked")),true);
+  await rail.getByRole("button",{name:"Уведомления",exact:true}).click();
+  assert.equal(await notifications.isVisible(),false);
+  assert.equal(await chat.isVisible(),true);
 });

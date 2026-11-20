@@ -75,8 +75,9 @@ export function initWindows() {
     if (restoreFocus && activeWindow && !activeWindow.dialog.contains(document.activeElement))
       activeWindow.bar.focus({preventScroll:true});
   }
+  const docked = w => w.dialog.classList.contains("matrix-comms-docked");
   function save(id, w) {
-    if (resetting || !w.dialog.open || w.maximized || narrow(w)) return;
+    if (resetting || !w.dialog.open || w.maximized || narrow(w) || docked(w)) return;
     const r = w.dialog.getBoundingClientRect();
     if (w.layout) {
       if (!w.minimized && innerWidth > 550) w.layout.save({
@@ -90,10 +91,12 @@ export function initWindows() {
     });
   }
   function clamp(w) {
-    if (narrow(w)) return;
+    if (narrow(w) || docked(w)) return;
     const d = w.dialog,
       r = d.getBoundingClientRect();
-    d.style.left = Math.max(4, Math.min(r.x, innerWidth - r.width - 4)) + "px";
+    const reserve = w.layout && innerWidth >= 1120 ?
+      Number.parseFloat(getComputedStyle(document.body).getPropertyValue("--matrix-comms-reserve")) || 0 : 0;
+    d.style.left = Math.max(4, Math.min(r.x, innerWidth - reserve - r.width - 4)) + "px";
     d.style.top =
       Math.max(62, Math.min(r.y, innerHeight - r.height - 36)) + "px";
   }
@@ -276,7 +279,7 @@ export function initWindows() {
       w.show = show;
       w.hide = hide;
       const maximize = () => {
-        if (w.pinned || narrow(w)) return;
+        if (w.pinned || narrow(w) || docked(w)) return;
         if (!w.maximized) {
           const r = d.getBoundingClientRect();
           w.restore = { x: r.x, y: r.y, w: r.width, h: r.height };
@@ -314,7 +317,7 @@ export function initWindows() {
       d.addEventListener("focusin", () => { if (d.open) active(w); });
       d.addEventListener("pointerdown", (e) => {
         active(w);
-        if (w.pinned || w.maximized || narrow(w) || e.button !== 0) return;
+        if (w.pinned || w.maximized || narrow(w) || docked(w) || e.button !== 0) return;
         const r = d.getBoundingClientRect(),
           dx = e.clientX - r.x,
           dy = e.clientY - r.y;
@@ -333,6 +336,7 @@ export function initWindows() {
           w.pinned ||
           w.maximized ||
           narrow(w) ||
+          docked(w) ||
           e.target.closest("button") ||
           e.button !== 0
         )
@@ -405,7 +409,7 @@ export function initWindows() {
           ArrowUp: [0, -20],
           ArrowDown: [0, 20],
         }[e.key];
-        if (!d.open || !delta || w.pinned || w.maximized || narrow(w) || e.target !== bar)
+        if (!d.open || !delta || w.pinned || w.maximized || narrow(w) || docked(w) || e.target !== bar)
           return;
         e.preventDefault();
         d.style.left = d.offsetLeft + delta[0] + "px";
@@ -428,7 +432,7 @@ export function initWindows() {
         const r = d.getBoundingClientRect();
         d.classList.toggle(
           "too-small",
-          !narrow(w) && (r.width < w.minContentWidth || r.height < 220),
+          !narrow(w) && !docked(w) && (r.width < w.minContentWidth || r.height < 220),
         );
         clearTimeout(timer);
         if (!w.layout) timer = setTimeout(() => save(id, w), 200);
@@ -439,8 +443,11 @@ export function initWindows() {
         observer.disconnect();
         clearTimeout(timer);
       });
+      if (w.layout) w.life.listen(window,"matrixcommslayout",() => {
+        if (d.open) clamp(w);
+      });
       w.life.listen(window, "resize", () => {
-        if (!d.open || narrow(w)) return;
+        if (!d.open || narrow(w) || docked(w)) return;
         d.style.width = Math.min(d.offsetWidth, innerWidth - 12) + "px";
         d.style.height = Math.min(d.offsetHeight, innerHeight - 106) + "px";
         clamp(w);

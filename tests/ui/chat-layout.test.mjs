@@ -47,7 +47,9 @@ async function chat(t) {
               : [];
     return route.fulfill({ json: body });
   });
+  let sockets = 0;
   await g.page.routeWebSocket("**/chat/ws/v1", (ws) => {
+    sockets++;
     ws.send(
       JSON.stringify({
         type: "hello",
@@ -61,13 +63,12 @@ async function chat(t) {
       );
     });
   });
-  await g.page.evaluate(() => {
-    window.__testApp.session.data.state.chat_enabled = true;
-    window.dispatchEvent(new Event("gamedata"));
-  });
+  g.data.state.chat_enabled = true;
+  await g.refresh();
   await g.open("chat");
   await g.page.locator(".chat-msg-text").first().waitFor();
-  return g;
+  assert.equal(sockets,1);
+  return {...g, sockets: () => sockets};
 }
 test("chat follows v13 spacing, shared header and compact menus for click and right-click", async (t) => {
   const g = await chat(t),
@@ -165,7 +166,7 @@ test("chat follows v13 spacing, shared header and compact menus for click and ri
   await root.locator(".chat-reply-preview button").click();
   assert.equal(await root.locator(".chat-reply-preview").isVisible(), false);
   await g.page.evaluate(() =>
-    document.querySelector("#overview-upgrade").focus(),
+    document.querySelector("#profile-menu > summary").focus(),
   );
   await root.locator(".chat-msg-text").click({ button: "right" });
   assert.deepEqual(await menu.evaluate(appearance), expected);
@@ -235,8 +236,6 @@ test("chat follows v13 spacing, shared header and compact menus for click and ri
 test("Planet Mode reuses a docked chat, draft and transport, then restores home docking", async (t) => {
   const g = await chat(t),
     root = g.page.locator(".chat-root");
-  let additionalSockets = 0;
-  g.page.on("websocket", () => additionalSockets++);
   const element = await root.elementHandle();
   await root.locator("textarea").fill("Черновик до высадки");
   await root.getByRole("button", { name: "На главную", exact: true }).click();
@@ -280,5 +279,5 @@ test("Planet Mode reuses a docked chat, draft and transport, then restores home 
     true,
   );
   assert.equal(await g.page.locator(".chat-root").count(), 1);
-  assert.equal(additionalSockets, 0);
+  assert.equal(g.sockets(), 1);
 });
