@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "client_contract": "astra-web-v1",
+  "api_contract": "astra-api-v1",
+  "tag": "v0.31.3",
+  "revision": "42bab486cb14d856bbe8680cb4af0040436872c8366deb057b540ff52dbbfd5d",
+  "archive": "astra-journey-web-42bab486cb14d856bbe8680cb4af0040436872c8366deb057b540ff52dbbfd5d.zip",
+  "sha256": "0f1538a4168a670ebcc5c114adc8ea9b781bb5d6f5c2c92fed3030a65dac7d78",
+  "size": 471699
+}
