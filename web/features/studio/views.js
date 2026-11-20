@@ -1,6 +1,9 @@
 import { node } from "../../ui/dom.js";
 import { I18n } from "../../core/i18n.js";
 import { assetURL } from "../../core/assets.js";
+import { Format } from "../../core/format.js";
+import { world } from "../../core/world-store.js";
+import { Session } from "../../core/session.js";
 
 export const labels = Object.freeze({
   fleet: "Корабль",
@@ -13,11 +16,32 @@ const tr = (value) => I18n.t(value);
 export function shipLabel(ship) {
   return `${ship.name || tr(ship.spec?.name)} · #${ship.id}`;
 }
+export function systemName(id) {
+  if (!id) return "—";
+  const current = Session.data.expedition?.system;
+  return world.stars.get(id)?.name || (current?.id === id ? current.name : `#${id}`);
+}
+
+function gauge(value, capacity, label) {
+  const field = node("span",undefined,"matrix-gauge");
+  field.append(node("span",Format.number(value) + " / " + Format.number(capacity)));
+  if (capacity > 0 && Number.isFinite(value)) {
+    const meter = node("meter");
+    meter.max = capacity;
+    meter.value = value;
+    meter.setAttribute("aria-label",tr(label));
+    field.append(meter);
+  }
+  return field;
+}
 
 function rows(values) {
   const list = node("dl", undefined, "studio-readings");
-  for (const [name, value] of values)
-    list.append(node("dt", tr(name)), node("dd", String(value ?? "—")));
+  for (const [name, value] of values) {
+    const reading = node("dd");
+    reading.append(value instanceof Node ? value : String(value ?? "—"));
+    list.append(node("dt",tr(name)),reading);
+  }
   return list;
 }
 
@@ -34,11 +58,13 @@ export function readings(module, ship, shipID) {
       image.decoding = "async";
       summary.append(image);
     }
+    const loaded = Object.values(ship.cargo || {}).reduce((sum,quantity) => sum + quantity,0);
     summary.append(rows([
       ["Класс", tr(ship.spec?.name)],
-      ["Топливо", `${ship.fuel} / ${ship.spec?.fuel ?? "—"}`],
-      ["Система", ship.star],
-      ["Пункт назначения", ship.destination || null],
+      ["Топливо", gauge(ship.fuel,ship.spec?.fuel,"Топливо")],
+      ["Трюм", gauge(loaded,ship.spec?.cargo,"Трюм")],
+      ["Система", systemName(ship.star)],
+      ["Пункт назначения", systemName(ship.destination)],
     ]));
     return summary;
   }

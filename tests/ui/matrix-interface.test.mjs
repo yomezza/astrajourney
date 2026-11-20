@@ -2,6 +2,59 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { game } from "./harness.mjs";
 
+test("Command summaries distinguish station prices, player offers and real fleet activity", async t => {
+  const g = await game(t,{signedIn:true,faults:[["workspaces",({req,json}) => {
+    const id = "42000000-0000-4000-8000-000000000001";
+    return req.method() === "GET"
+      ? json({revision:1,layout:{version:1,active:id,default:id,workspaces:[{id,name:"Астра",ship_id:0,modules:[]}]}})
+      : json({revision:2,layout:req.postDataJSON().layout});
+  }]]});
+  const {page,data} = g;
+  const [first,second] = data.fleet.ships;
+  second.destination = 3;
+  data.workbench.research = [{ship:second.id,star:1,scanned:2,total:5,paused:true}];
+  data.workbench.mining = [{ship_id:first.id,ship_name:first.name,star:1,quantity:12,resource:"iron"}];
+  data.workbench.orders = [{id:7,star:1,station:"port-1",resource:"agni",quantity:45,price:9}];
+  data.expedition.resources.push({id:"food",name:"Пищевой концентрат"});
+  data.expedition.offers.push({resource:"food",stock:205,buy:195,sell:175});
+  await g.ready();
+  await g.refresh();
+
+  const card = type => page.locator(`.matrix-card[data-module="${type}"]`);
+  const market = card("market"), operations = card("operations");
+  await market.getByRole("cell",{name:"5 CR",exact:true}).waitFor();
+  await market.getByRole("cell",{name:"3 CR",exact:true}).waitFor();
+  assert.equal(await market.locator('[data-resource="agni"]').count(),0);
+  for (const width of [768,320]) {
+    await page.setViewportSize({width,height:800});
+    const table = market.locator(".matrix-table");
+    assert.ok(await table.evaluate(el => el.scrollWidth <= el.clientWidth + 1),`market at ${width}px`);
+    assert.ok(await table.locator("th").evaluateAll(headers =>
+      headers.every(el => getComputedStyle(el).overflowWrap === "normal")));
+  }
+  await page.setViewportSize({width:1440,height:1000});
+
+  const offerList = market.getByRole("button",{name:"Предложения игроков",exact:true});
+  await offerList.press("Enter");
+  await market.getByRole("cell",{name:"9 CR",exact:true}).waitFor();
+  assert.ok(await offerList.evaluate(el => el === document.activeElement));
+  await market.getByRole("button",{name:"Открыть рынок",exact:true}).click();
+  await page.locator("#window-market").getByRole("tab",{name:"Предложения игроков",selected:true}).waitFor();
+  await page.locator("#window-market").getByRole("button",{name:"Закрыть",exact:true}).click();
+  await market.getByRole("button",{name:"Станция",exact:true}).click();
+
+  await card("overview").getByRole("button",{name:second.name,exact:true}).click();
+  await market.getByText("Локальные цены доступны для активного корабля у станции").waitFor();
+  const scan = operations.getByRole("row").filter({hasText:"Сканирование"});
+  assert.match(await scan.textContent(),/Test vessel 2.*2 \/ 5.*На паузе/);
+  assert.equal(await scan.locator("[data-tone]").getAttribute("data-tone"),"paused");
+  await operations.getByRole("row").filter({hasText:"Перелёт"}).getByText("Test Altair",{exact:true}).waitFor();
+  assert.equal(await operations.locator("tbody tr").first().getByText(second.name,{exact:true}).count(),1);
+  await page.locator("#studio").getByText("Раскладка сохранена").waitFor();
+  assert.deepEqual(g.requests.filter(req => req.method === "POST").map(req => req.path),["workspaces"]);
+  assert.equal(data.expedition.ship.id,first.id);
+});
+
 test("Matrix catalog searches localized modules, restores windows and keeps administration private", async t => {
   const g = await game(t, {signedIn:true});
   const {page} = g;

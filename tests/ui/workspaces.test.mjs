@@ -182,8 +182,13 @@ test("Matrix command deck loads presets and persists card order and width", asyn
   assert.ok(await otherShip.evaluate(el => el === document.activeElement));
   assert.equal(await page.getByLabel("Корабль пространства",{exact:true}).inputValue(),otherID);
   assert.equal(await page.locator(".studio-window[open]").count(),0);
-  await overview.getByRole("button",{name:"Широкая карточка"}).click();
+  const wide = overview.getByRole("button",{name:"Широкая карточка",includeHidden:true});
+  assert.equal(await wide.isVisible(),false);
+  assert.equal(await overview.locator("h2").getAttribute("draggable"),"false");
+  await page.locator(".matrix-manage summary").click();
+  await wide.click();
   await overview.getByRole("button",{name:"Переместить карточку вправо"}).click();
+  assert.equal(await overview.locator("h2").getAttribute("draggable"),"true");
   await page.locator("#studio").getByText("Раскладка сохранена").waitFor();
   assert.equal(saved.layout.workspaces[0].modules[0].type,"operations");
   assert.equal(saved.layout.workspaces[0].ship_id,Number(otherID));

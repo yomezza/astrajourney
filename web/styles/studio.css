@@ -86,25 +86,30 @@ body:has(#game:not([hidden])) main {
   padding-inline: clamp(9px, 1.6vw, 24px);
   padding-top: 73px;
 }
-#game > .matrix-pilot {
+#game .matrix-overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  margin-bottom: 10px;
+  border: 1px solid #3b505e;
+}
+#game .matrix-pilot {
   min-height: 0;
   margin: 0;
-  border: 1px solid #3b505e;
-  border-bottom: 0;
   background: #172733;
-  padding: 5px 9px;
+  padding: 6px 9px;
 }
 #game .matrix-pilot > div { width: 100%; }
 #game .matrix-pilot .pilot-line { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 #game .matrix-pilot h1 { margin: 0; color: #e4edf1; font-size: 15px; }
 #game .matrix-pilot .level-overview { gap: 5px; }
 #game .matrix-pilot #overview-company { margin: 2px 0 0; font-size: 11px; }
-#game > .overview-stats {
+#game .overview-stats {
   display: flex;
   flex-wrap: wrap;
   gap: 0;
-  margin: 0 0 10px;
-  border: 1px solid #3b505e;
+  margin: 0;
+  border: 0;
+  border-top: 1px solid #3b505e;
   background: #101e28;
 }
 #game .overview-stats .panel {
@@ -126,6 +131,11 @@ body:has(#game:not([hidden])) main {
 #game .overview-stats .panel strong { margin: 0; font: 600 12px/1.4 ui-monospace,monospace; }
 #game .overview-stats .panel small { font: 10px/1.4 ui-monospace,monospace; }
 #game .overview-stats .panel:last-child { border-right: 0; }
+@media (min-width: 1060px) {
+  #game .matrix-overview { grid-template-columns: minmax(230px, 1fr) minmax(0, 2.6fr); }
+  #game .overview-stats { border-top: 0; border-left: 1px solid #3b505e; }
+  #game .overview-stats .panel { align-content: center; }
+}
 #studio {
   background: transparent;
   border: 0;
@@ -184,6 +194,14 @@ body:has(#game:not([hidden])) main {
   margin: 4px 0 0;
   font-size: 12px;
 }
+#studio .matrix-manage {
+  color: #adc3cf;
+}
+#studio .matrix-manage[open] {
+  border: 1px solid var(--matrix-frame);
+  padding: 8px;
+  background: #162630;
+}
 #studio details[open] > .studio-controls {
   margin-top: 6px;
 }
@@ -198,11 +216,11 @@ body:has(#game:not([hidden])) main {
   display: grid;
   grid-template-columns: repeat(3, minmax(0,1fr));
   gap: 9px;
-  align-items: stretch;
+  align-items: start;
 }
 .matrix-card, .matrix-add-card {
   min-width: 0;
-  min-height: 158px;
+  min-height: 0;
   border: 1px solid #3d5361;
   background: #151e27;
   border-radius: 0;
@@ -211,6 +229,7 @@ body:has(#game:not([hidden])) main {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  container-type: inline-size;
 }
 .matrix-wide { grid-column: span 2; }
 .matrix-card-bar {
@@ -228,11 +247,14 @@ body:has(#game:not([hidden])) main {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  cursor: grab;
-  font: 600 11px/1.3 ui-monospace,monospace;
+  font: 650 12px/1.3 system-ui,sans-serif;
   color: #bad2de;
 }
+.matrix-editing .matrix-card-bar h2 { cursor: grab; }
 .matrix-card-actions { display: flex; flex: none; }
+.matrix-edit-actions { display: none; }
+.matrix-editing .matrix-edit-actions { display: flex; }
+.matrix-grid:not(.matrix-editing) .matrix-card-settings { display: none; }
 #studio .matrix-card-actions button {
   background: transparent;
   border: 0;
@@ -246,15 +268,60 @@ body:has(#game:not([hidden])) main {
 .matrix-card-body h3 { margin: 0; font-size: 14px; }
 .matrix-card-body h3:empty, .matrix-card-settings:empty { display: none; }
 .matrix-card-body > button { justify-self: start; }
-.matrix-empty { color: var(--muted); font-size: 12px; }
+.matrix-empty { color: #a7bac6; font-size: 12px; margin: 3px 0; line-height: 1.5; }
 .matrix-table { overflow: auto; max-height: 205px; }
-.matrix-table table { width: 100%; border-collapse: collapse; font-size: 11px; }
-.matrix-table th, .matrix-table td { padding: 6px 7px; }
+.matrix-table table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.matrix-table :is(th,td) { padding: 6px 7px; text-align: start; font-family: inherit; }
+.matrix-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #1c2d39;
+  color: #bccdd9;
+  font: 550 11px/1.3 system-ui,sans-serif;
+  letter-spacing: 0;
+}
+.matrix-table th.matrix-numeric,
+.matrix-table td.matrix-numeric { text-align: end; font-variant-numeric: tabular-nums; }
+.matrix-table td.matrix-numeric { white-space: nowrap; }
 .matrix-table tbody tr:nth-child(odd) { background: #192630; }
+.matrix-table tbody tr:focus-within { background: #233747; }
+.matrix-status {
+  display: inline-block;
+  padding-inline: 5px;
+  border-inline-start: 2px solid #688291;
+  line-height: 1.35;
+  color: #bbcbd5;
+}
+.matrix-status[data-tone=ready] { border-color: #70b19a; color: #a4d7c2; }
+.matrix-status[data-tone=working] { border-color: var(--focus); color: #b4e0eb; }
+.matrix-status[data-tone=paused] { border-color: var(--accent); color: #ffd098; }
+.matrix-market { display: grid; gap: 6px; }
+.matrix-source-switch { display: flex; flex-wrap: wrap; gap: 4px; }
+.matrix-source-switch button {
+  min-height: 31px;
+  border: 1px solid #405967;
+  border-radius: 0;
+  padding: 3px 7px;
+  background: #192a35;
+}
+.matrix-source-switch [aria-pressed=true] {
+  border-color: var(--focus);
+  background: #284250;
+  color: #e0f7fb;
+}
+.matrix-source-label { margin: 0; color: #b1c7d4; font-size: 12px; }
 .matrix-map { background: #0e1a24; border: 1px solid #2d4452; }
-.matrix-map canvas { display: block; width: 100%; aspect-ratio: 84 / 29; }
+.matrix-map canvas { display: block; width: 100%; height: auto; max-height: 230px; object-fit: contain; aspect-ratio: 84 / 29; }
 .matrix-map-caption { margin: 3px 7px; color: #f0bd84; font-size: 11px; }
 #studio .matrix-add-card {
+  min-height: 84px;
   border-style: dashed;
   color: #b9d2dd;
   background: #152530;
@@ -270,9 +337,13 @@ body:has(#game:not([hidden])) main {
 @container (max-width: 1000px) {
   .matrix-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
 }
-@container (max-width: 550px) {
+@container (max-width: 620px) {
   .matrix-grid { grid-template-columns: minmax(0,1fr); }
   .matrix-wide { grid-column: auto; }
+}
+@container (max-width: 360px) {
+  .matrix-table :is(th,td) { padding-inline: 4px; }
+  .matrix-table td:not(.matrix-numeric) { overflow-wrap: anywhere; }
 }
 @media (max-width: 700px) {
   .matrix-tabline { display: none; }
@@ -312,6 +383,17 @@ body:has(#game:not([hidden])) main {
   filter: drop-shadow(0 0 7px #66c5db55);
 }
 .matrix-ship-summary .studio-readings { flex: 1 1 145px; }
+.matrix-gauge { display: grid; gap: 3px; justify-items: end; font-variant-numeric: tabular-nums; }
+.matrix-gauge meter {
+  appearance: none;
+  width: 64px;
+  height: 6px;
+  background: #233746;
+  border: 0;
+}
+.matrix-gauge meter::-webkit-meter-bar { background: #233746; border: 0; border-radius: 0; }
+.matrix-gauge meter::-webkit-meter-optimum-value { background: var(--focus); border-radius: 0; }
+.matrix-gauge meter::-moz-meter-bar { background: var(--focus); }
 #studio > .matrix-recovery:not(:empty) {
   position: relative;
   z-index: 8050;
