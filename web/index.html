@@ -19,6 +19,7 @@
     <link rel="stylesheet" href="styles/maps.css" />
     <link rel="stylesheet" href="styles/equipment.css" />
     <link rel="stylesheet" href="styles/studio.css" />
+    <link rel="stylesheet" href="styles/matrix-interface.css" />
     <script type="module" src="bootstrap.js"></script>
   </head>
   <body>
@@ -55,7 +56,8 @@
         >◈ ASTRA JOURNEY <small>EDEM / <span data-game-version>…</span></small></a
       >
       <div class="header-actions">
-        <button id="studio-shortcut" type="button" data-label="Рабочие пространства" aria-label="Рабочие пространства" hidden>▥</button>
+        <button id="matrix-catalog-shortcut" type="button" data-label="Каталог игровых модулей" aria-label="Каталог игровых модулей" data-help="Каталог игровых модулей" data-matrix-icon="catalog" hidden></button>
+        <button id="studio-shortcut" type="button" data-label="Рабочие пространства" aria-label="Рабочие пространства" data-matrix-icon="studio" hidden></button>
         <div
           id="window-switcher"
           data-label="Открытые окна"
@@ -75,7 +77,7 @@
           <span data-i18n="Панель администратора">Панель администратора</span>
         </button>
         <details id="profile-menu" class="dropdown" hidden>
-          <summary>
+          <summary data-label="Профиль игрока" aria-label="Профиль игрока">
             <svg class="profile-symbol" viewBox="0 0 24 24" aria-hidden="true">
               <use data-asset="/ui/icons/profile.svg" href="/assets/sha256/a7f970f5390861644a2f463551861974d8c29fe32273388a187e23a5cd88bfc0/ui/icons/profile.svg#icon"></use>
             </svg>
@@ -109,9 +111,10 @@
         </button>
       </div>
       <div class="sidebar-divider" aria-hidden="true"></div>
+      <span class="matrix-nav-group" data-i18n="Навигация и флот">Навигация и флот</span>
       <details id="maps-navigation" class="maps-navigation">
         <summary data-nav="Карты">
-          <span class="nav-icon">▤</span
+          <span class="nav-icon" data-matrix-icon="galaxy"></span
           ><span class="nav-label" data-i18n="Карты">Карты</span>
         </summary>
         <button
@@ -131,16 +134,12 @@
           id="current-system-map"
           data-nav="Карта текущей системы"
         >
-          <span class="nav-icon">☉</span
+          <span class="nav-icon" data-matrix-icon="system"></span
           ><span class="nav-label" data-i18n="Карта текущей системы"
             >Карта текущей системы</span
           >
         </button>
       </details>
-      <button type="button" id="nav-colonies" data-nav="Колонии">
-        <span class="nav-icon">⬡</span
-        ><span class="nav-label" data-i18n="Колонии">Колонии</span>
-      </button>
       <button
         type="button"
         data-open="ship"
@@ -151,6 +150,7 @@
         ><span class="nav-label"
           ><span data-i18n="Корабль">Корабль</span></span
         ></button>
+      <span class="matrix-nav-group" data-i18n="Операции">Операции</span>
       <button
         type="button"
         data-open="research"
@@ -163,16 +163,6 @@
         ></button
       ><button
         type="button"
-        data-open="studies"
-        data-nav="Исследования"
-        aria-label="Исследования"
-      >
-        <span class="nav-icon">⌾</span
-        ><span class="nav-label" data-i18n="Исследования"
-          >Исследования</span
-        ></button
-      ><button
-        type="button"
         data-open="market"
         data-nav="Рынок"
         aria-label="Рынок"
@@ -180,16 +170,6 @@
         <span class="nav-icon">⇄</span
         ><span class="nav-label"
           ><span data-i18n="Рынок">Рынок</span></span
-        ></button
-      ><button
-        type="button"
-        data-open="corporations"
-        data-nav="Корпорация"
-        aria-label="Корпорация"
-      >
-        <span class="nav-icon">⬡</span
-        ><span class="nav-label"
-          ><span data-i18n="Корпорация">Корпорация</span></span
         ></button
       ><button
         data-open="logistics"
@@ -203,7 +183,36 @@
         ><span class="nav-label" data-i18n="Планировщик задач"
           >Планировщик задач</span
         ></button
-      ><button
+      >
+      <span class="matrix-nav-group" data-i18n="Развитие">Развитие</span>
+      <button type="button" id="nav-colonies" data-nav="Колонии">
+        <span class="nav-icon" data-matrix-icon="colonies"></span
+        ><span class="nav-label" data-i18n="Колонии">Колонии</span>
+      </button>
+      <button
+        type="button"
+        data-open="studies"
+        data-nav="Исследования"
+        aria-label="Исследования"
+      >
+        <span class="nav-icon">⌾</span
+        ><span class="nav-label" data-i18n="Исследования"
+          >Исследования</span
+        ></button
+      >
+      <button
+        type="button"
+        data-open="corporations"
+        data-nav="Корпорация"
+        aria-label="Корпорация"
+      >
+        <span class="nav-icon">⬡</span
+        ><span class="nav-label"
+          ><span data-i18n="Корпорация">Корпорация</span></span
+        ></button
+      >
+      <span class="matrix-nav-group matrix-comms-label" data-i18n="Связь и настройки">Связь и настройки</span>
+      <button
         class="sidebar-bottom chat-bottom"
         data-open="chat"
         data-nav="Чат"
@@ -231,17 +240,7 @@
     <main>
       <section id="auth" class="auth" hidden>
         <div class="intro">
-          <p class="eyebrow">
-            <span data-i18n="ЭКОНОМИЧЕСКАЯ КОСМИЧЕСКАЯ ПЕСОЧНИЦА"
-              >ЭКОНОМИЧЕСКАЯ КОСМИЧЕСКАЯ ПЕСОЧНИЦА</span
-            >
-          </p>
-          <h1>
-            <span data-i18n="Ваша компания.">Ваша компания.</span><br /><span
-              data-i18n="Новая орбита."
-              >Новая орбита.</span
-            >
-          </h1>
+          <h1 data-i18n="Космический терминал">Космический терминал</h1>
           <p>
             <span
               data-i18n="Исследуйте системы Эдема, добывайте ресурсы и прокладывайте торговые пути вместе с другими пилотами."
@@ -350,6 +349,12 @@
         ><span data-i18n="● СЕРВЕР ОНЛАЙН">● СЕРВЕР ОНЛАЙН</span></span
       ><span>ASTRA JOURNEY · <span data-game-version>…</span></span>
     </footer>
+    <nav id="matrix-mobile" aria-label="Модули" data-label="Модули" hidden>
+      <button type="button" data-studio><span data-matrix-icon="studio"></span><span data-i18n="Пространства">Пространства</span></button>
+      <button type="button" data-open="galaxy"><span data-matrix-icon="galaxy"></span><span data-i18n="Карты">Карты</span></button>
+      <button type="button" data-launcher><span data-matrix-icon="catalog"></span><span data-i18n="Модули">Модули</span></button>
+      <button type="button" data-open="chat"><span data-matrix-icon="chat"></span><span data-i18n="Чат">Чат</span></button>
+    </nav>
     <div id="toast" role="status" hidden></div>
     <div id="tooltip" role="tooltip" hidden></div>
   </body>

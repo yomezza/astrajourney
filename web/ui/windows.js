@@ -5,6 +5,7 @@ import { Preferences } from "../core/preferences.js";
 import { I18n } from "../core/i18n.js";
 import { Modules } from "./runtime.js";
 import { node as createNode } from "./dom.js";
+import { lineIcon } from "./icons.js";
 
 export function initWindows() {
   const windows = new Map(),
@@ -15,6 +16,7 @@ export function initWindows() {
     read = (key, fallback) => Preferences.read(key, fallback);
 
   const node = createNode;
+  const narrow = w => w.matrix && matchMedia("(max-width: 700px)").matches;
   function active(w) {
     for (const entry of windows.values())
       entry.dialog.classList.toggle("window-active", entry === w);
@@ -39,16 +41,12 @@ export function initWindows() {
         "active",
         w.dialog.classList.contains("window-active"),
       );
-      b.onclick = () => {
-        if (w.minimized) w.minimize(false);
-        active(w);
-        w.bar.focus();
-      };
+      b.onclick = () => Modules.focus(id);
       host.append(b);
     }
   }
   function save(id, w) {
-    if (resetting || !w.dialog.open || w.maximized) return;
+    if (resetting || !w.dialog.open || w.maximized || narrow(w)) return;
     const r = w.dialog.getBoundingClientRect();
     if (w.layout) {
       if (!w.minimized && innerWidth > 550) w.layout.save({
@@ -62,6 +60,7 @@ export function initWindows() {
     });
   }
   function clamp(w) {
+    if (narrow(w)) return;
     const d = w.dialog,
       r = d.getBoundingClientRect();
     d.style.left = Math.max(4, Math.min(r.x, innerWidth - r.width - 4)) + "px";
@@ -117,6 +116,13 @@ export function initWindows() {
           "window-small",
         );
       d.id = "window-" + id;
+      const matrix = id !== "chat" && id !== "notifications" && !id.startsWith("chat-");
+      d.classList.toggle("matrix-window",matrix);
+      if (matrix) {
+        pin.replaceChildren(lineIcon("pin"));
+        max.replaceChildren(lineIcon("maximize"));
+        close.replaceChildren(lineIcon("close"));
+      }
       h.id = "title-" + id;
       h.dataset.i18n = title;
       d.setAttribute("aria-labelledby", h.id);
@@ -127,13 +133,14 @@ export function initWindows() {
         [close, "Закрыть"],
       ]) {
         b.type = "button";
-        b.dataset.help = label;
+        if (!matrix || b !== close) b.dataset.help = label;
         b.dataset.label = label;
         b.setAttribute("aria-label", tr(label));
       }
       pin.setAttribute("aria-pressed", "false");
       if (options.layout) {
         const minimize = node("button", "−");
+        if (matrix) minimize.replaceChildren(lineIcon("minimize"));
         minimize.type = "button";
         minimize.dataset.label = "Свернуть окно";
         minimize.setAttribute("aria-label", tr(minimize.dataset.label));
@@ -147,6 +154,7 @@ export function initWindows() {
       const w = {
         life: new Lifetime(),
         layout: options.layout,
+        matrix,
         minimize(value, persist = true) {
           w.minimized = value;
           d.classList.toggle("studio-minimized", value);
@@ -192,9 +200,10 @@ export function initWindows() {
               ? document.querySelector("#sidebar:not([hidden])")
               : null;
             const inset = sidebar ? Math.ceil(sidebar.getBoundingClientRect().right) + 6 : 6;
-            const fitWidth = Math.min(l.w || width, innerWidth - inset - 6);
+            const fitWidth = narrow(w) ? l.w || width : Math.min(l.w || width, innerWidth - inset - 6);
+            const fitHeight = narrow(w) ? l.h || height : Math.min(l.h || height, innerHeight - 106);
             d.style.width = fitWidth + "px";
-            d.style.height = Math.min(l.h || height, innerHeight - 106) + "px";
+            d.style.height = fitHeight + "px";
             d.style.left =
               (l.x ?? Math.max(inset, (innerWidth - width) / 2)) + "px";
             d.style.top =
@@ -210,7 +219,7 @@ export function initWindows() {
         active(w);
         bar.focus();
         document
-          .querySelectorAll(`#sidebar [data-open="${id}"]`)
+          .querySelectorAll(`:is(#sidebar,#matrix-mobile) [data-open="${id}"]`)
           .forEach((b) => b.classList.add("module-open"));
         return w.loading.run(async (signal) => {
           if (prepare) return prepare(signal);
@@ -224,7 +233,7 @@ export function initWindows() {
         d.close();
         w.loading.cancel();
         document
-          .querySelectorAll(`#sidebar [data-open="${id}"]`)
+          .querySelectorAll(`:is(#sidebar,#matrix-mobile) [data-open="${id}"]`)
           .forEach((b) => b.classList.remove("module-open"));
         switcher();
         window.dispatchEvent(new CustomEvent("moduleclose", { detail: id }));
@@ -238,7 +247,7 @@ export function initWindows() {
       w.show = show;
       w.hide = hide;
       const maximize = () => {
-        if (w.pinned) return;
+        if (w.pinned || narrow(w)) return;
         if (!w.maximized) {
           const r = d.getBoundingClientRect();
           w.restore = { x: r.x, y: r.y, w: r.width, h: r.height };
@@ -256,7 +265,8 @@ export function initWindows() {
         }
         w.maximized = !w.maximized;
         d.classList.toggle("maximized", w.maximized);
-        max.textContent = w.maximized ? "▣" : "□";
+        if (matrix) max.replaceChildren(lineIcon(w.maximized ? "restore" : "maximize"));
+        else max.textContent = w.maximized ? "▣" : "□";
         save(id, w);
       };
       pin.onclick = () => {
@@ -274,7 +284,7 @@ export function initWindows() {
       let drag, resize;
       d.addEventListener("pointerdown", (e) => {
         active(w);
-        if (w.pinned || w.maximized || e.button !== 0) return;
+        if (w.pinned || w.maximized || narrow(w) || e.button !== 0) return;
         const r = d.getBoundingClientRect(),
           dx = e.clientX - r.x,
           dy = e.clientY - r.y;
@@ -292,6 +302,7 @@ export function initWindows() {
           !d.open ||
           w.pinned ||
           w.maximized ||
+          narrow(w) ||
           e.target.closest("button") ||
           e.button !== 0
         )
@@ -364,7 +375,7 @@ export function initWindows() {
           ArrowUp: [0, -20],
           ArrowDown: [0, 20],
         }[e.key];
-        if (!d.open || !delta || w.pinned || w.maximized || e.target !== bar)
+        if (!d.open || !delta || w.pinned || w.maximized || narrow(w) || e.target !== bar)
           return;
         e.preventDefault();
         d.style.left = d.offsetLeft + delta[0] + "px";
@@ -387,7 +398,7 @@ export function initWindows() {
         const r = d.getBoundingClientRect();
         d.classList.toggle(
           "too-small",
-          r.width < w.minContentWidth || r.height < 220,
+          !narrow(w) && (r.width < w.minContentWidth || r.height < 220),
         );
         clearTimeout(timer);
         if (!w.layout) timer = setTimeout(() => save(id, w), 200);
@@ -399,7 +410,7 @@ export function initWindows() {
         clearTimeout(timer);
       });
       w.life.listen(window, "resize", () => {
-        if (!d.open) return;
+        if (!d.open || narrow(w)) return;
         d.style.width = Math.min(d.offsetWidth, innerWidth - 12) + "px";
         d.style.height = Math.min(d.offsetHeight, innerHeight - 106) + "px";
         clamp(w);
@@ -444,10 +455,14 @@ export function initWindows() {
     focus: (id) => {
       const w = windows.get(id);
       if (w?.dialog.open) {
+        if (w.minimized) w.minimize(false);
         active(w);
         w.bar.focus();
       }
     },
+    openWindows: () => [...windows].filter(([,w]) =>
+      w.dialog.open && (w.audience !== "admin" || Session.data.state?.user.role === "admin"))
+      .map(([id,w]) => ({id,title:w.title})),
     close: (id) => windows.get(id)?.hide(),
     isOpen: (id) => !!windows.get(id)?.dialog.open,
     closeAll() {

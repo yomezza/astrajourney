@@ -88,16 +88,24 @@ function map(ship) {
   return root;
 }
 
-export function dashboardReading(type, ship) {
+export function dashboardReading(type, ship, chooseShip) {
   const { fleet, workbench } = Session.data;
   if (type === "map") return map(ship);
   if (type === "overview") return table(["Корабль","Система","Состояние","Топливо"],
-    (fleet?.ships || []).map(v => [
-      v.name || tr(v.spec?.name),
-      world.stars.get(v.star)?.name || `#${v.star}`,
-      tr(v.destination ? "В пути" : v.position_mode === "docked" ? "Состыкован" : "Готов"),
-      `${v.fuel} / ${v.spec?.fuel ?? "—"}`,
-    ]));
+    (fleet?.ships || []).map(v => {
+      const select = node("button",v.name || tr(v.spec?.name),"matrix-context-link");
+      select.type = "button";
+      select.dataset.shipContext = v.id;
+      select.title = tr("Выбрать корабль для просмотра");
+      select.setAttribute("aria-pressed",String(v.id === ship?.id));
+      select.onclick = () => chooseShip(v.id);
+      return [
+        select,
+        world.stars.get(v.star)?.name || `#${v.star}`,
+        tr(v.destination ? "В пути" : v.position_mode === "docked" ? "Состыкован" : "Готов"),
+        `${v.fuel} / ${v.spec?.fuel ?? "—"}`,
+      ];
+    }));
   if (type === "operations") return table(["Операция","Система","Корабль"],
     [
       ...(workbench?.mining || []).map(job => [tr("Добыча"), world.stars.get(job.star)?.name || `#${job.star}`,job.ship_name]),

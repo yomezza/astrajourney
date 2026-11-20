@@ -4,6 +4,7 @@ import { refresh } from "../../core/snapshot-store.js";
 import { I18n } from "../../core/i18n.js";
 import { Modules, UI } from "../../ui/runtime.js";
 import { notify } from "../../ui/feedback.js";
+import { lineIcon } from "../../ui/icons.js";
 
 const categories = [
   ["operations", "Службы и диагностика", [
@@ -34,8 +35,9 @@ export function initAdministration() {
     root.replaceChildren();
     root.classList.add("administration-content");
     const heading = n("div", undefined, "administration-heading");
-    heading.append(n("span", "⌘", "administration-emblem"), n("div"));
-    heading.lastChild.append(n("h3", tr("Центр управления")), n("p", tr("Управление миром, игроками и службами Astra Journey"), "muted"));
+    heading.append(n("span", undefined, "administration-emblem"), n("div"));
+    heading.firstChild.append(lineIcon("administration"));
+    heading.lastChild.append(n("h3", tr("Центр управления")));
     const layout = n("div", undefined, "administration-layout"), nav = n("nav", undefined, "administration-categories"), panel = n("section", undefined, "administration-panel");
     nav.setAttribute("aria-label", tr("Категории управления"));
     for (const [id, title] of categories) {
@@ -52,7 +54,9 @@ export function initAdministration() {
         const card = n("button", undefined, "administration-card");
         card.type = "button";
         card.dataset.open = id;
-        card.append(n("strong", tr(label)), n("span", tr(description)), n("span", "↗", "administration-arrow"));
+        const arrow = n("span", undefined, "administration-arrow");
+        arrow.append(lineIcon("right"));
+        card.append(n("strong", tr(label)), n("span", tr(description)), arrow);
         cards.append(card);
       }
       panel.append(cards);
