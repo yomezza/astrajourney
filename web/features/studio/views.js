@@ -1,5 +1,6 @@
 import { node } from "../../ui/dom.js";
 import { I18n } from "../../core/i18n.js";
+import { assetURL } from "../../core/assets.js";
 
 export const labels = Object.freeze({
   fleet: "Корабль",
@@ -23,13 +24,24 @@ function rows(values) {
 export function readings(module, ship, shipID) {
   if (!ship)
     return node("p", shipID ? `${tr("Корабль недоступен")} · #${shipID}` : tr("Выберите корабль для просмотра"));
-  if (module.type === "fleet")
-    return rows([
+  if (module.type === "fleet") {
+    const summary = node("div", undefined, "matrix-ship-summary");
+    if (ship.spec?.model) {
+      const image = node("img");
+      image.alt = "";
+      image.src = assetURL("/" + ship.spec.model);
+      image.loading = "lazy";
+      image.decoding = "async";
+      summary.append(image);
+    }
+    summary.append(rows([
       ["Класс", tr(ship.spec?.name)],
       ["Топливо", `${ship.fuel} / ${ship.spec?.fuel ?? "—"}`],
       ["Система", ship.star],
-      ["Пункт назначения", ship.destination],
-    ]);
+      ["Пункт назначения", ship.destination || null],
+    ]));
+    return summary;
+  }
   if (module.type === "mining")
     return rows([
       ["Экстрактор", tr(ship.extractor)],

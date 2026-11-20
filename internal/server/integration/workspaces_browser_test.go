@@ -32,11 +32,11 @@ func TestWorkspacesProductionBrowser(t *testing.T) {
 		Version: 1, Active: firstID, Default: firstID, Workspaces: []workspaces.Workspace{
 			{ID: firstID, Name: "First watch", ShipID: active, Modules: []workspaces.Module{}},
 			{ID: secondID, Name: "Second watch", ShipID: second, Modules: []workspaces.Module{{
-				ID: "edec00a2-0000-4000-8000-000000000001", Type: "cargo", Binding: "workspace",
+				ID: "edec00a2-0000-4000-8000-000000000001", Type: "cargo", Binding: "workspace", View: "window",
 				Geometry: &workspaces.Geometry{X: 500, Y: 230, W: 395, H: 295},
 			}}},
 			{ID: retiredID, Name: "Retired ship", ShipID: removed, Modules: []workspaces.Module{{
-				ID: "edec00a2-0000-4000-8000-000000000002", Type: "fleet", Binding: "workspace",
+				ID: "edec00a2-0000-4000-8000-000000000002", Type: "fleet", Binding: "workspace", View: "window",
 			}}},
 		},
 	}}, 200)

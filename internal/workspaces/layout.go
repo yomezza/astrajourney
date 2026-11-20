@@ -28,13 +28,16 @@ type Module struct {
 	ShipID   int64     `json:"ship_id"`
 	Geometry *Geometry `json:"geometry,omitempty"`
 	Filter   string    `json:"filter,omitempty"`
+	Wide     bool      `json:"wide,omitempty"`
+	View     string    `json:"view,omitempty"`
 }
 
 type Workspace struct {
-	ID      string   `json:"id"`
-	Name    string   `json:"name"`
-	ShipID  int64    `json:"ship_id"`
-	Modules []Module `json:"modules"`
+	ID         string   `json:"id"`
+	Name       string   `json:"name"`
+	Customized bool     `json:"customized,omitempty"`
+	ShipID     int64    `json:"ship_id"`
+	Modules    []Module `json:"modules"`
 }
 
 type Layout struct {
@@ -88,11 +91,16 @@ func (l *Layout) valid() bool {
 }
 
 func (m Module) valid() bool {
+	if m.View != "" && m.View != "card" && m.View != "window" {
+		return false
+	}
 	if g := m.Geometry; g != nil && (g.X < 0 || g.X > 8192 || g.Y < 0 || g.Y > 8192 ||
 		g.W < 160 || g.W > 8192 || g.H < 160 || g.H > 8192) {
 		return false
 	}
 	switch m.Type {
+	case "overview", "map", "operations", "market":
+		return m.Filter == "" && m.Binding == "none" && m.ShipID == 0
 	case "fleet", "mining":
 		if m.Filter != "" {
 			return false
