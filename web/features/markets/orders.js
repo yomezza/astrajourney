@@ -28,7 +28,7 @@ export function createOrdersMarket({
     const orders = w().orders || [];
     list.append(
       UI.table(
-        ["Ресурс", "Место", "Количество", "Цена"],
+        ["Ресурс", "Место", ["Количество","table-number"], ["Цена","table-number"]],
         orders.map((o) => [
           b(tr(res(o.resource).name), () => {
             state.order = o.id;
@@ -38,6 +38,7 @@ export function createOrdersMarket({
           num(o.quantity),
           money(o.price),
         ]),
+        { label: "Предложения игроков" },
       ),
     );
     const selected = orders.find((o) => o.id === state.order);

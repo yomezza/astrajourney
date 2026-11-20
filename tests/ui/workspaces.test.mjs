@@ -119,9 +119,10 @@ test("Studio saves CRUD in order and requires a fresh read after conflict", asyn
     return json(stored);
   }]]});
   const studio = g.page.locator("#studio");
-  const named = (name) => studio.getByRole("button",{name,exact:true});
+  const named = name => (["Дублировать","Удалить пространство"].includes(name) ?
+    studio.locator(".matrix-manage") : studio).getByRole("button",{name,exact:true});
   const saved = () => studio.getByText("Раскладка сохранена").waitFor();
-  await studio.locator("summary").getByText("Настроить пространство").click();
+  await named("Настроить пространство").click();
   await named("Создать пространство").click();
   await saved();
   const name = studio.getByLabel("Название пространства");
@@ -140,6 +141,7 @@ test("Studio saves CRUD in order and requires a fresh read after conflict", asyn
   const removed = stored.layout.active;
   await named("Удалить пространство").click();
   await g.page.locator("#window-confirm").getByRole("button",{name:"Подтвердить"}).click();
+  await g.page.locator("#window-confirm").waitFor({state:"hidden"});
   await saved();
   assert.ok(!stored.layout.workspaces.some(w => w.id === removed));
 
@@ -183,9 +185,8 @@ test("Matrix command deck loads presets and persists card order and width", asyn
   assert.equal(await page.getByLabel("Корабль пространства",{exact:true}).inputValue(),otherID);
   assert.equal(await page.locator(".studio-window[open]").count(),0);
   const wide = overview.getByRole("button",{name:"Широкая карточка",includeHidden:true});
-  assert.equal(await wide.isVisible(),false);
-  assert.equal(await overview.locator("h2").getAttribute("draggable"),"false");
-  await page.locator(".matrix-manage summary").click();
+  assert.equal(await wide.isVisible(),true);
+  assert.equal(await overview.locator("h2").getAttribute("draggable"),"true");
   await wide.click();
   await overview.getByRole("button",{name:"Переместить карточку вправо"}).click();
   assert.equal(await overview.locator("h2").getAttribute("draggable"),"true");
@@ -200,9 +201,10 @@ test("Matrix command deck loads presets and persists card order and width", asyn
   await g.ready();
   assert.equal(await grid.locator(".matrix-card").first().getAttribute("data-module"),"operations");
   const map = grid.locator('[data-module="map"]');
-  await map.getByRole("button",{name:"Открыть карту"}).click();
-  await page.locator("#window-galaxy[open]").waitFor();
-  await page.evaluate(() => window.__testApp.Modules.close("galaxy"));
+  await map.getByRole("button",{name:"Открыть отдельное окно"}).click();
+  const mapWindow = page.locator(".studio-window[open]");
+  await mapWindow.getByRole("combobox",{name:"Выбранная система"}).waitFor();
+  await mapWindow.getByRole("button",{name:"Закрыть",exact:true}).click();
   for (const width of [1440, 1024, 768, 390, 320]) {
     await page.setViewportSize({width,height:800});
     await grid.waitFor();
@@ -218,4 +220,34 @@ test("Matrix command deck loads presets and persists card order and width", asyn
     assert.ok(cards.every(card => card.left >= bounds.x - 1 && card.right <= bounds.x + bounds.width + 1), `card outside grid at ${width}`);
   }
   assert.equal(g.requests.filter(r => r.method === "POST" && r.path !== "workspaces").length,0);
+});
+
+test("Instance tabs and a pending layout change survive reload", async t => {
+  const id = ids[0];
+  let stored = {revision:1,layout:{version:1,active:id,default:id,workspaces:[
+    {id,name:"Alpha",ship_id:0,customized:true,modules:[1,2].map(i => ({
+      id:"42000000-0000-4000-8000-00000000000"+i,type:"market",binding:"none",ship_id:0,view:"card",
+    }))},
+  ]}};
+  const g = await game(t,{signedIn:true,faults:[["workspaces",({req,json}) => {
+    if (req.method() === "GET") return json(stored);
+    const next = req.postDataJSON();
+    stored = {revision:next.revision+1,layout:next.layout};
+    return json(stored);
+  }]]});
+  const {page} = g;
+  await g.ready();
+  const offers = page.locator('#studio [data-module="market"]');
+  await offers.nth(0).getByRole("button",{name:"Предложения игроков",exact:true}).click();
+  await page.locator("#studio").getByText("Раскладка сохранена").waitFor();
+  const second = offers.nth(1).getByRole("button",{name:"Предложения игроков",exact:true});
+  await second.evaluate(button => {
+    button.click();
+    location.reload();
+  });
+  await g.ready();
+  await page.locator("#studio").getByText("Раскладка сохранена").waitFor();
+  assert.deepEqual(stored.layout.workspaces[0].modules.map(module => module.tab),["orders","orders"]);
+  for (const card of await offers.all())
+    assert.equal(await card.getByRole("button",{name:"Предложения игроков",exact:true}).getAttribute("aria-pressed"),"true");
 });

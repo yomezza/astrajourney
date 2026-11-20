@@ -92,13 +92,14 @@ test("research details wait for the system DTO and retry inside the same window"
   assert.equal(await root.locator(".research-system-view").count(),1);
 });
 
-test("a ship module waits for its SVG hologram template", async t=>{
-  const g=await game(t,{signedIn:true});await g.ready();
+test("a ship module waits for its SVG hologram template", {timeout:20000}, async t=>{
+  const g=await game(t);await g.ready();
   let finish, arrived;
   const requested=new Promise(resolve=>{arrived=resolve;});
   await g.context.route("**/space/ships/*.svg",route=>new Promise(resolve=>{
     finish=()=>resolve(route.fulfill({contentType:"image/svg+xml",body:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><path d="M0 0L10 10"/></svg>'}));arrived();
   }));
+  await g.login();
   await g.page.locator('#sidebar [data-open="ship"]').click();
   await requested;
   const root=g.page.locator("#window-ship");

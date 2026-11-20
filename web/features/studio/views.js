@@ -1,15 +1,8 @@
 import { node } from "../../ui/dom.js";
 import { I18n } from "../../core/i18n.js";
-import { assetURL } from "../../core/assets.js";
 import { Format } from "../../core/format.js";
 import { world } from "../../core/world-store.js";
 import { Session } from "../../core/session.js";
-
-export const labels = Object.freeze({
-  fleet: "Корабль",
-  cargo: "Трюм",
-  mining: "Добыча",
-});
 
 const tr = (value) => I18n.t(value);
 
@@ -22,7 +15,7 @@ export function systemName(id) {
   return world.stars.get(id)?.name || (current?.id === id ? current.name : `#${id}`);
 }
 
-function gauge(value, capacity, label) {
+export function gauge(value, capacity, label) {
   const field = node("span",undefined,"matrix-gauge");
   field.append(node("span",Format.number(value) + " / " + Format.number(capacity)));
   if (capacity > 0 && Number.isFinite(value)) {
@@ -35,7 +28,7 @@ function gauge(value, capacity, label) {
   return field;
 }
 
-function rows(values) {
+export function rows(values) {
   const list = node("dl", undefined, "studio-readings");
   for (const [name, value] of values) {
     const reading = node("dd");
@@ -51,11 +44,11 @@ export function readings(module, ship, shipID) {
   if (module.type === "fleet") {
     const summary = node("div", undefined, "matrix-ship-summary");
     if (ship.spec?.model) {
-      const image = node("img");
-      image.alt = "";
-      image.src = assetURL("/" + ship.spec.model);
-      image.loading = "lazy";
-      image.decoding = "async";
+      const image = node("div",undefined,"hologram-surface matrix-ship-model");
+      image.dataset.studioModel = image.dataset.model = ship.spec.model;
+      image.dataset.studioMoving = String(!!(ship.destination || ship.local_target));
+      image.setAttribute("role","img");
+      image.setAttribute("aria-label",tr("Голограмма корабля"));
       summary.append(image);
     }
     const loaded = Object.values(ship.cargo || {}).reduce((sum,quantity) => sum + quantity,0);

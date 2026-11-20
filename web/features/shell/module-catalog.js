@@ -3,6 +3,7 @@ import { I18n } from "../../core/i18n.js";
 import { Modules } from "../../ui/runtime.js";
 import { node } from "../../ui/dom.js";
 import { lineIcon } from "../../ui/icons.js";
+import { openModule } from "./module-routes.js";
 
 const groups = [
   ["Навигация и флот", [
@@ -50,39 +51,28 @@ export function initModuleCatalog() {
     dialog.close();
   });
 
-  function launch(id) {
-    dialog.close();
-    if (id === "system") {
-      document.getElementById("current-system-map").click();
-      return;
-    }
-    if (id === "colonies") {
-      document.getElementById("nav-colonies").click();
-      return;
-    }
-    if (Modules.isOpen(id)) Modules.focus(id);
-    else {
-      Modules.open(id);
-      if (id === "galaxy") window.dispatchEvent(new Event("showgalaxy"));
-    }
-  }
   function paint() {
+    const focused = results.contains(document.activeElement) && document.activeElement.dataset.route;
     const term = search.value.trim().toLocaleLowerCase();
     let sections = groups.slice();
     if (Session.data.state?.user.role === "admin")
       sections.push(["Управление", [["administration","Панель администратора"]]]);
     const items = new Map(sections.flatMap(([,entries]) => entries.map(entry => [entry[0],entry])));
-    const open = Modules.openWindows().map(({id,title}) => items.get(id) || [id,title]);
+    const open = Modules.openWindows().map(({id,title}) =>
+      id === "galaxy" ? [id,"Открытая карта"] : [id,title,items.get(id)?.[1]]);
     if (open.length) {
       const openIDs = new Set(open.map(([id]) => id));
       sections = [
         ["Открытые окна",open],
-        ...sections.map(([label,entries]) => [label,entries.filter(([id]) => !openIDs.has(id))]),
+        ...sections.map(([label,entries]) => [label,entries.filter(([id]) => id === "galaxy" || !openIDs.has(id))]),
       ];
     }
     results.replaceChildren();
     for (const [label, entries] of sections) {
-      const matches = entries.filter(([,name]) => tr(name).toLocaleLowerCase().includes(term));
+      const windowGroup = label === "Открытые окна";
+      const matches = entries.filter(([,name,alias]) =>
+        tr(name).toLocaleLowerCase().includes(term) ||
+        (alias && tr(alias).toLocaleLowerCase().includes(term)));
       if (!matches.length) continue;
       const section = node("section",undefined,"matrix-launcher-group");
       section.append(node("h3",tr(label)));
@@ -90,17 +80,23 @@ export function initModuleCatalog() {
       for (const [id,name] of matches) {
         const card = node("button",undefined,"matrix-launcher-card");
         card.type = "button";
+        card.dataset.route = windowGroup ? `window-${id}` : id;
         if (id === "administration") card.dataset.admin = "";
         const icon = node("span",undefined,"matrix-launcher-icon");
         icon.append(lineIcon(id) || lineIcon("maximize"));
         card.append(icon,node("span",tr(name)));
-        card.onclick = () => launch(id);
+        card.onclick = () => {
+          dialog.close();
+          if (windowGroup) Modules.focus(id);
+          else openModule(id);
+        };
         cards.append(card);
       }
       section.append(cards);
       results.append(section);
     }
     if (!results.children.length) results.append(node("p",tr("Нет совпадений"),"muted"));
+    if (focused) (results.querySelector(`[data-route="${CSS.escape(focused)}"]`) || search).focus();
   }
   function show() {
     if (!Session.signedIn || document.querySelector(":modal") || document.body.classList.contains("planet-mode")) return;
