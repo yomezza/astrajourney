@@ -43,6 +43,7 @@ export function fleetReading(ships, focus, chooseShip) {
       scan ? tr(scan.paused ? "На паузе" : "Сканирование") :
       ship.destination ? systemName(ship.destination) :
       ship.local_target ? tr("Манёвр") : tr("Ожидает задания");
+    identity.append(node("small",task,"matrix-fleet-activity"));
     return [identity,systemName(ship.star),activity,gauge(ship.fuel,ship.spec?.fuel,"Топливо"),task];
   }),"Кораблей нет","Флот");
 }

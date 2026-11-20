@@ -396,9 +396,7 @@ body {
   padding-inline: 10px;
 }
 #studio .matrix-add::before { content: "+ "; }
-@media (min-width: 701px) {
-  #studio .matrix-manage:not([open]) { display: none; }
-}
+#studio .matrix-manage:not([open]) { display: none; }
 .matrix-catalog > .studio-controls { align-items: start; }
 .matrix-catalog-group { flex: 1 1 135px; display: grid; gap: 4px; }
 .matrix-catalog-group h3 { margin: 1px 0 3px; font-size: 12px; color: #b1c8d4; }
@@ -632,4 +630,28 @@ body:has(#studio:not([hidden])) #sidebar > .matrix-comms-label { margin-top: aut
     right: calc(var(--matrix-comms-rail) + 4px) !important;
     width: auto !important;
   }
+  body:not(.planet-mode):has(.studio-window[open]) #window-switcher {
+    display: flex;
+    position: fixed;
+    inset: calc(var(--header) + 1px) var(--matrix-comms-rail) auto 4px;
+    max-width: none;
+    z-index: 8510;
+    min-height: 31px;
+    padding: 2px;
+    border: 1px solid var(--matrix-frame);
+    background: #131f28;
+  }
+  body:not(.planet-mode):has(.studio-window[open]) .matrix-window.studio-window[open] {
+    top: calc(var(--header) + 34px) !important;
+  }
+}
+.matrix-fleet-identity .matrix-fleet-activity { display: none; }
+@container (max-width: 390px) {
+  .matrix-card[data-module=overview] .matrix-table :is(th,td):last-child { display: none; }
+  .matrix-fleet-identity .matrix-fleet-activity { display: block; }
+}
+.studio-window .matrix-ship-summary .studio-readings {
+  min-width: 0;
+  grid-template-columns: minmax(9ch,1fr) minmax(0,1.5fr);
+  align-items: baseline;
 }
