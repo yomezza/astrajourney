@@ -185,8 +185,14 @@ export function initExpedition() {
   const renderFinance = (...args) => financeFeature.renderFinance(...args);
   const renderPortal = (...args) => portalFeature.renderPortal(...args);
 
+  function openMarket(tab) {
+    marketsFeature.show(tab);
+    return Modules.open("market");
+  }
+
   Object.assign(Game, {
-    openModuleMarket() { marketsFeature.show("modules");Modules.open("market"); },
+    openMarket,
+    openModuleMarket() { return openMarket("modules"); },
     command,
     teleport(to) {
       return act(

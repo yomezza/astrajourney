@@ -6,7 +6,8 @@ import { node } from "../../ui/dom.js";
 import { lineIcon } from "../../ui/icons.js";
 import { Modules, UI } from "../../ui/runtime.js";
 import { labels, readings, shipLabel } from "./views.js";
-import { dashboard, dashboardReading } from "./dashboard.js";
+import { dashboard, dashboardReading, marketReading } from "./dashboard.js";
+import { Game } from "../runtime.js";
 import { loadWorld, world } from "../../core/world-store.js";
 
 const tr = (text) => I18n.t(text);
@@ -97,6 +98,7 @@ export function initStudio() {
   });
   const requests = new RequestScope();
   const mounted = new Map(), cards = new Map();
+  const marketSources = new WeakMap();
   let grid, mapRequest, dragID;
   let layout, revision, timer, request, writing, loading, dirty, failed, conflict, pendingWrite;
   let controls, status, actions, shipSignature;
@@ -173,10 +175,10 @@ export function initStudio() {
     const oldScroll = entry.data.querySelector(".matrix-table");
     const top = oldScroll?.scrollTop || 0, left = oldScroll?.scrollLeft || 0;
     const active = document.activeElement;
-    const ship = entry.data.contains(active) && active.dataset.shipContext;
+    const focus = entry.data.contains(active) && active.dataset.studioFocus;
     entry.data.replaceChildren(output);
     entry.data.querySelector(".matrix-table")?.scrollTo(left,top);
-    if (ship) entry.data.querySelector(`[data-ship-context="${CSS.escape(ship)}"]`)?.focus({preventScroll:true});
+    if (focus) entry.data.querySelector(`[data-studio-focus="${CSS.escape(focus)}"]`)?.focus({preventScroll:true});
   }
 
   function paintWindow(module, entry, rebuildControls = false) {
@@ -186,6 +188,16 @@ export function initStudio() {
     const ship = ownedShips().find(({id}) => id === shipID);
     if (dashboard[module.type]) {
       const focus = ownedShips().find(({id}) => id === (workspace().ship_id || fallback));
+      if (module.type === "market") {
+        const source = marketSources.get(module) || "local";
+        replaceReadings(entry, marketReading(focus,source,key => {
+          if (key === source) return;
+          marketSources.set(module,key);
+          for (const view of [cards.get(instanceID(module)),mounted.get(instanceID(module))])
+            if (view) paintWindow(module,view);
+        }));
+        return;
+      }
       const key = module.type === "map" && world.data ? focus?.star || 0 : null;
       if (key !== null && entry.mapSource === world.data && entry.mapFocus === key && !rebuildControls) return;
       entry.mapFocus = key;
@@ -294,7 +306,7 @@ export function initStudio() {
       card.dataset.module = module.type;
       const head = node("div",undefined,"matrix-card-bar");
       const label = node("h2",tr(types[module.type]));
-      label.draggable = true;
+      label.draggable = grid.classList.contains("matrix-editing");
       label.tabIndex = -1;
       label.ondragstart = event => {
         dragID = module.id;
@@ -334,10 +346,11 @@ export function initStudio() {
         changed();
       });
       resize.setAttribute("aria-pressed", String(!!module.wide));
-      tools.append(
+      const editing = node("div",undefined,"matrix-edit-actions");
+      editing.append(
         tool("left","Переместить карточку влево",() => reorder(module,index,index-1),index === 0),
         tool("right","Переместить карточку вправо",() => reorder(module,index,index+1),index === w.modules.length-1),
-        resize, float,
+        resize,
         tool("close","Убрать карточку",() => {
           w.modules.splice(index,1);
           mounted.delete(instanceID(module));
@@ -347,6 +360,7 @@ export function initStudio() {
           changed();
         })
       );
+      tools.append(editing,float);
       head.append(label,tools);
       const body = node("div",undefined,"matrix-card-body");
       const data = node("div");
@@ -357,6 +371,7 @@ export function initStudio() {
       body.append(title,data,settings);
       const target = dashboard[module.type]?.[1] || actionsFor[module.type];
       const action = button(actionTitles[target],() => {
+        if (target === "market") return Game.openMarket(marketSources.get(module) || "local");
         const opening = Modules.open(target);
         if (target === "galaxy") window.dispatchEvent(new Event("showgalaxy"));
         return opening;
@@ -369,10 +384,11 @@ export function initStudio() {
       paintWindow(module,entry,true);
       if (module.id === focus) label.focus();
     }
-    const add = button("+ " + tr("Добавить модуль"),() => openCatalog(controls.querySelector(".matrix-catalog")));
-    add.className = "matrix-add-card";
-    add.disabled = w.modules.length >= 16;
-    grid.append(add);
+    if (!w.modules.length) {
+      const add = button("+ " + tr("Добавить модуль"),() => openCatalog(controls.querySelector(".matrix-catalog")));
+      add.className = "matrix-add-card";
+      grid.append(add);
+    }
     requestMap();
   }
 
@@ -414,9 +430,14 @@ export function initStudio() {
     }
     toolbar.append(picker, select("Корабль пространства", shipOptions(w.ship_id), w.ship_id, selectShip));
 
-    const manage = node("details");
-    manage.open = controls.querySelector("details")?.open || false;
+    const manage = node("details",undefined,"matrix-manage");
+    manage.open = controls.querySelector(".matrix-manage")?.open || false;
     manage.append(node("summary",tr("Настроить пространство")));
+    manage.ontoggle = () => {
+      if (!manage.isConnected) return;
+      grid.classList.toggle("matrix-editing",manage.open);
+      for (const title of grid.querySelectorAll(".matrix-card-bar h2")) title.draggable = manage.open;
+    };
     const edit = node("form", undefined, "studio-controls");
     const name = node("input");
     name.value = w.name;
@@ -522,6 +543,7 @@ export function initStudio() {
     plus.setAttribute("aria-label", tr("Новое пространство"));
     tabline.append(tabs,plus);
     controls.replaceChildren(tabline,heading,manage,catalog);
+    grid.classList.toggle("matrix-editing",manage.open);
     drawCards();
     if (focusSelector) {
       const candidate = controls.querySelector(focusSelector);

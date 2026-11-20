@@ -301,44 +301,46 @@
         </form>
       </section>
       <section id="game" hidden>
-
-        <div class="toolbar matrix-pilot">
-          <div>
-            <div class="pilot-line">
-              <h1 id="welcome-name"></h1>
-              <div class="level-overview">
-                <small data-i18n="Стаж игрока">Стаж игрока</small
-                ><strong id="overview-level">1</strong
-                ><progress id="overview-xp" max="100" value="0"></progress
-                ><small id="overview-xp-text"></small
-                ><button id="overview-upgrade" data-i18n="Повысить стаж">
-                  Повысить стаж
-                </button>
+        <div class="matrix-overview">
+          <div class="toolbar matrix-pilot">
+            <div>
+              <div class="pilot-line">
+                <h1 id="welcome-name"></h1>
+                <div class="level-overview">
+                  <small data-i18n="Стаж игрока">Стаж игрока</small
+                  ><strong id="overview-level">1</strong
+                  ><progress id="overview-xp" max="100" value="0"></progress
+                  ><small id="overview-xp-text"></small
+                  ><button id="overview-upgrade" data-i18n="Повысить стаж">
+                    Повысить стаж
+                  </button>
+                </div>
               </div>
+              <p id="overview-company" class="muted"></p>
             </div>
-            <p id="overview-company" class="muted"></p>
           </div>
-        </div>
-        <div class="overview-stats">
-          <article class="panel">
-            <small><span data-i18n="БАЛАНС">БАЛАНС</span></small
-            ><strong id="credits">—</strong><small>CR</small
-            ><span id="balance-change" role="status" aria-live="polite"></span>
-          </article>
-          <article class="panel">
-            <small><span data-i18n="Местоположение">Местоположение</span></small
-            ><strong id="location">—</strong
-            ><small id="overview-region"></small>
-          </article>
-          <article class="panel">
-            <small
-              ><span data-i18n="Хронология Эдема">Хронология Эдема</span></small
-            ><strong id="star-date">—</strong
-            ><small
-              data-help="Год · день · импульс. 360 дней в году и 1000 импульсов в дне."
-              >ED / CHRONOLOGY</small
-            >
-          </article>
+          <div class="overview-stats">
+            <article class="panel">
+              <small><span data-i18n="БАЛАНС">БАЛАНС</span></small
+              ><strong id="credits">—</strong><small>CR</small
+              ><span id="balance-change" role="status" aria-live="polite"></span>
+            </article>
+            <article class="panel">
+              <small><span data-i18n="Местоположение">Местоположение</span></small
+              ><strong id="location">—</strong
+              ><small id="overview-region"></small>
+            </article>
+            <article class="panel">
+              <small
+                ><span data-i18n="Хронология Эдема">Хронология Эдема</span></small
+              ><strong
+                id="star-date"
+                tabindex="0"
+                data-help="Год · день · импульс. 360 дней в году и 1000 импульсов в дне."
+                >—</strong
+              >
+            </article>
+          </div>
         </div>
         <section id="studio" hidden></section>
         <p id="connection" class="muted"></p>
