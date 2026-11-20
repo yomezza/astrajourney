@@ -214,13 +214,18 @@ test("Mobile Matrix opens a usable full-width market and returns to its workspac
 });
 
 test("Docked production communications stay live next to workspace cards", async t => {
-  const g = await game(t,{signedIn:true});
+  const id = "42000000-0000-4000-8000-000000000001";
+  let saved = {revision:1,layout:{version:1,active:id,default:id,workspaces:[
+    {id,name:"Астра",ship_id:0,modules:[]},
+  ]}};
+  const g = await game(t,{signedIn:true,faults:[["workspaces",({req,json}) => {
+    if (req.method() === "GET") return json(saved);
+    const {revision,layout} = req.postDataJSON();
+    saved = {revision:revision+1,layout};
+    return json(saved);
+  }]]});
   const {page} = g;
   await g.ready();
-  g.handlers.set("workspaces",({req,json}) => {
-    const {revision,layout} = req.postDataJSON();
-    return json({revision:revision+1,layout});
-  });
   await page.setViewportSize({width:1440,height:900});
   const rail = page.locator(".matrix-comms");
   const chat = page.locator("#window-chat");
