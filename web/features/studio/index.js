@@ -8,6 +8,7 @@ import { Modules, UI } from "../../ui/runtime.js";
 import { labels, readings, shipLabel } from "./views.js";
 import { dashboard, dashboardReading, marketReading } from "./dashboard.js";
 import { Game } from "../runtime.js";
+import { openModule } from "../shell/module-routes.js";
 import { loadWorld, world } from "../../core/world-store.js";
 
 const tr = (text) => I18n.t(text);
@@ -177,7 +178,9 @@ export function initStudio() {
     const active = document.activeElement;
     const focus = entry.data.contains(active) && active.dataset.studioFocus;
     entry.data.replaceChildren(output);
-    entry.data.querySelector(".matrix-table")?.scrollTo(left,top);
+    const scroll = entry.data.querySelector(".matrix-table");
+    scroll?.scrollTo(left,top);
+    if (active === oldScroll) scroll?.focus({preventScroll:true});
     if (focus) entry.data.querySelector(`[data-studio-focus="${CSS.escape(focus)}"]`)?.focus({preventScroll:true});
   }
 
@@ -372,9 +375,7 @@ export function initStudio() {
       const target = dashboard[module.type]?.[1] || actionsFor[module.type];
       const action = button(actionTitles[target],() => {
         if (target === "market") return Game.openMarket(marketSources.get(module) || "local");
-        const opening = Modules.open(target);
-        if (target === "galaxy") window.dispatchEvent(new Event("showgalaxy"));
-        return opening;
+        return openModule(target);
       });
       body.append(action);
       card.append(head,body);

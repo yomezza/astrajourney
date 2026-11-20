@@ -11,15 +11,19 @@ export function initWindows() {
   const windows = new Map(),
     links = new Map();
   let z = 40,
-    resetting = false;
+    resetting = false,
+    activeWindow;
+  const switcherHost = document.getElementById("window-switcher");
   const tr = (s) => I18n.t(s),
     read = (key, fallback) => Preferences.read(key, fallback);
 
   const node = createNode;
   const narrow = w => w.matrix && matchMedia("(max-width: 700px)").matches;
   function active(w) {
-    for (const entry of windows.values())
-      entry.dialog.classList.toggle("window-active", entry === w);
+    if (activeWindow === w) return;
+    activeWindow?.dialog.classList.remove("window-active");
+    activeWindow = w;
+    w.dialog.classList.add("window-active");
     if (z >= 8000) {
       const ordered = [...windows.values()].sort(
         (a, b) => Number(a.dialog.style.zIndex) - Number(b.dialog.style.zIndex),
@@ -31,19 +35,45 @@ export function initWindows() {
     switcher();
   }
   function switcher() {
-    const host = document.getElementById("window-switcher");
-    if (!host) return;
-    host.replaceChildren();
+    if (!switcherHost) return;
     for (const [id, w] of windows) {
-      if (!w.dialog.open) continue;
-      const b = node("button", w.title);
-      b.classList.toggle(
-        "active",
-        w.dialog.classList.contains("window-active"),
-      );
-      b.onclick = () => Modules.focus(id);
-      host.append(b);
+      if (!w.dialog.open) {
+        w.switchButton?.remove();
+        w.switchButton = null;
+        continue;
+      }
+      if (!w.switchButton) {
+        const button = node("button");
+        button.type = "button";
+        button.onclick = () => Modules.focus(id);
+        w.switchButton = button;
+        switcherHost.append(button);
+      }
+      const button = w.switchButton;
+      if (button.textContent !== w.title) {
+        button.textContent = w.title;
+        button.title = w.title;
+      }
+      button.classList.toggle("active", activeWindow === w);
+      button.setAttribute("aria-pressed", String(activeWindow === w));
     }
+  }
+  function closeDialog(w) {
+    const restoreFocus = w.dialog.contains(document.activeElement);
+    w.dialog.close();
+    if (activeWindow === w) {
+      w.dialog.classList.remove("window-active");
+      activeWindow = null;
+      let next;
+      for (const candidate of windows.values())
+        if (candidate.dialog.open && !candidate.dialog.inert &&
+            (!next || Number(candidate.dialog.style.zIndex) > Number(next.dialog.style.zIndex)))
+          next = candidate;
+      if (next) active(next);
+    }
+    switcher();
+    if (restoreFocus && activeWindow && !activeWindow.dialog.contains(document.activeElement))
+      activeWindow.bar.focus({preventScroll:true});
   }
   function save(id, w) {
     if (resetting || !w.dialog.open || w.maximized || narrow(w)) return;
@@ -230,12 +260,11 @@ export function initWindows() {
       const hide = () => {
         if (!d.open) return;
         save(id, w);
-        d.close();
+        closeDialog(w);
         w.loading.cancel();
         document
           .querySelectorAll(`:is(#sidebar,#matrix-mobile) [data-open="${id}"]`)
           .forEach((b) => b.classList.remove("module-open"));
-        switcher();
         window.dispatchEvent(new CustomEvent("moduleclose", { detail: id }));
         if (
           w.transient &&
@@ -282,6 +311,7 @@ export function initWindows() {
         if (d.open && !e.target.closest("button")) maximize();
       };
       let drag, resize;
+      d.addEventListener("focusin", () => { if (d.open) active(w); });
       d.addEventListener("pointerdown", (e) => {
         active(w);
         if (w.pinned || w.maximized || narrow(w) || e.button !== 0) return;
@@ -420,7 +450,7 @@ export function initWindows() {
     destroy(id) {
       const w = windows.get(id);
       if (!w) return;
-      if (w.dialog.open) w.dialog.close();
+      if (w.dialog.open) closeDialog(w);
       w.life.dispose();
       for (const peer of [...(links.get(id) || [])])
         Modules.link(id, peer, false);
@@ -454,7 +484,8 @@ export function initWindows() {
     },
     focus: (id) => {
       const w = windows.get(id);
-      if (w?.dialog.open) {
+      if (w?.dialog.open && !w.dialog.inert &&
+          (w.audience !== "admin" || Session.data.state?.user.role === "admin")) {
         if (w.minimized) w.minimize(false);
         active(w);
         w.bar.focus();

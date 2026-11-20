@@ -51,7 +51,9 @@ export function createLocalMarket({
       link.classList.toggle("selected", offer?.resource === o.resource);
       return [link, num(o.stock), money(o.buy), money(o.sell)];
     });
-    list.append(UI.table(["Ресурс", "В наличии", "Купить", "Продать"], rows));
+    list.append(UI.table([
+      "Ресурс", ["В наличии","table-number"], ["Купить","table-number"], ["Продать","table-number"],
+    ], rows, { label: "Локальный рынок", className: "table-wrap station-prices" }));
     if (offer) tradeForm(layout, offer);
     root.append(layout);
   };
