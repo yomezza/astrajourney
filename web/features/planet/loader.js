@@ -25,6 +25,13 @@ export const adminPlanetSurface = (star, planet, action) =>
   loadPlanet()
     .then((p) => p.admin(star, planet, action))
     .catch((e) => notify(e.message, "error"));
+export function openColonies() {
+  Modules.create("colonies", "Колонии", 950, 700);
+  return Modules.load("colonies", async (signal) => {
+    const p = await loadPlanet();
+    if (!signal.aborted) return p.loadManager(false);
+  });
+}
 export function initPlanetLoader() {
   let restoredEpoch = -1;
   window.addEventListener("gamedata", async () => {
@@ -57,23 +64,4 @@ export function initPlanetLoader() {
     }
   });
 
-  document.addEventListener(
-    "click",
-    (event) => {
-      if (
-        event.target.closest(
-          '#sidebar [data-open="galaxy"],#current-system-map',
-        )
-      )
-        scenes.planet?.dismiss(false);
-    },
-    true,
-  );
-  document.getElementById("nav-colonies").onclick = () => {
-    Modules.create("colonies", "Колонии", 950, 700);
-    return Modules.load("colonies", async (signal) => {
-      const p = await loadPlanet();
-      if (!signal.aborted) return p.loadManager(false);
-    });
-  };
 }

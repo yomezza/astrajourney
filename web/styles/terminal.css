@@ -4008,7 +4008,7 @@ body:has(#sidebar.collapsed:not([hidden])) main {
 }
 #window-market
   .module-content
-  button:not(.cargo-tile):not(.favorite-toggle):not(.picker-button) {
+  button:not(.cargo-tile, .favorite-toggle, .picker-button, [role=tab]) {
   min-height: 26px;
   padding: 3px 9px;
   border-radius: 1px;
@@ -4021,25 +4021,10 @@ body:has(#sidebar.collapsed:not([hidden])) main {
 }
 #window-market
   .module-content
-  button:not(.cargo-tile):not(.favorite-toggle):hover {
+  button:not(.cargo-tile, .favorite-toggle, [role=tab]):hover {
   background: #263f4b;
   color: #d4eeed;
   border-color: #6d9c9e;
-}
-#window-market .tabs {
-  gap: 4px;
-  flex-wrap: wrap;
-  margin-bottom: 12px;
-}
-#window-market .tabs button {
-  flex: 0 0 auto;
-  margin: 0;
-  border-bottom: 2px solid #405966;
-}
-#window-market .tabs button.active {
-  background: #243d46;
-  border-color: #74b6b2;
-  color: #d5f2eb;
 }
 #window-market .module-content input:not([type="checkbox"]) {
   height: 28px;

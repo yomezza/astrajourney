@@ -101,6 +101,7 @@ test("changing tabs ignores an obsolete global market response", async (t) => {
   );
   await g.page.locator('#window-market [data-tab="global"]').click();
   await requested;
+  assert.equal(await g.page.locator("#window-market [role=tabpanel]").getAttribute("aria-busy"),"true");
   await g.page.locator('#window-market [data-tab="data"]').click();
   await g.page.waitForFunction(
     () =>
@@ -120,6 +121,16 @@ test("changing tabs ignores an obsolete global market response", async (t) => {
     "true",
   );
   assert.equal(await g.page.locator("#trade-quantity").count(), 0);
+  assert.equal(await g.page.locator("#window-market [role=tabpanel]").getAttribute("aria-busy"),null);
+  assert.ok(await g.page.locator('#window-market [data-tab="data"]').evaluate(el => el === document.activeElement));
+
+  g.handlers.set("market/global", ({json}) => json({error:"Market unavailable"},503));
+  const global = g.page.locator('#window-market [data-tab="global"]');
+  await global.click();
+  await g.page.locator("#toast").getByText("Market unavailable",{exact:true}).waitFor();
+  assert.equal(await g.page.locator('#window-market [data-tab="data"]').getAttribute("aria-selected"),"true");
+  assert.equal(await g.page.locator("#window-market [role=tabpanel]").getAttribute("aria-busy"),null);
+  assert.ok(await global.evaluate(el => el === document.activeElement));
 });
 
 test("station personalization is a view projection and keeps the raw snapshot intact", async (t) => {
@@ -190,4 +201,5 @@ test("market tabs support keyboard navigation and panel relationships", async (t
     await g.page.locator('#window-market [role="tab"][tabindex="0"]').count(),
     1,
   );
+  assert.ok(await g.page.locator('#window-market [data-tab="global"]').evaluate(el => el === document.activeElement));
 });
