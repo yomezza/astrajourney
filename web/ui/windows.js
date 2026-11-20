@@ -5,6 +5,7 @@ import { Preferences } from "../core/preferences.js";
 import { I18n } from "../core/i18n.js";
 import { Modules } from "./runtime.js";
 import { node as createNode } from "./dom.js";
+import { lineIcon } from "./icons.js";
 
 export function initWindows() {
   const windows = new Map(),
@@ -117,6 +118,11 @@ export function initWindows() {
       d.id = "window-" + id;
       const matrix = id !== "chat" && id !== "notifications" && !id.startsWith("chat-");
       d.classList.toggle("matrix-window",matrix);
+      if (matrix) {
+        pin.replaceChildren(lineIcon("pin"));
+        max.replaceChildren(lineIcon("maximize"));
+        close.replaceChildren(lineIcon("close"));
+      }
       h.id = "title-" + id;
       h.dataset.i18n = title;
       d.setAttribute("aria-labelledby", h.id);
@@ -127,13 +133,14 @@ export function initWindows() {
         [close, "Закрыть"],
       ]) {
         b.type = "button";
-        b.dataset.help = label;
+        if (!matrix || b !== close) b.dataset.help = label;
         b.dataset.label = label;
         b.setAttribute("aria-label", tr(label));
       }
       pin.setAttribute("aria-pressed", "false");
       if (options.layout) {
         const minimize = node("button", "−");
+        if (matrix) minimize.replaceChildren(lineIcon("minimize"));
         minimize.type = "button";
         minimize.dataset.label = "Свернуть окно";
         minimize.setAttribute("aria-label", tr(minimize.dataset.label));
@@ -212,7 +219,7 @@ export function initWindows() {
         active(w);
         bar.focus();
         document
-          .querySelectorAll(`#sidebar [data-open="${id}"]`)
+          .querySelectorAll(`:is(#sidebar,#matrix-mobile) [data-open="${id}"]`)
           .forEach((b) => b.classList.add("module-open"));
         return w.loading.run(async (signal) => {
           if (prepare) return prepare(signal);
@@ -226,7 +233,7 @@ export function initWindows() {
         d.close();
         w.loading.cancel();
         document
-          .querySelectorAll(`#sidebar [data-open="${id}"]`)
+          .querySelectorAll(`:is(#sidebar,#matrix-mobile) [data-open="${id}"]`)
           .forEach((b) => b.classList.remove("module-open"));
         switcher();
         window.dispatchEvent(new CustomEvent("moduleclose", { detail: id }));
@@ -258,7 +265,8 @@ export function initWindows() {
         }
         w.maximized = !w.maximized;
         d.classList.toggle("maximized", w.maximized);
-        max.textContent = w.maximized ? "▣" : "□";
+        if (matrix) max.replaceChildren(lineIcon(w.maximized ? "restore" : "maximize"));
+        else max.textContent = w.maximized ? "▣" : "□";
         save(id, w);
       };
       pin.onclick = () => {

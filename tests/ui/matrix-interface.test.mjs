@@ -59,11 +59,27 @@ test("Narrow layouts keep full game controls and the profile reachable for admin
     await catalog.getByRole("button",{name:label,exact:true}).click();
     const dialog = page.locator("#window-"+id);
     await dialog.locator(content).first().waitFor();
+    const close = dialog.getByRole("button",{name:"Закрыть",exact:true});
+    const icon = await close.locator(".line-icon").boundingBox();
+    const button = await close.boundingBox();
+    assert.ok(button.width >= 40 && icon.width === icon.height);
+    assert.ok(Math.abs(icon.x + icon.width / 2 - button.x - button.width / 2) <= 1);
+    assert.ok(Math.abs(icon.y + icon.height / 2 - button.y - button.height / 2) <= 1);
     const layout = await dialog.locator(".module-content").evaluate(el => ({
       width:el.clientWidth, scroll:el.scrollWidth,
     }));
     assert.ok(layout.scroll <= layout.width + 1, id + " overflows its sheet");
-    await dialog.getByRole("button",{name:"Закрыть",exact:true}).click();
+    if (id === "research" || id === "tasks") {
+      const grid = dialog.locator(id === "research" ? ".research-layout > aside" : ".planner form").first();
+      const columns = await grid.evaluate(el => getComputedStyle(el).gridTemplateColumns.split(" "));
+      assert.equal(columns.length, 1, id + " compresses controls side by side");
+    }
+    if (id === "research") {
+      const controls = await dialog.locator(".research-layout .table-wrap").evaluate(el =>
+        [el.clientWidth, el.scrollWidth]);
+      assert.ok(controls[1] <= controls[0] + 1, "mining action buttons require sideways scrolling");
+    }
+    await close.click();
   }
   assert.equal(g.requests.filter(r => r.method === "POST").length,0);
 });

@@ -173,7 +173,6 @@ body:has(#game:not([hidden])) main {
 }
 .matrix-workspace-title { min-width: 0; overflow-wrap: anywhere; }
 .matrix-workspace-heading h1 { margin: 0; font-size: clamp(18px,2.3vw,28px); }
-.matrix-edition { color: var(--accent); font: 10px ui-monospace,monospace; letter-spacing: .12em; }
 .matrix-workspace-heading label { color: var(--muted); font-size: 10px; }
 #studio .matrix-add {
   background: #a56c38;

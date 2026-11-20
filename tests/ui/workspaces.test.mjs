@@ -195,7 +195,7 @@ test("Matrix command deck loads presets and persists card order and width", asyn
   await g.ready();
   assert.equal(await grid.locator(".matrix-card").first().getAttribute("data-module"),"operations");
   const map = grid.locator('[data-module="map"]');
-  await map.getByRole("button",{name:"Открыть игровой модуль"}).click();
+  await map.getByRole("button",{name:"Открыть карту"}).click();
   await page.locator("#window-galaxy[open]").waitFor();
   await page.evaluate(() => window.__testApp.Modules.close("galaxy"));
   for (const width of [1440, 1024, 768, 390, 320]) {

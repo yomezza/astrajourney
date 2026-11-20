@@ -3,6 +3,7 @@ import { I18n } from "../../core/i18n.js";
 import { Preferences } from "../../core/preferences.js";
 import { RequestScope, Session } from "../../core/session.js";
 import { node } from "../../ui/dom.js";
+import { lineIcon } from "../../ui/icons.js";
 import { Modules, UI } from "../../ui/runtime.js";
 import { labels, readings, shipLabel } from "./views.js";
 import { dashboard, dashboardReading } from "./dashboard.js";
@@ -14,6 +15,10 @@ const activeWorkspace = (layout) => layout.workspaces.find(({ id }) => id === la
 const ownedShips = () => Session.data.fleet?.ships || [];
 const types = {...labels, ...Object.fromEntries(Object.entries(dashboard).map(([type,[label]]) => [type,label]))};
 const actionsFor = {fleet:"ship",cargo:"cargo",mining:"research"};
+const actionTitles = {
+  ship:"Открыть корабль", cargo:"Открыть трюм", research:"Открыть добычу",
+  tasks:"Открыть планировщик", galaxy:"Открыть карту", market:"Открыть рынок",
+};
 const starter = ["overview","operations","map","market","fleet"];
 const presets = [
   ["Командование", starter],
@@ -306,21 +311,22 @@ export function initStudio() {
         dragID = null;
         reorder(moving,from,index);
       };
-      const tool = (glyph, caption, run, disabled = false) => {
-        const b = button(glyph,run,disabled);
+      const tool = (icon, caption, run, disabled = false) => {
+        const b = button("",run,disabled);
+        b.append(lineIcon(icon));
         b.title = tr(caption);
         b.setAttribute("aria-label",tr(caption));
         return b;
       };
       const tools = node("div",undefined,"matrix-card-actions");
-      const float = tool("□","Открыть отдельное окно",() => {
+      const float = tool("maximize","Открыть отдельное окно",() => {
         if (mounted.has(instanceID(module))) return Modules.focus(instanceID(module));
         module.view = "window";
         module.geometry ||= legacyGeometry(module.type);
         mount(module);
         changed();
       });
-      const resize = tool("⇔","Широкая карточка",() => {
+      const resize = tool("wide","Широкая карточка",() => {
         if (module.wide) delete module.wide;
         else module.wide = true;
         card.classList.toggle("matrix-wide", !!module.wide);
@@ -329,10 +335,10 @@ export function initStudio() {
       });
       resize.setAttribute("aria-pressed", String(!!module.wide));
       tools.append(
-        tool("←","Переместить карточку влево",() => reorder(module,index,index-1),index === 0),
-        tool("→","Переместить карточку вправо",() => reorder(module,index,index+1),index === w.modules.length-1),
+        tool("left","Переместить карточку влево",() => reorder(module,index,index-1),index === 0),
+        tool("right","Переместить карточку вправо",() => reorder(module,index,index+1),index === w.modules.length-1),
         resize, float,
-        tool("×","Убрать карточку",() => {
+        tool("close","Убрать карточку",() => {
           w.modules.splice(index,1);
           mounted.delete(instanceID(module));
           Modules.destroy(instanceID(module));
@@ -349,8 +355,8 @@ export function initStudio() {
       if (!dashboard[module.type]) settings.append(node("summary",tr("Настройки карточки")),binding);
       const title = node("h3",undefined,"matrix-context-title");
       body.append(title,data,settings);
-      const action = button("Открыть игровой модуль",() => {
-        const target = dashboard[module.type]?.[1] || actionsFor[module.type];
+      const target = dashboard[module.type]?.[1] || actionsFor[module.type];
+      const action = button(actionTitles[target],() => {
         const opening = Modules.open(target);
         if (target === "galaxy") window.dispatchEvent(new Event("showgalaxy"));
         return opening;
@@ -504,16 +510,15 @@ export function initStudio() {
     filter();
     catalog.append(search,modules);
     const heading = node("div",undefined,"matrix-workspace-heading");
-    const title = node("h1",w.name);
-    const context = node("small","MATRIX × STUDIO","matrix-edition");
-    const titleBlock = node("div",undefined,"matrix-workspace-title");
-    titleBlock.append(title,context);
+    const title = node("h1",w.name,"matrix-workspace-title");
     const open = button("Добавить модуль",() => openCatalog(catalog),w.modules.length >= 16);
     open.classList.add("matrix-add");
     toolbar.append(open);
-    heading.append(titleBlock,toolbar);
+    heading.append(title,toolbar);
     const tabline = node("div",undefined,"matrix-tabline");
-    const plus = button("+",() => create(false),layout.workspaces.length >= 10);
+    const plus = button("",() => create(false),layout.workspaces.length >= 10);
+    plus.append(lineIcon("plus"));
+    plus.classList.add("matrix-new-workspace");
     plus.setAttribute("aria-label", tr("Новое пространство"));
     tabline.append(tabs,plus);
     controls.replaceChildren(tabline,heading,manage,catalog);

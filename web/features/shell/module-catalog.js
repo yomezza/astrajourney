@@ -2,23 +2,24 @@ import { Session } from "../../core/session.js";
 import { I18n } from "../../core/i18n.js";
 import { Modules } from "../../ui/runtime.js";
 import { node } from "../../ui/dom.js";
+import { lineIcon } from "../../ui/icons.js";
 
 const groups = [
   ["Навигация и флот", [
-    ["galaxy","Галактическая карта","✧"], ["system","Карта текущей системы","◎"],
-    ["ship","Корабль","◇"], ["cargo","Трюм","▣"], ["portal","Портал Эдема","◈"],
+    ["galaxy","Галактическая карта"], ["system","Карта текущей системы"],
+    ["ship","Корабль"], ["cargo","Трюм"], ["portal","Портал Эдема"],
   ]],
   ["Операции", [
-    ["research","Добыча","⌁"], ["tasks","Планировщик задач","≡"],
-    ["logistics","Логистика","▦"], ["market","Рынок","⇄"], ["finance","История финансов","◫"],
+    ["research","Добыча"], ["tasks","Планировщик задач"],
+    ["logistics","Логистика"], ["market","Рынок"], ["finance","История финансов"],
   ]],
   ["Развитие", [
-    ["studies","Исследования","⌾"], ["colonies","Колонии","⬡"],
-    ["corporations","Корпорация","◇"], ["guide","Руководство пилота","▤"],
+    ["studies","Исследования"], ["colonies","Колонии"],
+    ["corporations","Корпорация"], ["guide","Руководство пилота"],
   ]],
   ["Связь и настройки", [
-    ["chat","Чат","▧"], ["notifications","Уведомления","♧"],
-    ["profile","Профиль игрока","◈"], ["settings","Настройки","⚙"], ["ideas","Предложить идею","✧"],
+    ["chat","Чат"], ["notifications","Уведомления"],
+    ["profile","Профиль игрока"], ["settings","Настройки"], ["ideas","Предложить идею"],
   ]],
 ];
 const tr = text => I18n.t(text);
@@ -32,6 +33,7 @@ export function initModuleCatalog() {
   const title = node("h2");
   title.id = "matrix-launcher-title";
   const close = node("button","×");
+  close.replaceChildren(lineIcon("close"));
   close.type = "button";
   close.onclick = () => dialog.close();
   header.append(title,close);
@@ -68,9 +70,9 @@ export function initModuleCatalog() {
     const term = search.value.trim().toLocaleLowerCase();
     let sections = groups.slice();
     if (Session.data.state?.user.role === "admin")
-      sections.push(["Управление", [["administration","Панель администратора","⌘"]]]);
+      sections.push(["Управление", [["administration","Панель администратора"]]]);
     const items = new Map(sections.flatMap(([,entries]) => entries.map(entry => [entry[0],entry])));
-    const open = Modules.openWindows().map(({id,title}) => items.get(id) || [id,title,"▢"]);
+    const open = Modules.openWindows().map(({id,title}) => items.get(id) || [id,title]);
     if (open.length) {
       const openIDs = new Set(open.map(([id]) => id));
       sections = [
@@ -85,12 +87,12 @@ export function initModuleCatalog() {
       const section = node("section",undefined,"matrix-launcher-group");
       section.append(node("h3",tr(label)));
       const cards = node("div",undefined,"matrix-launcher-cards");
-      for (const [id,name,glyph] of matches) {
+      for (const [id,name] of matches) {
         const card = node("button",undefined,"matrix-launcher-card");
         card.type = "button";
         if (id === "administration") card.dataset.admin = "";
-        const icon = node("span",glyph,"matrix-launcher-icon");
-        icon.setAttribute("aria-hidden","true");
+        const icon = node("span",undefined,"matrix-launcher-icon");
+        icon.append(lineIcon(id) || lineIcon("maximize"));
         card.append(icon,node("span",tr(name)));
         card.onclick = () => launch(id);
         cards.append(card);

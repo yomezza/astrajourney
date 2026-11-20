@@ -7,13 +7,42 @@
   --matrix-inset: 12px;
 }
 
-#matrix-catalog-shortcut {
-  min-width: 32px;
-  margin: 0;
-  padding: 0 8px;
-  font-size: 18px;
+.line-icon {
+  display: block;
+  width: 16px;
+  height: 16px;
+  margin-inline: auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.65;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+#matrix-catalog-shortcut,
+#studio-shortcut,
+#profile-menu > summary,
+#admin-menu {
   border-radius: 0;
 }
+#matrix-catalog-shortcut,
+#studio-shortcut {
+  width: 34px;
+  height: 34px;
+  margin: 0;
+  padding: 0;
+}
+.matrix-window .window-actions button,
+#studio .matrix-card-actions button,
+#studio .matrix-new-workspace,
+.matrix-launcher-head button {
+  display: inline-grid;
+  place-items: center;
+}
+#studio .matrix-card-actions button:disabled { opacity: .35; }
+#studio .matrix-card-actions button .line-icon { width: 14px; height: 14px; }
+#studio .matrix-new-workspace { width: 30px; min-height: 31px; padding: 0; }
+#auth .password-toggle[aria-pressed=true] { color: var(--focus); }
 
 .matrix-window {
   border: 1px solid var(--matrix-frame);
@@ -71,6 +100,11 @@
   border-color: var(--matrix-frame);
   background: var(--matrix-field);
 }
+.matrix-window .module-content button.picker-button {
+  border-radius: 0;
+  border-color: var(--matrix-frame);
+}
+.matrix-window .module-content button.picker-button .picker-label { min-width: 0; }
 .matrix-window .module-content :is(.panel,.table-wrap,.save-bar) { border-radius: 0; }
 .matrix-window .table-wrap {
   max-width: 100%;
@@ -174,7 +208,9 @@
   border: 1px solid var(--matrix-frame);
 }
 #planet-host .visit-tools button {
+  min-width: 32px;
   min-height: 32px;
+  border-radius: 0;
   border-color: var(--matrix-frame);
 }
 #planet-host .visit-viewport { border: 1px solid var(--matrix-frame); }
@@ -188,10 +224,10 @@
 #window-galaxy .map-inspector { background: var(--matrix-field); }
 #window-galaxy :is(
   .map-toolbar button, .map-display-menu > summary, .map-inspector .tabs button,
-  .map-inspector .object-row, .map-inspector .fleet-card, .map-tools, .map-legend
+  .map-inspector .object-row, .map-inspector .fleet-card, .map-tools, .map-legend,
+  .atlas-modes, .atlas-modes button, .atlas-selection, .atlas-selection button,
+  .map-tools button
 ) { border-radius: 0; }
-#window-galaxy .map-scope-tabs { border-radius: 0; }
-#window-galaxy .map-scope-tabs button { border-radius: 0; }
 
 @media (max-width: 700px) {
   .matrix-window:not(.studio-minimized)[open] {
@@ -261,6 +297,8 @@
   }
   #matrix-mobile button + button { border-left: 1px solid #304956; }
   #matrix-mobile button span:first-child { color: var(--accent); font-size: 17px; }
+  #matrix-mobile button + button { border-left-color: var(--matrix-frame); }
+  #matrix-mobile button.module-open { background: var(--matrix-bar); }
   .matrix-window:not(.studio-minimized)[open] { bottom: calc(52px + env(safe-area-inset-bottom)) !important; }
   #planet-host { padding: 4px; }
   #planet-host .visit-tools { padding: 4px; gap: 4px; }
@@ -269,7 +307,8 @@
 .matrix-window .module-content :is(
   .detail-panel, .research-layout > aside, .studies-current, .ship-projection,
   .logistics-hold, .planner-stats > div, .administration-card,
-  .galaxy-admin-detail, .ideas-history
+  .galaxy-admin-detail, .ideas-history, .production-card, .planner-sidebar,
+  .planner-compose, .planner-item, .planner-ship
 ) {
   border-radius: 0;
   border-color: var(--matrix-frame);
@@ -285,6 +324,7 @@
 .matrix-window .module-content :is(.planner-emblem,.administration-emblem,.ideas-mark) {
   color: var(--accent);
 }
+.matrix-window .administration-emblem .line-icon { width: 24px; height: 24px; }
 .matrix-window .module-content :is(.planner-stats,.pilot-profile-stats) { gap: 6px; }
 
 @media (max-width: 700px) {
@@ -335,4 +375,24 @@ body:has(#game:not([hidden])) #sidebar:not(.collapsed) .sidebar-title { justify-
 @media (max-width: 760px) {
   #sidebar .matrix-nav-group { display: none; }
   #sidebar > button.chat-bottom { margin-top: auto; }
+}
+@media (max-width: 410px) {
+  #window-research .research-layout > aside,
+  #window-tasks .planner form { grid-template-columns: minmax(0,1fr); }
+  #window-research .research-layout table { table-layout: fixed; width: 100%; min-width: 0; }
+  #window-research .research-layout :is(th,td) { padding-inline: 5px; overflow-wrap: anywhere; }
+  #window-research .research-layout th:last-child { width: 36%; }
+  #window-research .research-layout .inline-controls { justify-content: flex-start; }
+  #window-research .research-layout .inline-controls button {
+    min-width: 0;
+    max-width: 100%;
+    margin: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  #window-tasks .planner-compose { padding: 10px; }
+  #window-tasks .planner-heading { align-items: start; }
+  #window-tasks .planner-emblem { display: none; }
+  #window-ship .ship-projection { --ship-hologram-height: 186px; }
+  .matrix-window .module-content .tabs button { min-height: 32px; }
 }

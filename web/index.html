@@ -56,8 +56,8 @@
         >◈ ASTRA JOURNEY <small>EDEM / <span data-game-version>…</span></small></a
       >
       <div class="header-actions">
-        <button id="matrix-catalog-shortcut" type="button" data-label="Каталог игровых модулей" aria-label="Каталог игровых модулей" data-help="Каталог игровых модулей" hidden>⌕</button>
-        <button id="studio-shortcut" type="button" data-label="Рабочие пространства" aria-label="Рабочие пространства" hidden>▥</button>
+        <button id="matrix-catalog-shortcut" type="button" data-label="Каталог игровых модулей" aria-label="Каталог игровых модулей" data-help="Каталог игровых модулей" data-matrix-icon="catalog" hidden></button>
+        <button id="studio-shortcut" type="button" data-label="Рабочие пространства" aria-label="Рабочие пространства" data-matrix-icon="studio" hidden></button>
         <div
           id="window-switcher"
           data-label="Открытые окна"
@@ -114,7 +114,7 @@
       <span class="matrix-nav-group" data-i18n="Навигация и флот">Навигация и флот</span>
       <details id="maps-navigation" class="maps-navigation">
         <summary data-nav="Карты">
-          <span class="nav-icon">▤</span
+          <span class="nav-icon" data-matrix-icon="galaxy"></span
           ><span class="nav-label" data-i18n="Карты">Карты</span>
         </summary>
         <button
@@ -134,7 +134,7 @@
           id="current-system-map"
           data-nav="Карта текущей системы"
         >
-          <span class="nav-icon">☉</span
+          <span class="nav-icon" data-matrix-icon="system"></span
           ><span class="nav-label" data-i18n="Карта текущей системы"
             >Карта текущей системы</span
           >
@@ -186,7 +186,7 @@
       >
       <span class="matrix-nav-group" data-i18n="Развитие">Развитие</span>
       <button type="button" id="nav-colonies" data-nav="Колонии">
-        <span class="nav-icon">⬡</span
+        <span class="nav-icon" data-matrix-icon="colonies"></span
         ><span class="nav-label" data-i18n="Колонии">Колонии</span>
       </button>
       <button
@@ -350,10 +350,10 @@
       ><span>ASTRA JOURNEY · <span data-game-version>…</span></span>
     </footer>
     <nav id="matrix-mobile" aria-label="Модули" data-label="Модули" hidden>
-      <button type="button" data-studio><span aria-hidden="true">▥</span><span data-i18n="Пространства">Пространства</span></button>
-      <button type="button" data-open="galaxy"><span aria-hidden="true">✧</span><span data-i18n="Карты">Карты</span></button>
-      <button type="button" data-launcher><span aria-hidden="true">⌕</span><span data-i18n="Модули">Модули</span></button>
-      <button type="button" data-open="chat"><span aria-hidden="true">▧</span><span data-i18n="Чат">Чат</span></button>
+      <button type="button" data-studio><span data-matrix-icon="studio"></span><span data-i18n="Пространства">Пространства</span></button>
+      <button type="button" data-open="galaxy"><span data-matrix-icon="galaxy"></span><span data-i18n="Карты">Карты</span></button>
+      <button type="button" data-launcher><span data-matrix-icon="catalog"></span><span data-i18n="Модули">Модули</span></button>
+      <button type="button" data-open="chat"><span data-matrix-icon="chat"></span><span data-i18n="Чат">Чат</span></button>
     </nav>
     <div id="toast" role="status" hidden></div>
     <div id="tooltip" role="tooltip" hidden></div>
