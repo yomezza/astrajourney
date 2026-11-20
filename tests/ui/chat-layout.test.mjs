@@ -47,28 +47,44 @@ async function chat(t) {
               : [];
     return route.fulfill({ json: body });
   });
-  let sockets = 0;
-  await g.page.routeWebSocket("**/chat/ws/v1", (ws) => {
-    sockets++;
-    ws.send(
-      JSON.stringify({
-        type: "hello",
-        health: { ready: true, cosmic: true, planet: true },
-      }),
-    );
-    ws.onMessage((raw) => {
-      const c = JSON.parse(raw);
-      ws.send(
-        JSON.stringify({ type: "ack", request_id: c.request_id, result: {} }),
-      );
-    });
+  await g.ready();
+  await g.page.evaluate(() => {
+    const native = window.WebSocket;
+    window.chatSocketCount = 0;
+    window.WebSocket = class extends native {
+      constructor(url,...args) {
+        if (new URL(url).pathname !== "/chat/ws/v1") return new native(url,...args);
+        window.chatSocketCount++;
+        const socket = {
+          readyState: native.CONNECTING,
+          send(raw) {
+            const command = JSON.parse(raw);
+            queueMicrotask(() => socket.onmessage?.({data:JSON.stringify({
+              type:"ack",request_id:command.request_id,result:{},
+            })}));
+          },
+          close() {
+            socket.readyState = native.CLOSED;
+            socket.onclose?.({code:1000,wasClean:true});
+          },
+        };
+        queueMicrotask(() => {
+          socket.readyState = native.OPEN;
+          socket.onmessage?.({data:JSON.stringify({
+            type:"hello",health:{ready:true,cosmic:true,planet:true},
+          })});
+        });
+        return socket;
+      }
+    };
   });
   g.data.state.chat_enabled = true;
   await g.refresh();
   await g.open("chat");
   await g.page.locator(".chat-msg-text").first().waitFor();
-  assert.equal(sockets,1);
-  return {...g, sockets: () => sockets};
+  const sockets = () => g.page.evaluate(() => window.chatSocketCount);
+  assert.equal(await sockets(),1);
+  return {...g,sockets};
 }
 test("chat follows v13 spacing, shared header and compact menus for click and right-click", async (t) => {
   const g = await chat(t),
@@ -279,5 +295,5 @@ test("Planet Mode reuses a docked chat, draft and transport, then restores home 
     true,
   );
   assert.equal(await g.page.locator(".chat-root").count(), 1);
-  assert.equal(g.sockets(), 1);
+  assert.equal(await g.sockets(), 1);
 });

@@ -407,16 +407,30 @@ export function initStudio() {
 
   function mount(module) {
     const key = instanceID(module);
-    const offset = (mounted.size % 6) * 26;
-    const [width,height] = {tasks:[810,630],map:[710,490],market:[520,480]}[module.type] || [430,330];
-    const root = Modules.create(key, registry[module.type].label, width, height, {
-      minContentWidth: 175,
-      layout: {
-        read: () => module.geometry || {x: 44 + offset, y: 260 + offset},
-        save: (geometry) => saveGeometry(module, geometry),
-        minimize: (value) => {
-          const geometry = module.geometry || {x:44 + offset,y:260 + offset,w:width,h:height,pinned:false};
-          module.geometry = { ...geometry, minimized: value };
+    const offset = (mounted.size % 6) * 24;
+    function placement() {
+      const stage = host.getBoundingClientRect();
+      const left = stage.width ? stage.left : 12;
+      const available = stage.width || innerWidth - left - 12;
+      const mapWidth = Math.min(710,Math.max(380,Math.floor(available * .54)));
+      const shipWidth = Math.min(420,Math.max(330,Math.floor(available * .42)));
+      const [w,h] = {tasks:[810,630],map:[mapWidth,450],fleet:[shipWidth,340],market:[520,480]}[module.type] || [430,330];
+      const width = Math.min(w,available);
+      const x = module.type === "fleet" ? left + available - width :
+        left + Math.min(offset,available - width);
+      return {x:Math.round(x),y:Math.round(Math.max(86,Math.min(210,innerHeight * .24)) + offset),
+        w:Math.round(width),h,pinned:false,minimized:false};
+    }
+    const initial = placement();
+    const root = Modules.create(key,registry[module.type].label,initial.w,initial.h,{
+      minContentWidth:175,
+      layout:{
+        read:() => module.geometry || placement(),
+        reflow:() => module.geometry ? null : placement(),
+        save: geometry => saveGeometry(module,geometry),
+        minimize: value => {
+          const geometry = module.geometry || placement();
+          module.geometry = {...geometry,minimized:value};
           changed();
         },
       },

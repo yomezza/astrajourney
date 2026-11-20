@@ -150,6 +150,8 @@ body:has(#game:not([hidden])) main {
   gap: 4px;
 }
 #studio .studio-tabs button {
+  display: inline-flex;
+  align-items: center;
   flex: none;
   white-space: nowrap;
   max-width: min(48vw, 20rem);
@@ -284,7 +286,7 @@ body:has(#game:not([hidden])) main {
 }
 .matrix-source-label { margin: 0; color: #b1c7d4; font-size: 12px; }
 .matrix-map { background: #0e1a24; border: 1px solid #2d4452; }
-.matrix-map canvas { display: block; width: 100%; height: auto; cursor: crosshair; }
+.matrix-map canvas { display: block; width: 100%; max-width: 760px; height: auto; margin-inline:auto; cursor: crosshair; }
 #studio .matrix-add-card {
   min-height: 84px;
   border-style: dashed;
@@ -623,4 +625,11 @@ body:has(#studio:not([hidden])) #sidebar > .matrix-comms-label { margin-top: aut
 }
 @media (max-width: 1050px) {
   #matrix-ship-shortcut { display: none; }
+}
+
+@media (max-width: 700px) {
+  body:not(.planet-mode):has(#studio:not([hidden])) .matrix-window.studio-window[open] {
+    right: calc(var(--matrix-comms-rail) + 4px) !important;
+    width: auto !important;
+  }
 }

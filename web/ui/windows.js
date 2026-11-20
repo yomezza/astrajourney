@@ -444,7 +444,15 @@ export function initWindows() {
         clearTimeout(timer);
       });
       if (w.layout) w.life.listen(window,"matrixcommslayout",() => {
-        if (d.open) clamp(w);
+        if (!d.open || narrow(w)) return;
+        const place = !w.maximized && w.layout.reflow?.();
+        if (place) {
+          d.style.left = place.x + "px";
+          d.style.top = place.y + "px";
+          d.style.width = place.w + "px";
+          d.style.height = Math.min(place.h,innerHeight - 106) + "px";
+        }
+        clamp(w);
       });
       w.life.listen(window, "resize", () => {
         if (!d.open || narrow(w) || docked(w)) return;

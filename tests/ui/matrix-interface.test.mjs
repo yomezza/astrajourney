@@ -243,4 +243,16 @@ test("Docked production communications stay live next to workspace cards", async
   await rail.getByRole("button",{name:"Уведомления",exact:true}).click();
   assert.equal(await notifications.isVisible(),false);
   assert.equal(await chat.isVisible(),true);
+
+  await rail.getByRole("button",{name:"Чат",exact:true}).click();
+  await page.setViewportSize({width:390,height:844});
+  await page.locator(".studio-picker select").selectOption({label:"Командование"});
+  const dashboard = page.locator('#studio [data-module="map"]');
+  await dashboard.getByRole("button",{name:"Открыть отдельное окно",exact:true}).click();
+  await page.locator(".studio-window[open]").waitFor();
+  await rail.getByRole("button",{name:"Чат",exact:true}).click();
+  await rail.getByRole("button",{name:"Уведомления",exact:true}).click();
+  assert.equal(await page.locator(".matrix-comms-docked[open]").count(),2);
+  assert.equal(await page.locator(".studio-window[open]").count(),1);
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
 });
