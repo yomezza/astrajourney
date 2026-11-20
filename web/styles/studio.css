@@ -313,14 +313,9 @@ body:has(#game:not([hidden])) main {
   filter: drop-shadow(0 0 7px #66c5db55);
 }
 .matrix-ship-summary .studio-readings { flex: 1 1 145px; }
-.matrix-tabline {
-  position: relative;
-  z-index: 8001;
-  background: var(--bg);
-}
 #studio > .matrix-recovery:not(:empty) {
   position: relative;
-  z-index: 8002;
+  z-index: 8050;
   width: max-content;
   max-width: 100%;
   background: var(--bg);

@@ -1,0 +1,338 @@
+/* Shared presentation for existing Matrix modules and platform screens. */
+:root {
+  --matrix-frame: #405867;
+  --matrix-bar: #182e3b;
+  --matrix-field: #101c26;
+  --matrix-row: #192630;
+  --matrix-inset: 12px;
+}
+
+#matrix-catalog-shortcut {
+  min-width: 32px;
+  margin: 0;
+  padding: 0 8px;
+  font-size: 18px;
+  border-radius: 0;
+}
+
+.matrix-window {
+  border: 1px solid var(--matrix-frame);
+  border-radius: 0;
+  box-shadow: 0 18px 48px #0009;
+}
+.matrix-window.window-active {
+  border-color: #7296a4;
+  box-shadow: 0 15px 55px #000b;
+}
+.matrix-window > .module-titlebar {
+  padding: 0 0 0 11px;
+  min-height: 35px;
+  gap: 6px;
+  background: var(--matrix-bar);
+  border-bottom: 1px solid var(--matrix-frame);
+  border-radius: 0;
+}
+.matrix-window.window-active > .module-titlebar { background: #233c49; }
+.matrix-window > .module-titlebar > h2 {
+  font: 600 12px/1.4 ui-monospace, monospace;
+  letter-spacing: .015em;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.matrix-window > .module-titlebar > .window-actions {
+  display: flex;
+  gap: 0;
+  align-self: stretch;
+  margin: 0;
+}
+.matrix-window > .module-titlebar > .window-actions button {
+  min-width: 33px;
+  min-height: 33px;
+  padding: 0 6px;
+  margin: 0;
+  font-size: 14px;
+  border-radius: 0;
+  border: 0;
+  border-left: 1px solid var(--matrix-frame);
+  background: transparent;
+}
+.matrix-window > .module-titlebar > .window-actions button:hover { color: var(--accent); background: #2b4654; }
+.matrix-window > .module-content {
+  background: var(--panel);
+  scrollbar-color: #557582 var(--matrix-field);
+  overscroll-behavior: contain;
+  min-width: 0;
+}
+.matrix-window .module-content :is(h3,h4) { letter-spacing: .01em; }
+.matrix-window .module-content :is(input:not([type=checkbox],[type=radio],[type=range],[type=color]),select,textarea) {
+  border-radius: 0;
+  border-color: var(--matrix-frame);
+  background: var(--matrix-field);
+}
+.matrix-window .module-content :is(.panel,.table-wrap,.save-bar) { border-radius: 0; }
+.matrix-window .table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--matrix-frame);
+}
+.matrix-window .table-wrap th {
+  background: var(--matrix-bar);
+  color: #b4cbd7;
+}
+.matrix-window .table-wrap :is(td,th) { border-bottom-color: #344958; }
+.matrix-window .table-wrap tbody tr:nth-child(odd) { background-color: var(--matrix-row); }
+.matrix-window .tabs [role=tab] { border-radius: 0; }
+.matrix-window .tabs [role=tab][aria-selected=true] {
+  box-shadow: inset 0 -2px var(--accent);
+}
+.matrix-window :is(button,input,select,textarea,summary):focus-visible,
+.matrix-launcher :is(button,input):focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+
+#auth .intro { min-width: 0; }
+#auth .intro h1 { font-weight: 680; line-height: 1.07; letter-spacing: -.04em; }
+#auth .coordinates {
+  padding: 8px 10px;
+  border: 1px solid var(--matrix-frame);
+  background: var(--matrix-field);
+  color: #a9c2cf;
+}
+#auth-form {
+  border-radius: 0;
+  border-color: var(--matrix-frame);
+  box-shadow: 0 16px 45px #0006;
+}
+#auth-form .panel-head,
+#auth-form .tabs { border-color: var(--matrix-frame); }
+#auth-form .panel-head { background: var(--matrix-bar); }
+#auth-form :is(input,button) { border-radius: 0; }
+#auth-form input { background: var(--matrix-field); border-color: var(--matrix-frame); }
+#auth-form #submit { min-height: 42px; }
+.startup-card { border-radius: 0; border-color: var(--matrix-frame); background: var(--panel); }
+
+.matrix-launcher {
+  width: min(680px,calc(100vw - 22px));
+  max-width: 100%;
+  max-height: min(760px,calc(100dvh - 24px));
+  padding: 0;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid #6b8796;
+  overflow: auto;
+  box-shadow: 0 25px 75px #0009;
+}
+.matrix-launcher::backdrop { background: #050b10bf; }
+.matrix-launcher-head {
+  display: flex;
+  min-height: 39px;
+  padding-left: var(--matrix-inset);
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--matrix-frame);
+  background: var(--matrix-bar);
+}
+.matrix-launcher-head h2 { margin: 0; font-size: 14px; }
+.matrix-launcher-head button { width: 42px; height: 39px; border-radius: 0; }
+.matrix-launcher input {
+  width: calc(100% - 2 * var(--matrix-inset));
+  height: 38px;
+  margin: var(--matrix-inset);
+  border-radius: 0;
+  background: var(--matrix-field);
+}
+.matrix-launcher-results { padding: 0 var(--matrix-inset) var(--matrix-inset); }
+.matrix-launcher-group h3 {
+  margin: 8px 0 5px;
+  color: #abc4d2;
+  font: 600 11px/1.4 ui-monospace, monospace;
+}
+.matrix-launcher-cards { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 5px; }
+.matrix-launcher-card {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  min-width: 0;
+  text-align: start;
+  margin: 0;
+  padding: 5px 8px;
+  border: 1px solid var(--matrix-frame);
+  border-radius: 0;
+  background: #172733;
+}
+.matrix-launcher-card:hover { background: #263f4b; border-color: #8caeba; }
+.matrix-launcher-icon { color: var(--accent); width: 20px; flex: none; text-align: center; }
+#matrix-mobile { display: none; }
+
+#planet-host .visit-tools {
+  padding: 5px 8px;
+  background: var(--matrix-bar);
+  border: 1px solid var(--matrix-frame);
+}
+#planet-host .visit-tools button {
+  min-height: 32px;
+  border-color: var(--matrix-frame);
+}
+#planet-host .visit-viewport { border: 1px solid var(--matrix-frame); }
+#planet-host .visit-object-info { background: var(--matrix-field); }
+
+#window-galaxy .galaxy-content {
+  --map-line: #405867;
+  --map-cyan: var(--focus);
+}
+#window-galaxy .map-toolbar,
+#window-galaxy .map-inspector { background: var(--matrix-field); }
+#window-galaxy :is(
+  .map-toolbar button, .map-display-menu > summary, .map-inspector .tabs button,
+  .map-inspector .object-row, .map-inspector .fleet-card, .map-tools, .map-legend
+) { border-radius: 0; }
+#window-galaxy .map-scope-tabs { border-radius: 0; }
+#window-galaxy .map-scope-tabs button { border-radius: 0; }
+
+@media (max-width: 700px) {
+  .matrix-window:not(.studio-minimized)[open] {
+    inset: calc(var(--header) + 2px) 4px 38px !important;
+    width: auto !important;
+    height: auto !important;
+    min-width: 0;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    resize: none;
+  }
+  .matrix-window > .module-content:not(.galaxy-content) { padding: 8px; }
+  .matrix-window > .module-titlebar { cursor: default; }
+  .matrix-window > .module-titlebar > .window-actions button[aria-pressed],
+  .matrix-window > .module-titlebar > .window-actions button[data-label="Развернуть окно"] { display: none; }
+  .matrix-window > .module-titlebar > .window-actions button { min-width: 40px; }
+  .matrix-window .module-content :is(.tabs,.route-controls,.inline-controls) {
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+  .matrix-window .module-content :is(.administration-layout,.research-layout,.fleet-layout,.logistics-layout) {
+    grid-template-columns: minmax(0,1fr);
+  }
+  .matrix-window .module-content :is(.administration-panel,.table-wrap) { min-width: 0; }
+  .matrix-window .module-content :is(input,select,textarea) { max-width: 100%; }
+}
+@media (max-width: 540px) {
+  body:has(#game:not([hidden])) #sidebar { display: none; }
+  body:has(#game:not([hidden])):has(#sidebar:not([hidden])) main {
+    margin-left: 0;
+    padding-bottom: 58px;
+  }
+  body:has(#game:not([hidden])) > footer { display: none; }
+  #matrix-catalog-shortcut,
+  #admin-menu,
+  #studio-shortcut { display: none; }
+  body > header .header-actions { gap: 4px; min-width: 0; }
+  body > header .brand { flex: 1 1 auto; min-width: 0; }
+  body > header #profile-nick { display: none; }
+  body > header #profile-menu > summary { padding-inline: 8px; }
+  #matrix-mobile:not([hidden]) {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 8105;
+    min-height: 49px;
+    display: grid;
+    grid-template-columns: repeat(4,minmax(0,1fr));
+    padding: 0 7px env(safe-area-inset-bottom);
+    background: #121e28;
+    border-top: 1px solid #405867;
+  }
+  body.planet-mode #matrix-mobile { display: none; }
+  #matrix-mobile button {
+    display: grid;
+    place-content: center;
+    gap: 1px;
+    min-width: 0;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    min-height: 48px;
+    padding: 3px 4px;
+    background: transparent;
+    color: #bdd3de;
+    font-size: 10px;
+  }
+  #matrix-mobile button + button { border-left: 1px solid #304956; }
+  #matrix-mobile button span:first-child { color: var(--accent); font-size: 17px; }
+  .matrix-window:not(.studio-minimized)[open] { bottom: calc(52px + env(safe-area-inset-bottom)) !important; }
+  #planet-host { padding: 4px; }
+  #planet-host .visit-tools { padding: 4px; gap: 4px; }
+}
+
+.matrix-window .module-content :is(
+  .detail-panel, .research-layout > aside, .studies-current, .ship-projection,
+  .logistics-hold, .planner-stats > div, .administration-card,
+  .galaxy-admin-detail, .ideas-history
+) {
+  border-radius: 0;
+  border-color: var(--matrix-frame);
+}
+.matrix-window .module-content :is(
+  .planner-heading,.administration-heading,.ideas-heading,.logistics-toolbar
+) {
+  padding: 8px 10px;
+  border: 1px solid var(--matrix-frame);
+  background: #162936;
+  gap: 9px;
+}
+.matrix-window .module-content :is(.planner-emblem,.administration-emblem,.ideas-mark) {
+  color: var(--accent);
+}
+.matrix-window .module-content :is(.planner-stats,.pilot-profile-stats) { gap: 6px; }
+
+@media (max-width: 700px) {
+  .matrix-window .module-content :is(
+    .master-detail,.studies-layout,.guide-layout,.shipyard-layout,.galaxy-admin-layout,
+    .ideas-layout,.ideas-admin-layout,.planner-workspace,.ship-inline-layout,.planet-workspace,
+    .settings-fields,.two-columns
+  ) { grid-template-columns: minmax(0,1fr); }
+  .matrix-window .module-content :is(.detail-panel,.research-layout > aside,.galaxy-admin-list,.guide-layout > aside) {
+    position: static;
+  }
+  .matrix-window .module-content :is(.planner-heading,.ideas-heading,.logistics-toolbar) { flex-wrap: wrap; }
+  .matrix-window .planner-server-badge { margin-left: 0; white-space: normal; }
+  .matrix-window .planner-stats > div { padding: 5px 7px; gap: 4px; flex-wrap: wrap; }
+  .matrix-window .planner-stats strong { font-size: 19px; }
+  .matrix-window :is(.ship-projection,.logistics-hold) { max-width: 100%; }
+  #window-guide.matrix-window > .module-content { padding: 0; }
+  #window-guide-admin .knowledge-admin-layout { grid-template-columns: minmax(0,1fr); }
+  #window-guide-admin .knowledge-admin-layout > aside { max-height: 28dvh; }
+  #window-guide-admin .knowledge-admin-form { grid-template-columns: minmax(0,1fr); }
+}
+#sidebar .matrix-nav-group {
+  display: block;
+  padding: 8px 4px 3px;
+  color: #a4bdca;
+  font: 10px/1.35 ui-monospace, monospace;
+}
+#sidebar .matrix-comms-label { margin-top: auto; }
+#sidebar > button.chat-bottom { margin-top: 0; }
+#sidebar.collapsed .matrix-nav-group { display: none; }
+#sidebar.collapsed > button.chat-bottom { margin-top: auto; }
+body:has(#game:not([hidden])) #sidebar:not(.collapsed) .sidebar-title { justify-content: start; padding-left: 5px; }
+@media (min-width: 761px) {
+  body:has(#game:not([hidden])) #sidebar:not(.collapsed) { width: 174px; }
+  body:has(#game:not([hidden])):has(#sidebar:not([hidden],.collapsed)) main { margin-left: 174px; }
+}
+#studio .matrix-context-link {
+  background: transparent;
+  border: 1px solid transparent;
+  text-align: start;
+  min-height: 24px;
+  padding: 0 3px;
+}
+#studio .matrix-context-link[aria-pressed=true] {
+  color: var(--focus);
+  border-bottom-color: var(--focus);
+}
+@media (max-width: 760px) {
+  #sidebar .matrix-nav-group { display: none; }
+  #sidebar > button.chat-bottom { margin-top: auto; }
+}

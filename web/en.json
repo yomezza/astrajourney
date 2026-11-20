@@ -2304,5 +2304,14 @@
   "Командование": "Command",
   "Активный корабль": "Active ship",
   "Состояние": "Status",
-  "Пункт назначения": "Destination"
+  "Пункт назначения": "Destination",
+  "Каталог игровых модулей": "Game module catalog",
+  "Пространства": "Workspaces",
+  "Навигация и флот": "Navigation and fleet",
+  "Операции": "Operations",
+  "Развитие": "Progression",
+  "Связь и настройки": "Comms and settings",
+  "Нет совпадений": "No matches",
+  "Космический терминал": "Space terminal",
+  "Выбрать корабль для просмотра": "Select ship for this workspace"
 }

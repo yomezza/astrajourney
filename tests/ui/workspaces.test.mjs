@@ -172,11 +172,23 @@ test("Matrix command deck loads presets and persists card order and width", asyn
   assert.equal(await grid.locator(".matrix-card").count(),5);
   assert.deepEqual(await page.locator(".studio-tabs button").allTextContents(),["Командование","Добыча","Торговля"]);
   assert.equal(await overview.locator("tbody tr").count(),2);
+  const ships = overview.locator("[data-ship-context]");
+  const otherShip = ships.last();
+  const otherID = await otherShip.getAttribute("data-ship-context");
+  const originalPilotShip = g.data.expedition.ship.id;
+  assert.notEqual(Number(otherID), originalPilotShip);
+  await otherShip.press("Enter");
+  assert.equal(await otherShip.getAttribute("aria-pressed"),"true");
+  assert.ok(await otherShip.evaluate(el => el === document.activeElement));
+  assert.equal(await page.getByLabel("Корабль пространства",{exact:true}).inputValue(),otherID);
   assert.equal(await page.locator(".studio-window[open]").count(),0);
   await overview.getByRole("button",{name:"Широкая карточка"}).click();
   await overview.getByRole("button",{name:"Переместить карточку вправо"}).click();
   await page.locator("#studio").getByText("Раскладка сохранена").waitFor();
   assert.equal(saved.layout.workspaces[0].modules[0].type,"operations");
+  assert.equal(saved.layout.workspaces[0].ship_id,Number(otherID));
+  assert.equal(saved.layout.workspaces[1].ship_id,0);
+  assert.equal(g.data.expedition.ship.id,originalPilotShip);
   assert.equal(saved.layout.workspaces[0].modules[1].type,"overview");
   assert.ok(!saved.layout.workspaces[0].modules[1].wide);
   await page.reload();
@@ -192,7 +204,8 @@ test("Matrix command deck loads presets and persists card order and width", asyn
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `horizontal overflow at ${width}`);
     const bounds = await grid.boundingBox();
     const sidebar = await page.locator("#sidebar").boundingBox();
-    assert.ok(bounds.x >= sidebar.x + sidebar.width - 1, `sidebar overlays cards at ${width}px`);
+    if (sidebar) assert.ok(bounds.x >= sidebar.x + sidebar.width - 1, `sidebar overlays cards at ${width}px`);
+    else assert.equal(await page.locator("#matrix-mobile").isVisible(),true);
     const cards = await grid.locator(".matrix-card").evaluateAll(items => items.map(item => {
       const {left,right} = item.getBoundingClientRect();
       return {left,right};

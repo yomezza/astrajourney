@@ -1,3 +1,4 @@
+import { initModuleCatalog } from "./features/shell/module-catalog.js";
 import { initStudio } from "./features/studio/index.js";
 import { initOutfitting } from "./features/outfitting/index.js";
 import { initTooltip } from "./ui/tooltip.js";
@@ -62,6 +63,7 @@ initStudies();
 initGalaxy();
 initChat();
 initStudio();
+initModuleCatalog();
 
 export const application = {
   session: Session,

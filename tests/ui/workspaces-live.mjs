@@ -67,7 +67,7 @@ try {
   await fresh.goto(base.href);
   await login(fresh,"studio_browser");
   await fresh.locator(".studio-view").getByText(/Корабль недоступен/).waitFor();
-  await fresh.locator("#studio-shortcut").focus();
+  await fresh.locator("#matrix-mobile [data-studio]").focus();
   await fresh.keyboard.press("Enter");
   const select = fresh.locator("#studio").getByLabel("Рабочее пространство",{exact:true});
   assert.equal(await select.evaluate(el => el === document.activeElement),true);

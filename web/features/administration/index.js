@@ -35,7 +35,7 @@ export function initAdministration() {
     root.classList.add("administration-content");
     const heading = n("div", undefined, "administration-heading");
     heading.append(n("span", "⌘", "administration-emblem"), n("div"));
-    heading.lastChild.append(n("h3", tr("Центр управления")), n("p", tr("Управление миром, игроками и службами Astra Journey"), "muted"));
+    heading.lastChild.append(n("h3", tr("Центр управления")));
     const layout = n("div", undefined, "administration-layout"), nav = n("nav", undefined, "administration-categories"), panel = n("section", undefined, "administration-panel");
     nav.setAttribute("aria-label", tr("Категории управления"));
     for (const [id, title] of categories) {

@@ -167,8 +167,11 @@ export function initStudio() {
     if (!force && entry.data.firstElementChild?.isEqualNode(output)) return;
     const oldScroll = entry.data.querySelector(".matrix-table");
     const top = oldScroll?.scrollTop || 0, left = oldScroll?.scrollLeft || 0;
+    const active = document.activeElement;
+    const ship = entry.data.contains(active) && active.dataset.shipContext;
     entry.data.replaceChildren(output);
     entry.data.querySelector(".matrix-table")?.scrollTo(left,top);
+    if (ship) entry.data.querySelector(`[data-ship-context="${CSS.escape(ship)}"]`)?.focus({preventScroll:true});
   }
 
   function paintWindow(module, entry, rebuildControls = false) {
@@ -182,7 +185,7 @@ export function initStudio() {
       if (key !== null && entry.mapSource === world.data && entry.mapFocus === key && !rebuildControls) return;
       entry.mapFocus = key;
       entry.mapSource = world.data;
-      replaceReadings(entry,dashboardReading(module.type, focus),module.type === "map");
+      replaceReadings(entry,dashboardReading(module.type, focus, selectShip),module.type === "map");
       return;
     }
     const output = readings(module, ship, shipID);
@@ -380,6 +383,15 @@ export function initStudio() {
     changed();
   }
 
+  function selectShip(value) {
+    const w = workspace();
+    w.ship_id = Number(value);
+    const control = controls.querySelector(".matrix-workspace-heading label:not(.studio-picker) select");
+    if (control) control.value = value;
+    refreshShips(true);
+    changed();
+  }
+
   function render(switchWindows = false, focusSelector) {
     if (switchWindows) showWindows();
     const w = workspace(), index = layout.workspaces.indexOf(w);
@@ -394,15 +406,7 @@ export function initStudio() {
       tab.setAttribute("aria-current", String(item.id === w.id));
       tabs.append(tab);
     }
-    toolbar.append(picker, select("Корабль пространства", shipOptions(w.ship_id), w.ship_id, (value) => {
-      w.ship_id = Number(value);
-      for (const module of w.modules) {
-        const entry = mounted.get(instanceID(module));
-        if (entry && module.binding === "workspace") paintWindow(module,entry,true);
-      }
-      refreshShips(true);
-      changed();
-    }));
+    toolbar.append(picker, select("Корабль пространства", shipOptions(w.ship_id), w.ship_id, selectShip));
 
     const manage = node("details");
     manage.open = controls.querySelector("details")?.open || false;
@@ -610,7 +614,7 @@ export function initStudio() {
   window.addEventListener("keydown", event => {
     if (!layout || event.defaultPrevented || document.body.classList.contains("planet-mode") ||
       event.target.closest?.("input, textarea, select, [contenteditable], dialog")) return;
-    if (event.key === "/" || ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k")) {
+    if (event.key === "/") {
       event.preventDefault();
       openCatalog(controls.querySelector(".matrix-catalog"));
     }
