@@ -19,7 +19,7 @@ export function createDeliveryMarket({ field, act, command }) {
     const list = n("section");
     list.append(
       UI.table(
-        ["ID", "Маршрут", "Груз", "Награда", "Статус", "Действие"],
+        ["ID", "Маршрут", "Груз", ["Награда","table-number"], "Статус", "Действие"],
         (w().deliveries || []).map((job) => {
           const actions = n("div", undefined, "inline-controls"),
             own = job.owner === Session.data.state.user.id;
@@ -62,6 +62,7 @@ export function createDeliveryMarket({ field, act, command }) {
             actions,
           ];
         }),
+        { label: "Перевозки" },
       ),
     );
     root.append(list);

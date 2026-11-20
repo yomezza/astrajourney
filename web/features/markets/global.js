@@ -55,7 +55,7 @@ export function createGlobalMarket({
       offer = offers.find((o) => o.resource === state.resource) || offers[0];
     list.append(
       UI.table(
-        ["Ресурс", "В наличии", "Цена"],
+        ["Ресурс", ["В наличии","table-number"], ["Цена","table-number"]],
         offers.map((o) => [
           b(tr(res(o.resource).name), () => {
             state.resource = o.resource;
@@ -64,6 +64,7 @@ export function createGlobalMarket({
           num(o.stock),
           money(o.buy),
         ]),
+        { label: "Глобальный рынок" },
       ),
     );
     if (offer)
@@ -102,13 +103,14 @@ export function createGlobalMarket({
           "ID",
           "Станция",
           "Ресурс",
-          "Количество",
-          "Стоимость",
+          ["Количество","table-number"],
+          ["Стоимость","table-number"],
           "Статус",
           "Хранение до",
           "Действие",
         ],
         rows,
+        { label: "Мои бронирования" },
       ),
     );
   };

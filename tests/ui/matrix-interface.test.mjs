@@ -2,6 +2,44 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { game } from "./harness.mjs";
 
+test("The catalog can switch an open system map back to the galaxy", async t => {
+  const g = await game(t,{signedIn:true});
+  const {page} = g;
+  await g.ready();
+  await page.locator("#maps-navigation summary").click();
+  await page.locator("#current-system-map").click();
+  const map = page.locator("#window-galaxy .galaxy-content");
+  await map.locator(".atlas-modes button[aria-pressed=true]").getByText("Карта текущей системы").waitFor();
+  await page.keyboard.press("Control+k");
+  const catalog = page.locator(".matrix-launcher");
+  await catalog.getByRole("searchbox").fill("Галактическая карта");
+  await catalog.getByRole("button",{name:"Галактическая карта",exact:true}).click();
+  await map.locator(".atlas-modes button[aria-pressed=true]").getByText("Галактика",{exact:true}).waitFor();
+});
+
+test("Window shortcuts preserve the live view and closing restores the previous window", async t => {
+  const g = await game(t,{signedIn:true});
+  const {page} = g;
+  await g.ready();
+  const shortcut = page.locator('#sidebar [data-open="market"]');
+  await shortcut.click();
+  const quantity = page.locator("#trade-quantity");
+  await quantity.fill("12");
+  await quantity.evaluate(el => { el.dataset.testView = "original"; });
+  const switcher = page.locator("#window-switcher");
+  const market = switcher.getByRole("button",{name:"Рынок",exact:true});
+  await market.evaluate(el => { el.dataset.testSwitcher = "original"; });
+  await shortcut.click();
+  assert.equal(await quantity.getAttribute("data-test-view"),"original");
+  assert.equal(await quantity.inputValue(),"12");
+
+  await page.locator('#sidebar [data-open="ship"]').click();
+  await page.locator("#window-ship").getByRole("button",{name:"Закрыть",exact:true}).click();
+  assert.equal(await market.getAttribute("data-test-switcher"),"original");
+  assert.equal(await market.getAttribute("aria-pressed"),"true");
+  assert.ok(await page.locator("#window-market .module-titlebar").evaluate(el => el === document.activeElement));
+});
+
 test("Command summaries distinguish station prices, player offers and real fleet activity", async t => {
   const g = await game(t,{signedIn:true,faults:[["workspaces",({req,json}) => {
     const id = "42000000-0000-4000-8000-000000000001";
@@ -140,6 +178,10 @@ test("Narrow layouts keep full game controls and the profile reachable for admin
 test("Mobile Matrix opens a usable full-width market and returns to its workspace", async t => {
   const g = await game(t,{signedIn:true});
   const {page} = g;
+  g.data.workbench.deliveries = [{
+    id:1,owner:g.data.state.user.id,from_star:101,to_star:202,
+    resource:"iron",quantity:500,reward:100000,status:"open",
+  }];
   await g.ready();
   await page.setViewportSize({width:320,height:740});
   const nav = page.locator("#matrix-mobile");
@@ -154,6 +196,14 @@ test("Mobile Matrix opens a usable full-width market and returns to its workspac
   assert.ok((await market.boundingBox()).y + (await market.boundingBox()).height <= (await nav.boundingBox()).y);
   await market.getByRole("tab",{name:"Перевозки",exact:true}).click();
   await market.getByText("Создать доставку",{exact:true}).waitFor();
+  const table = market.getByRole("region",{name:"Перевозки",exact:true});
+  assert.equal(await table.getByRole("columnheader",{name:"Статус"}).getAttribute("scope"),"col");
+  assert.equal(await table.getByRole("columnheader",{name:"Статус"}).evaluate(el => getComputedStyle(el).textAlign),"start");
+  assert.equal(await table.getByRole("columnheader",{name:"Награда"}).evaluate(el => getComputedStyle(el).textAlign),"end");
+  assert.ok(await table.evaluate(el => el.scrollWidth > el.clientWidth));
+  await table.focus();
+  await table.press("ArrowRight");
+  await page.waitForFunction(() => document.querySelector("#window-market .table-wrap").scrollLeft > 0);
   await market.getByRole("button",{name:"Закрыть",exact:true}).click();
   await nav.getByRole("button",{name:"Пространства"}).click();
   assert.ok(await page.locator("#studio select").first().evaluate(el => el === document.activeElement));

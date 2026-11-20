@@ -3,6 +3,7 @@ import { world } from "../../core/world-store.js";
 import { I18n } from "../../core/i18n.js";
 import { Format } from "../../core/format.js";
 import { node } from "../../ui/dom.js";
+import { createTable } from "../../ui/table.js";
 import { resourceName } from "../inventory/resource-label.js";
 import { station } from "../selectors.js";
 import { systemName } from "./views.js";
@@ -16,31 +17,9 @@ export const dashboard = Object.freeze({
 const tr = (text) => I18n.t(text);
 const nameOf = ship => ship?.name || tr(ship?.spec?.name) || "—";
 
-function table(columns, rows, empty) {
+function table(columns, rows, empty, label) {
   if (!rows.length) return node("p", tr(empty), "matrix-empty");
-  const result = node("table");
-  const caption = node("thead"), heading = node("tr");
-  for (const column of columns) {
-    const [title, alignment] = Array.isArray(column) ? column : [column];
-    const cell = node("th",tr(title),alignment);
-    cell.scope = "col";
-    heading.append(cell);
-  }
-  caption.append(heading);
-  const body = node("tbody");
-  for (const values of rows) {
-    const row = node("tr");
-    for (const [index,value] of values.entries()) {
-      const cell = node("td",undefined,heading.children[index].className);
-      cell.append(value instanceof Node ? value : String(value ?? "—"));
-      row.append(cell);
-    }
-    body.append(row);
-  }
-  result.append(caption,body);
-  const scroll = node("div",undefined,"matrix-table");
-  scroll.append(result);
-  return scroll;
+  return createTable(columns, rows, {className:"matrix-table",label});
 }
 
 function status(title, tone) {
@@ -50,7 +29,7 @@ function status(title, tone) {
 }
 
 function fleetReading(ships, focus, chooseShip) {
-  return table(["Корабль","Система","Состояние",["Топливо","matrix-numeric"]], ships.map(ship => {
+  return table(["Корабль","Система","Состояние",["Топливо","table-number"]], ships.map(ship => {
     const control = node("button",nameOf(ship),"matrix-context-link");
     control.type = "button";
     control.dataset.studioFocus = `ship-${ship.id}`;
@@ -63,7 +42,7 @@ function fleetReading(ships, focus, chooseShip) {
       ship.position_mode === "docked" ? status("Состыкован","ready") : status("На позиции","quiet");
     const fuel = Format.number(ship.fuel) + " / " + Format.number(ship.spec?.fuel);
     return [control,systemName(ship.star),activity,fuel];
-  }),"Кораблей нет");
+  }),"Кораблей нет","Флот");
 }
 
 function operations(ships, workbench, focus) {
@@ -85,7 +64,7 @@ function operations(ships, workbench, focus) {
   jobs.sort((left,right) => Number(right.ship === focus?.id) - Number(left.ship === focus?.id));
   return table(["Операция","Корабль","Ход операции"],jobs.slice(0,8).map(job => [
     status(job.title,job.tone),job.name || nameOf(byID.get(job.ship)),job.detail,
-  ]),"У флота нет активных операций");
+  ]),"У флота нет активных операций","Активные операции");
 }
 
 export function marketReading(ship, source, onSource) {
@@ -106,17 +85,17 @@ export function marketReading(ship, source, onSource) {
   }
   view.append(buttons);
   if (source === "orders") {
-    view.append(table(["Ресурс","Система",["Количество","matrix-numeric"],["Цена","matrix-numeric"]],
+    view.append(table(["Ресурс","Система",["Количество","table-number"],["Цена","table-number"]],
       (workbench?.orders || []).slice(0,8).map(order => [
         resourceName(order.resource),systemName(order.star),Format.quantity(order.quantity),Format.credits(order.price),
-      ]),"Игроки пока не выставили предложений"));
+      ]),"Игроки пока не выставили предложений","Предложения игроков"));
   } else if (local) {
     const port = station();
     if (port?.name) view.append(node("p",port.name,"matrix-source-label"));
-    view.append(table(["Ресурс",["В наличии","matrix-numeric"],["Купить","matrix-numeric"],["Продать","matrix-numeric"]],
+    view.append(table(["Ресурс",["В наличии","table-number"],["Купить","table-number"],["Продать","table-number"]],
       (expedition.offers || []).slice(0,8).map(offer => [
         resourceName(offer.resource),Format.quantity(offer.stock),Format.credits(offer.buy),Format.credits(offer.sell),
-      ]),"У станции пока нет предложений"));
+      ]),"У станции пока нет предложений","Локальный рынок"));
   } else {
     view.append(node("p",tr("Локальные цены доступны для активного корабля у станции"),"matrix-empty"));
   }

@@ -19,6 +19,17 @@ import { notify } from "../../ui/feedback.js";
 
 import { d, station } from "../../features/selectors.js";
 import { reset } from "../../ui/view-state.js";
+import { selectTab } from "../../ui/tabs.js";
+
+const marketTabs = [
+  ["local", "Локальный рынок"],
+  ["global", "Глобальный рынок"],
+  ["orders", "Предложения игроков"],
+  ["data", "Разведданные"],
+  ["delivery", "Перевозки"],
+  ["shipyards", "Верфи"],
+  ["modules", "Модули корабля"],
+];
 
 export function createMarkets({ roots, act, command, renderShipyards }) {
   const drafts = new FormState(
@@ -30,7 +41,7 @@ export function createMarkets({ roots, act, command, renderShipyards }) {
     b = UI.button,
     field = (...args) => drafts.field(UI.field, ...args);
   const state = { tab: "local", resource: "agni", order: null, target: null };
-  let marketRequestID = 0;
+  let marketRequestID = 0, shell;
   const { tradeForm } = createTradeForm({ field, act, command });
   const { renderDeliveries, deliveryDetails } = createDeliveryMarket({
     field,
@@ -68,59 +79,53 @@ export function createMarkets({ roots, act, command, renderShipyards }) {
         Session.signedIn &&
         Modules.isOpen("market") &&
         tab === state.tab;
-    if (tab === "global" || tab === "shipyards") {
-      await loadWorld();
-      if (!current()) return false;
-    }
+    const previous = shell?.panel.isConnected ? shell : null;
+    const pending = previous && previous.tab !== tab;
+    if (pending) previous.panel.setAttribute("aria-busy","true");
     let globalMarket;
-    if (tab === "global") {
-      try {
-        globalMarket = await api("market/global");
-      } catch (error) {
+    try {
+      if (tab === "global" || tab === "shipyards") {
+        await loadWorld();
         if (!current()) return false;
-        throw error;
       }
+      if (tab === "global")
+        globalMarket = await api("market/global");
+    } catch (error) {
+      if (!current()) return false;
+      previous?.panel.removeAttribute("aria-busy");
+      if (pending) state.tab = previous.tab;
+      throw error;
     }
     // Keep the current table while loading; only the latest render may replace it.
     if (!current()) return false;
     Modules.title("market", tr(tab === "shipyards" ? "Верфи" : "Рынок"));
     const port = station();
-    const location = (port?.name || d().system.name) + " · " + d().system.name;
-    const existingModules = tab === "modules" && root.querySelector('[data-modules-market]');
-    if (existingModules && existingModules.dataset.language === I18n.language) {
-      const strip = root.querySelector(".location-strip");
-      if (strip.textContent !== location) strip.textContent = location;
-      return views.modules(existingModules, current);
-    }
-    reset(root);
-    root.append(
-      n(
-        "div",
-        location,
-        "location-strip",
-      ),
-    );
-    const panel = n("section", undefined, "market-tab-panel");
-    UI.tabs(
-      root,
-      [
-        ["local", "Локальный рынок"],
-        ["global", "Глобальный рынок"],
-        ["orders", "Предложения игроков"],
-
-        ["data", "Разведданные"],
-        ["delivery", "Перевозки"],
-        ["shipyards", "Верфи"],
-        ["modules", "Модули корабля"],
-      ],
-      tab,
-      (id) => {
+    const system = d().system.name;
+    const location = port?.name && port.name !== system ? `${port.name} · ${system}` : system;
+    if (!previous) {
+      reset(root);
+      const navigation = n("div", undefined, "market-navigation");
+      const strip = n("div", undefined, "location-strip");
+      const panel = n("section", undefined, "market-tab-panel");
+      navigation.append(strip);
+      const tabs = UI.tabs(navigation, marketTabs, tab, id => {
+        if (id === state.tab) return;
         state.tab = id;
         return renderMarket();
-      },
-      { panel },
-    );
-    root.append(panel);
+      }, { panel, label: "Рынок" });
+      root.append(navigation,panel);
+      shell = {strip, panel, tabs};
+    }
+    const {strip,panel,tabs} = shell;
+    if (strip.textContent !== location) strip.textContent = location;
+    panel.removeAttribute("aria-busy");
+    selectTab(tabs,tab,panel);
+    if (tab === "modules" && shell.tab === tab && panel.dataset.language === I18n.language)
+      return views.modules(panel, current);
+    shell.tab = tab;
+    reset(panel);
+    delete panel.dataset.modulesMarket;
+    delete panel.dataset.language;
     if (tab === "modules") {
       panel.dataset.modulesMarket = "";
       panel.dataset.language = I18n.language;
@@ -154,6 +159,8 @@ export function createMarkets({ roots, act, command, renderShipyards }) {
     drafts.clear();
     state.resource = "agni";
     state.order = null;
+    state.tab = "local";
+    shell = null;
     marketRequestID = 0;
     renderMarketScope.invalidate();
   }
@@ -170,6 +177,7 @@ export function createMarkets({ roots, act, command, renderShipyards }) {
     },
     close() {
       marketRequestID++;
+      shell?.panel.removeAttribute("aria-busy");
       renderMarket.invalidate();
     },
   };
