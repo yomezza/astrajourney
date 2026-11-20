@@ -1,0 +1,22 @@
+name: Upload verified Matrix interface release
+on:
+  push:
+    branches: [release/matrix-studio-v0.31.4]
+permissions:
+  contents: write
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Upload locally verified files
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TARGET: 15b14c66fd86d1614afd4fb9d52b4a37da1b1012
+        run: |
+          set -euo pipefail
+          test "$(gh api "repos/$GH_REPO/commits/$RELEASE_TARGET" --jq .sha)" = "$RELEASE_TARGET"
+          (cd bundle && sha256sum -c SHA256SUMS)
+          gh release create v0.31.4 bundle/* --target "$RELEASE_TARGET" --latest=false --title 'Astra Journey 0.31.4 — MATRIX × STUDIO' --notes-file bundle/UPDATE.ru.md
