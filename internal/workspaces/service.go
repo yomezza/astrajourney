@@ -55,7 +55,7 @@ func (s *Service) Preferences(w http.ResponseWriter, r *http.Request) {
 	}
 	switch status {
 	case http.StatusConflict:
-		httpkit.Fail(w, status, "Рабочие пространства изменились в другой вкладке")
+		httpkit.FailCode(w, status, "WORKSPACE_REVISION_CONFLICT", "Рабочие пространства изменились в другой вкладке")
 	case http.StatusBadRequest:
 		httpkit.Fail(w, status, "Корабль недоступен")
 	case http.StatusUnprocessableEntity:

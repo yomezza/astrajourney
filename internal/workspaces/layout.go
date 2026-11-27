@@ -107,12 +107,13 @@ func (m Module) valid() bool {
 		return false
 	}
 	switch m.Type {
-	case "overview", "map", "operations", "market", "logistics", "studies",
-		"colonies", "corporations", "guide", "finance", "profile":
+	case "overview", "operations", "colonies", "corporations", "guide", "finance", "profile":
 		return m.Filter == "" && m.Binding == "none" && m.ShipID == 0
 	case "tasks":
-		return (m.Filter == "" || m.Filter == "all" || m.Filter == "running" || m.Filter == "queued" || m.Filter == "paused") && m.Binding == "none" && m.ShipID == 0
-	case "fleet", "mining":
+		if m.Filter != "" && m.Filter != "all" && m.Filter != "running" && m.Filter != "queued" && m.Filter != "paused" {
+			return false
+		}
+	case "fleet", "mining", "map", "market", "logistics", "studies":
 		if m.Filter != "" {
 			return false
 		}

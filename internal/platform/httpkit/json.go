@@ -19,6 +19,10 @@ func Fail(w http.ResponseWriter, status int, s string) {
 	Reply(w, status, map[string]string{"error": s})
 }
 
+func FailCode(w http.ResponseWriter, status int, code, message string) {
+	Reply(w, status, map[string]string{"error": message, "code": code})
+}
+
 func Decode(w http.ResponseWriter, r *http.Request, v any) bool {
 	r.Body = http.MaxBytesReader(w, r.Body, jsonBodyLimit(r))
 	d := json.NewDecoder(r.Body)

@@ -169,14 +169,14 @@ func (a *Service) Logistics(w http.ResponseWriter, r *http.Request) {
 		items = []CargoItem{{in.Resource, in.Quantity}}
 	}
 	if len(items) > len(resourcecatalog.All) || batch && (in.Resource != "" || in.Quantity != 0) || len(in.Request) < 16 || len(in.Request) > 64 || strings.ContainsAny(in.Request, "\r\n\x00") || (in.Mode != "direct" && in.Mode != "queue") {
-		httpkit.Fail(w, 400, "Некорректный перенос ресурса")
+		httpkit.FailCode(w, 400, "TRANSFER_REJECTED", "Некорректный перенос ресурса")
 		return
 	}
 	seen := map[string]bool{}
 	total := 0
 	for _, item := range items {
 		if _, ok := resourcecatalog.Lookup(item.Resource); !ok || item.Quantity < 1 || item.Quantity > 100000 || seen[item.Resource] {
-			httpkit.Fail(w, 400, "Некорректный перенос ресурса")
+			httpkit.FailCode(w, 400, "TRANSFER_REJECTED", "Некорректный перенос ресурса")
 			return
 		}
 		seen[item.Resource] = true
@@ -202,7 +202,7 @@ func (a *Service) Logistics(w http.ResponseWriter, r *http.Request) {
 	err = tx.QueryRow(ctx, `SELECT digest,result FROM logistics_operations WHERE user_id=$1 AND request_id=$2`, u.ID, in.Request).Scan(&savedDigest, &result)
 	if err == nil {
 		if savedDigest != digest {
-			httpkit.Fail(w, 409, "Этот запрос уже использован для другого переноса")
+			httpkit.FailCode(w, 409, "TRANSFER_REJECTED", "Этот запрос уже использован для другого переноса")
 			return
 		}
 		httpkit.Reply(w, 200, json.RawMessage(result))
@@ -214,21 +214,21 @@ func (a *Service) Logistics(w http.ResponseWriter, r *http.Request) {
 	}
 	from, fromShip, source, err := transferLocation(ctx, tx, u.ID, in.From, true)
 	if err != nil {
-		httpkit.Fail(w, 409, err.Error())
+		httpkit.FailCode(w, 409, "TRANSFER_REJECTED", err.Error())
 		return
 	}
 	to, toShip, target, err := transferLocation(ctx, tx, u.ID, in.To, false)
 	if err != nil {
-		httpkit.Fail(w, 409, err.Error())
+		httpkit.FailCode(w, 409, "TRANSFER_REJECTED", err.Error())
 		return
 	}
 	if sameCargoLocation(from, to) {
-		httpkit.Fail(w, 400, "Выберите другое место хранения")
+		httpkit.FailCode(w, 400, "TRANSFER_REJECTED", "Выберите другое место хранения")
 		return
 	}
 	for _, item := range items {
 		if source[item.Resource] < item.Quantity {
-			httpkit.Fail(w, 409, "Недостаточно груза")
+			httpkit.FailCode(w, 409, "TRANSFER_REJECTED", "Недостаточно груза")
 			return
 		}
 	}
@@ -239,13 +239,13 @@ func (a *Service) Logistics(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if toShip.CargoUsed()+reserved+total > toShip.Capacity() {
-			httpkit.Fail(w, 409, "Трюм заполнен")
+			httpkit.FailCode(w, 409, "TRANSFER_REJECTED", "Трюм заполнен")
 			return
 		}
 	} else {
 		for _, item := range items {
 			if target[item.Resource] > 1000000000-item.Quantity {
-				httpkit.Fail(w, 409, "Склад заполнен")
+				httpkit.FailCode(w, 409, "TRANSFER_REJECTED", "Склад заполнен")
 				return
 			}
 		}
@@ -258,7 +258,7 @@ func (a *Service) Logistics(w http.ResponseWriter, r *http.Request) {
 	} else {
 		var owner int64
 		if err = tx.QueryRow(ctx, `SELECT user_id FROM ships WHERE id=$1`, in.Ship).Scan(&owner); err != nil || owner != u.ID {
-			httpkit.Fail(w, 404, "Корабль не найден")
+			httpkit.FailCode(w, 404, "TRANSFER_REJECTED", "Корабль не найден")
 			return
 		}
 		carrier, err = fleet.ReadShip(ctx, tx, in.Ship)
@@ -271,7 +271,7 @@ func (a *Service) Logistics(w http.ResponseWriter, r *http.Request) {
 	taskIDs := []int64{}
 	if in.Mode == "direct" {
 		if !fleet.Docked(carrier) || carrier.Star != from.Star || carrier.ObjectID != from.Station || from.Star != to.Star || from.Station != to.Station || fromShip != nil && !fleet.Docked(*fromShip) || toShip != nil && !fleet.Docked(*toShip) {
-			httpkit.Fail(w, 409, "Для прямого переноса нужна стыковка с этой станцией")
+			httpkit.FailCode(w, 409, "TRANSFER_REJECTED", "Для прямого переноса нужна стыковка с этой станцией")
 			return
 		}
 		for _, sid := range []int64{carrier.ID, from.Ship, to.Ship} {
@@ -282,7 +282,7 @@ func (a *Service) Logistics(w http.ResponseWriter, r *http.Request) {
 				httpkit.Internal(w, e)
 				return
 			} else if busy {
-				httpkit.Fail(w, 409, "Приостановите задачу планировщика")
+				httpkit.FailCode(w, 409, "TRANSFER_REJECTED", "Приостановите задачу планировщика")
 				return
 			}
 		}
@@ -304,7 +304,7 @@ func (a *Service) Logistics(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		if fromShip != nil && toShip != nil {
-			httpkit.Fail(w, 409, "Для передачи между кораблями нужна общая станция")
+			httpkit.FailCode(w, 409, "TRANSFER_REJECTED", "Для передачи между кораблями нужна общая станция")
 			return
 		}
 		g, e := a.World.Load(ctx)
@@ -313,7 +313,7 @@ func (a *Service) Logistics(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if len(g.Path(carrier.Star, from.Star)) == 0 || len(g.Path(from.Star, to.Star)) == 0 {
-			httpkit.Fail(w, 409, "Нет допустимого маршрута")
+			httpkit.FailCode(w, 409, "TRANSFER_REJECTED", "Нет допустимого маршрута")
 			return
 		}
 		var count int
@@ -322,7 +322,7 @@ func (a *Service) Logistics(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if count+len(items) > 20 {
-			httpkit.Fail(w, 409, "В очереди уже 20 задач")
+			httpkit.FailCode(w, 409, "TRANSFER_REJECTED", "В очереди уже 20 задач")
 			return
 		}
 		kind := "haul"

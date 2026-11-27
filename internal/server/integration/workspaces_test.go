@@ -65,7 +65,7 @@ func TestWorkspacePreferences(t *testing.T) {
 	}, {
 		ID: "72820000-0000-4000-8000-000000000002", Type: "map", Binding: "none", View: "card", Wide: true, SystemID: 7,
 	}, {
-		ID: "72820000-0000-4000-8000-000000000003", Type: "market", Binding: "none", Tab: "orders",
+		ID: "72820000-0000-4000-8000-000000000003", Type: "market", Binding: "fixed", ShipID: active, Tab: "orders",
 	}, {
 		ID: "72820000-0000-4000-8000-000000000004", Type: "tasks", Binding: "none", Filter: "running",
 	}}
@@ -85,7 +85,7 @@ func TestWorkspacePreferences(t *testing.T) {
 	f.req(cookie, "POST", path, d, 409)
 	d = saved
 	modules := read(f.req(cookie, "GET", path, nil, 200)).Layout.Workspaces[0].Modules
-	if modules[1].SystemID != 7 || modules[2].Tab != "orders" || modules[3].Filter != "running" {
+	if modules[1].SystemID != 7 || modules[2].Tab != "orders" || modules[2].ShipID != active || modules[3].Filter != "running" {
 		t.Fatalf("instance options after reload: %+v", modules)
 	}
 	d.Layout.Workspaces = []workspaces.Workspace{}

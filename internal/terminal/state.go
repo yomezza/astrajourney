@@ -50,5 +50,5 @@ func (a *Service) State(w http.ResponseWriter, r *http.Request) {
 		httpkit.Internal(w, err)
 		return
 	}
-	httpkit.Reply(w, 200, map[string]any{"chat_enabled": configuration.Getenv("CHAT_ENABLED") == "true", "date": gameplay.EdemDate(pulses), "pulses": pulses, "tick_seconds": settings.TickSeconds, "user": u, "tick": tick, "last_tick": last, "companies": list, "ore_price": 5})
+	httpkit.Reply(w, 200, map[string]any{"station_trade_receipts": true, "chat_enabled": configuration.Getenv("CHAT_ENABLED") == "true", "date": gameplay.EdemDate(pulses), "pulses": pulses, "tick_seconds": settings.TickSeconds, "user": u, "tick": tick, "last_tick": last, "companies": list, "ore_price": 5})
 }
