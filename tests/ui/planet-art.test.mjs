@@ -112,11 +112,6 @@ test("local art uses saved masks, global texture UV, one atlas and server-facing
   );
   assert.deepEqual(uv[0], uv[1]);
   await g.page.setViewportSize({ width: 720, height: 800 });
-  await g.page.evaluate(async () => {
-    const { I18n } = await import(new URL("./core/i18n.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
-    I18n.set("en");
-  });
-  assert.match(await canvas.getAttribute("aria-label"), /sector|surface/i);
   const dimensions = await canvas.evaluate((c) => ({
     width: c.getBoundingClientRect().width,
     height: c.getBoundingClientRect().height,

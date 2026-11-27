@@ -38,8 +38,7 @@ export const Preferences = {
   language(fallback = "ru") {
     if (volatile.has("language")) return volatile.get("language");
     try {
-      const value = localStorage.getItem("language");
-      return ["ru", "en"].includes(value) ? value : fallback;
+      return localStorage.getItem("language") || fallback;
     } catch {
       return volatile.get("language") || fallback;
     }

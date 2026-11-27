@@ -6,25 +6,23 @@ import (
 	"testing"
 )
 
-func TestTranslationCatalogs(t *testing.T) {
-	catalogs := map[string]map[string]string{}
-	for _, lang := range []string{"ru", "en"} {
-		data, err := fs.ReadFile(browserAssets, lang+".json")
-		if err != nil {
-			t.Fatal(err)
-		}
-		var catalog map[string]string
-		if err = json.Unmarshal(data, &catalog); err != nil {
-			t.Fatal(err)
-		}
-		catalogs[lang] = catalog
+func TestRussianTranslationCatalog(t *testing.T) {
+	data, err := fs.ReadFile(browserAssets, "ru.json")
+	if err != nil {
+		t.Fatal(err)
 	}
-	if len(catalogs["ru"]) != len(catalogs["en"]) {
-		t.Fatal("translation catalogs differ")
+	var catalog map[string]string
+	if err := json.Unmarshal(data, &catalog); err != nil {
+		t.Fatal(err)
 	}
-	for key, ru := range catalogs["ru"] {
-		if ru == "" || catalogs["en"][key] == "" {
-			t.Errorf("missing translation: %s", key)
+	for key, value := range catalog {
+		if value == "" {
+			t.Errorf("empty Russian translation: %s", key)
+		}
+	}
+	for _, key := range []string{"Идеи сообщества", "Мои идеи", "Идей: {total}"} {
+		if catalog[key] == "" {
+			t.Errorf("missing Russian translation: %s", key)
 		}
 	}
 }

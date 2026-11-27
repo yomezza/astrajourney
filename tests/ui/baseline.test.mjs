@@ -56,7 +56,7 @@ test("Maps is initially closed and only the player changes its saved state", asy
     () => localStorage.getItem("maps-navigation-open") === "true",
   );
   await g.refresh();
-  await g.page.evaluate(() => window.__testApp.I18n.set("en"));
+  await g.page.evaluate(() => window.__testApp.I18n.set("ru"));
   assert.equal(
     await g.page.locator("#maps-navigation").evaluate((e) => e.open),
     true,
@@ -358,7 +358,7 @@ test("context menu clamps to viewport and supports nested keyboard navigation", 
   assert.equal(await menu.isVisible(), false);
 });
 
-test("RU/EN number presentation preserves unknown values and source precision", async (t) => {
+test("Russian number formatting preserves unknown values and source precision", async (t) => {
   const g = await game(t);
   await g.ready();
   const values = await g.page.evaluate(() => {
@@ -369,10 +369,8 @@ test("RU/EN number presentation preserves unknown values and source precision", 
     const science = window.__testApp.UI.formatNumber(raw, {
       maximumFractionDigits: 4,
     });
-    window.__testApp.I18n.set("en");
     return {
       ru,
-      en: window.__testApp.UI.percent(50.2),
       unknown,
       science,
       raw,
@@ -381,11 +379,10 @@ test("RU/EN number presentation preserves unknown values and source precision", 
   });
   assert.deepEqual(values, {
     ru: "50,2%",
-    en: "50.2%",
     unknown: "—",
     science: "0,0078",
     raw: 0.0078,
-    lang: "en",
+    lang: "ru",
   });
 });
 

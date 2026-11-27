@@ -114,6 +114,4 @@ test("formatting is localized without reducing scientific values or changing DTO
   I18n.catalogs.ru = { "Привет, {name}": "Привет, {name}" };
   assert.equal(I18n.t("Привет, {name}", { name: "Пилот" }), "Привет, Пилот");
   assert.equal(dto.value, 0.0078);
-  I18n.language = "en";
-  assert.equal(Format.percent(50.2), "50.2%");
 });

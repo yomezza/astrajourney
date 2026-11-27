@@ -20,6 +20,7 @@ func TestTerminalBrowser(t *testing.T) {
 	}
 	f := newFixture033(t)
 	_, uid := f.signup("terminal_audit")
+	f.signup("terminal_idea_reader")
 	f.exec(`UPDATE users SET role='admin',credits=50000000,level=20,xp=10000 WHERE id=$1`, uid)
 	f.exec(`INSERT INTO notifications(user_id,kind,message) VALUES($1,'message','Terminal notification smoke')`, uid)
 	f.exec(`INSERT INTO surveys(user_id,star,source) VALUES($1,1,'survey') ON CONFLICT DO NOTHING`, uid)

@@ -1,6 +1,12 @@
 import { Preferences } from "./preferences.js";
+
+const supportedLanguages = ["ru"];
+const preferred = Preferences.language();
+const initial = supportedLanguages.includes(preferred) ? preferred : supportedLanguages[0];
+if (initial !== preferred) Preferences.setLanguage(initial);
+
 export const I18n = {
-  language: Preferences.language(),
+  language: initial,
   catalogs: {},
   t(text, parameters = {}) {
     const catalog = this.catalogs[this.language] || {};
@@ -26,8 +32,6 @@ export const I18n = {
     document.querySelectorAll("[data-placeholder]").forEach((el) => {
       el.placeholder = this.t(el.dataset.placeholder);
     });
-    if (document.querySelector("#language"))
-      document.querySelector("#language").value = this.language;
     document
       .querySelectorAll("[data-label]")
       .forEach((el) => el.setAttribute("aria-label", this.t(el.dataset.label)));
@@ -37,7 +41,7 @@ export const I18n = {
     });
   },
   set(language) {
-    if (!["ru", "en"].includes(language)) return;
+    if (!supportedLanguages.includes(language)) return;
     this.language = language;
     Preferences.setLanguage(language);
     this.apply();
@@ -46,9 +50,9 @@ export const I18n = {
 };
 export function initI18n() {
   I18n.ready = Promise.all(
-    ["ru", "en"].map(async (language) => {
+    supportedLanguages.map(async (language) => {
       const r = await fetch(new URL("../" + language + ".json", import.meta.url));
-      if (!r.ok) throw Error("Translation load failed");
+      if (!r.ok) throw Error("Не удалось загрузить словарь интерфейса");
       I18n.catalogs[language] = await r.json();
     }),
   )

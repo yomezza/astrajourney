@@ -131,7 +131,7 @@ try {
   }
   await page.evaluate(async () => {
     const { I18n } = await import(new URL("./core/i18n.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
-    I18n.set("en");
+    I18n.set("ru");
   });
   await guide.getByRole("button", { name: /Планетарная экспедиция/ }).waitFor();
   await guide.getByRole("button", { name: /Планетарная экспедиция/ }).click();

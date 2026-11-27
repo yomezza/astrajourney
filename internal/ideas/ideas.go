@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -12,7 +13,6 @@ import (
 	"github.com/jackc/pgx/v5"
 
 	"github.com/yomezza/cosmosimulator/internal/platform/httpkit"
-	"github.com/yomezza/cosmosimulator/internal/platform/postgres"
 	textutil "github.com/yomezza/cosmosimulator/internal/platform/text"
 )
 
@@ -30,37 +30,22 @@ func (a *Service) Ideas(w http.ResponseWriter, r *http.Request) {
 	}
 	ctx := r.Context()
 	if r.Method == "GET" {
-		scope := r.URL.Query().Get("scope")
-		if scope != "" && scope != "mine" && scope != "all" {
+		query, err := url.ParseQuery(r.URL.RawQuery)
+		if err != nil {
+			httpkit.Fail(w, 400, "Некорректные параметры поиска")
+			return
+		}
+		scope := query.Get("scope")
+		if scope != "" && scope != "mine" && scope != "all" && scope != "community" {
 			httpkit.Fail(w, 400, "Некорректный раздел предложений")
 			return
 		}
-		owner := u.ID
-		if scope == "all" {
-			if u.Role != "admin" {
-				httpkit.Fail(w, 403, "Требуется роль администратора")
-				return
-			}
-			owner = 0
-		}
-		page, _ := strconv.Atoi(r.URL.Query().Get("page"))
-		page = max(1, min(100000, page))
-		var total int
-		if err := a.DB.QueryRow(ctx, `SELECT count(*) FROM player_ideas WHERE ($1::bigint=0 OR user_id=$1)`, owner).Scan(&total); err != nil {
-			httpkit.Internal(w, err)
+		if scope == "all" && u.Role != "admin" {
+			httpkit.Fail(w, 403, "Требуется роль администратора")
 			return
 		}
-		pages := max(1, (total+9)/10)
-		page = min(page, pages)
-		items, err := postgres.QueryMaps(ctx, a.DB, `SELECT i.id,i.title,i.description,i.category,i.status,i.created_at,COALESCE(u.username,i.author_name) AS author FROM player_ideas i LEFT JOIN users u ON u.id=i.user_id WHERE ($1::bigint=0 OR i.user_id=$1) ORDER BY i.id DESC LIMIT 10 OFFSET $2`, owner, (page-1)*10)
-		if err != nil {
-			httpkit.Internal(w, err)
-			return
-		}
-		if items == nil {
-			items = []map[string]any{}
-		}
-		httpkit.Reply(w, 200, map[string]any{"items": items, "total": total, "page": page, "pages": pages})
+		page, _ := strconv.Atoi(query.Get("page"))
+		a.list(w, ctx, u.ID, scope, query, max(1, min(100000, page)))
 		return
 	}
 	var in playerIdea
@@ -82,7 +67,7 @@ func (a *Service) Ideas(w http.ResponseWriter, r *http.Request) {
 		httpkit.Fail(w, 400, "Описание идеи: от 10 до 3000 символов")
 		return
 	}
-	if in.Category != "gameplay" && in.Category != "interface" && in.Category != "economy" && in.Category != "other" {
+	if !validCategory(in.Category) {
 		httpkit.Fail(w, 400, "Выберите категорию идеи")
 		return
 	}
@@ -156,7 +141,9 @@ func (a *Service) Review(w http.ResponseWriter, r *http.Request) {
 		httpkit.Fail(w, 400, "Некорректный статус идеи")
 		return
 	}
-	tag, err := a.DB.Exec(r.Context(), `UPDATE player_ideas SET status=$2 WHERE id=$1`, in.ID, in.Status)
+	tag, err := a.DB.Exec(r.Context(), `UPDATE player_ideas SET
+		published_at=CASE WHEN $2='approved' AND status<>'approved' THEN now() ELSE published_at END,
+		status=$2 WHERE id=$1`, in.ID, in.Status)
 	if err != nil {
 		httpkit.Internal(w, err)
 		return

@@ -37,7 +37,7 @@ test("planet scenes load public art lazily, reuse six textures and keep geograph
     g.requests.some((r) => r.method === "POST"),
     false,
   );
-  await g.page.evaluate(() => window.__testApp.I18n.set("en"));
+  await g.page.evaluate(() => window.__testApp.I18n.set("ru"));
   await g.page.waitForSelector('#planet-map[data-textures="ready"]');
   assert.equal(g.assets.filter((p) => p.includes("planet/pixelart-v1/terrain/")).length, 6);
 });
@@ -159,12 +159,12 @@ test("surface cards locate shared landing infrastructure and reflect current acc
     g.requests.some((r) => r.method === "POST"),
     false,
   );
-  await g.page.evaluate(() => window.__testApp.I18n.set("en"));
-  const target = g.page.getByRole("button", { name: "Sector 2", exact: true });
+  await g.page.evaluate(() => window.__testApp.I18n.set("ru"));
+  const target = g.page.getByRole("button", { name: "Сектор 2", exact: true });
   await target.waitFor();
   await target.click();
   await g.page
-    .getByText("You do not have permission to visit this territory", {
+    .getByText("Нет права посещения этой территории", {
       exact: true,
     })
     .waitFor();
@@ -173,6 +173,6 @@ test("surface cards locate shared landing infrastructure and reflect current acc
   await g.page.locator(".notification-compact-row").first().waitFor();
   assert.match(
     await g.page.locator(".notification-compact-row").first().textContent(),
-    /Landing site ready.*Test surface.*Sector 2/,
+    /Посадочная площадка готова.*Test surface.*Сектор 2/,
   );
 });

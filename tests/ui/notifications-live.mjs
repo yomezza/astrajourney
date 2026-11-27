@@ -329,21 +329,21 @@ try {
   await idle();
   assert.equal((await api("notifications")).count, 513);
   await page.evaluate(async () =>
-    (await import(new URL("./bootstrap.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src))).application.I18n.set("en"),
+    (await import(new URL("./bootstrap.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src))).application.I18n.set("ru"),
   );
-  await root.getByRole("button", { name: "Read all", exact: true }).waitFor();
+  await root.getByRole("button", { name: "Прочитать всё", exact: true }).waitFor();
   assert.equal(
     await root
-      .getByRole("button", { name: "Read all", exact: true })
+      .getByRole("button", { name: "Прочитать всё", exact: true })
       .isDisabled(),
     true,
   );
   await root
-    .getByRole("button", { name: "Notification actions", exact: true })
+    .getByRole("button", { name: "Действия с уведомлениями", exact: true })
     .click();
-  await page.getByRole("menuitem", { name: "Clear all", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Очистить все", exact: true }).click();
   await idle();
-  await root.getByText("All quiet", { exact: true }).waitFor();
+  await root.getByText("Всё спокойно", { exact: true }).waitFor();
   assert.equal((await api("notifications")).count, 0);
   // A new account never inherits the previous selection or text.
   await page.evaluate(async () =>
@@ -370,7 +370,7 @@ try {
     "notifications must not open a chat/WebSocket connection",
   );
   console.log(
-    "PASS real API: A UI, unread vs count and 500 limit, all categories, safe full text, read/selected/all/delete/clear, explicit ship and all navigation, 420/360/320 scrolling, window geometry, RU/EN and account isolation; no extra sockets or page errors",
+    "PASS real API: A UI, unread vs count and 500 limit, all categories, safe full text, read/selected/all/delete/clear, explicit ship and all navigation, 420/360/320 scrolling, window geometry, Russian UI and account isolation; no extra sockets or page errors",
   );
 } finally {
   await browser.close();

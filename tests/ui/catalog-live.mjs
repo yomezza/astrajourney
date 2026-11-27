@@ -332,15 +332,15 @@ try {
       .pathname,
   });
   await page.evaluate(async () =>
-    (await import(new URL("./bootstrap.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src))).application.I18n.set("en"),
+    (await import(new URL("./bootstrap.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src))).application.I18n.set("ru"),
   );
   await colonies
     .locator(".colony-catalog-heading h3")
-    .filter({ hasText: "Colonies and projects" })
+    .filter({ hasText: "Колонии и проекты" })
     .waitFor();
   await close("colonies");
   await open("studies");
-  await click(studies.locator(".studies-current"), "Details");
+  await click(studies.locator(".studies-current"), "Подробнее");
   await objects.locator(".research-system-object").first().waitFor();
   await page.evaluate(async () =>
     (await import(new URL("./bootstrap.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src))).application.I18n.set("ru"),
@@ -429,7 +429,7 @@ try {
   assert.equal(await emptyPage.locator(".colony-catalog-entry").count(), 0);
   await empty.close();
   console.log(
-    "PASS real API: undisclosed objects masked, neutral planet fallback, empty catalogue, unauthorized operation denied, RU/EN",
+    "PASS real API: undisclosed objects masked, neutral planet fallback, empty catalogue, unauthorized operation denied, Russian UI",
   );
 } finally {
   await context.close();
