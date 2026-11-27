@@ -145,12 +145,14 @@ func OpenDatabase(ctx context.Context, dsn, schema string, schemas fs.ReadFileFS
 	if _, e = tx.Exec(ctx, dblayout.DDL(schema, string(upgrade124))); e != nil {
 		return nil, fmt.Errorf("upgrade 0.12.4: %w", e)
 	}
-	upgrade144, e := schemas.ReadFile("schema144.sql")
-	if e != nil {
-		return nil, e
-	}
-	if _, e = tx.Exec(ctx, dblayout.DDL(schema, string(upgrade144))); e != nil {
-		return nil, fmt.Errorf("upgrade 0.14.4: %w", e)
+	for _, file := range []string{"schema144.sql", "schema_idea_publication.sql"} {
+		upgrade, e := schemas.ReadFile(file)
+		if e != nil {
+			return nil, e
+		}
+		if _, e = tx.Exec(ctx, dblayout.DDL(schema, string(upgrade))); e != nil {
+			return nil, fmt.Errorf("upgrade %s: %w", file, e)
+		}
 	}
 	upgrade150, e := schemas.ReadFile("schema150.sql")
 	if e != nil {

@@ -68,19 +68,6 @@ export function initNavigation() {
     arrangeTimer = setTimeout(() => arrangeShip(), 80);
   });
   const settings = document.querySelector("#window-settings .module-content");
-  settings.append(node("h3", tr("Язык")));
-  const language = node("select");
-  language.id = "language";
-  for (const [v, label] of [
-    ["ru", "Русский"],
-    ["en", "English"],
-  ]) {
-    const option = node("option", label);
-    option.value = v;
-    language.append(option);
-  }
-  settings.append(language);
-  language.onchange = () => I18n.set(language.value);
   settings.append(node("h3", tr("Отображение")));
   const density = node("select");
   for (const [v, label] of [

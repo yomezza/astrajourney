@@ -78,11 +78,6 @@ test("Matrix catalog searches localized modules, restores windows and keeps admi
   assert.ok(await search.evaluate(el => el === document.activeElement));
   await page.keyboard.press("Escape");
   assert.equal(await catalog.isVisible(),false);
-  await page.evaluate(() => window.__testApp.I18n.set("en"));
-  await page.keyboard.press("Control+k");
-  await catalog.getByRole("searchbox",{name:"Search modules"}).fill("Market");
-  assert.ok(await catalog.getByRole("button",{name:"Market",exact:true}).count() > 0);
-  await page.keyboard.press("Escape");
 });
 
 test("Narrow layouts keep full game controls and the profile reachable for administrators", async t => {

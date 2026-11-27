@@ -53,9 +53,6 @@ test("admin service cards show connectivity, centered names and outlined status 
       .evaluate((el) => getComputedStyle(el).textAlign),
     "center",
   );
-  await g.page.evaluate(() => window.__testApp.I18n.set("en"));
-  await root.getByText("Planetary service", { exact: true }).waitFor();
-  await root.getByText("Disabled", { exact: true }).waitFor();
   await g.page.locator("#admin-menu").click();
   if (process.env.SERVICES_TEST_SCREENSHOT)
     await root.screenshot({ path: process.env.SERVICES_TEST_SCREENSHOT });

@@ -83,45 +83,33 @@ try {
   await page.waitForSelector("#game:not([hidden])");
   await settle();
   assert.equal(await page.evaluate(() => typeof window.refresh), "undefined");
-  for (const language of ["ru", "en"]) {
-    await page.evaluate(
-      async (lang) =>
-        (await import(new URL("./bootstrap.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src))).application.I18n.set(lang),
-      language,
-    );
-    await settle();
-    for (const id of [
-      "ship",
-      "cargo",
-      "market",
-      "corporations",
-      "profile",
-      "research",
-      "studies",
-      "guide",
-      "finance",
-      "notifications",
-      "tasks",
-      "logistics",
-      "ideas",
-      "users",
-      "gameplay",
-      "galaxies",
-      "adminchanges",
-      "benchmark",
-      "adminideas",
-      "settings",
-      "galaxy",
-    ]) {
-      await open(id);
-      await close(id);
-      console.log(`OPEN ${language} ${id}`);
-    }
+  for (const id of [
+    "ship",
+    "cargo",
+    "market",
+    "corporations",
+    "profile",
+    "research",
+    "studies",
+    "guide",
+    "finance",
+    "notifications",
+    "tasks",
+    "logistics",
+    "ideas",
+    "users",
+    "gameplay",
+    "galaxies",
+    "adminchanges",
+    "benchmark",
+    "adminideas",
+    "settings",
+    "galaxy",
+  ]) {
+    await open(id);
+    await close(id);
+    console.log(`OPEN ru ${id}`);
   }
-  await page.evaluate(async () =>
-    (await import(new URL("./bootstrap.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src))).application.I18n.set("ru"),
-  );
-  await settle();
   await page.locator("#nav-colonies").click();
   await page.waitForSelector("#window-colonies[open]");
   await settle();
@@ -271,7 +259,8 @@ try {
   await settle();
   await page.waitForFunction(() => !document.querySelector(".planner-item"));
   await close("tasks");
-  await open("ideas");
+  const ideas = await open("ideas");
+  await ideas.getByRole("tab", { name: "Предложить идею" }).click();
   await page.locator("#idea-title").fill("Проверка реального терминала");
   await page
     .locator("#idea-description")
@@ -288,13 +277,38 @@ try {
       "Идея отправлена",
     ),
   );
+  await ideas.getByRole("button", { name: "Открыть мою идею" }).click();
+  await ideas.locator(".idea-detail .idea-status").getByText("На рассмотрении").waitFor();
   await close("ideas");
-  await open("adminideas");
-  assert.ok(
-    (await page.locator("#window-adminideas").textContent()).includes(
-      "Проверка реального терминала",
-    ),
-  );
+  const review = await open("adminideas");
+  await review.getByRole("heading", { name: "Проверка реального терминала" }).waitFor();
+
+  const reader = await browser.newPage({ viewport: { width: 390, height: 820 } });
+  reader.on("pageerror", (error) => errors.push(error.message));
+  try {
+    await reader.goto(base.href);
+    await reader.locator('#auth-form input[name="username"]').fill("terminal_idea_reader");
+    await reader.locator('#auth-form input[name="password"]').fill("1");
+    await reader.locator("#submit").click();
+    await reader.waitForSelector("#game:not([hidden])");
+    await reader.evaluate(async () => {
+      const bootstrap = document.querySelector('script[type="module"][src$="bootstrap.js"]');
+      const { application } = await import(new URL("./bootstrap.js", bootstrap.src));
+      application.Modules.open("ideas");
+    });
+    const community = reader.locator("#window-ideas");
+    await community.getByText("Опубликованных идей пока нет").waitFor();
+    await review.locator('[data-field="Статус идеи"]').click();
+    await page.getByRole("option", { name: "Одобрено", exact: true }).click();
+    await review.getByRole("button", { name: "Сохранить статус" }).click();
+    await review.locator(".idea-detail .idea-status").getByText("Одобрено").waitFor();
+    await community.getByRole("searchbox").fill("браузерной проверкой");
+    await community.getByRole("button", { name: /Проверка реального терминала/ }).click();
+    await community.locator(".idea-detail").getByRole("heading", { name: "Проверка реального терминала" }).waitFor();
+    await community.locator(".idea-detail .idea-description").getByText("Предложение создано браузерной проверкой на отдельной тестовой базе.").waitFor();
+  } finally {
+    await reader.close();
+  }
   await close("adminideas");
   await open("corporations");
   const leave = page
