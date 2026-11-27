@@ -135,15 +135,12 @@ try {
   });
   await guide.getByRole("button", { name: /Планетарная экспедиция/ }).waitFor();
   await guide.getByRole("button", { name: /Планетарная экспедиция/ }).click();
-  await guide.locator(".guide-fallback").waitFor();
+  await guide.locator(".c-reading").getByText("Серверноеусловиепоиска.", { exact: false }).waitFor();
+  assert.equal(await guide.locator(".guide-fallback").count(), 0);
   assert.match(
     await guide.locator(".guide-title").innerText(),
     /Планетарная экспедиция/,
   );
-  await page.evaluate(async () => {
-    const { I18n } = await import(new URL("./core/i18n.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
-    I18n.set("ru");
-  });
   // Administrator edits the existing published article without changing its live version.
   await page.evaluate(async () => {
     const { Modules } = await import(new URL("./ui/runtime.js", document.querySelector('script[type="module"][src$="bootstrap.js"]').src));
@@ -253,7 +250,7 @@ try {
   assert.equal((await api("planet/visit")).state, "none");
   assert.deepEqual(errors, []);
   console.log(
-    "PASS real API/PG: Original C 810/420, scroll/favorites/body search, published RU fallback, admin preview, full Planet Mode, preserved space geometry, one startup, F5 same visit, landing-only authorized return; no JS errors",
+    "PASS real API/PG: Original C 810/420, scroll/favorites/body search, published Russian article, admin preview, full Planet Mode, preserved space geometry, one startup, F5 same visit, landing-only authorized return; no JS errors",
   );
   await context.close();
 } finally {
