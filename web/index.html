@@ -60,6 +60,7 @@
         <button id="studio-shortcut" type="button" data-label="Рабочие пространства" aria-label="Рабочие пространства" data-matrix-icon="studio" hidden></button>
         <div
           id="window-switcher"
+          role="group"
           data-label="Открытые окна"
           aria-label="Открытые окна"
         ></div>
@@ -132,9 +133,10 @@
         ><button
           type="button"
           id="current-system-map"
+          data-open="system"
           data-nav="Карта текущей системы"
         >
-          <span class="nav-icon" data-matrix-icon="system"></span
+          <span class="nav-icon"></span
           ><span class="nav-label" data-i18n="Карта текущей системы"
             >Карта текущей системы</span
           >
@@ -185,8 +187,8 @@
         ></button
       >
       <span class="matrix-nav-group" data-i18n="Развитие">Развитие</span>
-      <button type="button" id="nav-colonies" data-nav="Колонии">
-        <span class="nav-icon" data-matrix-icon="colonies"></span
+      <button type="button" id="nav-colonies" data-open="colonies" data-nav="Колонии">
+        <span class="nav-icon"></span
         ><span class="nav-label" data-i18n="Колонии">Колонии</span>
       </button>
       <button

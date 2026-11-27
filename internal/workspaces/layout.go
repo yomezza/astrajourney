@@ -30,6 +30,8 @@ type Module struct {
 	Filter   string    `json:"filter,omitempty"`
 	Wide     bool      `json:"wide,omitempty"`
 	View     string    `json:"view,omitempty"`
+	Tab      string    `json:"tab,omitempty"`
+	SystemID int       `json:"system_id,omitempty"`
 }
 
 type Workspace struct {
@@ -98,9 +100,18 @@ func (m Module) valid() bool {
 		g.W < 160 || g.W > 8192 || g.H < 160 || g.H > 8192) {
 		return false
 	}
+	if m.SystemID < 0 || m.SystemID > 2147483647 || m.SystemID != 0 && m.Type != "map" {
+		return false
+	}
+	if m.Tab != "" && (m.Type != "market" || m.Tab != "local" && m.Tab != "orders") {
+		return false
+	}
 	switch m.Type {
-	case "overview", "map", "operations", "market":
+	case "overview", "map", "operations", "market", "logistics", "studies",
+		"colonies", "corporations", "guide", "finance", "profile":
 		return m.Filter == "" && m.Binding == "none" && m.ShipID == 0
+	case "tasks":
+		return (m.Filter == "" || m.Filter == "all" || m.Filter == "running" || m.Filter == "queued" || m.Filter == "paused") && m.Binding == "none" && m.ShipID == 0
 	case "fleet", "mining":
 		if m.Filter != "" {
 			return false

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -27,6 +28,15 @@ func (a *Service) Expedition(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ctx := r.Context()
+	var requestedShip int64
+	if r.URL.Query().Has("ship") {
+		id, err := strconv.ParseInt(r.URL.Query().Get("ship"), 10, 64)
+		if err != nil || id < 1 {
+			httpkit.Fail(w, 400, "Укажите корабль")
+			return
+		}
+		requestedShip = id
+	}
 	g, err := a.World.Load(ctx)
 	if err != nil {
 		httpkit.Internal(w, err)
@@ -54,9 +64,29 @@ func (a *Service) Expedition(w http.ResponseWriter, r *http.Request) {
 		httpkit.Internal(w, err)
 		return
 	}
-	ship, err := fleet.EnsureShip(ctx, tx, u.ID)
+	var ship fleet.Ship
+	if requestedShip == 0 {
+		ship, err = fleet.EnsureShip(ctx, tx, u.ID)
+	} else {
+		err = fleet.SettleShips(ctx, tx, u.ID)
+		if err == nil {
+			var owned int64
+			err = tx.QueryRow(ctx, `SELECT id FROM ships WHERE id=$1 AND user_id=$2 FOR UPDATE`, requestedShip, u.ID).Scan(&owned)
+			if errors.Is(err, pgx.ErrNoRows) {
+				httpkit.Fail(w, 404, "Корабль не найден")
+				return
+			}
+			if err == nil {
+				ship, err = fleet.ReadShip(ctx, tx, owned)
+			}
+		}
+	}
 	if err != nil {
 		httpkit.Internal(w, err)
+		return
+	}
+	if ship.Star < 1 || ship.Star > len(g.Stars) || g.Stars[ship.Star-1].Deleted {
+		httpkit.Fail(w, 409, "Система корабля недоступна")
 		return
 	}
 	star := g.Stars[ship.Star-1]
@@ -100,18 +130,37 @@ func (a *Service) Expedition(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.Method == "POST" {
 		var in struct {
-			Ship          int64  `json:"ship"`
-			Action        string `json:"action"`
-			To            int    `json:"to"`
-			Resource      string `json:"resource"`
-			Quantity      int    `json:"quantity"`
-			Planet        int    `json:"planet"`
-			Target        string `json:"target"`
-			Mode          string `json:"mode"`
-			ExpectedPrice *int   `json:"expected_price"`
+			Ship           int64  `json:"ship"`
+			Action         string `json:"action"`
+			To             int    `json:"to"`
+			Resource       string `json:"resource"`
+			Quantity       int    `json:"quantity"`
+			Planet         int    `json:"planet"`
+			Target         string `json:"target"`
+			Mode           string `json:"mode"`
+			ExpectedPrice  *int   `json:"expected_price"`
+			ExpectedStar   int    `json:"expected_star"`
+			ExpectedObject string `json:"expected_object"`
 		}
 		if !httpkit.Decode(w, r, &in) {
 			return
+		}
+		if requestedShip != 0 {
+			if in.Ship != requestedShip || in.ExpectedStar != ship.Star || in.ExpectedObject != ship.ObjectID {
+				httpkit.Fail(w, 409, "Положение корабля изменилось. Проверьте данные")
+				return
+			}
+			if (in.Action == "buy" || in.Action == "sell") && in.ExpectedPrice == nil {
+				httpkit.Fail(w, 400, "Проверьте предложение ещё раз")
+				return
+			}
+			if err := fleet.Available(ctx, tx, ship.ID); errors.Is(err, fleet.ErrReserved) {
+				httpkit.Fail(w, 409, err.Error())
+				return
+			} else if err != nil {
+				httpkit.Internal(w, err)
+				return
+			}
 		}
 		if busy, e := fleet.AutomationBusy(ctx, tx, ship.ID); e != nil {
 			httpkit.Internal(w, e)

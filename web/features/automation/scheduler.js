@@ -18,15 +18,19 @@ export function initScheduler() {
     const [star, station] = String(value).split("|");
     return { star: Number(star), station };
   };
-  let request = 0;
+  const requests = new WeakMap();
   Object.assign(Scheduler, {
-    async render(root) {
+    async render(root, scope) {
+      const shipsForView = () => Session.data.fleet.ships.filter(ship => !scope || ship.id === scope.shipID);
+      const visibleTask = task => !scope || task.ship_id === scope.shipID;
+      const namespaced = key => scope ? scope.namespace + ":" + key : key;
       UI.rememberFolds(root);
       let host = root.querySelector(".planner");
-      if (!host || host.dataset.language !== I18n.language) {
+      if (!host || host.dataset.language !== I18n.language || host.shipContext !== scope?.shipID) {
         host?.remove();
         host = n("section", undefined, "planner");
         host.dataset.language = I18n.language;
+        host.shipContext = scope?.shipID;
         root.prepend(host);
         const heading = n("div", undefined, "planner-heading"), title = n("div");
         title.append(n("h3", tr("Центр задач")), n("p", tr("Задачи выполняются сервером при закрытом браузере. На каждом корабле — последовательно. Пауза не отменяет уже начатый полёт или добычу."), "muted"));
@@ -43,7 +47,7 @@ export function initScheduler() {
           body = n("div"),
           list = n("div", undefined, "planner-list");
         form.onsubmit = (e) => e.preventDefault();
-        let shipID = Session.data.expedition.ship.id,
+        let shipID = scope?.shipID ?? Session.data.expedition.ship.id,
           kind = "mine",
           source,
           dest,
@@ -53,7 +57,7 @@ export function initScheduler() {
         const shipsPicker = UI.choice(
           form,
           "Корабль",
-          Session.data.fleet.ships.map((s) => [s.id, shipName(s)]),
+          shipsForView().map((s) => [s.id, shipName(s)]),
           shipID,
           (value) => {
             shipID = Number(value);
@@ -61,7 +65,7 @@ export function initScheduler() {
           },
         );
         host.updateShips = () => {
-          const ships = Session.data.fleet.ships,
+          const ships = shipsForView(),
             signature = JSON.stringify(ships.map((s) => [s.id, shipName(s)]));
           if (host.dataset.fleet === signature) return;
           host.dataset.fleet = signature;
@@ -96,7 +100,10 @@ export function initScheduler() {
           historyList = n("div", undefined, "planner-history-list");
         compose.append(n("h3", tr("Новая задача")), form, body);
         const filters = n("div", undefined, "planner-filters");
-        const filter = UI.choice(filters, "Показать задачи", [["all", "Все задачи"], ["running", "Выполняются"], ["queued", "В очереди"], ["paused", "На паузе"]], "all", () => host.filterTasks());
+        const filter = UI.choice(filters, "Показать задачи", [["all", "Все задачи"], ["running", "Выполняются"], ["queued", "В очереди"], ["paused", "На паузе"]], scope?.filter || "all", value => {
+          scope?.onFilter(value);
+          host.filterTasks();
+        });
         host.filterTasks = () => {
           for (const card of list.querySelectorAll(".planner-item")) card.hidden = filter.value !== "all" && card.dataset.status !== filter.value;
           for (const group of list.querySelectorAll(".planner-ship")) group.hidden = filter.value !== "all" && !group.querySelector(".planner-item:not([hidden])");
@@ -113,7 +120,7 @@ export function initScheduler() {
           const serial = ++historyRequest,
             epoch = Session.epoch;
           try {
-            const tasks = await api("planner?view=history");
+            const tasks = (await api("planner?view=history")).filter(visibleTask);
             if (
               serial !== historyRequest ||
               epoch !== Session.epoch ||
@@ -270,7 +277,7 @@ export function initScheduler() {
           quantity = UI.field(
             inputs,
             "Количество",
-            "planner-quantity",
+            namespaced("planner-quantity"),
             kind === "mine" ? 30 : 10,
             "number",
           );
@@ -295,23 +302,23 @@ export function initScheduler() {
               if (owner !== Session.epoch || !Session.signedIn) return;
               notify(tr("Задача добавлена"));
               await refresh(true);
-              await Scheduler.render(root);
+              await Scheduler.render(root,scope);
             }),
           );
         }
         await build();
       }
       await host.updateShips?.();
-      const key = ++request,
-        epoch = Session.epoch,
-        result = await api("planner");
-      if (key !== request || epoch !== Session.epoch || !host.isConnected)
+      const key = {};
+      requests.set(root,key);
+      const epoch = Session.epoch, result = await api("planner");
+      if (key !== requests.get(root) || epoch !== Session.epoch || !host.isConnected)
         return;
       const list = host.querySelector(".planner-list");
       UI.rememberFolds(list);
       list.replaceChildren();
       const active = result
-        .filter((t) => ["queued", "running", "paused"].includes(t.status))
+        .filter(t => visibleTask(t) && ["queued", "running", "paused"].includes(t.status))
         .sort(
           (a, b) =>
             Number(b.carried > 0 || b.pending > 0) -
@@ -328,9 +335,9 @@ export function initScheduler() {
         counts = new Map();
       for (const task of active)
         counts.set(task.ship_id, (counts.get(task.ship_id) || 0) + 1);
-      for (const ship of Session.data.fleet.ships) {
+      for (const ship of shipsForView()) {
         const group = UI.fold(
-            `planner:ship:v2:${ship.id}`,
+            namespaced(`planner:ship:v2:${ship.id}`),
             false,
             "planner-ship",
             true,
@@ -360,7 +367,7 @@ export function initScheduler() {
       }
       for (const task of active) {
         const card = UI.fold(
-            `planner:task:${task.id}`,
+            namespaced(`planner:task:${task.id}`),
             true,
             "planner-item",
             true,
@@ -421,7 +428,7 @@ export function initScheduler() {
                 await api("planner", { action, id: task.id });
                 if (owner !== Session.epoch || !Session.signedIn) return;
                 await refresh(true);
-                await Scheduler.render(root);
+                await Scheduler.render(root,scope);
               }),
             );
           card.append(tools);
@@ -432,7 +439,4 @@ export function initScheduler() {
     },
   });
 
-  window.addEventListener("signedout", () => {
-    request++;
-  });
 }
