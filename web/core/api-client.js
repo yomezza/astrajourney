@@ -1,10 +1,11 @@
 import { requestID, trace } from "./diagnostics.js";
 export class ApiError extends Error {
-  constructor(message, { status = 0, kind = "http", cause } = {}) {
+  constructor(message, { status = 0, kind = "http", code = "", cause } = {}) {
     super(message, { cause });
     this.name = "ApiError";
     this.status = status;
     this.kind = kind;
+    this.code = code;
   }
 }
 
@@ -40,6 +41,7 @@ export async function request(path, body, signal) {
   if (!response.ok)
     throw new ApiError(data?.error || "Ошибка сервера", {
       status: response.status,
+      code: typeof data?.code === "string" ? data.code : "",
     });
   return data;
 }

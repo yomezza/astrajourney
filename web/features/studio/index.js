@@ -8,6 +8,8 @@ import { lineIcon } from "../../ui/icons.js";
 import { Modules, UI } from "../../ui/runtime.js";
 import { readings, shipLabel } from "./views.js";
 import { fleetReading, marketReading, operations } from "./dashboard.js";
+import { rebaseLayout } from "./layout-rebase.js";
+import { createTradeCommands } from "./trade-commands.js";
 import { createStudioContext } from "./context.js";
 import { mapReading } from "./map.js";
 import { accountReading, logisticsReading, miningReading, shipActions } from "./panels.js";
@@ -15,7 +17,7 @@ import { registry } from "./registry.js";
 import { initStudioComms } from "./communications.js";
 import { uuid as id } from "../../core/uuid.js";
 import { Game, Scheduler } from "../runtime.js";
-import { openModule } from "../shell/module-routes.js";
+import { openIntent, openModule, registerWorkspaceOpener } from "../shell/module-routes.js";
 import { loadWorld, world } from "../../core/world-store.js";
 
 const tr = (text) => I18n.t(text);
@@ -106,6 +108,7 @@ export function initStudio() {
   const mounted = new Map(), cards = new Map();
   const marketEditors = new WeakMap();
   const context = createStudioContext(() => refreshShips());
+  const trades = createTradeCommands(() => refreshShips());
   const telemetry = document.querySelector("#game .overview-stats");
   const focusMetric = node("strong");
   const pilot = document.querySelector("#game .matrix-pilot");
@@ -139,7 +142,7 @@ export function initStudio() {
     () => openModule("notifications")));
   let comms;
   let grid, mapRequest, dragID;
-  let layout, revision, timer, request, writing, loading, dirty, failed, conflict, pendingWrite;
+  let layout, baseLayout, revision, timer, request, writing, loading, dirty, failed, conflict, pendingWrite, rebasing;
   let controls, status, actions, shipSignature;
   const workspace = () => activeWorkspace(layout);
   const draftKey = () => "astra:studio-draft:" + Session.data.state.user.id;
@@ -148,7 +151,7 @@ export function initStudio() {
       try { return JSON.parse(sessionStorage.getItem(draftKey())); } catch { return null; }
     },
     remember() {
-      try { sessionStorage.setItem(draftKey(),JSON.stringify({revision,layout,pendingWrite})); } catch { /* storage can be disabled */ }
+      try { sessionStorage.setItem(draftKey(),JSON.stringify({revision,layout,pendingWrite,baseLayout})); } catch { /* storage can be disabled */ }
     },
     clear() {
       try { sessionStorage.removeItem(draftKey()); } catch { /* storage can be disabled */ }
@@ -161,10 +164,42 @@ export function initStudio() {
     if (failed && !conflict)
       actions.append(button("Повторить", () => layout ? flush() : load()));
     if (conflict)
-      actions.append(button("Загрузить сохранённую раскладку", () => {
-        draft.clear();
-        load();
-      }));
+      actions.append(button("Повторить мои изменения", rebase, rebasing || !baseLayout),
+        button("Загрузить сохранённую раскладку", () => {
+          draft.clear();
+          load();
+        },rebasing));
+  }
+
+  async function rebase() {
+    const scope = request;
+    let message = "";
+    if (rebasing || !conflict || !scope.current()) return;
+    rebasing = true;
+    report("Проверяем изменения раскладки…");
+    try {
+      const latest = await api("workspaces",undefined,scope.signal);
+      if (!scope.current()) return;
+      const merged = rebaseLayout(baseLayout,layout,latest.layout);
+      if (!merged) {
+        message = "Изменения пересекаются. Черновик сохранён";
+        return;
+      }
+      layout = merged;
+      baseLayout = structuredClone(latest.layout);
+      revision = latest.revision;
+      pendingWrite = null;
+      dirty = conflict = failed = false;
+      render(true);
+      changed();
+    } catch (error) {
+      if (scope.current()) message = error.message;
+    } finally {
+      if (scope.current()) {
+        rebasing = false;
+        if (message) report(message);
+      }
+    }
   }
 
   function frame() {
@@ -213,6 +248,7 @@ export function initStudio() {
       const result = await api("workspaces", attempted, scope.signal);
       if (!scope.current()) return;
       revision = result.revision;
+      baseLayout = structuredClone(result.layout);
       pendingWrite = null;
       dirty = JSON.stringify(layout) !== JSON.stringify(attempted.layout);
       if (dirty) draft.remember();
@@ -223,7 +259,7 @@ export function initStudio() {
       dirty = failed = true;
       if (error.status >= 400 && error.status < 500) pendingWrite = null;
       draft.remember();
-      conflict = error.status === 409;
+      conflict = error.code === "WORKSPACE_REVISION_CONFLICT" || (!error.code && error.status === 409);
       report(error.message);
     } finally {
       if (scope.current()) {
@@ -259,7 +295,7 @@ export function initStudio() {
       UI.updateHologram(reusable ? previous : screen,screen.dataset.studioModel,
         screen.getAttribute("aria-label"),screen.dataset.studioMoving === "true");
     }
-    const oldScroll = entry.data.querySelector(".matrix-table");
+    const oldScroll = entry.data.querySelector(".matrix-table,.matrix-offer-list");
     const top = oldScroll?.scrollTop || 0, left = oldScroll?.scrollLeft || 0;
     const folds = new Set([...entry.data.querySelectorAll("details[data-studio-details][open]")]
       .map(item => item.dataset.studioDetails));
@@ -268,7 +304,7 @@ export function initStudio() {
     entry.data.replaceChildren(output);
     for (const item of entry.data.querySelectorAll("details[data-studio-details]"))
       item.open = folds.has(item.dataset.studioDetails);
-    const scroll = entry.data.querySelector(".matrix-table");
+    const scroll = entry.data.querySelector(".matrix-table,.matrix-offer-list");
     scroll?.scrollTo(left,top);
     if (active === oldScroll) scroll?.focus({preventScroll:true});
     if (focus) entry.data.querySelector(`[data-studio-focus="${CSS.escape(focus)}"]`)?.focus({preventScroll:true});
@@ -276,8 +312,9 @@ export function initStudio() {
 
   function contextualShip(module) {
     const focusID = workspace().ship_id || Session.data.expedition?.ship?.id || 0;
+    const descriptor = registry[module.type];
     const shipID = module.binding === "fixed" ? module.ship_id :
-      registry[module.type].binding && module.binding === "none" ? 0 : focusID;
+      descriptor.binding && !descriptor.legacyWorkspace && module.binding === "none" ? 0 : focusID;
     return {shipID, ship:ownedShips().find(({id}) => id === shipID)};
   }
 
@@ -294,8 +331,9 @@ export function initStudio() {
       current.data : undefined;
     const workbench = Session.data.workbench || {};
     const name = entry.content.firstElementChild;
-    name.textContent = descriptor.binding ? (ship ? shipLabel(ship) : tr(descriptor.label)) : "";
-    let output;
+    name.textContent = descriptor.binding ?
+      (ship ? shipLabel(ship) : shipID ? tr("Корабль недоступен") + " · #" + shipID : tr(descriptor.label)) : "";
+    let output, planner = false;
     switch (module.type) {
       case "overview":
         output = fleetReading(ownedShips(),ship,selectShip);
@@ -314,13 +352,13 @@ export function initStudio() {
         },editor,resource => {
           editor.resource = editor.resource === resource ? null : resource;
           repaint(module);
-        },context.run);
+        },trades);
         break;
       }
       case "map": {
         const key = [ship?.id,ship?.star,ship?.destination,ship?.local_target,data?.ship.object_id,
           data?.surveyed,module.system_id,I18n.language,workbench.known?.length].join("|");
-        if (entry.mapSource === world.data && entry.mapFocus === key && !rebuildControls) return;
+        if (entry.mapSource === world.data && entry.mapFocus === key && !rebuildControls && entry.shipSignature === shipSignature) return;
         entry.mapFocus = key;
         entry.mapSource = world.data;
         output = mapReading(module,ship,data,selected => {
@@ -335,7 +373,12 @@ export function initStudio() {
       case "cargo":
         output = node("div",undefined,"matrix-panel-stack");
         output.append(readings(module,ship,shipID));
-        if (module.type === "fleet") output.append(shipActions(data,context.run));
+        if (module.type === "fleet") {
+          output.append(shipActions(data,context.run));
+          if (ship) output.append(button("Открыть трюм",() => openIntent({
+            module:"cargo",scope:"workspace",target:{kind:"ship",id:ship.id},
+          })));
+        }
         if (module.type === "mining" && ship) output.append(miningReading(data,context.run));
         break;
       case "logistics":
@@ -352,23 +395,26 @@ export function initStudio() {
                 if (entry.data.isConnected) entry.data.replaceChildren(node("p",error.message,"matrix-empty"));
               });
           }
-          return;
+          planner = true;
+          break;
         }
+        delete entry.plannerKey;
         output = accountReading(module.type,workbench,Session.data.profile,ship,data,context.run);
         break;
       default:
         output = accountReading(module.type,workbench,Session.data.profile,ship,data,context.run);
     }
-    if (!data && current.pending) output.append(node("p",tr("Загружаем данные корабля…"),"matrix-empty"));
-    else if (current.error) output.append(node("p",current.error,"matrix-empty"));
+    if (output && !data && current.pending) output.append(node("p",tr("Загружаем данные корабля…"),"matrix-empty"));
+    else if (output && current.error) output.append(node("p",current.error,"matrix-empty"));
     if (!descriptor.binding) {
       replaceReadings(entry,output,module.type === "map");
       return;
     }
     if (rebuildControls || entry.shipSignature !== shipSignature) {
-      const binding = select("Привязка корабля", [
-        ["workspace",tr("Корабль пространства")], ["fixed",tr("Закрепить корабль")], ["none",tr("Без привязки")],
-      ], module.binding, (value) => {
+      const options = [["workspace",tr("Корабль пространства")],["fixed",tr("Закрепить корабль")]];
+      if (!descriptor.legacyWorkspace) options.push(["none",tr("Без привязки")]);
+      const bindingMode = descriptor.legacyWorkspace && module.binding === "none" ? "workspace" : module.binding;
+      const binding = select("Привязка корабля",options,bindingMode,value => {
         if (value === "fixed" && !ship && ownedShips().length !== 1) {
           paintWindow(module, entry, true);
           return;
@@ -402,7 +448,7 @@ export function initStudio() {
       }));
       entry.shipSignature = shipSignature;
     }
-    replaceReadings(entry,output);
+    if (!planner) replaceReadings(entry,output,module.type === "map");
   }
 
   function mount(module) {
@@ -461,18 +507,62 @@ export function initStudio() {
     changed();
   }
 
-  function openType(type) {
-    if (!layout) return;
-    const items = workspace().modules;
-    let module = items.find(item => item.type === type);
-    if (!module) {
+  function openType(module) {
+    return openIntent({module,scope:"workspace"});
+  }
+
+  registerWorkspaceOpener(async ({module:type,target,instance,presentation,reuse}) => {
+    if (!Object.hasOwn(registry,type)) return;
+    if (!layout) return notify(tr("Загрузка рабочих пространств…"),"error");
+    const owner = workspace();
+    if (target?.kind === "ship") {
+      if (!registry[type].binding || !ownedShips().some(({id}) => id === target.id))
+        return notify(tr("Корабль недоступен"),"error");
+    } else if (target?.kind === "system") {
+      if (type !== "map") return;
+      try {
+        await loadWorld();
+      } catch (error) {
+        if (layout && workspace() === owner) notify(error.message,"error");
+        return;
+      }
+      if (!layout || workspace() !== owner) return;
+      const star = world.stars.get(target.id);
+      if (!star || star.deleted) return notify(tr("Система недоступна"),"error");
+    } else if (target) {
+      return;
+    }
+
+    const items = owner.modules;
+    let module = instance ? items.find(item => item.type === type && item.id === instance) :
+      reuse === "new" ? null : items.find(item => {
+        if (item.type !== type) return false;
+        if (target?.kind === "ship") return item.binding === "fixed" && item.ship_id === target.id;
+        if (target?.kind === "system") return item.system_id === target.id;
+        return item.binding !== "fixed" && !item.system_id;
+      });
+    if (instance && !module) return;
+    const added = !module;
+    if (added) {
       if (items.length >= 16) return notify(tr("Не более 16 модулей в пространстве"),"error");
       module = newModule(type);
+      if (target?.kind === "ship") Object.assign(module,{binding:"fixed",ship_id:target.id});
+      if (target?.kind === "system") module.system_id = target.id;
       items.push(module);
       drawCards();
     }
-    showModule(module);
-  }
+    if (presentation === "window") return showModule(module);
+    const key = instanceID(module);
+    if (module.view === "window") {
+      mounted.delete(key);
+      Modules.destroy(key);
+      module.view = "card";
+      changed();
+    } else if (added) changed();
+    const card = cards.get(key)?.content.closest("article");
+    card?.querySelector("h2")?.focus();
+    card?.scrollIntoView({block:"nearest"});
+  });
 
   function requestMap() {
     if (world.data || mapRequest || !workspace().modules.some(item => item.type === "map")) return;
@@ -528,7 +618,7 @@ export function initStudio() {
         return b;
       };
       const tools = node("div",undefined,"matrix-card-actions");
-      const show = () => showModule(module);
+      const show = () => openIntent({module:module.type,scope:"workspace",instance:module.id});
       const float = tool("maximize","Открыть отдельное окно",show);
       const resize = tool("wide","Широкая карточка",() => {
         if (module.wide) delete module.wide;
@@ -814,6 +904,7 @@ export function initStudio() {
     try {
       const result = await api("workspaces", undefined, scope.signal);
       if (!scope.current()) return;
+      baseLayout = structuredClone(result.layout);
       layout = result.layout;
       const savedDraft = draft.read();
       const ownCommit = savedDraft?.pendingWrite &&
@@ -821,7 +912,8 @@ export function initStudio() {
         sessionLayoutEqual(savedDraft.pendingWrite.layout,layout);
       const recover = savedDraft?.layout?.version === layout.version &&
         (savedDraft.revision === result.revision || ownCommit);
-      if (recover) layout = savedDraft.layout;
+      const staleDraft = savedDraft?.layout?.version === layout.version && !recover;
+      if (recover || staleDraft) layout = savedDraft.layout;
       const first = layout.workspaces[0];
       if (layout.workspaces.length === 1 && first.name === "Астра" && !first.customized && !first.modules.length) {
         first.name = tr(presets[0][0]);
@@ -833,13 +925,14 @@ export function initStudio() {
         if (!item.customized && !item.modules.length) item.modules = starter.map(newModule);
         item.customized = true;
       }
-      revision = result.revision;
+      revision = staleDraft ? savedDraft.revision : result.revision;
+      if (staleDraft) baseLayout = savedDraft.baseLayout;
       dirty = conflict = false;
       pendingWrite = null;
       shipSignature = JSON.stringify(ownedShips().map(ship => [ship.id,shipLabel(ship)]));
       render(true);
       if (recover && !sessionLayoutEqual(layout,result.layout)) changed();
-      else if (savedDraft && !recover) {
+      else if (staleDraft) {
         conflict = true;
         report("Рабочие пространства изменились в другой вкладке");
       } else {
@@ -855,6 +948,7 @@ export function initStudio() {
     }
   }
 
+  window.addEventListener("stationtransferchange",() => refreshShips());
   window.addEventListener("gamedata", () => {
     if (!Session.signedIn) return;
     if (!layout && !loading && !failed) load();
@@ -897,18 +991,19 @@ export function initStudio() {
   window.addEventListener("signedout", () => {
     requests.invalidate();
     clearTimeout(timer);
-    layout = pendingWrite = null;
+    layout = pendingWrite = baseLayout = null;
     for (const key of mounted.keys()) Modules.destroy(key);
     mounted.clear();
     cards.clear();
     context.clear();
+    trades.clear();
     const overview = document.querySelector("#game .matrix-overview");
     overview.prepend(pilot);
     if (telemetry) overview.append(telemetry);
     contextShortcut.hidden = true;
     for (const entry of navItems.values()) entry.hidden = true;
     mapRequest = dragID = null;
-    writing = loading = dirty = failed = conflict = false;
+    writing = loading = dirty = failed = conflict = rebasing = false;
     host.hidden = shortcut.hidden = true;
     host.replaceChildren();
   });

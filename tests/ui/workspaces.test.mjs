@@ -251,3 +251,39 @@ test("Instance tabs and a pending layout change survive reload", async t => {
   for (const card of await offers.all())
     assert.equal(await card.getByRole("button",{name:"Предложения игроков",exact:true}).getAttribute("aria-pressed"),"true");
 });
+
+test("Studio reapplies independent edits against the latest layout revision", async t => {
+  const id = "42000000-0000-4000-8000-000000000001";
+  let saved = {revision:1,layout:{version:1,active:id,default:id,workspaces:[{
+    id,name:"Командование",ship_id:0,customized:true,modules:[{
+      id:"42000000-0000-4000-8000-000000000002",type:"cargo",binding:"workspace",ship_id:0,view:"card",
+      geometry:{x:35,y:75,w:400,h:300,pinned:false,minimized:false},
+    }],
+  }]}};
+  const g = await game(t,{signedIn:true,faults:[["workspaces",({req,json}) => {
+    if (req.method() === "GET") return json(saved);
+    const next = req.postDataJSON();
+    if (next.revision !== saved.revision)
+      return json({code:"WORKSPACE_REVISION_CONFLICT",error:"Рабочие пространства изменились в другой вкладке"},409);
+    saved = {revision:saved.revision+1,layout:next.layout};
+    return json(saved);
+  }]]});
+  const {page} = g;
+  const studio = page.locator("#studio");
+  await g.ready();
+  await studio.getByRole("heading",{name:"Командование",exact:true}).waitFor();
+  saved.layout.workspaces[0].modules[0].geometry.x = 210;
+  saved.revision++;
+  await studio.getByRole("button",{name:"Настроить пространство",exact:true}).click();
+  await studio.getByLabel("Название пространства",{exact:true}).fill("Обновлённое");
+  await studio.getByRole("button",{name:"Переименовать",exact:true}).click();
+  await studio.getByText("Рабочие пространства изменились в другой вкладке",{exact:true}).waitFor();
+  await page.reload();
+  await g.ready();
+  await studio.getByRole("heading",{name:"Обновлённое",exact:true}).waitFor();
+  await studio.getByRole("button",{name:"Повторить мои изменения",exact:true}).click();
+  await studio.getByText("Раскладка сохранена",{exact:true}).waitFor();
+  assert.equal(saved.revision,3);
+  assert.equal(saved.layout.workspaces[0].name,"Обновлённое");
+  assert.equal(saved.layout.workspaces[0].modules[0].geometry.x,210);
+});

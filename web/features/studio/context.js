@@ -12,7 +12,7 @@ export function createStudioContext(onRead) {
     if (!id || !Session.signedIn) return;
     const accepted = Session.snapshot;
     const existing = reads.get(id);
-    if (existing?.accepted === accepted) return;
+    if (existing?.pending || existing?.accepted === accepted) return;
     const ticket = { accepted, data:existing?.data, pending:true };
     const epoch = Session.epoch;
     const signal = controller.signal;

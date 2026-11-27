@@ -90,8 +90,9 @@ export function operations(ships, workbench, focus, context, run) {
   return feed;
 }
 
-export function marketReading(context, source, onSource, editor, onOffer, run) {
-  const { workbench } = Session.data;
+export function marketReading(context, source, onSource, editor, onOffer, trades) {
+  const { workbench, state } = Session.data;
+  const receiptsAvailable = state?.station_trade_receipts === true;
   const view = node("div",undefined,"matrix-market");
   const buttons = node("div",undefined,"matrix-source-switch");
   buttons.setAttribute("role","group");
@@ -105,12 +106,24 @@ export function marketReading(context, source, onSource, editor, onOffer, run) {
     buttons.append(button);
   }
   view.append(buttons);
+  const {pending,busy} = trades.state();
+  if (pending) {
+    const recovery = node("section",undefined,"matrix-operation");
+    const status = node("p",tr(busy ? "Проверяем сделку…" : "Результат сделки пока неизвестен"));
+    status.setAttribute("role","status");
+    const detail = node("p",`#${pending.ship} · ${resourceName(pending.resource).textContent} × ${pending.quantity} · ${Format.credits(pending.quantity * pending.expected_price)}`);
+    recovery.append(status,detail,
+      UI.button("Проверить сделку",trades.check,busy),
+      UI.button("Повторить тот же запрос",trades.retry,busy));
+    view.append(recovery);
+  }
   if (source === "orders") {
     view.append(table(["Ресурс","Система",["Количество","table-number"],["Цена","table-number"]],
       (workbench?.orders || []).slice(0,8).map(order => [
         resourceName(order.resource),systemName(order.star),Format.quantity(order.quantity),Format.credits(order.price),
       ]),"Игроки пока не выставили предложений","Предложения игроков"));
   } else if (context?.docked) {
+    if (!receiptsAvailable) view.append(node("p",tr("Для сделок в STUDIO нужен обновлённый Game API"),"matrix-empty"));
     const ship = context.ship;
     const port = workbench?.stations?.find(p => p.star === ship.star && p.object_id === ship.object_id);
     const offers = context.offers || [];
@@ -151,8 +164,8 @@ export function marketReading(context, source, onSource, editor, onOffer, run) {
           const count = Number(quantity.value);
           const price = selected[action];
           UI.confirm(tr(label),`${resourceName(selected.resource).textContent} × ${count} · ${Format.credits(count*price)} · ${ship.name} #${ship.id}`,
-            () => run(context,{action,resource:selected.resource,quantity:count,expected_price:price}));
-        });
+            () => trades.submit(context,{action,resource:selected.resource,quantity:count,expected_price:price}));
+        },!receiptsAvailable || !!pending || busy);
         editorPanel.append(control);
       }
       view.append(editorPanel);

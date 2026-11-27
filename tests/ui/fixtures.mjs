@@ -74,6 +74,7 @@ export function fixture() {
     },
     "guide/assets": { items: [], revision: "synthetic-test" },
     state: {
+      station_trade_receipts: true,
       user: { id: 51, username: "test_pilot", role: "player" },
       date: "ЭД 001.001",
       tick: 1,

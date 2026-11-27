@@ -261,3 +261,52 @@ test("Docked production communications stay live next to workspace cards", async
   assert.equal(await page.locator(".studio-window[open]").count(),1);
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
 });
+
+test("Terminal commands open exact targets without selecting the active ship", async t => {
+  const id = "42000000-0000-4000-8000-000000000001";
+  let saved = {revision:1,layout:{version:1,active:id,default:id,workspaces:[
+    {id,name:"Астра",ship_id:0,modules:[]},
+  ]}};
+  const g = await game(t,{signedIn:true,faults:[["workspaces",({req,json}) => {
+    if (req.method() === "GET") return json(saved);
+    const {revision,layout} = req.postDataJSON();
+    saved = {revision:revision+1,layout};
+    return json(saved);
+  }],["expedition",({data,url,json}) => {
+    const id = Number(url.searchParams.get("ship"));
+    return json(id ? {...data.expedition,ship:data.fleet.ships.find(ship => ship.id === id)} : data.expedition);
+  }]]});
+  const {page} = g;
+  const studio = page.locator("#studio");
+  await g.ready();
+  await studio.getByRole("heading",{name:"Командование",exact:true}).waitFor();
+  const catalog = page.locator(".matrix-launcher");
+  const search = catalog.getByRole("searchbox");
+  async function type(command) {
+    await page.keyboard.press("Control+k");
+    await search.fill(command);
+  }
+  await type("SHIP");
+  await catalog.getByRole("button",{name:/Test vessel 1 #101/}).waitFor();
+  await catalog.getByRole("button",{name:/Test vessel 2 #102/}).click();
+  const ship = page.locator(".studio-window[open]").filter({hasText:"Test vessel 2 · #102"});
+  await ship.getByRole("button",{name:"Открыть трюм",exact:true}).click();
+  const cargo = page.locator(".studio-window[open]").filter({
+    has:page.getByRole("heading",{name:"Трюм",exact:true}),
+  });
+  await cargo.getByRole("heading",{name:"Test vessel 2 · #102",exact:true}).waitFor();
+  await type("CARGO 102");
+  await search.press("Enter");
+  assert.equal(await cargo.count(),1);
+  await type("SHIP 98765");
+  await search.press("Enter");
+  await page.getByText("Корабль недоступен",{exact:true}).waitFor();
+  assert.equal(await page.locator(".studio-window[open]").count(),2);
+  await type("SYSTEM 2");
+  await search.press("Enter");
+  await page.locator('.studio-window[open] select[data-studio-focus="map-system"]').waitFor();
+  assert.equal(await page.locator('.studio-window[open] select[data-studio-focus="map-system"]').inputValue(),"2");
+  await studio.getByText("Раскладка сохранена").waitFor();
+  assert.equal(saved.layout.workspaces[0].modules.filter(m => m.binding === "fixed" && m.ship_id === 102).length,2);
+  assert.ok(g.requests.filter(req => req.method === "POST").every(req => req.path === "workspaces"));
+});

@@ -50,7 +50,7 @@ export function createAdministrationServices({ root }) {
         );
         badge.dataset.status = service.status;
         badge.setAttribute("role", "status");
-        heading.append(n("h3", tr(service.name)), badge);
+        heading.append(n("h3", service.id === "cosmic" ? "Astra Journey Game API" : tr(service.name)), badge);
         const natsLabels={connected:"Подключён",disconnected:"Нет соединения",connecting:"Подключение…",disabled:"Отключён в настройках",not_used:"Не используется режимом чата",unknown:"Нет данных"};
         const state=service.nats?.state || "unknown";
         const transport=n("span","NATS · "+tr(natsLabels[state] || "Нет данных"),"service-status-tag service-nats-tag");

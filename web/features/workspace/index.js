@@ -129,7 +129,6 @@ export function initExpedition() {
   const notificationsFeature = createNotifications({
     roots: { notifications: roots.notifications },
     act,
-    command,
   });
   const guideFeature = createGuide({
     roots: { guide: roots.guide },

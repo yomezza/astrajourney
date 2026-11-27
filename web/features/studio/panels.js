@@ -1,11 +1,8 @@
-import { api } from "../../core/api.js";
+import { confirmTransfer, openStationTransfer, transferState } from "./transfers.js";
 import { Format } from "../../core/format.js";
 import { I18n } from "../../core/i18n.js";
 import { Session } from "../../core/session.js";
-import { refresh } from "../../core/snapshot-store.js";
-import { uuid } from "../../core/uuid.js";
 import { node } from "../../ui/dom.js";
-import { notify } from "../../ui/feedback.js";
 import { UI } from "../../ui/runtime.js";
 import { resourceName } from "../inventory/resource-label.js";
 import { rows, systemName } from "./views.js";
@@ -65,15 +62,26 @@ export function shipActions(data, run) {
 }
 
 export function logisticsReading(ship, workbench) {
-  if (!ship) return empty("Выберите корабль для просмотра");
-  if (ship.position_mode !== "docked" || ship.local_target || ship.destination)
-    return empty("Перенос на текущей станции");
+  const panel = node("div",undefined,"matrix-panel-stack");
+  const recovery = transferState();
+  if (recovery) panel.append(recovery);
+  if (!ship) {
+    panel.append(empty("Выберите корабль для просмотра"));
+    return panel;
+  }
+  if (ship.position_mode !== "docked" || ship.local_target || ship.destination) {
+    panel.append(empty("Перенос на текущей станции"));
+    return panel;
+  }
   const station = (workbench.stations || []).find(port => port.star === ship.star && port.object_id === ship.object_id);
-  if (!station) return empty("Корабль недоступен");
+  if (!station) {
+    panel.append(empty("Корабль недоступен"));
+    return panel;
+  }
   const depot = (workbench.warehouses || []).find(port => port.star === ship.star && port.station === ship.object_id);
   const stock = depot?.cargo || {};
-  const panel = node("div",undefined,"matrix-panel-stack");
-  panel.append(node("p",station.name + " · #" + ship.id,"matrix-source-label"));
+  panel.append(node("p",station.name + " · #" + ship.id,"matrix-source-label"),
+    UI.button("Переместить ресурсы",() => openStationTransfer(ship,station,stock),!!recovery));
   const materials = Object.keys({...stock,...ship.cargo}).filter(key => stock[key] > 0 || ship.cargo?.[key] > 0);
   if (!materials.length) panel.append(empty("Трюм и склад пусты"));
   for (const resource of materials) {
@@ -98,23 +106,11 @@ export function logisticsReading(ship, workbench) {
         label.append(amount);
         const content = node("div");
         content.append(node("p",ship.name + " · #" + ship.id + " · " + station.name),resourceName(resource),label);
-        const request = uuid();
-        UI.confirm(tr(caption),content,async () => {
-          if (!amount.reportValidity()) return false;
-          const epoch = Session.epoch;
-          try {
-            await api("logistics",{request,mode:"direct",from:source,to:target,ship:ship.id,
-              resource,quantity:Number(amount.value)});
-            if (epoch !== Session.epoch) return false;
-            notify(tr("Действие выполнено"));
-            await refresh(true);
-            return true;
-          } catch (error) {
-            if (epoch === Session.epoch) notify(error.message,"error");
-            return false;
-          }
+        confirmTransfer(caption,content,() => {
+          if (!amount.reportValidity()) return;
+          return {from:source,to:target,ship:ship.id,resource,quantity:Number(amount.value)};
         });
-      });
+      },!!recovery);
       row.append(button);
     }
     panel.append(row);
