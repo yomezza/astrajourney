@@ -122,6 +122,7 @@ func TestCommunityIdeas(t *testing.T) {
 			aid, fmt.Sprintf("%032x", i), fmt.Sprintf("Архивная идея %02d", i))
 	}
 	f.exec(`ALTER TABLE player_ideas DROP COLUMN published_at`)
+	f.exec(`UPDATE game_release SET version='0.31.3',migration=313 WHERE id=1`)
 	var schema string
 	if err := f.db.QueryRow(f.ctx, `SELECT current_schema()`).Scan(&schema); err != nil {
 		t.Fatal(err)
@@ -132,6 +133,11 @@ func TestCommunityIdeas(t *testing.T) {
 			t.Fatal(err)
 		}
 		db.Close()
+		status := f.req(nil, "GET", "/api/server-status", nil, 200)
+		var release struct{ Version string }
+		if err := json.Unmarshal(status.Body.Bytes(), &release); err != nil || release.Version != "0.31.6" {
+			t.Fatalf("unexpected version after migration: %s", status.Body)
+		}
 	}
 	first := get(reader, community+"&category=gameplay&sort=oldest")
 	last := get(reader, community+"&category=gameplay&sort=oldest&page=2")
