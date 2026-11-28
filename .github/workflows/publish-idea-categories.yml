@@ -1,0 +1,35 @@
+name: Publish verified Astra Journey v0.31.10
+on:
+  push:
+    branches: [release/idea-categories-v0.31.10]
+permissions:
+  contents: write
+concurrency:
+  group: publish-v0.31.10
+  cancel-in-progress: false
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Upload the verified Web package
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: v0.31.10
+        run: |
+          set -euo pipefail
+          (cd bundle && sha256sum -c SHA256SUMS)
+          target="$(cat bundle/SOURCE_COMMIT)"
+          previous_latest="$(gh api "repos/$GH_REPO/releases/latest" --jq .tag_name)"
+          test "$(gh api "repos/$GH_REPO/commits/$target" --jq .sha)" = "$target"
+          test "$(gh release view "$RELEASE_TAG" --json targetCommitish --jq .targetCommitish)" = "$target"
+          test "$(gh release view "$RELEASE_TAG" --json isDraft --jq .isDraft)" = true
+          gh release upload "$RELEASE_TAG" bundle/*
+          gh release download "$RELEASE_TAG" -p '*' -D "$RUNNER_TEMP/roundtrip"
+          (cd "$RUNNER_TEMP/roundtrip" && sha256sum -c SHA256SUMS)
+          cmp bundle/SHA256SUMS "$RUNNER_TEMP/roundtrip/SHA256SUMS"
+          gh release edit "$RELEASE_TAG" --draft=false --latest=false
+          test "$(gh api "repos/$GH_REPO/git/ref/tags/$RELEASE_TAG" --jq .object.sha)" = "$target"
+          test "$(gh api "repos/$GH_REPO/releases/latest" --jq .tag_name)" = "$previous_latest"

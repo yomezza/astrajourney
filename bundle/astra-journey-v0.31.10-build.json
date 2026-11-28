@@ -1,0 +1,29 @@
+{
+  "tag": "v0.31.10",
+  "builds": [
+    {
+      "file": "astra-journey-v0.31.10-linux-amd64",
+      "service": "cosmos",
+      "goos": "linux",
+      "goarch": "amd64",
+      "goamd64": "v1",
+      "cgo_enabled": false,
+      "source_ref": "60f2fcd4846595210425b9a2d646e59bbeaab26c",
+      "source_commit": "60f2fcd4846595210425b9a2d646e59bbeaab26c",
+      "source_dirty": false,
+      "compiler": "go version go1.26.11 linux/amd64",
+      "build_label": "v0.31.10",
+      "sha256": "66e1baecaf0968a8bd3ba93b9631016f84797cfad0092ed07bfe172920e1e4c1"
+    }
+  ],
+  "web": {
+    "schema_version": 1,
+    "client_contract": "astra-web-v1",
+    "api_contract": "astra-api-v1",
+    "tag": "v0.31.10",
+    "revision": "ef2aff9ebd03bddf9a0db4299ce40d3920bb2befc66cd738e58ea0c0977b57cc",
+    "archive": "astra-journey-web-ef2aff9ebd03bddf9a0db4299ce40d3920bb2befc66cd738e58ea0c0977b57cc.zip",
+    "sha256": "7115cffa1337c1a75adc15bb74e1f911a052131faf630cdc636ffee16c62f5ab",
+    "size": 490701
+  }
+}
