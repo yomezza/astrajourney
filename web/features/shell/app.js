@@ -11,10 +11,12 @@ import { Modules } from "../../ui/runtime.js";
 import { world } from "../../core/world-store.js";
 
 import { Startup } from "../../ui/startup.js";
+import { initLoginNotice } from "./login-notice.js";
 
 export function initApp() {
   const $ = (id) => document.getElementById(id),
     t = (s) => I18n.t(s);
+  const loginNotice = initLoginNotice();
   let starting = true,
     pending = false,
     mode = "login",
@@ -72,6 +74,7 @@ export function initApp() {
     clearTimeout(balanceTimer);
     $("balance-change")?.replaceChildren();
     invalidateSession();
+    loginNotice.close();
     pending = false;
     for (const menu of document.querySelectorAll(".dropdown"))
       menu.open = false;
@@ -215,7 +218,7 @@ export function initApp() {
     e.preventDefault();
     if (authSubmitting) return;
     authSubmitting = true;
-    Session.epoch++;
+    const epoch = ++Session.epoch;
     pending = false;
     $("submit").disabled = true;
     $("submit").setAttribute("aria-busy", "true");
@@ -226,7 +229,8 @@ export function initApp() {
         password: e.target.elements.password.value,
       });
       e.target.elements.password.value = "";
-      await refresh(true);
+      if (await refresh(true) && Session.epoch === epoch)
+        loginNotice.show(Session.data.state.user.id);
     } catch (error) {
       $("auth-error").textContent = error.message;
       for (const input of e.target.querySelectorAll("input")) {

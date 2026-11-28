@@ -17,6 +17,7 @@ async function login(page, name) {
   await page.locator('#auth-form input[name="username"]').fill(name);
   await page.locator('#auth-form input[name="password"]').fill("1");
   await page.locator("#submit").click();
+  await page.locator("#login-notice").getByRole("button", {name:"Продолжить"}).click();
   await page.locator("#studio:not([hidden])").waitFor();
   await page.locator("#studio .studio-tabs").waitFor({state:"attached"});
 }
