@@ -86,24 +86,22 @@ export function initIdeas() {
     return element;
   }
 
-  function badges(item, showStatus = true) {
+  function badges(item) {
     const group = n("div", undefined, "idea-tags");
     const category = n("span", tr(categories[item.category] || "Другое"), "idea-category");
     category.dataset.category = item.category;
-    group.append(category);
-    if (showStatus) {
-      const status = n("span", tr(statuses[item.status] || statuses.pending), "idea-status");
-      status.dataset.status = item.status;
-      group.append(status);
-    }
+    const status = n("span", tr(statuses[item.status] || statuses.pending), "idea-status");
+    status.dataset.status = item.status;
+    group.append(category, status);
     return group;
   }
 
-  function metadata(item, published = false) {
+  function metadata(item, showPublicationDate = false) {
     const meta = n("div", undefined, "idea-meta");
-    const date = time((published && item.published_at) || item.created_at);
-    date.title = tr(published && item.published_at ? "Дата публикации" : "Дата создания");
-    if (published && !item.published_at) date.prepend(tr("Создано") + " ");
+    const publishedAt = showPublicationDate && item.status === "approved" && item.published_at;
+    const date = time(publishedAt || item.created_at);
+    date.title = tr(publishedAt ? "Дата публикации" : "Дата создания");
+    if (showPublicationDate && !publishedAt) date.prepend(tr("Создано") + " ");
     meta.append(n("span", item.author), date);
     return meta;
   }
@@ -111,7 +109,7 @@ export function initIdeas() {
   function makeForm(host) {
     const form = n("form", undefined, "idea-form");
     host.append(form);
-    form.append(n("p", tr("Предложение попадёт в каталог после одобрения администрации."), "muted"));
+    form.append(n("p", tr("После отправки идея появится в каталоге со статусом «На рассмотрении»."), "muted"));
     const title = UI.field(form, "Название идеи", "idea-title", draft.title);
     title.required = true;
     title.autocomplete = "off";
@@ -364,7 +362,7 @@ export function initIdeas() {
         : scope === "mine"
           ? "У вас пока нет предложений"
           : scope === "community"
-            ? "Опубликованных идей пока нет"
+            ? "Идей сообщества пока нет"
             : "Предложений пока нет");
     } else {
       const selected = data.items.find((item) => item.id === state.selected);
@@ -379,7 +377,7 @@ export function initIdeas() {
         row.setAttribute("aria-pressed", String(state.selected === item.id));
         row.append(
           n("strong", item.title),
-          badges(item, scope !== "community"),
+          badges(item),
           metadata(item, scope === "community"),
         );
         if (scope !== "all") {
