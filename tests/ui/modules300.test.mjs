@@ -56,13 +56,14 @@ test("future modules wait for eager artwork and cancel without reopening", async
 });
 
 test("administrator opens a categorized module and losing the role clears it", async t=>{
-  const g=await game(t,{signedIn:true,role:"admin"});await g.ready();
+  const g=await game(t,{signedIn:true,role:"admin"});
+  g.data["admin/services"] = {services:[]};
+  await g.ready();
   await g.page.locator("#admin-menu").click();
   const root=g.page.locator("#window-administration");
-  await root.locator(".administration-card").first().waitFor();
+  await root.locator("#window-services[open]").waitFor();
   assert.equal(await g.page.locator("#admin-menu").evaluate(el=>el.tagName),"BUTTON");
-  await root.locator('[data-category="world"]').click();
-  await root.locator('[data-open="galaxies"]').waitFor();
+  await root.locator('[data-section="galaxies"]').waitFor();
   assert.equal(await root.getByRole("button",{name:"Пропустить тик",exact:true}).count(),1);
   g.data.state.user.role="player";await g.refresh();
   assert.equal(await root.evaluate(el=>el.open),false);

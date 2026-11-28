@@ -85,6 +85,7 @@ test("Matrix catalog searches localized modules, restores windows and keeps admi
 test("Narrow layouts keep full game controls and the profile reachable for administrators", async t => {
   const g = await game(t,{signedIn:true,role:"admin"});
   g.data.logistics = {personal:[],corporate:[],built:[],history:[]};
+  g.data["admin/services"] = {services:[]};
   const {page} = g;
   await g.ready();
   await page.setViewportSize({width:320,height:780});
@@ -115,7 +116,7 @@ test("Narrow layouts keep full game controls and the profile reachable for admin
     assert.ok(button.width >= 40 && icon.width === icon.height);
     assert.ok(Math.abs(icon.x + icon.width / 2 - button.x - button.width / 2) <= 1);
     assert.ok(Math.abs(icon.y + icon.height / 2 - button.y - button.height / 2) <= 1);
-    const layout = await dialog.locator(".module-content").evaluate(el => ({
+    const layout = await dialog.locator(":scope > .module-content").evaluate(el => ({
       width:el.clientWidth, scroll:el.scrollWidth,
     }));
     assert.ok(layout.scroll <= layout.width + 1, id + " overflows its sheet");

@@ -446,3 +446,40 @@ body:has(#game:not([hidden])) #sidebar:not(.collapsed) .sidebar-title { justify-
   #window-ship .ship-projection { --ship-hologram-height: 186px; }
   .matrix-window .module-content .tabs button { min-height: 32px; }
 }
+
+#window-administration .administration-layout {
+  grid-template-columns: minmax(170px, 205px) minmax(0, 1fr);
+  gap: 16px;
+}
+.administration-nav-group { display: grid; gap: 4px; }
+.administration-nav-group p { margin: 7px 0 2px; color: var(--muted); font-size: 11px; }
+.administration-nav-group button { text-align: start; }
+.administration-nav-group button[aria-current="true"] {
+  border-color: var(--accent);
+  background: var(--matrix-bar);
+}
+.administration-outlet > dialog.admin-embedded[open] {
+  position: relative;
+  inset: auto !important;
+  width: 100% !important;
+  height: auto !important;
+  min-width: 0;
+  min-height: 180px;
+  max-width: none;
+  max-height: none;
+  display: flex;
+  margin: 0;
+  box-shadow: none;
+  resize: none;
+}
+.administration-outlet > .admin-embedded > :is(.module-titlebar,.window-small) {
+  display: none !important;
+}
+.administration-outlet > .admin-embedded > .module-content {
+  display: block;
+  min-width: 0;
+}
+@media (max-width: 700px) {
+  #window-administration .administration-layout { grid-template-columns: minmax(0, 1fr); }
+  #window-administration .administration-categories { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); align-items: start; gap: 6px; }
+}

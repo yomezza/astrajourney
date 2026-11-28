@@ -9,7 +9,7 @@ import { lineIcon } from "./icons.js";
 
 export function initWindows() {
   const windows = new Map(),
-    links = new Map();
+    links = new Map(), embeddedRoutes = new Map();
   let z = 40,
     resetting = false;
   const tr = (s) => I18n.t(s),
@@ -18,6 +18,7 @@ export function initWindows() {
   const node = createNode;
   const narrow = w => w.matrix && matchMedia("(max-width: 700px)").matches;
   function active(w) {
+    if (w.embedded) return;
     for (const entry of windows.values())
       entry.dialog.classList.toggle("window-active", entry === w);
     if (z >= 8000) {
@@ -35,7 +36,7 @@ export function initWindows() {
     if (!host) return;
     host.replaceChildren();
     for (const [id, w] of windows) {
-      if (!w.dialog.open) continue;
+      if (!w.dialog.open || w.embedded) continue;
       const b = node("button", w.title);
       b.classList.toggle(
         "active",
@@ -46,7 +47,7 @@ export function initWindows() {
     }
   }
   function save(id, w) {
-    if (resetting || !w.dialog.open || w.maximized || narrow(w)) return;
+    if (resetting || w.embedded || !w.dialog.open || w.maximized || narrow(w)) return;
     const r = w.dialog.getBoundingClientRect();
     if (w.layout) {
       if (!w.minimized && innerWidth > 550) w.layout.save({
@@ -60,7 +61,7 @@ export function initWindows() {
     });
   }
   function clamp(w) {
-    if (narrow(w)) return;
+    if (w.embedded || narrow(w)) return;
     const d = w.dialog,
       r = d.getBoundingClientRect();
     d.style.left = Math.max(4, Math.min(r.x, innerWidth - r.width - 4)) + "px";
@@ -179,6 +180,10 @@ export function initWindows() {
       w.loading = moduleLoading(d, content);
       w.life.own(() => w.loading.dispose());
       windows.set(id, w);
+      const prepareContent = () => w.loading.run(async signal => {
+        window.dispatchEvent(new CustomEvent("moduleopen", { detail: id }));
+        return w.prepare?.(signal);
+      });
       const show = (prepare) => {
         if (w.audience === "admin" && Session.data.state?.user.role !== "admin") return;
         if (!d.open) {
@@ -200,7 +205,8 @@ export function initWindows() {
               ? document.querySelector("#sidebar:not([hidden])")
               : null;
             const inset = sidebar ? Math.ceil(sidebar.getBoundingClientRect().right) + 6 : 6;
-            const fitWidth = narrow(w) ? l.w || width : Math.min(l.w || width, innerWidth - inset - 6);
+            const preferredWidth = Math.max(l.w || width, options.initialWidthFloor || 0);
+            const fitWidth = narrow(w) ? preferredWidth : Math.min(preferredWidth, innerWidth - inset - 6);
             const fitHeight = narrow(w) ? l.h || height : Math.min(l.h || height, innerHeight - 106);
             d.style.width = fitWidth + "px";
             d.style.height = fitHeight + "px";
@@ -221,17 +227,19 @@ export function initWindows() {
         document
           .querySelectorAll(`:is(#sidebar,#matrix-mobile) [data-open="${id}"]`)
           .forEach((b) => b.classList.add("module-open"));
-        return w.loading.run(async (signal) => {
-          if (prepare) return prepare(signal);
-          window.dispatchEvent(new CustomEvent("moduleopen", { detail: id }));
-          return w.prepare?.(signal);
-        });
+        return prepare ? w.loading.run(prepare) : prepareContent();
       };
       const hide = () => {
         if (!d.open) return;
         save(id, w);
         d.close();
         w.loading.cancel();
+        if (w.embedded) {
+          w.embedded = false;
+          d.removeAttribute("role");
+          d.classList.remove("admin-embedded");
+          document.body.append(d);
+        }
         document
           .querySelectorAll(`:is(#sidebar,#matrix-mobile) [data-open="${id}"]`)
           .forEach((b) => b.classList.remove("module-open"));
@@ -244,6 +252,7 @@ export function initWindows() {
         )
           Modules.destroy(id);
       };
+      w.prepareContent = prepareContent;
       w.show = show;
       w.hide = hide;
       const maximize = () => {
@@ -385,7 +394,7 @@ export function initWindows() {
       };
       d.addEventListener("keydown", (e) => {
         if (
-          e.key === "Escape" &&
+          !w.embedded && e.key === "Escape" &&
           !document.querySelector(".context-menu:not([hidden]),.picker-popover")
         ) {
           e.preventDefault();
@@ -394,7 +403,7 @@ export function initWindows() {
       });
       let timer;
       const observer = new ResizeObserver(() => {
-        if (!d.open) return;
+        if (!d.open || w.embedded) return;
         const r = d.getBoundingClientRect();
         d.classList.toggle(
           "too-small",
@@ -447,10 +456,24 @@ export function initWindows() {
     },
     signal: (id) => windows.get(id)?.loading.signal,
     isLoading: (id) => !!windows.get(id)?.loading.pending,
+    routeEmbedded(id, open) {
+      embeddedRoutes.set(id, open);
+    },
+    showEmbedded(id, outlet) {
+      const w = windows.get(id);
+      if (!w || !Session.signedIn || Session.data.state?.user.role !== "admin") return;
+      if (!w.embedded && w.dialog.open) w.hide();
+      w.embedded = true;
+      w.dialog.setAttribute("role", "region");
+      w.dialog.classList.add("admin-embedded");
+      outlet.append(w.dialog);
+      if (!w.dialog.open) w.dialog.show();
+      return w.prepareContent();
+    },
     open: (id) => {
       if (document.body.classList.contains("planet-mode") && id !== "chat")
         return;
-      return windows.get(id)?.show();
+      return embeddedRoutes.has(id) ? embeddedRoutes.get(id)() : windows.get(id)?.show();
     },
     focus: (id) => {
       const w = windows.get(id);
@@ -461,7 +484,7 @@ export function initWindows() {
       }
     },
     openWindows: () => [...windows].filter(([,w]) =>
-      w.dialog.open && (w.audience !== "admin" || Session.data.state?.user.role === "admin"))
+      w.dialog.open && !w.embedded && (w.audience !== "admin" || Session.data.state?.user.role === "admin"))
       .map(([id,w]) => ({id,title:w.title})),
     close: (id) => windows.get(id)?.hide(),
     isOpen: (id) => !!windows.get(id)?.dialog.open,

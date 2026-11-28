@@ -24,7 +24,6 @@ test("admin service cards show connectivity, centered names and outlined status 
   };
   await g.ready();
   await g.page.locator("#admin-menu").click();
-  await g.page.locator('#window-administration [data-open="services"]').click();
   const root = g.page.locator("#window-services");
   await root.locator(".service-card").nth(1).waitFor();
   assert.equal(await root.locator(".service-card").count(), 2);
@@ -53,10 +52,17 @@ test("admin service cards show connectivity, centered names and outlined status 
       .evaluate((el) => getComputedStyle(el).textAlign),
     "center",
   );
-  await g.page.locator("#admin-menu").click();
+  assert.equal(await root.locator("xpath=..").getAttribute("class"), "administration-outlet");
+  assert.deepEqual(await g.page.evaluate(() => window.__testApp.Modules.openWindows().map(window => window.id)), ["administration"]);
   if (process.env.SERVICES_TEST_SCREENSHOT)
     await root.screenshot({ path: process.env.SERVICES_TEST_SCREENSHOT });
-  await g.page.evaluate(() => window.__testApp.Modules.close("services"));
+  const admin = g.page.locator("#window-administration");
+  await admin.getByRole("button", {name:"Пользователи", exact:true}).click();
+  await admin.locator("#window-users #user-search").waitFor();
+  assert.equal(await root.isVisible(), false);
+  await g.page.evaluate(() => window.__testApp.Modules.open("services"));
+  await admin.locator("#window-services .service-card").first().waitFor();
+  await admin.locator(":scope > .module-titlebar").getByRole("button", {name:"Закрыть", exact:true}).click();
   assert.equal(await root.isVisible(), false);
   assert.equal(
     g.requests.some((r) => r.method === "POST"),

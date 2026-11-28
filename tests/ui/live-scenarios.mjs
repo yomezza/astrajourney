@@ -111,6 +111,7 @@ try {
     await close(id);
     console.log(`OPEN ru ${id}`);
   }
+  await close("administration");
   await page.locator("#nav-colonies").click();
   await page.waitForSelector("#window-colonies[open]");
   await settle();
@@ -313,7 +314,7 @@ try {
   } finally {
     await reader.close();
   }
-  await close("adminideas");
+  await close("administration");
   await open("corporations");
   const leave = page
     .locator("#window-corporations")
@@ -384,13 +385,12 @@ try {
   await page.waitForSelector("#window-colony-settings[open]");
   await settle();
   await close("colony-settings");
-  await close("gameplay");
+  await close("administration");
   await page.locator("#admin-menu").click();
-  await page.locator('#window-administration [data-category="world"]').click();
   await page.locator("#window-administration").getByRole("button", {name:"Пропустить тик",exact:true}).click();
   await settle();
   assert.equal(await page.locator("#window-administration").getAttribute("open"), "");
-  await page.locator("#window-administration .window-actions button").last().click();
+  await page.locator("#window-administration > .module-titlebar .window-actions button").last().click();
   await open("notifications");
   await page
     .locator("#window-notifications")
