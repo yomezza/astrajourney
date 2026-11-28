@@ -164,8 +164,8 @@ export async function game(
       () =>
         window.__testReady && document.getElementById("startup-screen").hidden,
     );
-  const login = async () => {
-    await page.locator('#auth-form input[name="username"]').fill("test_pilot");
+  const login = async ({ username = "test_pilot", keepNotice = false } = {}) => {
+    await page.locator('#auth-form input[name="username"]').fill(username);
     await page.locator('#auth-form input[name="password"]').fill("a");
     await page.locator("#submit").click();
     await page.waitForFunction(
@@ -173,6 +173,10 @@ export async function game(
         window.__testApp.session.signedIn &&
         !document.getElementById("game").hidden,
     );
+    await page.locator("#submit:not([aria-busy])").waitFor({ state: "attached" });
+    const notice = page.locator("#login-notice");
+    if (!keepNotice && await notice.isVisible())
+      await notice.getByRole("button", { name: "Продолжить" }).click();
   };
   const open = async (id) => {
     await page.evaluate((id) => window.__testApp.Modules.open(id), id);

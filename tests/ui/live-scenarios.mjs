@@ -81,6 +81,7 @@ try {
   await page.locator('#auth-form input[name="password"]').fill("1");
   await page.locator("#submit").click();
   await page.waitForSelector("#game:not([hidden])");
+  await page.locator("#login-notice").getByRole("button", { name: "Продолжить" }).click();
   await settle();
   assert.equal(await page.evaluate(() => typeof window.refresh), "undefined");
   for (const id of [
@@ -291,6 +292,7 @@ try {
     await reader.locator('#auth-form input[name="password"]').fill("1");
     await reader.locator("#submit").click();
     await reader.waitForSelector("#game:not([hidden])");
+    await reader.locator("#login-notice").getByRole("button", { name: "Продолжить" }).click();
     await reader.evaluate(async () => {
       const bootstrap = document.querySelector('script[type="module"][src$="bootstrap.js"]');
       const { application } = await import(new URL("./bootstrap.js", bootstrap.src));
