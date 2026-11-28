@@ -1,0 +1,23 @@
+name: Open MATRIX Studio frontend draft PR
+on:
+  push:
+    branches: [chore/open-matrix-studio-v2-pr]
+permissions:
+  contents: read
+  pull-requests: write
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Open draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cat > "$RUNNER_TEMP/pr.md" <<'BODY'
+          Изолированный прототип MATRIX × STUDIO 2.0 с семействами M001–M003, контекстами экземпляров, плитками и временными окнами.
+          
+          В Chromium проверены схема маршрута, каталог, два трюма, сохранение контекста окна при смене пространства, F5 и ширина 320 px. Игровых API-запросов нет.
+          
+          Контракт Backend v2 ожидается. Инструкция запуска и границы интеграции описаны в README прототипа.
+          BODY
+          gh pr create --repo "$GITHUB_REPOSITORY" --base main --head feature/matrix-studio-v2-frontend --draft --title 'MATRIX × STUDIO 2.0 · прототип frontend' --body-file "$RUNNER_TEMP/pr.md"
