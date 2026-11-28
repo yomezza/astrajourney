@@ -68,7 +68,7 @@ func (f *fixture033) req(c *http.Cookie, method, path string, body any, status i
 	if c != nil {
 		r.AddCookie(c)
 	}
-	if method == "POST" {
+	if method == "POST" || method == "PUT" {
 		r.Header.Set("Content-Type", "application/json")
 	}
 	w := httptest.NewRecorder()

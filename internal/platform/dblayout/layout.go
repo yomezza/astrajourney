@@ -17,7 +17,7 @@ var tables = map[string]string{}
 func init() {
 	groups := map[string]string{
 		"dictionaries": "system_names planet_names station_names asteroid_names ice_field_names anomaly_names name_dictionary_state",
-		"identity":     "users sessions notifications reputation pilot_workspace_preferences pilot_workspace_ids",
+		"identity":     "users sessions notifications reputation pilot_workspace_preferences pilot_workspace_ids pilot_studio_commands preserve_studio_v2_uuid",
 		"universe":     "universe_state galaxy_catalog system_identity star_systems system_planets system_objects universe_lanes universe_regions portal portal_contributions",
 		"fleet":        "ship_module_catalog ship_module_hulls ship_modules ships stations navigation_notes automation_tasks logistics_operations",
 		"economy":      "station_module_stock local_markets deposits mining_jobs reservations resource_quotas financial_ledger warehouses sell_orders deliveries shipyard_stock survey_offers",

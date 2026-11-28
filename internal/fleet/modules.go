@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/yomezza/cosmosimulator/internal/commands"
 	"github.com/yomezza/cosmosimulator/internal/wallet"
+	"slices"
 )
 
 type ModuleEffects struct {
@@ -234,27 +235,13 @@ func ModuleCommand(ctx context.Context, tx pgx.Tx, uid int64, s *Ship, in comman
 	}
 	m := s.Modules[index]
 	switch in.Action {
-	case "module_install":
-		if m.Installed {
-			return true, errors.New("Модуль уже установлен")
-		}
-		if err = m.ModuleDefinition.Validate(); err != nil {
+	case "module_install", "module_remove":
+		installed := in.Action == "module_install"
+		if err := s.CheckFitting(index, installed); err != nil {
 			return true, err
 		}
-		if s.ModuleUsed()+m.Size > s.ModuleLimit {
-			return true, errors.New("Превышен размер оснащения корабля")
-		}
-		for _, other := range s.Modules {
-			if other.Installed && other.Kind == m.Kind && m.Kind != "cargo" && (m.Kind != "extractor" || other.Effects.Extractor == m.Effects.Extractor) {
-				return true, errors.New("Сначала снимите установленный модуль этого типа")
-			}
-		}
-		s.Modules[index].Installed = true
-	case "module_remove":
-		if !m.Installed {
-			return true, errors.New("Модуль уже находится в трюме")
-		}
-		s.Modules[index].Installed = false
+		_, err := tx.Exec(ctx, `UPDATE ship_modules SET installed=$3 WHERE id=$1 AND ship_id=$2`, m.ID, s.ID, installed)
+		return true, err
 	case "module_sell":
 		if m.Installed {
 			return true, errors.New("Сначала снимите модуль")
@@ -265,22 +252,79 @@ func ModuleCommand(ctx context.Context, tx pgx.Tx, uid int64, s *Ship, in comman
 		}
 		return true, wallet.Credit(ctx, tx, uid, paid/2)
 	}
-	if s.CargoUsed() > s.Capacity() {
-		return true, errors.New("Снятие модуля переполнит трюм: освободите место")
-	}
-	_, err = tx.Exec(ctx, `UPDATE ship_modules SET installed=$3 WHERE id=$1 AND ship_id=$2`, m.ID, s.ID, s.Modules[index].Installed)
-	return true, err
+	return true, errors.New("Неизвестная операция оснащения")
 }
+
+// CheckFitting previews the same compatibility and post-change cargo limits
+// enforced when an instance is installed or removed.
+func (s Ship) CheckFitting(index int, install bool) error {
+	m := s.Modules[index]
+	if install {
+		if m.Installed {
+			return errors.New("Модуль уже установлен")
+		}
+		if err := m.ModuleDefinition.Validate(); err != nil {
+			return err
+		}
+		if s.ModuleUsed()+m.Size > s.ModuleLimit {
+			return errors.New("Превышен размер оснащения корабля")
+		}
+		for _, other := range s.Modules {
+			if other.Installed && other.Kind == m.Kind && m.Kind != "cargo" && (m.Kind != "extractor" || other.Effects.Extractor == m.Effects.Extractor) {
+				return errors.New("Сначала снимите установленный модуль этого типа")
+			}
+		}
+	} else if !m.Installed {
+		return errors.New("Модуль уже находится в трюме")
+	}
+	s.Modules = slices.Clone(s.Modules)
+	s.Modules[index].Installed = install
+	if s.CargoUsed() > s.Capacity() {
+		return errors.New("Снятие модуля переполнит трюм: освободите место")
+	}
+	return nil
+}
+
+const moduleStockDefaults = `SELECT s.star,s.object_id,c.id,CASE c.rating WHEN 'C' THEN 8 WHEN 'B' THEN 4 WHEN 'A' THEN 2 ELSE 1 END,c.price
+ FROM stations s CROSS JOIN ship_module_catalog c WHERE s.star=$1 AND s.object_id=$2 AND s.active AND c.enabled AND
+ (c.rating='C' OR (hashtextextended(s.star::text||'/'||s.object_id||'/'||c.id,0)&2147483647)%CASE c.rating WHEN 'B' THEN 2 WHEN 'A' THEN 3 ELSE 7 END=0)`
 
 func EnsureModuleStock(ctx context.Context, q interface {
 	Exec(context.Context, string, ...any) (pgconn.CommandTag, error)
 }, star int, station string) error {
-	_, err := q.Exec(ctx, `INSERT INTO station_module_stock(star,station,catalog_id,quantity,price)
- SELECT s.star,s.object_id,c.id,CASE c.rating WHEN 'C' THEN 8 WHEN 'B' THEN 4 WHEN 'A' THEN 2 ELSE 1 END,c.price
- FROM stations s CROSS JOIN ship_module_catalog c WHERE s.star=$1 AND s.object_id=$2 AND s.active AND c.enabled AND
- (c.rating='C' OR (hashtextextended(s.star::text||'/'||s.object_id||'/'||c.id,0)&2147483647)%CASE c.rating WHEN 'B' THEN 2 WHEN 'A' THEN 3 ELSE 7 END=0)
- ON CONFLICT DO NOTHING`, star, station)
+	_, err := q.Exec(ctx, `INSERT INTO station_module_stock(star,station,catalog_id,quantity,price) `+moduleStockDefaults+` ON CONFLICT DO NOTHING`, star, station)
 	return err
+}
+
+type ModuleOffer struct {
+	ModuleDefinition
+	Quantity int `json:"quantity"`
+}
+
+func ModuleOffers(ctx context.Context, tx pgx.Tx, star int, station string) ([]ModuleOffer, error) {
+	rows, err := tx.Query(ctx, `WITH defaults(star,station,catalog_id,quantity,price) AS (`+moduleStockDefaults+`),
+	 offers AS (
+	  SELECT o.catalog_id,o.price,o.quantity FROM station_module_stock o
+	  WHERE o.star=$1 AND o.station=$2 AND o.enabled
+	  UNION ALL
+	  SELECT d.catalog_id,d.price,d.quantity FROM defaults d WHERE NOT EXISTS (
+	   SELECT 1 FROM station_module_stock o WHERE o.star=d.star AND o.station=d.station AND o.catalog_id=d.catalog_id)
+	 )
+	 SELECT c.id,c.name,c.kind,c.rating,c.size,o.price,c.description,c.effects,o.quantity
+	 FROM offers o JOIN ship_module_catalog c ON c.id=o.catalog_id WHERE c.enabled ORDER BY c.kind,c.size,c.rating,c.id LIMIT 500`, star, station)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := []ModuleOffer{}
+	for rows.Next() {
+		var offer ModuleOffer
+		if err = rows.Scan(&offer.CatalogID, &offer.Name, &offer.Kind, &offer.Rating, &offer.Size, &offer.Price, &offer.Description, &offer.Effects, &offer.Quantity); err != nil {
+			return nil, err
+		}
+		out = append(out, offer)
+	}
+	return out, rows.Err()
 }
 
 func (m ShipModule) Code() string { return fmt.Sprintf("%d%s", m.Size, m.Rating) }

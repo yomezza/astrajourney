@@ -116,6 +116,14 @@ func sameCargoLocation(a, b CargoLocation) bool {
 }
 
 func (a *Service) Logistics(w http.ResponseWriter, r *http.Request) {
+	a.logistics(w, r, false)
+}
+
+func (a *Service) StudioTransfer(w http.ResponseWriter, r *http.Request) {
+	a.logistics(w, r, true)
+}
+
+func (a *Service) logistics(w http.ResponseWriter, r *http.Request, studio bool) {
 	u, ok := a.Auth.User(w, r)
 	if !ok {
 		return
@@ -163,6 +171,11 @@ func (a *Service) Logistics(w http.ResponseWriter, r *http.Request) {
 	if !httpkit.Decode(w, r, &in) {
 		return
 	}
+	if studio && (in.Mode != "direct" || !validLocation(in.From) || !validLocation(in.To) ||
+		(in.From.Kind != "ship" && in.To.Kind != "ship" && in.Ship < 1)) {
+		httpkit.Fail(w, 400, "Некорректный адрес переноса")
+		return
+	}
 	batch := len(in.Items) > 0
 	items := in.Items
 	if !batch {
@@ -196,6 +209,36 @@ func (a *Service) Logistics(w http.ResponseWriter, r *http.Request) {
 	if _, err = tx.Exec(ctx, `SELECT id FROM users WHERE id=$1 FOR UPDATE`, u.ID); err != nil {
 		httpkit.Internal(w, err)
 		return
+	}
+	if studio {
+		for _, check := range []struct {
+			location CargoLocation
+			withdraw bool
+		}{{in.From, true}, {in.To, false}} {
+			var problem error
+			if check.location.Kind == "ship" {
+				_, problem = fleet.ReadOwnedShip(ctx, tx, u.ID, check.location.Ship)
+			} else {
+				_, problem = storagePermission(ctx, tx, u.ID, check.location, check.withdraw)
+			}
+			if errors.Is(problem, pgx.ErrNoRows) {
+				httpkit.Fail(w, 404, "Объект недоступен")
+				return
+			}
+			if problem != nil {
+				httpkit.Internal(w, problem)
+				return
+			}
+		}
+		if in.From.Kind != "ship" && in.To.Kind != "ship" {
+			if _, err := fleet.ReadOwnedShip(ctx, tx, u.ID, in.Ship); errors.Is(err, pgx.ErrNoRows) {
+				httpkit.Fail(w, 404, "Объект недоступен")
+				return
+			} else if err != nil {
+				httpkit.Internal(w, err)
+				return
+			}
+		}
 	}
 	var savedDigest string
 	var result []byte
@@ -277,6 +320,12 @@ func (a *Service) Logistics(w http.ResponseWriter, r *http.Request) {
 		for _, sid := range []int64{carrier.ID, from.Ship, to.Ship} {
 			if sid == 0 {
 				continue
+			}
+			if studio {
+				if e := fleet.Available(ctx, tx, sid); e != nil {
+					httpkit.Internal(w, e)
+					return
+				}
 			}
 			if busy, e := fleet.AutomationBusy(ctx, tx, sid); e != nil {
 				httpkit.Internal(w, e)

@@ -13,7 +13,6 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/account"
 	"github.com/yomezza/cosmosimulator/internal/commands"
 	"github.com/yomezza/cosmosimulator/internal/fleet"
-	"github.com/yomezza/cosmosimulator/internal/gameplay"
 	textutil "github.com/yomezza/cosmosimulator/internal/platform/text"
 	"github.com/yomezza/cosmosimulator/internal/research"
 	"github.com/yomezza/cosmosimulator/internal/universe"
@@ -79,37 +78,12 @@ func (a *Service) NavigationCommand(ctx context.Context, tx pgx.Tx, u account.Us
 		if in.Action == "explore" {
 			points = []int{in.To}
 		}
-		if len(points) == 0 || len(points) > 20 {
-			return true, errors.New("Укажите от 1 до 20 точек маршрута")
+		plan, err := PlanRoute(g, *s, points)
+		if err != nil {
+			return true, err
 		}
-		total := 0
-		jumpDuration := 0
-		from := s.Star
-		for _, to := range points {
-			if to == from {
-				continue
-			}
-			path := g.Path(from, to)
-			if len(path) < 2 {
-				return true, errors.New("Нет допустимого маршрута")
-			}
-			total += s.Hull().JumpFuel * (len(path) - 1)
-			jumpDuration += s.Hull().JumpSeconds * (len(path) - 1)
-			from = to
-		}
-		if total > s.Fuel {
-			return true, errors.New("Недостаточно топлива")
-		}
-		clean := []int{}
-		prev := s.Star
-		for _, to := range points {
-			if to != prev {
-				clean = append(clean, to)
-				prev = to
-			}
-		}
-		raw, _ := json.Marshal(clean)
-		if _, err := tx.Exec(ctx, `UPDATE ships SET waypoints=$2,reserved_fuel=$3 WHERE id=$1`, s.ID, raw, total); err != nil {
+		raw, _ := json.Marshal(plan.Waypoints)
+		if _, err := tx.Exec(ctx, `UPDATE ships SET waypoints=$2,reserved_fuel=$3 WHERE id=$1`, s.ID, raw, plan.Fuel); err != nil {
 			return true, err
 		}
 		if in.Action == "explore" {
@@ -117,8 +91,8 @@ func (a *Service) NavigationCommand(ctx context.Context, tx pgx.Tx, u account.Us
 				return true, errors.New("Некорректная система")
 			}
 			s.Arrival = nil
-			if total > 0 {
-				at := time.Now().Add(time.Duration(jumpDuration) * time.Second)
+			if plan.Fuel > 0 {
+				at := time.Now().Add(time.Duration(plan.Seconds) * time.Second)
 				s.Arrival = &at
 			}
 			return true, research.StartResearch(ctx, tx, u.ID, s, g.Stars[in.To-1], g)
@@ -131,38 +105,19 @@ func (a *Service) NavigationCommand(ctx context.Context, tx pgx.Tx, u account.Us
 		if err := fleet.Idle(ctx, tx, *s); err != nil {
 			return true, err
 		}
-		settings, err := gameplay.ReadGameplay(ctx, tx)
+		plan, err := PlanRescue(ctx, tx, g, *s)
 		if err != nil {
 			return true, err
 		}
-		path := []int{}
-		target := 0
-		for _, candidate := range g.Stars {
-			var available bool
-			if err := tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM stations WHERE star=$1 AND active)`, candidate.ID).Scan(&available); err != nil {
-				return true, err
-			}
-			if !available {
-				continue
-			}
-			p := g.Path(s.Star, candidate.ID)
-			if len(p) > 0 && (target == 0 || len(p) < len(path)) {
-				path = p
-				target = candidate.ID
-			}
-		}
-		if target == 0 {
-			return true, errors.New("В этом компоненте карты нет доступного порта")
-		}
-		tag, err := tx.Exec(ctx, `UPDATE users SET credits=credits-$2 WHERE id=$1 AND credits>=$2`, u.ID, settings.RescueCost)
+		tag, err := tx.Exec(ctx, `UPDATE users SET credits=credits-$2 WHERE id=$1 AND credits>=$2`, u.ID, plan.Cost)
 		if err != nil {
 			return true, err
 		}
 		if tag.RowsAffected() == 0 {
 			return true, errors.New("Недостаточно кредитов")
 		}
-		route, _ := json.Marshal(path)
-		_, err = tx.Exec(ctx, `UPDATE ships SET destination=$2,departure=now(),arrival=now()+interval '30 seconds',travel_path=$3,waypoints='[]',reserved_fuel=0,fuel=GREATEST(fuel,10) WHERE id=$1`, s.ID, target, route)
+		route, _ := json.Marshal(plan.Path)
+		_, err = tx.Exec(ctx, `UPDATE ships SET destination=$2,departure=now(),arrival=now()+make_interval(secs=>$4::int),travel_path=$3,waypoints='[]',reserved_fuel=0,fuel=GREATEST(fuel,$5) WHERE id=$1`, s.ID, plan.Target, route, plan.Seconds, plan.MinimumFuel)
 		return true, err
 	case "buy_ship":
 		return true, fleet.BuyShip(ctx, tx, u, *s, in)

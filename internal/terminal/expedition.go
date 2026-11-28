@@ -134,73 +134,12 @@ func (a *Service) Expedition(w http.ResponseWriter, r *http.Request) {
 		} else {
 			switch in.Action {
 			case "move":
-				if fleet.ResearchBusy(ctx, tx, ship.ID) {
-					problem = "Сначала приостановите исследование"
-					break
+				err = planLocalMove(ctx, tx, u.ID, ship, star, in.Target, in.Mode)
+				if err == nil {
+					startLocalMove(&ship, in.Target, in.Mode)
+				} else if varProblem := new(actionProblem); errors.As(err, varProblem) {
+					problem, err = varProblem.Error(), nil
 				}
-				if job != nil {
-					problem = "Дождитесь завершения добычи"
-					break
-				}
-				var target *universe.Site
-				sitesForMove, e := worldstore.AddCustomSites(ctx, tx, star, universe.SystemSites(star))
-				if e != nil {
-					err = e
-					break
-				}
-				for _, site := range sitesForMove {
-					if site.ID == in.Target {
-						copy := site
-						target = &copy
-					}
-				}
-				visible, e := research.RevealedSites(ctx, tx, u.ID, star.ID, sitesForMove, surveyed)
-				if e != nil {
-					err = e
-					break
-				}
-				knownTarget := false
-				// Public port coordinates are broadcast by the market. Docking
-				// does not disclose the system's unscanned planets or deposits.
-				if target != nil && target.Kind == "Орбитальная станция" {
-					knownTarget = true
-				}
-				for _, site := range visible {
-					if site.ID == in.Target {
-						knownTarget = true
-					}
-				}
-				if !knownTarget {
-					target = nil
-				}
-				if target == nil {
-					problem = "Объект не найден"
-					break
-				}
-				if in.Mode != "approach" && in.Mode != "orbit" && in.Mode != "docked" {
-					problem = "Некорректный манёвр"
-					break
-				}
-				if in.Mode == "docked" && target.Kind != "Орбитальная станция" || in.Mode == "orbit" && target.Details == nil {
-					problem = "Манёвр недоступен для объекта"
-					break
-				}
-				if ship.Fuel-ship.ReservedFuel < 1 {
-					problem = "Недостаточно топлива"
-					break
-				}
-				if fleet.NearObject(ship, target.ID) && ship.PositionMode == in.Mode {
-					problem = "Корабль уже на месте"
-					break
-				}
-				duration := 5 * time.Second
-				now := time.Now()
-				arrival := now.Add(duration)
-				ship.LocalTarget = &in.Target
-				ship.LocalMode = &in.Mode
-				ship.LocalStarted = &now
-				ship.LocalArrival = &arrival
-				ship.Fuel--
 			case "cancel_mine":
 				if _, err = tx.Exec(ctx, `SELECT resource FROM resource_quotas WHERE star=$1 AND object=$2 AND resource='*' FOR UPDATE`, ship.Star, func() int {
 					if job != nil {
@@ -250,16 +189,12 @@ func (a *Service) Expedition(w http.ResponseWriter, r *http.Request) {
 					ship.Destination = &in.To
 				}
 			case "refuel":
-				if ship.Fuel >= ship.Hull().Fuel {
-					problem = "Бак полон"
-				} else if ship.Cargo["agni"] < 1 {
-					problem = "Нужен водород в трюме"
+				var amount int
+				amount, err = refuelAmount(ship)
+				if err == nil {
+					refuel(&ship, amount)
 				} else {
-					ship.Cargo["agni"]--
-					ship.Fuel += 5
-					if ship.Fuel > ship.Hull().Fuel {
-						ship.Fuel = ship.Hull().Fuel
-					}
+					problem, err = err.Error(), nil
 				}
 			case "buy", "sell":
 				if !worldstore.StationAllows(ctx, tx, ship.Star, ship.ObjectID, in.Resource) {
