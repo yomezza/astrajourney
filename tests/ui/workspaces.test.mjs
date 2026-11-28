@@ -121,7 +121,7 @@ test("Studio saves CRUD in order and requires a fresh read after conflict", asyn
   const studio = g.page.locator("#studio");
   const named = (name) => studio.getByRole("button",{name,exact:true});
   const saved = () => studio.getByText("Раскладка сохранена").waitFor();
-  await studio.locator("summary").getByText("Настроить пространство").click();
+  await studio.getByRole("button",{name:"Настроить пространство"}).click();
   await named("Создать пространство").click();
   await saved();
   const name = studio.getByLabel("Название пространства");
@@ -166,7 +166,7 @@ test("Matrix command deck loads presets and persists card order and width", asyn
   }]]});
   await g.ready();
   const {page} = g;
-  await page.locator(".matrix-map canvas").waitFor();
+  await page.locator('.matrix-card[data-module="map"]').getByText("Текущая система").waitFor();
   const grid = page.locator(".matrix-grid");
   const overview = grid.locator('[data-module="overview"]');
   assert.equal(await grid.locator(".matrix-card").count(),5);
@@ -185,7 +185,7 @@ test("Matrix command deck loads presets and persists card order and width", asyn
   const wide = overview.getByRole("button",{name:"Широкая карточка",includeHidden:true});
   assert.equal(await wide.isVisible(),false);
   assert.equal(await overview.locator("h2").getAttribute("draggable"),"false");
-  await page.locator(".matrix-manage summary").click();
+  await page.locator(".matrix-edit-toggle").click();
   await wide.click();
   await overview.getByRole("button",{name:"Переместить карточку вправо"}).click();
   assert.equal(await overview.locator("h2").getAttribute("draggable"),"true");
@@ -218,4 +218,45 @@ test("Matrix command deck loads presets and persists card order and width", asyn
     assert.ok(cards.every(card => card.left >= bounds.x - 1 && card.right <= bounds.x + bounds.width + 1), `card outside grid at ${width}`);
   }
   assert.equal(g.requests.filter(r => r.method === "POST" && r.path !== "workspaces").length,0);
+});
+
+test("Studio asks before opening gameplay for a different ship", async (t) => {
+  const workspace = "42000000-0000-4000-8000-000000000001";
+  const g = await game(t, { signedIn: true, faults: [
+    ["workspaces", ({json, data}) => json({
+      revision: 1,
+      layout: { version: 1, active: workspace, default: workspace, workspaces: [{
+        id: workspace, name: "Добыча", customized: true, ship_id: data.fleet.ships[0].id,
+        modules: [{ id: moduleID, type: "fleet", view: "card", wide: true,
+          binding: "fixed", ship_id: data.fleet.ships[1].id }],
+      }] },
+    })],
+    ["workbench", ({req, json, data}) => {
+      if (req.method() === "GET") return json(data.workbench);
+      const {ship} = req.postDataJSON();
+      data.expedition.ship = data.fleet.ships.find(item => item.id === ship);
+      return json({ ok: true });
+    }],
+  ] });
+  await g.ready();
+  const ship = g.data.fleet.ships[1];
+  const card = g.page.locator('.matrix-card[data-module="fleet"]');
+  const action = card.getByRole("button", {name: "Открыть корабль"});
+  await card.getByRole("meter", {name: "Топливо"}).waitFor();
+  const [projection, telemetry] = await card.locator(".matrix-ship-summary")
+    .evaluate(el => [el.getBoundingClientRect().width, el.querySelector(".matrix-ship-telemetry").getBoundingClientRect().width]);
+  assert.ok(projection <= 450 && telemetry < projection);
+  const confirm = g.page.locator("#window-confirm");
+  await action.click();
+  await confirm.getByText(new RegExp(ship.name)).waitFor();
+  assert.equal(await g.page.locator("#window-ship[open]").count(), 0);
+  await confirm.getByRole("button", {name: "Отмена"}).click();
+  assert.equal(g.requests.filter(req => req.method === "POST").length, 0);
+  await action.click();
+  await confirm.getByRole("button", {name: "Подтвердить"}).click();
+  const target = g.page.locator("#window-ship[open]");
+  await target.locator(".ship-inline-model[data-ship='" + ship.id + "']").waitFor();
+  assert.deepEqual(g.requests.filter(req => req.method === "POST").map(req => req.body), [
+    {action: "select_ship", ship: ship.id},
+  ]);
 });
