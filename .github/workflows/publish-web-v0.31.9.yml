@@ -1,0 +1,40 @@
+name: Publish MATRIX × STUDIO Web v0.31.9
+
+on:
+  push:
+    branches: [chore/publish-web-v0.31.9]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-web-v0.31.9
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Verify and publish Web assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag=v0.31.9
+          source_commit=$(git rev-parse HEAD^)
+          out="$RUNNER_TEMP/matrix-web"
+          go run ./cmd/astra-web-assets -root web -tag "$tag" -out "$out"
+          python3 scripts/verify-web-release.py "$tag" --directory "$out"
+          archive="$out/astra-journey-web-32e9ecb9cab703cd1ee8d531aef8ab23976f05bc82f91bbad86fa3459f11627a.zip"
+          printf '%s  %s\n' c79e1d49be2bf845ba89c1080a436574fe66d02a25778f04c7b6d357518702eb "$archive" | sha256sum --check
+          printf '%s\n' 'Веб-ассеты MATRIX × STUDIO.' > "$RUNNER_TEMP/release-notes.md"
+          gh release create "$tag" "$archive" "$out/astra-journey-web.json" \
+            --target "$source_commit" --latest=false --title 'MATRIX × STUDIO Web v0.31.9' \
+            --notes-file "$RUNNER_TEMP/release-notes.md"
+          gh release view "$tag" --json isDraft,assets \
+            --jq 'if (.isDraft or ([.assets[].name] | sort) != ["astra-journey-web-32e9ecb9cab703cd1ee8d531aef8ab23976f05bc82f91bbad86fa3459f11627a.zip", "astra-journey-web.json"]) then error("Unexpected release assets") else .assets[].name end'
