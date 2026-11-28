@@ -146,19 +146,21 @@ try {
     "opening details must not switch a ship",
   );
   await root.getByRole("button", { name: "Корабль", exact: true }).click();
-  await page.waitForFunction(
-    async (ship) =>
-      (await (await fetch("/api/expedition")).json()).ship.id === ship,
-    f.second,
-  );
-  await page.locator("#window-ship[open]").waitFor();
-  await module("ship", false);
+  const shipTool = page.locator(".studio-window[open]").filter({hasText:"Notification scout"});
+  await shipTool.getByRole("heading",{name:"Корабль",exact:true}).waitFor();
+  assert.equal((await api("expedition")).ship.id,f.ship,"notification window changed the active ship");
+  await page.screenshot({
+    path: new URL("./artifacts/notifications/context-1440x1000.png", import.meta.url)
+      .pathname,
+  });
+  await shipTool.getByRole("button",{name:"Закрыть",exact:true}).click();
   await module("notifications");
   await done();
   await choose(f.ids.mining_complete);
   await root.getByRole("button", { name: "Трюм", exact: true }).click();
-  await page.locator("#window-cargo[open]").waitFor();
-  await module("cargo", false);
+  const cargoTool = page.locator(".studio-window[open]").filter({hasText:"Notification scout"});
+  await cargoTool.getByRole("heading",{name:"Трюм",exact:true}).waitFor();
+  await cargoTool.getByRole("button",{name:"Закрыть",exact:true}).click();
   await module("notifications");
   await done();
   await choose(f.ids.arrival);
@@ -187,8 +189,8 @@ try {
   await done();
   assert.equal(
     writes.filter((r) => r.body?.action === "select_ship").length,
-    1,
-    "only the explicit ship action may select a ship",
+    0,
+    "viewing a notification target must not select a server ship",
   );
   // Read one, grouped rendering and server data must agree.
   await root

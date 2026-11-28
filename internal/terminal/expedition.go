@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -14,6 +15,8 @@ import (
 	"github.com/yomezza/cosmosimulator/internal/fleet"
 	"github.com/yomezza/cosmosimulator/internal/mining"
 	"github.com/yomezza/cosmosimulator/internal/platform/httpkit"
+	"github.com/yomezza/cosmosimulator/internal/platform/idempotency"
+	"github.com/yomezza/cosmosimulator/internal/platform/identifiers"
 	"github.com/yomezza/cosmosimulator/internal/research"
 	resourcecatalog "github.com/yomezza/cosmosimulator/internal/resources"
 	"github.com/yomezza/cosmosimulator/internal/universe"
@@ -27,6 +30,26 @@ func (a *Service) Expedition(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ctx := r.Context()
+	var requestedShip int64
+	if r.URL.Query().Has("ship") {
+		id, err := strconv.ParseInt(r.URL.Query().Get("ship"), 10, 64)
+		if err != nil || id < 1 {
+			httpkit.Fail(w, 400, "Укажите корабль")
+			return
+		}
+		requestedShip = id
+	}
+	var in expeditionInput
+	if r.Method == "POST" {
+		if !httpkit.Decode(w, r, &in) {
+			return
+		}
+		if in.RequestID != "" && (!identifiers.ValidUUID(in.RequestID) || requestedShip == 0 ||
+			in.Ship != requestedShip || (in.Action != "buy" && in.Action != "sell") || in.ExpectedPrice == nil) {
+			httpkit.FailCode(w, 400, "INVALID_ACTION_ID", "Проверьте параметры подтверждённой сделки")
+			return
+		}
+	}
 	g, err := a.World.Load(ctx)
 	if err != nil {
 		httpkit.Internal(w, err)
@@ -54,9 +77,46 @@ func (a *Service) Expedition(w http.ResponseWriter, r *http.Request) {
 		httpkit.Internal(w, err)
 		return
 	}
-	ship, err := fleet.EnsureShip(ctx, tx, u.ID)
+	var digest string
+	if in.RequestID != "" {
+		digest = idempotency.Digest(in)
+		receipt, previous, receiptErr := readExpeditionReceipt(ctx, tx, u.ID, in.RequestID)
+		switch {
+		case receiptErr == nil:
+			if previous != digest {
+				httpkit.FailCode(w, 409, "ACTION_ID_REUSED", "Идентификатор уже использован для другой сделки")
+				return
+			}
+			httpkit.Reply(w, 200, receipt)
+			return
+		case !errors.Is(receiptErr, pgx.ErrNoRows):
+			httpkit.Internal(w, receiptErr)
+			return
+		}
+	}
+	var ship fleet.Ship
+	if requestedShip == 0 {
+		ship, err = fleet.EnsureShip(ctx, tx, u.ID)
+	} else {
+		err = fleet.SettleShips(ctx, tx, u.ID)
+		if err == nil {
+			var owned int64
+			err = tx.QueryRow(ctx, `SELECT id FROM ships WHERE id=$1 AND user_id=$2 FOR UPDATE`, requestedShip, u.ID).Scan(&owned)
+			if errors.Is(err, pgx.ErrNoRows) {
+				httpkit.FailCode(w, 404, "SHIP_NOT_OWNED", "Корабль не найден")
+				return
+			}
+			if err == nil {
+				ship, err = fleet.ReadShip(ctx, tx, owned)
+			}
+		}
+	}
 	if err != nil {
 		httpkit.Internal(w, err)
+		return
+	}
+	if ship.Star < 1 || ship.Star > len(g.Stars) || g.Stars[ship.Star-1].Deleted {
+		httpkit.FailCode(w, 409, "OBJECT_UNAVAILABLE", "Система корабля недоступна")
 		return
 	}
 	star := g.Stars[ship.Star-1]
@@ -99,25 +159,28 @@ func (a *Service) Expedition(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.Method == "POST" {
-		var in struct {
-			Ship          int64  `json:"ship"`
-			Action        string `json:"action"`
-			To            int    `json:"to"`
-			Resource      string `json:"resource"`
-			Quantity      int    `json:"quantity"`
-			Planet        int    `json:"planet"`
-			Target        string `json:"target"`
-			Mode          string `json:"mode"`
-			ExpectedPrice *int   `json:"expected_price"`
-		}
-		if !httpkit.Decode(w, r, &in) {
-			return
+		if requestedShip != 0 {
+			if in.Ship != requestedShip || in.ExpectedStar != ship.Star || in.ExpectedObject != ship.ObjectID {
+				httpkit.FailCode(w, 409, "SHIP_CONTEXT_CHANGED", "Положение корабля изменилось. Проверьте данные")
+				return
+			}
+			if (in.Action == "buy" || in.Action == "sell") && in.ExpectedPrice == nil {
+				httpkit.Fail(w, 400, "Проверьте предложение ещё раз")
+				return
+			}
+			if err := fleet.Available(ctx, tx, ship.ID); errors.Is(err, fleet.ErrReserved) {
+				httpkit.FailCode(w, 409, "SHIP_RESERVED", err.Error())
+				return
+			} else if err != nil {
+				httpkit.Internal(w, err)
+				return
+			}
 		}
 		if busy, e := fleet.AutomationBusy(ctx, tx, ship.ID); e != nil {
 			httpkit.Internal(w, e)
 			return
 		} else if busy {
-			httpkit.Fail(w, 409, "Приостановите задачу планировщика")
+			httpkit.FailCode(w, 409, "SHIP_BUSY", "Приостановите задачу планировщика")
 			return
 		}
 		if in.Ship > 0 && in.Ship != ship.ID {
@@ -129,7 +192,9 @@ func (a *Service) Expedition(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		problem := ""
+		problemCode := "ACTION_REJECTED"
 		if ship.Destination != nil || ship.LocalTarget != nil {
+			problemCode = "SHIP_IN_TRANSIT"
 			problem = "Корабль в пути"
 		} else {
 			switch in.Action {
@@ -286,6 +351,7 @@ func (a *Service) Expedition(w http.ResponseWriter, r *http.Request) {
 						price = offer.Sell
 					}
 					if *in.ExpectedPrice != price {
+						problemCode = "MARKET_PRICE_CHANGED"
 						problem = "Цена изменилась. Проверьте предложение ещё раз"
 						break
 					}
@@ -339,7 +405,7 @@ func (a *Service) Expedition(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if problem != "" {
-			httpkit.Fail(w, 409, problem)
+			httpkit.FailCode(w, 409, problemCode, problem)
 			return
 		}
 		stockJSON, _ := json.Marshal(stock)
@@ -358,6 +424,19 @@ func (a *Service) Expedition(w http.ResponseWriter, r *http.Request) {
 
 		if _, err = tx.Exec(ctx, `UPDATE local_markets SET credits=$2,stock=$3 WHERE star=$1 AND station=$4`, ship.Star, wallet, stockJSON, marketID); err != nil {
 			httpkit.Internal(w, err)
+			return
+		}
+		if in.RequestID != "" {
+			if _, err = tx.Exec(ctx, `INSERT INTO expedition_command_receipts(user_id,request_id,digest,ship_id,action)
+				VALUES($1,$2,$3,$4,$5)`, u.ID, in.RequestID, digest, ship.ID, in.Action); err != nil {
+				httpkit.Internal(w, err)
+				return
+			}
+			if err = tx.Commit(ctx); err != nil {
+				httpkit.Internal(w, err)
+				return
+			}
+			httpkit.Reply(w, 200, expeditionReceipt{RequestID: in.RequestID, Ship: ship.ID, Action: in.Action})
 			return
 		}
 	}

@@ -9,7 +9,7 @@ export function initConfirm() {
     const root = Modules.create("confirm", title, 470, 340, {
       transient: true,
     });
-    root.replaceChildren(node("p", text));
+    root.replaceChildren(text instanceof Node ? text : node("p", text));
     const yes = UI.button("Подтвердить", async () => {
         const accepted = await run();
         if (

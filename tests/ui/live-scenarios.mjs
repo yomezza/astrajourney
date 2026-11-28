@@ -116,14 +116,19 @@ try {
   await close("colonies");
   await open("ship");
   await page.locator("#ship-rename").fill("Audit Pilgrim");
+  const renamed = page.waitForResponse(response =>
+    new URL(response.url()).pathname === "/api/workbench" &&
+    response.request().method() === "POST" &&
+    response.request().postDataJSON()?.action === "rename_ship",
+  );
   await page
     .locator("#window-ship")
     .getByRole("button", { name: "Переименовать корабль", exact: true })
     .click();
+  assert.ok((await renamed).ok(), "ship rename failed");
+  await page.waitForFunction(() =>
+    document.getElementById("title-ship").textContent.includes("Audit Pilgrim"));
   await settle();
-  assert.ok(
-    (await page.locator("#title-ship").textContent()).includes("Audit Pilgrim"),
-  );
   await close("ship");
   await open("logistics");
   await page

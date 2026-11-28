@@ -3,6 +3,7 @@ import { I18n } from "../../core/i18n.js";
 import { Modules } from "../../ui/runtime.js";
 import { node } from "../../ui/dom.js";
 import { lineIcon } from "../../ui/icons.js";
+import { openIntent, openModule } from "./module-routes.js";
 
 const groups = [
   ["Навигация и флот", [
@@ -23,6 +24,47 @@ const groups = [
   ]],
 ];
 const tr = text => I18n.t(text);
+
+const commands = new Map([
+  ["FLEET",["overview","Флот"]],
+  ["SHIP",["fleet","Корабль","ship"]], ["КОРАБЛЬ",["fleet","Корабль","ship"]],
+  ["CARGO",["cargo","Трюм","ship"]], ["ТРЮМ",["cargo","Трюм","ship"]],
+  ["MAP",["map","Галактическая карта"]],
+  ["SYSTEM",["map","Галактическая карта","system"]], ["СИСТЕМА",["map","Галактическая карта","system"]],
+  ["MARKET",["market","Рынок","ship"]], ["РЫНОК",["market","Рынок","ship"]],
+  ["MINING",["mining","Добыча","ship"]], ["ДОБЫЧА",["mining","Добыча","ship"]],
+  ["LOGISTICS",["logistics","Логистика","ship"]],
+  ["TASKS",["tasks","Планировщик задач","ship"]],
+  ["FINANCE",["finance","История финансов","global"]],
+  ["HELP",["guide","Руководство пилота","global"]],
+]);
+
+function commandChoices(text) {
+  const [verb, argument] = text.trim().split(/\s+/,2);
+  const entry = commands.get(verb?.toLocaleUpperCase());
+  // Keep localized catalogue search available alongside explicit commands.
+  if (!entry || (!argument && verb !== verb.toLocaleUpperCase())) return null;
+  const [module,label,targetKind] = entry;
+  const scope = targetKind === "global" ? "global" : "workspace";
+  const id = /^[1-9]\d*$/.test(argument || "") ? Number(argument) : 0;
+  const intent = {module,scope};
+  if (argument) {
+    if (!["ship","system"].includes(targetKind) || !Number.isSafeInteger(id) || !id ||
+        text.trim().split(/\s+/).length !== 2)
+      return {error:"Укажите числовой ID объекта"};
+    return {items:[{label:tr(label) + " · #" + id,intent:{...intent,target:{kind:targetKind,id}}}]};
+  }
+  if (targetKind === "ship") {
+    const ships = Session.data.fleet?.ships || [];
+    if (!ships.length) return {error:"Корабль недоступен"};
+    return {items:ships.map(ship => ({
+      label:tr(label) + " · " + ship.name + " #" + ship.id,
+      intent:{...intent,target:{kind:"ship",id:ship.id}},
+    }))};
+  }
+  if (targetKind === "system") return {error:"Укажите числовой ID объекта"};
+  return {items:[{label:tr(label),intent}]};
+}
 
 export function initModuleCatalog() {
   const trigger = document.getElementById("matrix-catalog-shortcut");
@@ -50,39 +92,49 @@ export function initModuleCatalog() {
     dialog.close();
   });
 
-  function launch(id) {
-    dialog.close();
-    if (id === "system") {
-      document.getElementById("current-system-map").click();
-      return;
-    }
-    if (id === "colonies") {
-      document.getElementById("nav-colonies").click();
-      return;
-    }
-    if (Modules.isOpen(id)) Modules.focus(id);
-    else {
-      Modules.open(id);
-      if (id === "galaxy") window.dispatchEvent(new Event("showgalaxy"));
-    }
-  }
   function paint() {
+    const focused = results.contains(document.activeElement) && document.activeElement.dataset.route;
     const term = search.value.trim().toLocaleLowerCase();
     let sections = groups.slice();
     if (Session.data.state?.user.role === "admin")
       sections.push(["Управление", [["administration","Панель администратора"]]]);
     const items = new Map(sections.flatMap(([,entries]) => entries.map(entry => [entry[0],entry])));
-    const open = Modules.openWindows().map(({id,title}) => items.get(id) || [id,title]);
+    const open = Modules.openWindows().map(({id,title}) =>
+      id === "galaxy" ? [id,"Открытая карта"] : [id,title,items.get(id)?.[1]]);
     if (open.length) {
       const openIDs = new Set(open.map(([id]) => id));
       sections = [
         ["Открытые окна",open],
-        ...sections.map(([label,entries]) => [label,entries.filter(([id]) => !openIDs.has(id))]),
+        ...sections.map(([label,entries]) => [label,entries.filter(([id]) => id === "galaxy" || !openIDs.has(id))]),
       ];
     }
     results.replaceChildren();
+    const choices = commandChoices(search.value);
+    if (choices) {
+      if (choices.error) results.append(node("p",tr(choices.error),"muted"));
+      else {
+        const section = node("section",undefined,"matrix-launcher-group");
+        section.append(node("h3",tr("Команды")));
+        const cards = node("div",undefined,"matrix-launcher-cards");
+        for (const {label,intent} of choices.items) {
+          const card = node("button",label,"matrix-launcher-card");
+          card.type = "button";
+          card.onclick = () => {
+            dialog.close();
+            openIntent(intent);
+          };
+          cards.append(card);
+        }
+        section.append(cards);
+        results.append(section);
+      }
+      return;
+    }
     for (const [label, entries] of sections) {
-      const matches = entries.filter(([,name]) => tr(name).toLocaleLowerCase().includes(term));
+      const windowGroup = label === "Открытые окна";
+      const matches = entries.filter(([,name,alias]) =>
+        tr(name).toLocaleLowerCase().includes(term) ||
+        (alias && tr(alias).toLocaleLowerCase().includes(term)));
       if (!matches.length) continue;
       const section = node("section",undefined,"matrix-launcher-group");
       section.append(node("h3",tr(label)));
@@ -90,17 +142,23 @@ export function initModuleCatalog() {
       for (const [id,name] of matches) {
         const card = node("button",undefined,"matrix-launcher-card");
         card.type = "button";
+        card.dataset.route = windowGroup ? `window-${id}` : id;
         if (id === "administration") card.dataset.admin = "";
         const icon = node("span",undefined,"matrix-launcher-icon");
         icon.append(lineIcon(id) || lineIcon("maximize"));
         card.append(icon,node("span",tr(name)));
-        card.onclick = () => launch(id);
+        card.onclick = () => {
+          dialog.close();
+          if (windowGroup) openIntent({module:id,scope:"existing"});
+          else openModule(id);
+        };
         cards.append(card);
       }
       section.append(cards);
       results.append(section);
     }
     if (!results.children.length) results.append(node("p",tr("Нет совпадений"),"muted"));
+    if (focused) (results.querySelector(`[data-route="${CSS.escape(focused)}"]`) || search).focus();
   }
   function show() {
     if (!Session.signedIn || document.querySelector(":modal") || document.body.classList.contains("planet-mode")) return;
@@ -109,6 +167,7 @@ export function initModuleCatalog() {
     search.setAttribute("aria-label",tr("Поиск модулей"));
     close.setAttribute("aria-label",tr("Закрыть"));
     search.value = "";
+    search.title = "FLEET · SHIP 123 · CARGO 123 · SYSTEM 42 · MARKET · TASKS";
     paint();
     dialog.showModal();
     search.focus();

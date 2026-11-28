@@ -1,46 +1,19 @@
 import { Session } from "../../core/session.js";
-import { world } from "../../core/world-store.js";
 import { I18n } from "../../core/i18n.js";
 import { Format } from "../../core/format.js";
 import { node } from "../../ui/dom.js";
+import { createTable } from "../../ui/table.js";
 import { resourceName } from "../inventory/resource-label.js";
-import { station } from "../selectors.js";
-import { systemName } from "./views.js";
+import { Game } from "../runtime.js";
+import { UI } from "../../ui/runtime.js";
+import { gauge, systemName } from "./views.js";
 
-export const dashboard = Object.freeze({
-  overview: ["Флот", "ship"],
-  operations: ["Активные операции", "tasks"],
-  map: ["Галактическая карта", "galaxy"],
-  market: ["Рыночные предложения", "market"],
-});
 const tr = (text) => I18n.t(text);
 const nameOf = ship => ship?.name || tr(ship?.spec?.name) || "—";
 
-function table(columns, rows, empty) {
+function table(columns, rows, empty, label) {
   if (!rows.length) return node("p", tr(empty), "matrix-empty");
-  const result = node("table");
-  const caption = node("thead"), heading = node("tr");
-  for (const column of columns) {
-    const [title, alignment] = Array.isArray(column) ? column : [column];
-    const cell = node("th",tr(title),alignment);
-    cell.scope = "col";
-    heading.append(cell);
-  }
-  caption.append(heading);
-  const body = node("tbody");
-  for (const values of rows) {
-    const row = node("tr");
-    for (const [index,value] of values.entries()) {
-      const cell = node("td",undefined,heading.children[index].className);
-      cell.append(value instanceof Node ? value : String(value ?? "—"));
-      row.append(cell);
-    }
-    body.append(row);
-  }
-  result.append(caption,body);
-  const scroll = node("div",undefined,"matrix-table");
-  scroll.append(result);
-  return scroll;
+  return createTable(columns, rows, {className:"matrix-table",label});
 }
 
 function status(title, tone) {
@@ -49,8 +22,9 @@ function status(title, tone) {
   return badge;
 }
 
-function fleetReading(ships, focus, chooseShip) {
-  return table(["Корабль","Система","Состояние",["Топливо","matrix-numeric"]], ships.map(ship => {
+export function fleetReading(ships, focus, chooseShip) {
+  const { mining = [], research = [] } = Session.data.workbench || {};
+  return table(["Корабль","Система","Состояние",["Топливо","table-number"],"Задача"], ships.map(ship => {
     const control = node("button",nameOf(ship),"matrix-context-link");
     control.type = "button";
     control.dataset.studioFocus = `ship-${ship.id}`;
@@ -61,12 +35,20 @@ function fleetReading(ships, focus, chooseShip) {
     const activity = ship.destination ? status("В пути","working") :
       ship.local_target ? status("Манёвр","working") :
       ship.position_mode === "docked" ? status("Состыкован","ready") : status("На позиции","quiet");
-    const fuel = Format.number(ship.fuel) + " / " + Format.number(ship.spec?.fuel);
-    return [control,systemName(ship.star),activity,fuel];
-  }),"Кораблей нет");
+    const identity = node("div",undefined,"matrix-fleet-identity");
+    identity.append(control,node("small",`#${ship.id} · ${tr(ship.spec?.name)}`));
+    const miningJob = mining.find(job => job.ship_id === ship.id);
+    const scan = research.find(job => job.ship === ship.id);
+    const task = miningJob ? tr("Добыча") + " · " + resourceName(miningJob.resource).textContent :
+      scan ? tr(scan.paused ? "На паузе" : "Сканирование") :
+      ship.destination ? systemName(ship.destination) :
+      ship.local_target ? tr("Манёвр") : tr("Ожидает задания");
+    identity.append(node("small",task,"matrix-fleet-activity"));
+    return [identity,systemName(ship.star),activity,gauge(ship.fuel,ship.spec?.fuel,"Топливо"),task];
+  }),"Кораблей нет","Флот");
 }
 
-function operations(ships, workbench, focus) {
+export function operations(ships, workbench, focus, context, run) {
   const byID = new Map(ships.map(ship => [ship.id,ship]));
   const jobs = [
     ...(workbench.mining || []).map(job => ({
@@ -75,6 +57,7 @@ function operations(ships, workbench, focus) {
     })),
     ...(workbench.research || []).map(job => ({
       ship:job.ship, title:"Сканирование", tone:job.paused ? "paused" : "working",
+      progress:job.scanned, total:job.total, paused:job.paused,
       detail:`${Format.number(job.scanned)} / ${Format.number(job.total)}${job.paused ? " · " + tr("На паузе") : ""}`,
     })),
     ...ships.filter(ship => ship.destination || ship.local_target).map(ship => ({
@@ -83,15 +66,33 @@ function operations(ships, workbench, focus) {
     })),
   ];
   jobs.sort((left,right) => Number(right.ship === focus?.id) - Number(left.ship === focus?.id));
-  return table(["Операция","Корабль","Ход операции"],jobs.slice(0,8).map(job => [
-    status(job.title,job.tone),job.name || nameOf(byID.get(job.ship)),job.detail,
-  ]),"У флота нет активных операций");
+  const feed = node("div",undefined,"matrix-operation-feed");
+  if (!jobs.length) feed.append(node("p",tr("У флота нет активных операций"),"matrix-empty"));
+  for (const job of jobs.slice(0,8)) {
+    const card = node("article",undefined,"matrix-operation");
+    const owner = byID.get(job.ship);
+    const heading = node("div",undefined,"matrix-operation-head");
+    heading.append(status(job.title,job.tone),node("small",(job.name || nameOf(owner)) + " · #" + job.ship));
+    card.append(heading,node("p",job.detail));
+    if (job.total > 0) {
+      const progress = node("progress");
+      progress.max = job.total;
+      progress.value = job.progress;
+      progress.setAttribute("aria-label",tr("Ход операции"));
+      card.append(progress);
+      if (owner) card.append(UI.button(job.paused ? "Продолжить" : "Приостановить", () =>
+        Game.command({action:job.paused ? "resume_research" : "pause_research",ship:job.ship})));
+    } else if (context?.job && job.title === "Добыча" && context.ship.id === job.ship) {
+      card.append(UI.button("Остановить добычу", () => run(context,{action:"cancel_mine"})));
+    }
+    feed.append(card);
+  }
+  return feed;
 }
 
-export function marketReading(ship, source, onSource) {
-  const { expedition, workbench } = Session.data;
-  // Expedition offers belong to the active ship's dock, even when Studio views another ship.
-  const local = expedition?.docked && ship?.id === expedition.ship?.id;
+export function marketReading(context, source, onSource, editor, onOffer, trades) {
+  const { workbench, state } = Session.data;
+  const receiptsAvailable = state?.station_trade_receipts === true;
   const view = node("div",undefined,"matrix-market");
   const buttons = node("div",undefined,"matrix-source-switch");
   buttons.setAttribute("role","group");
@@ -105,76 +106,72 @@ export function marketReading(ship, source, onSource) {
     buttons.append(button);
   }
   view.append(buttons);
+  const {pending,busy} = trades.state();
+  if (pending) {
+    const recovery = node("section",undefined,"matrix-operation");
+    const status = node("p",tr(busy ? "Проверяем сделку…" : "Результат сделки пока неизвестен"));
+    status.setAttribute("role","status");
+    const detail = node("p",`#${pending.ship} · ${resourceName(pending.resource).textContent} × ${pending.quantity} · ${Format.credits(pending.quantity * pending.expected_price)}`);
+    recovery.append(status,detail,
+      UI.button("Проверить сделку",trades.check,busy),
+      UI.button("Повторить тот же запрос",trades.retry,busy));
+    view.append(recovery);
+  }
   if (source === "orders") {
-    view.append(table(["Ресурс","Система",["Количество","matrix-numeric"],["Цена","matrix-numeric"]],
+    view.append(table(["Ресурс","Система",["Количество","table-number"],["Цена","table-number"]],
       (workbench?.orders || []).slice(0,8).map(order => [
         resourceName(order.resource),systemName(order.star),Format.quantity(order.quantity),Format.credits(order.price),
-      ]),"Игроки пока не выставили предложений"));
-  } else if (local) {
-    const port = station();
-    if (port?.name) view.append(node("p",port.name,"matrix-source-label"));
-    view.append(table(["Ресурс",["В наличии","matrix-numeric"],["Купить","matrix-numeric"],["Продать","matrix-numeric"]],
-      (expedition.offers || []).slice(0,8).map(offer => [
-        resourceName(offer.resource),Format.quantity(offer.stock),Format.credits(offer.buy),Format.credits(offer.sell),
-      ]),"У станции пока нет предложений"));
+      ]),"Игроки пока не выставили предложений","Предложения игроков"));
+  } else if (context?.docked) {
+    if (!receiptsAvailable) view.append(node("p",tr("Для сделок в STUDIO нужен обновлённый Game API"),"matrix-empty"));
+    const ship = context.ship;
+    const port = workbench?.stations?.find(p => p.star === ship.star && p.object_id === ship.object_id);
+    const offers = context.offers || [];
+    view.append(node("p",`${port?.name || systemName(ship.star)} · #${ship.id}`,"matrix-source-label"));
+    const list = node("div",undefined,"matrix-offer-list");
+    const prices = node("div",undefined,"matrix-offer-row matrix-offer-heading");
+    for (const label of ["Ресурс","Купить","Продать"]) prices.append(node("small",tr(label)));
+    list.append(prices);
+    for (const offer of offers) {
+      const line = node("div",undefined,"matrix-offer-row");
+      const material = node("span",undefined,"matrix-offer-material");
+      material.append(resourceName(offer.resource),node("small",tr("В наличии") + " " + Format.quantity(offer.stock)));
+      const button = UI.button("",() => onOffer(offer.resource));
+      button.append(material);
+      button.setAttribute("aria-pressed",String(editor.resource === offer.resource));
+      button.dataset.studioFocus = `offer-${offer.resource}`;
+      line.append(button,node("span",Format.credits(offer.buy)),node("span",Format.credits(offer.sell)));
+      list.append(line);
+    }
+    if (offers.length) view.append(list);
+    else view.append(node("p",tr("У станции пока нет предложений"),"matrix-empty"));
+    const selected = offers.find(offer => offer.resource === editor.resource);
+    if (selected) {
+      const editorPanel = node("div",undefined,"matrix-offer-editor");
+      const quantityLabel = node("label",tr("Количество"));
+      const quantity = node("input");
+      quantity.type = "number";
+      quantity.min = 1;
+      quantity.max = context.capacity || ship.spec?.cargo;
+      quantity.value = editor.quantity || "1";
+      quantity.dataset.studioFocus = "market-quantity";
+      quantity.oninput = () => { editor.quantity = quantity.value; };
+      quantityLabel.append(quantity);
+      editorPanel.append(quantityLabel);
+      for (const [action,label] of [["buy","Купить в трюм"],["sell","Продать из трюма"]]) {
+        const control = UI.button(label, () => {
+          if (!quantity.reportValidity() || !quantity.value) return;
+          const count = Number(quantity.value);
+          const price = selected[action];
+          UI.confirm(tr(label),`${resourceName(selected.resource).textContent} × ${count} · ${Format.credits(count*price)} · ${ship.name} #${ship.id}`,
+            () => trades.submit(context,{action,resource:selected.resource,quantity:count,expected_price:price}));
+        },!receiptsAvailable || !!pending || busy);
+        editorPanel.append(control);
+      }
+      view.append(editorPanel);
+    }
   } else {
-    view.append(node("p",tr("Локальные цены доступны для активного корабля у станции"),"matrix-empty"));
+    view.append(node("p",tr("Для локальной торговли пристыкуйтесь к порту."),"matrix-empty"));
   }
   return view;
-}
-
-function map(ship) {
-  const root = node("div", undefined, "matrix-map");
-  const data = world.data;
-  if (!data) {
-    root.append(node("p", tr("Карта доступна в игровом окне"), "matrix-empty"));
-    return root;
-  }
-  const focus = world.stars.get(ship?.star);
-  const stars = (data.stars || []).filter(s => !s.deleted && (!focus || focus.galaxy === s.galaxy));
-  if (!stars.length) return node("p",tr("Нет данных"),"matrix-empty");
-  const canvas = node("canvas");
-  canvas.width = 840;
-  canvas.height = 290;
-  canvas.setAttribute("role","img");
-  canvas.setAttribute("aria-label",tr("Галактическая карта"));
-  const ctx = canvas.getContext("2d");
-  let left = Infinity, right = -Infinity, top = Infinity, bottom = -Infinity;
-  for (const {x,y} of stars) {
-    left = Math.min(left,x); right = Math.max(right,x);
-    top = Math.min(top,y); bottom = Math.max(bottom,y);
-  }
-  const scale = Math.min(800 / Math.max(1,right-left),250 / Math.max(1,bottom-top));
-  const project = ({x,y}) => [420 + (x-(left+right)/2)*scale,145 + (y-(top+bottom)/2)*scale];
-  const displayed = new Set(stars.map(({id}) => id));
-  ctx.strokeStyle = "#263c4a";
-  ctx.beginPath();
-  for (const lane of data.lanes || []) {
-    if (!displayed.has(lane.from) || !displayed.has(lane.to)) continue;
-    ctx.moveTo(...project(world.stars.get(lane.from)));
-    ctx.lineTo(...project(world.stars.get(lane.to)));
-  }
-  ctx.stroke();
-  ctx.fillStyle = "#8cabbb";
-  for (const star of stars) {
-    const [x,y] = project(star);
-    ctx.fillRect(x,y,2,2);
-  }
-  if (focus && displayed.has(focus.id)) {
-    const [x,y] = project(focus);
-    ctx.strokeStyle = "#efad58";
-    ctx.beginPath();
-    ctx.arc(x,y,6,0,2*Math.PI);
-    ctx.stroke();
-  }
-  root.append(canvas);
-  if (focus) root.append(node("p",focus.name,"matrix-map-caption"));
-  return root;
-}
-
-export function dashboardReading(type, ship, chooseShip) {
-  const ships = Session.data.fleet?.ships || [];
-  if (type === "map") return map(ship);
-  if (type === "overview") return fleetReading(ships,ship,chooseShip);
-  return operations(ships,Session.data.workbench || {},ship);
 }

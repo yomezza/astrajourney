@@ -47,27 +47,44 @@ async function chat(t) {
               : [];
     return route.fulfill({ json: body });
   });
-  await g.page.routeWebSocket("**/chat/ws/v1", (ws) => {
-    ws.send(
-      JSON.stringify({
-        type: "hello",
-        health: { ready: true, cosmic: true, planet: true },
-      }),
-    );
-    ws.onMessage((raw) => {
-      const c = JSON.parse(raw);
-      ws.send(
-        JSON.stringify({ type: "ack", request_id: c.request_id, result: {} }),
-      );
-    });
-  });
+  await g.ready();
   await g.page.evaluate(() => {
-    window.__testApp.session.data.state.chat_enabled = true;
-    window.dispatchEvent(new Event("gamedata"));
+    const native = window.WebSocket;
+    window.chatSocketCount = 0;
+    window.WebSocket = class extends native {
+      constructor(url,...args) {
+        if (new URL(url).pathname !== "/chat/ws/v1") return new native(url,...args);
+        window.chatSocketCount++;
+        const socket = {
+          readyState: native.CONNECTING,
+          send(raw) {
+            const command = JSON.parse(raw);
+            queueMicrotask(() => socket.onmessage?.({data:JSON.stringify({
+              type:"ack",request_id:command.request_id,result:{},
+            })}));
+          },
+          close() {
+            socket.readyState = native.CLOSED;
+            socket.onclose?.({code:1000,wasClean:true});
+          },
+        };
+        queueMicrotask(() => {
+          socket.readyState = native.OPEN;
+          socket.onmessage?.({data:JSON.stringify({
+            type:"hello",health:{ready:true,cosmic:true,planet:true},
+          })});
+        });
+        return socket;
+      }
+    };
   });
+  g.data.state.chat_enabled = true;
+  await g.refresh();
   await g.open("chat");
   await g.page.locator(".chat-msg-text").first().waitFor();
-  return g;
+  const sockets = () => g.page.evaluate(() => window.chatSocketCount);
+  assert.equal(await sockets(),1);
+  return {...g,sockets};
 }
 test("chat follows v13 spacing, shared header and compact menus for click and right-click", async (t) => {
   const g = await chat(t),
@@ -165,7 +182,7 @@ test("chat follows v13 spacing, shared header and compact menus for click and ri
   await root.locator(".chat-reply-preview button").click();
   assert.equal(await root.locator(".chat-reply-preview").isVisible(), false);
   await g.page.evaluate(() =>
-    document.querySelector("#overview-upgrade").focus(),
+    document.querySelector("#profile-menu > summary").focus(),
   );
   await root.locator(".chat-msg-text").click({ button: "right" });
   assert.deepEqual(await menu.evaluate(appearance), expected);
@@ -235,8 +252,6 @@ test("chat follows v13 spacing, shared header and compact menus for click and ri
 test("Planet Mode reuses a docked chat, draft and transport, then restores home docking", async (t) => {
   const g = await chat(t),
     root = g.page.locator(".chat-root");
-  let additionalSockets = 0;
-  g.page.on("websocket", () => additionalSockets++);
   const element = await root.elementHandle();
   await root.locator("textarea").fill("Черновик до высадки");
   await root.getByRole("button", { name: "На главную", exact: true }).click();
@@ -280,5 +295,5 @@ test("Planet Mode reuses a docked chat, draft and transport, then restores home 
     true,
   );
   assert.equal(await g.page.locator(".chat-root").count(), 1);
-  assert.equal(additionalSockets, 0);
+  assert.equal(await g.sockets(), 1);
 });

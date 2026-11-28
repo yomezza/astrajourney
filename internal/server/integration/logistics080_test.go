@@ -2,6 +2,7 @@ package integration
 
 import (
 	"encoding/json"
+	"strings"
 	"sync"
 	"testing"
 
@@ -185,3 +186,35 @@ func TestGalaxyDeletion080(t *testing.T) {
 }
 
 func fmtInt080(n int) string { b, _ := json.Marshal(n); return string(b) }
+
+func TestWorkspaceBatchBetweenShips(t *testing.T) {
+	f := newFixture033(t)
+	owner, uid := f.signup("batch_owner")
+	source := f.integer("SELECT id FROM ships WHERE user_id=$1 AND active", uid)
+	target := f.integer(`INSERT INTO ships(user_id,name,class,star,active,fuel,cargo,object_id,position_mode)
+		VALUES($1,'Cargo receiver','pilgrim',1,false,20,'{}','station','docked') RETURNING id`, uid)
+	f.exec(`UPDATE ships SET cargo='{"iron":9,"agni":4}' WHERE id=$1`, source)
+	body := map[string]any{
+		"request": "workspace-batch-00001", "mode": "direct", "ship": source,
+		"from": logistics.CargoLocation{Kind: "ship", Ship: source},
+		"to":   logistics.CargoLocation{Kind: "ship", Ship: target},
+		"items": []map[string]any{
+			{"resource": "iron", "quantity": 3},
+			{"resource": "agni", "quantity": 2},
+		},
+	}
+	f.req(owner, "POST", "/api/logistics", body, 200)
+	f.exec(`UPDATE ships SET object_id='entry',position_mode='approach' WHERE id=$1`, target)
+	f.req(owner, "POST", "/api/logistics", body, 200)
+	if iron, gas := f.integer(`SELECT (cargo->>'iron')::int FROM ships WHERE id=$1`, target), f.integer(`SELECT (cargo->>'agni')::int FROM ships WHERE id=$1`, target); iron != 3 || gas != 2 {
+		t.Fatalf("destination contains %d iron and %d hydrogen", iron, gas)
+	}
+	body["request"] = "workspace-batch-00002"
+	result := f.req(owner, "POST", "/api/logistics", body, 409)
+	if value := result.Body.String(); !strings.Contains(value, `"code":"TRANSFER_REJECTED"`) {
+		t.Fatalf("missing machine-readable rejection: %s", value)
+	}
+	if iron, gas := f.integer(`SELECT (cargo->>'iron')::int FROM ships WHERE id=$1`, source), f.integer(`SELECT (cargo->>'agni')::int FROM ships WHERE id=$1`, source); iron != 6 || gas != 2 {
+		t.Fatalf("source contains %d iron and %d hydrogen", iron, gas)
+	}
+}

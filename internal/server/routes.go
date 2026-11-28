@@ -112,6 +112,7 @@ func (a *App) Handler() http.Handler {
 	m.HandleFunc("POST /api/sell", a.Commerce.Sell)
 	m.HandleFunc("GET /api/expedition", a.Terminal.Expedition)
 	m.HandleFunc("POST /api/expedition", a.Terminal.Expedition)
+	m.HandleFunc("GET /api/expedition/commands/{id}", a.Terminal.ExpeditionCommand)
 	m.HandleFunc("GET /api/admin/users", a.Administration.UserPages)
 	m.HandleFunc("/", http.NotFound)
 	return telemetry.TraceHTTP("cosmos", httpkit.GzipAPI(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

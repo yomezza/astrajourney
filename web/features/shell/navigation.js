@@ -4,6 +4,7 @@ import { I18n } from "../../core/i18n.js";
 import { Preferences } from "../../core/preferences.js";
 import { node } from "../../ui/dom.js";
 import { arrangeShip } from "../fleet/layout.js";
+import { openModule } from "./module-routes.js";
 const tr = (s) => I18n.t(s),
   read = (key, value) => Preferences.read(key, value);
 export function initNavigation() {
@@ -21,10 +22,6 @@ export function initNavigation() {
     try {
       Preferences.write("maps-navigation-open", maps.open);
     } catch {}
-  };
-  document.getElementById("current-system-map").onclick = () => {
-    Modules.open("galaxy");
-    window.dispatchEvent(new Event("showcurrentsystem"));
   };
   for (const [id, title, w, h] of [
     ["galaxy", "Галактическая карта", 1280, 800],
@@ -109,9 +106,7 @@ export function initNavigation() {
   document.addEventListener("click", (e) => {
     const b = e.target.closest("[data-open]");
     if (b) {
-      Modules.open(b.dataset.open);
-      if (b.dataset.open === "galaxy")
-        window.dispatchEvent(new Event("showgalaxy"));
+      openModule(b.dataset.open);
       if (b.closest("#profile-menu"))
         document.getElementById("profile-menu").open = false;
     }

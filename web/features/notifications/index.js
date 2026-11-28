@@ -1,3 +1,4 @@
+import { openIntent } from "../shell/module-routes.js";
 import { loadPlanet } from "../planet/loader.js";
 import { Session } from "../../core/session.js";
 import { I18n } from "../../core/i18n.js";
@@ -14,7 +15,7 @@ import {
   notificationTime,
 } from "./presentation.js";
 
-export function createNotifications({ roots, command }) {
+export function createNotifications({ roots }) {
   const n = UI.node,
     tr = (s, params) => I18n.t(s, params),
     b = UI.button;
@@ -488,19 +489,17 @@ export function createNotifications({ roots, command }) {
         loadPlanet().then((planet) => planet.project(item.data.project)),
       );
     if (item.data?.star)
-      action("На карте", () => {
-        Modules.open("galaxy");
-        window.dispatchEvent(
-          new CustomEvent("showstar", { detail: item.data.star }),
-        );
-      });
+      action("На карте", () => openIntent({
+        module:"galaxy",target:{kind:"system",id:item.data.star},
+      }));
     if (item.data?.ship)
-      action("Корабль", async () => {
-        if (await command({ action: "select_ship", ship: item.data.ship }))
-          Modules.open("ship");
-      });
+      action("Корабль", () => openIntent({
+        module:"fleet",scope:"workspace",target:{kind:"ship",id:Number(item.data.ship)},
+      }));
     if (item.kind === "mining_complete")
-      action("Трюм", () => Modules.open("cargo"));
+      action("Трюм", () => openIntent(item.data?.ship ? {
+        module:"cargo",scope:"workspace",target:{kind:"ship",id:Number(item.data.ship)},
+      } : {module:"cargo"}));
     action("Удалить уведомление", () =>
       mutate({ action: "delete", ids: [item.id] }),
     );

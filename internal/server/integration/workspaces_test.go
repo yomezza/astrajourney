@@ -2,6 +2,7 @@ package integration
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http/httptest"
 	"os"
 	"slices"
@@ -62,11 +63,18 @@ func TestWorkspacePreferences(t *testing.T) {
 		ID: "72820000-0000-4000-8000-000000000001", Type: "cargo", Binding: "fixed", ShipID: active, Filter: "quantity",
 		Geometry: &workspaces.Geometry{X: 60, Y: 120, W: 420, H: 340, Pinned: true, Minimized: true},
 	}, {
-		ID: "72820000-0000-4000-8000-000000000002", Type: "map", Binding: "none", View: "card", Wide: true,
+		ID: "72820000-0000-4000-8000-000000000002", Type: "map", Binding: "none", View: "card", Wide: true, SystemID: 7,
+	}, {
+		ID: "72820000-0000-4000-8000-000000000003", Type: "market", Binding: "fixed", ShipID: active, Tab: "orders",
+	}, {
+		ID: "72820000-0000-4000-8000-000000000004", Type: "tasks", Binding: "none", Filter: "running",
 	}}
 	d.Layout.Workspaces[0].Modules[1].View = "modal"
 	f.req(cookie, "POST", path, d, 400)
 	d.Layout.Workspaces[0].Modules[1].View = "card"
+	d.Layout.Workspaces[0].Modules[2].Tab = "unknown"
+	f.req(cookie, "POST", path, d, 400)
+	d.Layout.Workspaces[0].Modules[2].Tab = "orders"
 	// Names may contain 32 multi-codepoint graphemes.
 	saved := read(f.req(cookie, "POST", path, d, 200))
 	replay := read(f.req(cookie, "POST", path, d, 200))
@@ -76,6 +84,10 @@ func TestWorkspacePreferences(t *testing.T) {
 	d.Layout.Workspaces[0].Name = "Stale"
 	f.req(cookie, "POST", path, d, 409)
 	d = saved
+	modules := read(f.req(cookie, "GET", path, nil, 200)).Layout.Workspaces[0].Modules
+	if modules[1].SystemID != 7 || modules[2].Tab != "orders" || modules[2].ShipID != active || modules[3].Filter != "running" {
+		t.Fatalf("instance options after reload: %+v", modules)
+	}
 	d.Layout.Workspaces = []workspaces.Workspace{}
 	f.req(cookie, "POST", path, d, 400)
 	d = read(f.req(cookie, "GET", path, nil, 200))
@@ -131,5 +143,54 @@ func TestWorkspacePreferences(t *testing.T) {
 	}
 	if got := f.integer("SELECT count(*) FROM pilot_workspace_preferences WHERE user_id=$1", uid); got != 1 {
 		t.Fatalf("workspace preferences rows: %d", got)
+	}
+}
+
+func TestWorkspaceShipContext(t *testing.T) {
+	f := newFixture033(t)
+	cookie, uid := f.signup("context_owner")
+	other, otherID := f.signup("context_peer")
+	active := f.integer("SELECT id FROM ships WHERE user_id=$1 AND active", uid)
+	foreign := f.integer("SELECT id FROM ships WHERE user_id=$1 AND active", otherID)
+	second := f.integer(`INSERT INTO ships(user_id,name,class,star,active,fuel,cargo,object_id)
+		VALUES($1,'Second ship','pilgrim',1,false,20,'{"agni":2}','entry') RETURNING id`, uid)
+
+	path := fmt.Sprintf("/api/expedition?ship=%d", second)
+	f.req(nil, "GET", path, nil, 401)
+	f.req(cookie, "GET", "/api/expedition?ship=0", nil, 400)
+	f.req(cookie, "GET", fmt.Sprintf("/api/expedition?ship=%d", foreign), nil, 404)
+	f.req(other, "POST", path, map[string]any{"ship": second, "action": "refuel"}, 404)
+	f.req(cookie, "POST", "/api/expedition", map[string]any{"ship": second, "action": "refuel"}, 409)
+	body := map[string]any{"ship": second, "action": "refuel", "expected_star": 1, "expected_object": "station"}
+	f.req(cookie, "POST", path, body, 409)
+	body["expected_object"] = "entry"
+	body["ship"] = active
+	f.req(cookie, "POST", path, body, 409)
+	body["ship"] = second
+	body["action"] = "buy"
+	f.req(cookie, "POST", path, body, 400)
+	body["action"] = "refuel"
+
+	var before struct {
+		Ship struct {
+			ID   int64
+			Fuel int
+		}
+	}
+	if err := json.Unmarshal(f.req(cookie, "GET", path, nil, 200).Body.Bytes(), &before); err != nil {
+		t.Fatal(err)
+	}
+	if before.Ship.ID != second || before.Ship.Fuel != 20 {
+		t.Fatalf("unexpected context ship: %+v", before.Ship)
+	}
+	f.req(cookie, "POST", path, body, 200)
+	if got := f.integer("SELECT fuel FROM ships WHERE id=$1", second); got != 25 {
+		t.Fatalf("selected ship fuel: got %d, want 25", got)
+	}
+	if got := f.integer("SELECT (cargo->>'agni')::int FROM ships WHERE id=$1", second); got != 1 {
+		t.Fatalf("selected ship remaining hydrogen: got %d, want 1", got)
+	}
+	if got := f.integer("SELECT id FROM ships WHERE user_id=$1 AND active", uid); got != active {
+		t.Fatalf("server active ship changed from %d to %d", active, got)
 	}
 }
