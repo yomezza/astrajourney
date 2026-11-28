@@ -20,10 +20,10 @@ function meter(value, max, label) {
 
 function shipView({ ship }, settings, change) {
   const body = node("div");
-  const tab = settings.tab ?? "overview";
-  body.append(tabs([["overview", "Обзор"], ["spec", "Характеристики"], ["equipment", "Оснащение"]],
-    tab, value => change({ tab: value })));
-  if (tab === "spec") {
+  const tab = settings.section ?? "overview";
+  body.append(tabs([["overview", "Обзор"], ["specs", "Характеристики"], ["equipment", "Оснащение"]],
+    tab, value => change({ section: value })));
+  if (tab === "specs") {
     body.append(table(["Параметр", "Базовый", "Фактический"], [
       ["Бак", ship.base.tank, ship.tank], ["Трюм", ship.base.hold, ship.hold],
     ]));
@@ -56,8 +56,8 @@ function inventoryView(context, settings, change, purpose) {
   filter.append(field("Поиск", search), field("Категория", select(categories, settings.category,
     category => change({ category }))), field("Сортировка", select([["name", "По названию"], ["quantity", "По количеству"]],
     settings.sort ?? "name", sort => change({ sort }))));
-  body.append(filter, tabs([["table", "Таблица"], ["grid", "Сетка"]], settings.view ?? "table",
-    view => change({ view })));
+  body.append(filter, tabs([["table", "Таблица"], ["grid", "Сетка"]], settings.display ?? "table",
+    view => change({ display: view })));
   if (!context.station) {
     const used = input.reduce((total, row) => total + row[2], 0);
     body.append(meter(used, context.ship.hold, "Занято"), node("p", `Свободно: ${context.ship.hold - used}`));
@@ -66,7 +66,7 @@ function inventoryView(context, settings, change, purpose) {
     name.toLocaleLowerCase("ru").includes((settings.query ?? "").toLocaleLowerCase("ru")));
   visible.sort((a, b) => settings.sort === "quantity" ? b[2] - a[2] : a[0].localeCompare(b[0], "ru"));
   if (!visible.length) body.append(node("p", "Нет подходящих позиций"));
-  else if (settings.view === "grid") {
+  else if (settings.display === "grid") {
     const grid = node("ul", null, "inventory-grid");
     for (const [name, category, count] of visible) {
       const item = node("li");
@@ -153,7 +153,7 @@ function navigationView({ ship }, settings, change, purpose, data) {
 }
 
 export const registry = new Map([
-  ["ship", { id: "M001", name: "Корабль", purposes: [["inspection", "Собственный корабль"]], render: shipView }],
+  ["ship", { id: "M001", name: "Корабль", purposes: [["owned", "Собственный корабль"]], render: shipView }],
   ["inventory", { id: "M002", name: "Инвентарь", purposes: [
     ["cargo", "Трюм корабля"], ["personal", "Персональный склад"], ["corporate", "Корпоративный склад"],
   ], render: inventoryView }],

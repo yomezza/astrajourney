@@ -1,5 +1,5 @@
 export const limit = { workspaces: 10, modules: 16 };
-const key = "astra-studio-v2-prototype";
+const key = "astra-studio-v2-prototype-r1";
 export function createModule(type, purpose, binding) {
   return { id: crypto.randomUUID(), type, purpose, binding: structuredClone(binding), settings: {}, wide: false };
 }
@@ -7,7 +7,7 @@ export function starter() {
   const id = crypto.randomUUID();
   return { active: id, start: id, workspaces: [{
     id, name: "Командование", ship: "watch", modules: [
-      createModule("ship", "inspection", { mode: "workspace" }),
+      createModule("ship", "owned", { mode: "workspace" }),
       createModule("navigation", "interstellar", { mode: "workspace" }),
       createModule("inventory", "cargo", { mode: "workspace" }),
     ],
