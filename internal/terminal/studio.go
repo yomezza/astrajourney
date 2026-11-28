@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/jackc/pgx/v5"
 
@@ -44,7 +45,7 @@ func (in studioCommand) valid(preview bool) bool {
 		if in.Request != "" || in.Action != "route" && in.Action != "move" && in.Action != "refuel" && in.Action != "rescue" {
 			return false
 		}
-	} else if len(in.Request) < 16 || len(in.Request) > 64 || strings.ContainsAny(in.Request, "\r\n\x00") {
+	} else if length := utf8.RuneCountInString(in.Request); length < 16 || length > 64 || strings.ContainsAny(in.Request, "\r\n\x00") {
 		return false
 	}
 	remaining := in

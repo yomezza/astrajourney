@@ -207,6 +207,7 @@ func TestStudioV2AddressedCommands(t *testing.T) {
 		t.Fatal("read created receipt")
 	}
 	refuel := studioJSON{"request": "v2-refuel-test-0001", "action": "refuel", "quantity": 1}
+	f.req(owner, "POST", cmd, studioJSON{"request": "🚀🚀🚀🚀", "action": "refuel", "quantity": 1}, 400)
 	f.req(owner, "POST", preview, studioJSON{"action": "refuel", "quantity": 1}, 200)
 	if f.integer("SELECT fuel FROM ships WHERE id=$1", second) != 30 {
 		t.Fatal("preview changed fuel")
