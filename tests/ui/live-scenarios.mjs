@@ -299,12 +299,14 @@ try {
       application.Modules.open("ideas");
     });
     const community = reader.locator("#window-ideas");
-    await community.getByText("Опубликованных идей пока нет").waitFor();
+    const publicRow = community.locator(".idea-list-row").filter({ hasText: "Проверка реального терминала" });
+    await publicRow.getByText("На рассмотрении").waitFor();
     await review.locator('[data-field="Статус идеи"]').click();
     await page.getByRole("option", { name: "Одобрено", exact: true }).click();
     await review.getByRole("button", { name: "Сохранить статус" }).click();
     await review.locator(".idea-detail .idea-status").getByText("Одобрено").waitFor();
     await community.getByRole("searchbox").fill("браузерной проверкой");
+    await publicRow.getByText("Одобрено").waitFor();
     await community.getByRole("button", { name: /Проверка реального терминала/ }).click();
     await community.locator(".idea-detail").getByRole("heading", { name: "Проверка реального терминала" }).waitFor();
     await community.locator(".idea-detail .idea-description").getByText("Предложение создано браузерной проверкой на отдельной тестовой базе.").waitFor();
