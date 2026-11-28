@@ -124,6 +124,8 @@ export function createNotifications({ roots, command }) {
     if (pending || !Session.signedIn) return;
     const badge = document.getElementById("notification-count");
     if (badge) countText(badge);
+    const studioCount = document.querySelector("[data-notification-count]");
+    if (studioCount) studioCount.textContent = String(unread());
     const titleCount = Modules.header("notifications")?.querySelector(
       ".notification-compact-count",
     );
@@ -634,6 +636,8 @@ export function createNotifications({ roots, command }) {
     closeDetail(false);
     root.replaceChildren();
     nodes = null;
+    const studioCount = document.querySelector("[data-notification-count]");
+    if (studioCount) studioCount.textContent = "0";
     for (const badge of [
       document.getElementById("notification-count"),
       Modules.header("notifications")?.querySelector(

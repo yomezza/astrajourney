@@ -14,19 +14,18 @@ import (
 	textutil "github.com/yomezza/cosmosimulator/internal/platform/text"
 )
 
-func validCategory(value string) bool {
-	switch value {
-	case "gameplay", "interface", "economy", "other":
-		return true
-	}
-	return false
-}
-
 func (a *Service) list(w http.ResponseWriter, ctx context.Context, owner int64, scope string, query url.Values, page int) {
 	category := query.Get("category")
-	if category != "" && !validCategory(category) {
-		httpkit.Fail(w, 400, "Некорректная категория идеи")
-		return
+	if category != "" {
+		var exists bool
+		if err := a.DB.QueryRow(ctx, "SELECT EXISTS(SELECT 1 FROM player_idea_categories WHERE id=$1)", category).Scan(&exists); err != nil {
+			httpkit.Internal(w, err)
+			return
+		}
+		if !exists {
+			httpkit.Fail(w, 400, "Некорректная категория идеи")
+			return
+		}
 	}
 	search := strings.TrimSpace(query.Get("search"))
 	if utf8.RuneCountInString(search) > 120 || !textutil.Valid(search, false) {
@@ -43,10 +42,12 @@ func (a *Service) list(w http.ResponseWriter, ctx context.Context, owner int64, 
 	projection := ""
 	order := "i.id DESC" // Preserve the legacy order for mine and all without an explicit sort.
 	if scope == "community" {
-		projection = ",i.published_at"
-		order = "COALESCE(i.published_at,i.created_at) DESC,i.id DESC"
+		const publication = "CASE WHEN i.status='approved' THEN i.published_at END"
+		projection = "," + publication + " AS published_at"
+		date := "COALESCE(" + publication + ",i.created_at)"
+		order = "(i.status='approved') DESC," + date + " DESC,i.id DESC"
 		if sort == oldest {
-			order = "COALESCE(i.published_at,i.created_at) ASC,i.id ASC"
+			order = "(i.status='approved') DESC," + date + " ASC,i.id ASC"
 		}
 	} else if sort == oldest {
 		order = "i.created_at ASC,i.id ASC"
@@ -55,7 +56,10 @@ func (a *Service) list(w http.ResponseWriter, ctx context.Context, owner int64, 
 	}
 
 	const where = ` WHERE
-		(CASE $1::text WHEN 'community' THEN i.status='approved' WHEN 'all' THEN true ELSE i.user_id=$2::bigint END)
+		(CASE $1::text
+			WHEN 'community' THEN i.status IN ('approved','pending')
+			WHEN 'all' THEN true
+			ELSE i.user_id=$2::bigint END)
 		AND ($3::text='' OR i.category=$3)
 		AND ($4::text='' OR
 			strpos(lower(i.title COLLATE pg_catalog.pg_c_utf8),lower($4 COLLATE pg_catalog.pg_c_utf8))>0 OR

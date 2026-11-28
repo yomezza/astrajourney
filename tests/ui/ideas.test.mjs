@@ -160,7 +160,7 @@ test("draft, successful submission, retry and old account data are scoped to the
     }
     if (stage === "network") return route.abort("internetdisconnected");
     if (stage === "server") return json({ error: "Ошибка" }, 500);
-    return json(response([]));
+    return json(response(own ? [own] : []));
   });
   await g.ready();
   await g.open("ideas");
@@ -170,7 +170,7 @@ test("draft, successful submission, retry and old account data are scoped to the
   await root.getByText("Не удалось загрузить идеи").waitFor();
   stage = "ready";
   await root.getByRole("button", { name: "Повторить загрузку" }).click();
-  await root.getByText("Опубликованных идей пока нет").waitFor();
+  await root.getByText("Идей сообщества пока нет").waitFor();
   const formTab = root.getByRole("tab", { name: "Предложить идею" });
   const submit = root.getByRole("button", { name: "Отправить идею", exact: true });
   await formTab.click();
@@ -189,7 +189,9 @@ test("draft, successful submission, retry and old account data are scoped to the
   await root.locator(".idea-detail").getByText("На рассмотрении").waitFor();
   assert.equal(await root.locator(".idea-detail .idea-description").textContent(), description);
   await root.getByRole("tab", { name: "Идеи сообщества" }).click();
-  await root.getByText("Опубликованных идей пока нет").waitFor();
+  const pendingRow = root.locator(".idea-list-row").filter({ hasText: "Предложение из другой сессии" });
+  await pendingRow.getByText("На рассмотрении").waitFor();
+  assert.equal(await pendingRow.locator("time").getAttribute("title"), "Дата создания");
 
   await formTab.click();
   await root.getByLabel("Название идеи").fill("Приватный черновик");
@@ -204,7 +206,7 @@ test("draft, successful submission, retry and old account data are scoped to the
   own = null;
   await g.login();
   await g.open("ideas");
-  await root.getByText("Опубликованных идей пока нет").waitFor();
+  await root.getByText("Идей сообщества пока нет").waitFor();
   await root.getByRole("tab", { name: "Мои идеи" }).click();
   await root.getByText("У вас пока нет предложений").waitFor();
   assert.doesNotMatch(await root.textContent(), /Старая приватная идея|Предложение из другой сессии/);
@@ -240,6 +242,7 @@ test("responsive catalog preserves mobile list state and renders long ideas as t
     detail = root.locator(".idea-detail"),
     entries = root.locator(".idea-entries");
   await rows.first().waitFor();
+  await rows.first().getByText("Одобрено").waitFor();
   assert.match(await rows.first().locator("time").textContent(), /^Создано /);
   assert.equal(await rows.nth(1).locator("time").getAttribute("title"), "Дата публикации");
   const originalURL = g.page.url();
@@ -306,4 +309,28 @@ test("legacy language preference is migrated and the Russian dictionary remains 
   }), { language: "ru", documentLanguage: "ru", stored: "ru", translation: "Идей: 3" });
   assert.ok(g.assets.includes("/ru.json"));
   assert.ok(!g.assets.includes("/en.json"));
+});
+
+test("administrators manage database categories and archived categories stay out of the form", async (t) => {
+  const g = await game(t, { signedIn: true, role: "admin" });
+  g.data["ideas/categories"].push({ id: "archived", name: "Архив", active: false });
+  g.handlers.set("ideas", ({ json }) => json(response([])));
+  g.handlers.set("admin/ideas/categories", ({ req, json, data }) => {
+    const { name, active } = req.postDataJSON();
+    data["ideas/categories"].push({ id: "fleet", name, active });
+    return json({ id: "fleet" });
+  });
+  await g.ready();
+  await g.open("adminideas");
+  const review = g.page.locator("#window-adminideas");
+  await review.getByText("Категории предложений", {exact:true}).click();
+  await review.getByLabel("Название категории").fill("Флот");
+  await review.getByRole("button", {name:"Сохранить категорию"}).click();
+  await review.locator('select option[value="fleet"]').waitFor({state:"attached"});
+  await g.page.evaluate(() => window.__testApp.Modules.close("adminideas"));
+  await g.open("ideas");
+  const player = g.page.locator("#window-ideas");
+  await player.getByRole("tab", {name:"Предложить идею"}).click();
+  assert.equal(await player.locator('select option[value="fleet"]').count(), 1);
+  assert.equal(await player.locator('select option[value="archived"]').count(), 0);
 });

@@ -102,6 +102,8 @@ func (a *App) Handler() http.Handler {
 	m.HandleFunc("GET /api/logistics", a.Logistics.Logistics)
 	m.HandleFunc("POST /api/logistics", a.Logistics.Logistics)
 	m.HandleFunc("GET /api/ideas", a.Ideas.Ideas)
+	m.HandleFunc("GET /api/ideas/categories", a.Ideas.Categories)
+	m.HandleFunc("POST /api/admin/ideas/categories", a.Ideas.Categories)
 	m.HandleFunc("POST /api/ideas", a.Ideas.Ideas)
 	m.HandleFunc("POST /api/admin/ideas", a.Ideas.Review)
 	m.HandleFunc("GET /api/planner", a.Planner.Planner)

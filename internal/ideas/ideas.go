@@ -67,10 +67,7 @@ func (a *Service) Ideas(w http.ResponseWriter, r *http.Request) {
 		httpkit.Fail(w, 400, "Описание идеи: от 10 до 3000 символов")
 		return
 	}
-	if !validCategory(in.Category) {
-		httpkit.Fail(w, 400, "Выберите категорию идеи")
-		return
-	}
+
 	tx, err := a.DB.Begin(ctx)
 	if err != nil {
 		httpkit.Internal(w, err)
@@ -96,6 +93,16 @@ func (a *Service) Ideas(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !errors.Is(err, pgx.ErrNoRows) {
+		httpkit.Internal(w, err)
+		return
+	}
+	var enabled bool
+	err = tx.QueryRow(ctx, "SELECT active FROM player_idea_categories WHERE id=$1 FOR SHARE", in.Category).Scan(&enabled)
+	if errors.Is(err, pgx.ErrNoRows) || (err == nil && !enabled) {
+		httpkit.Fail(w, 400, "Выберите действующую категорию идеи")
+		return
+	}
+	if err != nil {
 		httpkit.Internal(w, err)
 		return
 	}

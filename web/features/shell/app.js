@@ -190,6 +190,8 @@ export function initApp() {
     $("connection").textContent =
       t("Данные обновлены: ") + Format.time(Date.now());
     $("server-status").textContent = t("● СЕРВЕР ОНЛАЙН");
+    $("matrix-connection").dataset.i18n = "Связь установлена";
+    $("matrix-connection").textContent = t("Связь установлена");
     window.dispatchEvent(new Event("gamedata"));
     finishStartup();
   }
@@ -206,6 +208,8 @@ export function initApp() {
     if (error.status === 401) showAuth();
     else {
       $("server-status").textContent = t("Переподключение…");
+      $("matrix-connection").dataset.i18n = "Переподключение…";
+      $("matrix-connection").textContent = t("Переподключение…");
       if (starting) startupStatus(true);
     }
   });

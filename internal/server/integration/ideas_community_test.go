@@ -60,8 +60,9 @@ func TestCommunityIdeas(t *testing.T) {
 	f.req(reader, "GET", "/api/ideas?scope=all", nil, 403)
 	f.req(reader, "POST", "/api/admin/ideas", map[string]any{"id": id, "status": "approved"}, 403)
 	for _, cookie := range []*http.Cookie{author, reader, admin} {
-		if result := get(cookie, community+"&status=pending&user_id=1"); result.Total != 0 || result.Items == nil {
-			t.Fatalf("pending idea leaked or empty list was null: %+v", result)
+		if result := get(cookie, community); result.Total != 1 || len(result.Items) != 1 ||
+			result.Items[0].ID != id || result.Items[0].Status != "pending" || result.Items[0].PublishedAt != nil {
+			t.Fatalf("pending idea missing from community: %+v", result)
 		}
 	}
 	if mine := get(author, "scope=mine"); mine.Total != 1 || mine.Items[0].Status != "pending" {
@@ -89,6 +90,13 @@ func TestCommunityIdeas(t *testing.T) {
 	if again := get(reader, community).Items[0].PublishedAt; !published.Equal(*again) {
 		t.Fatal("an unchanged review moved the original publication date")
 	}
+	f.req(admin, "POST", "/api/admin/ideas", map[string]any{"id": id, "status": "pending"}, 200)
+	if result := get(reader, community); result.Total != 1 || result.Items[0].Status != "pending" ||
+		result.Items[0].PublishedAt != nil {
+		t.Fatalf("returning an idea to review exposed an old publication date: %+v", result)
+	}
+	f.req(admin, "POST", "/api/admin/ideas", map[string]any{"id": id, "status": "approved"}, 200)
+	published = get(reader, community).Items[0].PublishedAt
 	for _, q := range []string{"search=" + url.QueryEscape("' OR 1=1 --"), "category=economy"} {
 		if result := get(reader, community+"&"+q); result.Total != 0 {
 			t.Fatalf("unexpected match for %q: %+v", q, result)
@@ -121,6 +129,11 @@ func TestCommunityIdeas(t *testing.T) {
 			VALUES($1,'community_author',$2,'gameplay',$3,'Текст из старой версии','approved','2025-01-01T00:00:00Z')`,
 			aid, fmt.Sprintf("%032x", i), fmt.Sprintf("Архивная идея %02d", i))
 	}
+	for i, date := range []string{"2024-01-01T00:00:00Z", "2026-01-01T00:00:00Z"} {
+		f.exec(`INSERT INTO player_ideas(user_id,author_name,request_id,category,title,description,status,created_at)
+			VALUES($1,'community_author',$2,'gameplay',$3,'Текст идеи на рассмотрении','pending',$4::timestamptz)`,
+			aid, fmt.Sprintf("%032x", 20+i), fmt.Sprintf("Идея на рассмотрении %d", i), date)
+	}
 	f.exec(`ALTER TABLE player_ideas DROP COLUMN published_at`)
 	f.exec(`UPDATE game_release SET version='0.31.3',migration=313 WHERE id=1`)
 	var schema string
@@ -135,24 +148,76 @@ func TestCommunityIdeas(t *testing.T) {
 		db.Close()
 		status := f.req(nil, "GET", "/api/server-status", nil, 200)
 		var release struct{ Version string }
-		if err := json.Unmarshal(status.Body.Bytes(), &release); err != nil || release.Version != "0.31.6" {
+		if err := json.Unmarshal(status.Body.Bytes(), &release); err != nil || release.Version != "0.31.10" {
 			t.Fatalf("unexpected version after migration: %s", status.Body)
 		}
 	}
 	first := get(reader, community+"&category=gameplay&sort=oldest")
 	last := get(reader, community+"&category=gameplay&sort=oldest&page=2")
 	reverse := get(reader, community+"&category=gameplay&sort=newest")
-	if first.Total != 12 || first.Pages != 2 || len(first.Items) != 10 ||
-		last.Page != 2 || len(last.Items) != 2 || first.Items[0].Title != "Архивная идея 00" ||
+	reverseLast := get(reader, community+"&category=gameplay&sort=newest&page=2")
+	if first.Total != 14 || first.Pages != 2 || len(first.Items) != 10 ||
+		last.Page != 2 || len(last.Items) != 4 || first.Items[0].Title != "Архивная идея 00" ||
 		last.Items[1].Title != "Архивная идея 11" || reverse.Items[0].ID != last.Items[1].ID ||
+		last.Items[2].Title != "Идея на рассмотрении 0" || last.Items[3].Title != "Идея на рассмотрении 1" ||
+		len(reverseLast.Items) != 4 || reverseLast.Items[1].Status != "approved" ||
+		reverseLast.Items[2].ID != last.Items[3].ID || reverseLast.Items[3].ID != last.Items[2].ID ||
 		first.Items[0].PublishedAt != nil {
 		t.Fatalf("bad sort, pagination or migrated data: %+v / %+v", first, last)
 	}
 	if hit := get(reader, community+"&search=11&page=2&sort=oldest"); hit.Total != 1 || hit.Page != 1 || hit.Items[0].Title != "Архивная идея 11" {
 		t.Fatalf("search did not cover all pages: %+v", hit)
 	}
+	if hit := get(reader, community+"&category=gameplay&search="+url.QueryEscape("на рассмотрении")); hit.Total != 2 ||
+		hit.Items[0].Status != "pending" || hit.Items[1].Status != "pending" {
+		t.Fatalf("community search missed ideas under review: %+v", hit)
+	}
 	for _, q := range []string{"scope=invalid", community + "&category=invalid", community + "&sort=invalid",
 		community + "&search=%", community + "&search=%00", community + "&search=" + strings.Repeat("x", 121)} {
 		f.req(reader, "GET", "/api/ideas?"+q, nil, 400)
+	}
+}
+
+func TestIdeaCategoryAdministration(t *testing.T) {
+	f := newFixture033(t)
+	player, _ := f.signup("category_pilot")
+	admin, id := f.signup("category_admin")
+	f.exec("UPDATE users SET role='admin' WHERE id=$1", id)
+	const read = "/api/ideas/categories"
+	const write = "/api/admin/ideas/categories"
+	f.req(nil, "GET", read, nil, 401)
+	if result := f.req(player, "GET", read, nil, 200); !strings.Contains(result.Body.String(), "Игровой процесс") {
+		t.Fatal(result.Body.String())
+	}
+	data := map[string]any{"name": "Корабли", "active": true}
+	f.req(player, "POST", write, data, 403)
+	created := f.req(admin, "POST", write, data, 200)
+	var category struct{ ID string }
+	if err := json.Unmarshal(created.Body.Bytes(), &category); err != nil || category.ID == "" {
+		t.Fatal(created.Body.String())
+	}
+	f.req(admin, "POST", write, map[string]any{"name": "КОРАБЛИ", "active": true}, 409)
+	idea := map[string]string{"title": "Новая идея", "description": "Проверка новой категории", "category": category.ID, "request": strings.Repeat("e", 32)}
+	f.req(player, "POST", "/api/ideas", idea, 201)
+	f.req(admin, "POST", write, map[string]any{"id": category.ID, "name": "Флот", "active": false}, 200)
+	f.req(player, "POST", "/api/ideas", idea, 200)
+	idea["request"] = strings.Repeat("f", 32)
+	f.req(player, "POST", "/api/ideas", idea, 400)
+	f.req(admin, "POST", write, map[string]any{"id": "gameplay", "name": "Разведка", "active": true}, 200)
+	var schema string
+	if err := f.db.QueryRow(f.ctx, "SELECT current_schema()").Scan(&schema); err != nil {
+		t.Fatal(err)
+	}
+	db, err := openDatabase(f.ctx, f.db.Config().ConnString(), schema)
+	if err != nil {
+		t.Fatal(err)
+	}
+	db.Close()
+	if result := f.req(player, "GET", read, nil, 200); !strings.Contains(result.Body.String(), "Разведка") || !strings.Contains(result.Body.String(), "Флот") {
+		t.Fatal(result.Body.String())
+	}
+	result := f.req(player, "GET", "/api/ideas?scope=community&category="+category.ID, nil, 200)
+	if !strings.Contains(result.Body.String(), "Новая идея") {
+		t.Fatal(result.Body.String())
 	}
 }

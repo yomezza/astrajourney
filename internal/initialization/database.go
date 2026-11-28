@@ -239,6 +239,13 @@ func OpenDatabase(ctx context.Context, dsn, schema string, schemas fs.ReadFileFS
 	if _, e = tx.Exec(ctx, dblayout.DDL(schema, string(upgrade316))); e != nil {
 		return nil, fmt.Errorf("upgrade 0.31.6: %w", e)
 	}
+	upgrade3110, e := schemas.ReadFile("schema3110.sql")
+	if e != nil {
+		return nil, e
+	}
+	if _, e = tx.Exec(ctx, dblayout.DDL(schema, string(upgrade3110))); e != nil {
+		return nil, fmt.Errorf("upgrade 0.31.10: %w", e)
+	}
 
 	if err = fleet.EnsureModuleDefaults(ctx, tx); err != nil {
 		return nil, fmt.Errorf("ship modules: %w", err)
