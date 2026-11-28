@@ -310,14 +310,21 @@
   body:has(#game:not([hidden])) #sidebar { display: none; }
   body:has(#game:not([hidden])):has(#sidebar:not([hidden])) main {
     margin-left: 0;
+    padding-inline: 9px;
     padding-bottom: 58px;
   }
   body:has(#game:not([hidden])) > footer { display: none; }
   #matrix-catalog-shortcut,
   #admin-menu,
   #studio-shortcut { display: none; }
+  body:has(#game:not([hidden])) { --header: 55px; }
+  body:has(#game:not([hidden])) > header { padding-inline: 9px; }
+  body:has(#game:not([hidden])) > header .brand { padding-left: 27px; }
+  .brand-mark { width: 14px; inset-inline-start: 2px; }
+  .brand-mark::after { inset: 3px; }
   body > header .header-actions { gap: 4px; min-width: 0; }
   body > header .brand { flex: 1 1 auto; min-width: 0; }
+  body > header .brand-version { display: none; }
   body > header #profile-nick { display: none; }
   body > header #profile-menu > summary { padding-inline: 8px; }
   #matrix-mobile:not([hidden]) {
@@ -353,6 +360,9 @@
   .matrix-window:not(.studio-minimized)[open] { bottom: calc(52px + env(safe-area-inset-bottom)) !important; }
   #planet-host { padding: 4px; }
   #planet-host .visit-tools { padding: 4px; gap: 4px; }
+}
+@media (min-width: 351px) and (max-width: 540px) {
+  #matrix-catalog-shortcut:not([hidden]) { display: inline-grid; place-items: center; }
 }
 
 .matrix-window .module-content :is(
@@ -409,19 +419,8 @@
 #sidebar.collapsed > button.chat-bottom { margin-top: auto; }
 body:has(#game:not([hidden])) #sidebar:not(.collapsed) .sidebar-title { justify-content: start; padding-left: 5px; }
 @media (min-width: 761px) {
-  body:has(#game:not([hidden])) #sidebar:not(.collapsed) { width: 174px; }
-  body:has(#game:not([hidden])):has(#sidebar:not([hidden],.collapsed)) main { margin-left: 174px; }
-}
-#studio .matrix-context-link {
-  background: transparent;
-  border: 1px solid transparent;
-  text-align: start;
-  min-height: 24px;
-  padding: 0 3px;
-}
-#studio .matrix-context-link[aria-pressed=true] {
-  color: var(--focus);
-  border-bottom-color: var(--focus);
+  body:has(#game:not([hidden])) #sidebar:not(.collapsed) { width: 184px; }
+  body:has(#game:not([hidden])):has(#sidebar:not([hidden],.collapsed)) main { margin-left: 184px; }
 }
 @media (max-width: 760px) {
   #sidebar .matrix-nav-group { display: none; }

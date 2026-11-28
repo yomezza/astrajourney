@@ -1,21 +1,18 @@
 import { Session } from "../../core/session.js";
-import { world } from "../../core/world-store.js";
 import { I18n } from "../../core/i18n.js";
 import { Format } from "../../core/format.js";
 import { node } from "../../ui/dom.js";
 import { resourceName } from "../inventory/resource-label.js";
 import { station } from "../selectors.js";
-import { systemName } from "./views.js";
+import { gauge, rows, systemName } from "./views.js";
 
 export const dashboard = Object.freeze({
-  overview: ["Флот", "ship"],
+  overview: ["Состояние корабля", "ship"],
   operations: ["Активные операции", "tasks"],
-  map: ["Галактическая карта", "galaxy"],
+  map: ["Маршрут", "galaxy"],
   market: ["Рыночные предложения", "market"],
 });
 const tr = (text) => I18n.t(text);
-const nameOf = ship => ship?.name || tr(ship?.spec?.name) || "—";
-
 function table(columns, rows, empty) {
   if (!rows.length) return node("p", tr(empty), "matrix-empty");
   const result = node("table");
@@ -49,46 +46,49 @@ function status(title, tone) {
   return badge;
 }
 
-function fleetReading(ships, focus, chooseShip) {
-  return table(["Корабль","Система","Состояние",["Топливо","matrix-numeric"]], ships.map(ship => {
-    const control = node("button",nameOf(ship),"matrix-context-link");
-    control.type = "button";
-    control.dataset.studioFocus = `ship-${ship.id}`;
-    control.dataset.shipContext = ship.id;
-    control.title = tr("Выбрать корабль для просмотра");
-    control.setAttribute("aria-pressed",String(ship.id === focus?.id));
-    control.onclick = () => chooseShip(ship.id);
-    const activity = ship.destination ? status("В пути","working") :
-      ship.local_target ? status("Манёвр","working") :
-      ship.position_mode === "docked" ? status("Состыкован","ready") : status("На позиции","quiet");
-    const fuel = Format.number(ship.fuel) + " / " + Format.number(ship.spec?.fuel);
-    return [control,systemName(ship.star),activity,fuel];
-  }),"Кораблей нет");
+function shipStatus(ship) {
+  const activity = ship.destination ? status("В пути", "working") :
+    ship.local_target ? status("Манёвр", "working") :
+    ship.position_mode === "docked" ? status("Состыкован", "ready") : status("На позиции", "quiet");
+  return rows([["Состояние", activity], ["Текущая система", systemName(ship.star)]]);
 }
 
-function operations(ships, workbench, focus) {
-  const byID = new Map(ships.map(ship => [ship.id,ship]));
-  const jobs = [
-    ...(workbench.mining || []).map(job => ({
-      ship:job.ship_id, name:job.ship_name, title:"Добыча", tone:"working",
+export function activeOperations(ship, workbench) {
+  if (!ship) return [];
+  return [
+    ...(workbench.mining || []).filter(job => job.ship_id === ship.id).map(job => ({
+      title:"Добыча", tone:"working",
       detail:`${tr("К следующей фазе")} · ${Format.quantity(job.quantity)} × ${resourceName(job.resource).textContent}`,
     })),
-    ...(workbench.research || []).map(job => ({
-      ship:job.ship, title:"Сканирование", tone:job.paused ? "paused" : "working",
+    ...(workbench.research || []).filter(job => job.ship === ship.id).map(job => ({
+      title:"Сканирование", tone:job.paused ? "paused" : "working",
       detail:`${Format.number(job.scanned)} / ${Format.number(job.total)}${job.paused ? " · " + tr("На паузе") : ""}`,
+      progress: [job.scanned, job.total],
     })),
-    ...ships.filter(ship => ship.destination || ship.local_target).map(ship => ({
-      ship:ship.id, title:ship.destination ? "Перелёт" : "Манёвр", tone:"working",
+    ...(ship.destination || ship.local_target ? [{
+      title:ship.destination ? "Перелёт" : "Манёвр", tone:"working",
       detail:ship.destination ? systemName(ship.destination) : systemName(ship.star),
-    })),
+    }] : []),
   ];
-  jobs.sort((left,right) => Number(right.ship === focus?.id) - Number(left.ship === focus?.id));
-  return table(["Операция","Корабль","Ход операции"],jobs.slice(0,8).map(job => [
-    status(job.title,job.tone),job.name || nameOf(byID.get(job.ship)),job.detail,
-  ]),"У флота нет активных операций");
+}
+
+function operations(ship, workbench) {
+  return table(["Операция", "Ход операции"], activeOperations(ship, workbench).map(job => {
+    const detail = node("span", job.detail, "matrix-operation-detail");
+    if (job.progress?.[1] > 0) {
+      const meter = node("meter");
+      meter.max = job.progress[1];
+      meter.value = job.progress[0];
+      meter.className = "matrix-progress";
+      meter.setAttribute("aria-label", tr("Ход операции"));
+      detail.append(meter);
+    }
+    return [status(job.title, job.tone), detail];
+  }), "У корабля нет активных операций");
 }
 
 export function marketReading(ship, source, onSource) {
+  if (!ship) return node("p", tr("Корабль пространства недоступен"), "matrix-empty");
   const { expedition, workbench } = Session.data;
   // Expedition offers belong to the active ship's dock, even when Studio views another ship.
   const local = expedition?.docked && ship?.id === expedition.ship?.id;
@@ -107,9 +107,9 @@ export function marketReading(ship, source, onSource) {
   view.append(buttons);
   if (source === "orders") {
     view.append(table(["Ресурс","Система",["Количество","matrix-numeric"],["Цена","matrix-numeric"]],
-      (workbench?.orders || []).slice(0,8).map(order => [
+      (workbench?.orders || []).filter(order => order.star === ship?.star).slice(0,8).map(order => [
         resourceName(order.resource),systemName(order.star),Format.quantity(order.quantity),Format.credits(order.price),
-      ]),"Игроки пока не выставили предложений"));
+      ]),"В системе нет предложений игроков"));
   } else if (local) {
     const port = station();
     if (port?.name) view.append(node("p",port.name,"matrix-source-label"));
@@ -123,58 +123,17 @@ export function marketReading(ship, source, onSource) {
   return view;
 }
 
-function map(ship) {
-  const root = node("div", undefined, "matrix-map");
-  const data = world.data;
-  if (!data) {
-    root.append(node("p", tr("Карта доступна в игровом окне"), "matrix-empty"));
-    return root;
-  }
-  const focus = world.stars.get(ship?.star);
-  const stars = (data.stars || []).filter(s => !s.deleted && (!focus || focus.galaxy === s.galaxy));
-  if (!stars.length) return node("p",tr("Нет данных"),"matrix-empty");
-  const canvas = node("canvas");
-  canvas.width = 840;
-  canvas.height = 290;
-  canvas.setAttribute("role","img");
-  canvas.setAttribute("aria-label",tr("Галактическая карта"));
-  const ctx = canvas.getContext("2d");
-  let left = Infinity, right = -Infinity, top = Infinity, bottom = -Infinity;
-  for (const {x,y} of stars) {
-    left = Math.min(left,x); right = Math.max(right,x);
-    top = Math.min(top,y); bottom = Math.max(bottom,y);
-  }
-  const scale = Math.min(800 / Math.max(1,right-left),250 / Math.max(1,bottom-top));
-  const project = ({x,y}) => [420 + (x-(left+right)/2)*scale,145 + (y-(top+bottom)/2)*scale];
-  const displayed = new Set(stars.map(({id}) => id));
-  ctx.strokeStyle = "#263c4a";
-  ctx.beginPath();
-  for (const lane of data.lanes || []) {
-    if (!displayed.has(lane.from) || !displayed.has(lane.to)) continue;
-    ctx.moveTo(...project(world.stars.get(lane.from)));
-    ctx.lineTo(...project(world.stars.get(lane.to)));
-  }
-  ctx.stroke();
-  ctx.fillStyle = "#8cabbb";
-  for (const star of stars) {
-    const [x,y] = project(star);
-    ctx.fillRect(x,y,2,2);
-  }
-  if (focus && displayed.has(focus.id)) {
-    const [x,y] = project(focus);
-    ctx.strokeStyle = "#efad58";
-    ctx.beginPath();
-    ctx.arc(x,y,6,0,2*Math.PI);
-    ctx.stroke();
-  }
-  root.append(canvas);
-  if (focus) root.append(node("p",focus.name,"matrix-map-caption"));
-  return root;
+function route(ship) {
+  const summary = node("div", undefined, "matrix-module-summary");
+  const fields = [["Текущая система", systemName(ship.star)]];
+  if (ship.destination) fields.push(["Пункт назначения", systemName(ship.destination)]);
+  summary.append(rows(fields), gauge(ship.fuel, ship.spec?.fuel, "Топливо"));
+  return summary;
 }
 
-export function dashboardReading(type, ship, chooseShip) {
-  const ships = Session.data.fleet?.ships || [];
-  if (type === "map") return map(ship);
-  if (type === "overview") return fleetReading(ships,ship,chooseShip);
-  return operations(ships,Session.data.workbench || {},ship);
+export function dashboardReading(type, ship) {
+  if (!ship) return node("p", tr("Корабль пространства недоступен"), "matrix-empty");
+  if (type === "map") return route(ship);
+  if (type === "overview") return shipStatus(ship);
+  return operations(ship, Session.data.workbench || {});
 }

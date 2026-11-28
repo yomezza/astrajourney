@@ -245,7 +245,7 @@ test("poll refresh preserves ship rename drafts without executing an action", as
   await g.open("ship");
   await g.page.waitForSelector("#ship-rename");
   await g.page.locator("#ship-rename").fill("Unsaved name");
-  await g.page.locator("#welcome-name").click();
+  await g.page.locator("#profile-menu > summary").focus();
   await g.refresh();
   assert.equal(
     await g.page.locator("#ship-rename").inputValue(),

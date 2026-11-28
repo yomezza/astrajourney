@@ -53,9 +53,13 @@
     </div>
     <header>
       <a class="brand" href="/"
-        >◈ ASTRA JOURNEY <small>EDEM / <span data-game-version>…</span></small></a
+        ><span class="brand-mark" aria-hidden="true"></span>ASTRA JOURNEY <small>MATRIX <b>×</b> STUDIO / ЭДЕМ<span class="brand-version"> · <span data-game-version>…</span></span></small></a
       >
       <div class="header-actions">
+        <span id="matrix-header-context" class="matrix-header-context" hidden>
+          <span data-i18n="Контекст корабля">Контекст корабля</span>
+          <strong></strong>
+        </span>
         <button id="matrix-catalog-shortcut" type="button" data-label="Каталог игровых модулей" aria-label="Каталог игровых модулей" data-help="Каталог игровых модулей" data-matrix-icon="catalog" hidden></button>
         <button id="studio-shortcut" type="button" data-label="Рабочие пространства" aria-label="Рабочие пространства" data-matrix-icon="studio" hidden></button>
         <div
@@ -63,6 +67,7 @@
           data-label="Открытые окна"
           aria-label="Открытые окна"
         ></div>
+        <button id="matrix-header-chat" type="button" data-open="chat" data-label="Чат" aria-label="Чат" data-matrix-icon="chat"></button>
         <button
           id="notifications-button"
           hidden
@@ -84,6 +89,23 @@
             <span id="profile-nick"></span>
           </summary>
           <div class="menu">
+            <div class="toolbar matrix-pilot">
+              <div>
+                <div class="pilot-line">
+                  <strong id="welcome-name"></strong>
+                  <div class="level-overview">
+                    <small data-i18n="Стаж игрока">Стаж игрока</small
+                    ><strong id="overview-level">1</strong
+                    ><progress id="overview-xp" max="100" value="0"></progress
+                    ><small id="overview-xp-text"></small
+                    ><button id="overview-upgrade" data-i18n="Повысить стаж">
+                      Повысить стаж
+                    </button>
+                  </div>
+                </div>
+                <p id="overview-company" class="muted"></p>
+              </div>
+            </div>
             <button data-open="profile">
               <span data-i18n="Профиль игрока">Профиль игрока</span></button
             ><button data-open="settings">
@@ -150,6 +172,9 @@
         ><span class="nav-label"
           ><span data-i18n="Корабль">Корабль</span></span
         ></button>
+      <button type="button" data-open="cargo" data-nav="Трюм" aria-label="Трюм">
+        <span class="nav-icon" data-matrix-icon="cargo"></span><span class="nav-label" data-i18n="Трюм">Трюм</span>
+      </button>
       <span class="matrix-nav-group" data-i18n="Операции">Операции</span>
       <button
         type="button"
@@ -302,36 +327,28 @@
       </section>
       <section id="game" hidden>
         <div class="matrix-overview">
-          <div class="toolbar matrix-pilot">
-            <div>
-              <div class="pilot-line">
-                <h1 id="welcome-name"></h1>
-                <div class="level-overview">
-                  <small data-i18n="Стаж игрока">Стаж игрока</small
-                  ><strong id="overview-level">1</strong
-                  ><progress id="overview-xp" max="100" value="0"></progress
-                  ><small id="overview-xp-text"></small
-                  ><button id="overview-upgrade" data-i18n="Повысить стаж">
-                    Повысить стаж
-                  </button>
-                </div>
-              </div>
-              <p id="overview-company" class="muted"></p>
-            </div>
-          </div>
           <div class="overview-stats">
+            <article class="panel matrix-channel">
+              <span class="matrix-channel-dot" aria-hidden="true"></span><small id="matrix-connection" data-i18n="Связь установлена">Связь установлена</small>
+            </article>
             <article class="panel">
-              <small><span data-i18n="БАЛАНС">БАЛАНС</span></small
+              <span data-matrix-icon="ship"></span><small data-i18n="Корабль">Корабль</small><strong data-studio-ship>—</strong>
+            </article>
+            <article class="panel">
+              <span data-matrix-icon="tasks"></span><small data-i18n="В работе">В работе</small><strong data-studio-operations>—</strong>
+            </article>
+            <article class="panel">
+              <span data-matrix-icon="finance"></span><small><span data-i18n="БАЛАНС">БАЛАНС</span></small
               ><strong id="credits">—</strong><small>CR</small
               ><span id="balance-change" role="status" aria-live="polite"></span>
             </article>
-            <article class="panel">
+            <article class="panel matrix-pilot-location">
               <small><span data-i18n="Местоположение">Местоположение</span></small
               ><strong id="location">—</strong
               ><small id="overview-region"></small>
             </article>
             <article class="panel">
-              <small
+              <span data-matrix-icon="system"></span><small class="visually-hidden"
                 ><span data-i18n="Хронология Эдема">Хронология Эдема</span></small
               ><strong
                 id="star-date"
@@ -340,9 +357,17 @@
                 >—</strong
               >
             </article>
+            <article class="panel matrix-notices">
+              <span data-matrix-icon="notifications"></span><small data-i18n="Новые события">Новые события</small><strong data-notification-count>0</strong>
+            </article>
           </div>
         </div>
         <section id="studio" hidden></section>
+        <nav class="matrix-comms-rail" aria-label="Связь">
+          <span data-i18n="Связь">Связь</span>
+          <button type="button" data-open="chat" data-matrix-icon="chat" aria-label="Чат" data-label="Чат"></button>
+          <button type="button" data-open="notifications" data-matrix-icon="notifications" aria-label="Уведомления" data-label="Уведомления"></button>
+        </nav>
         <p id="connection" class="muted"></p>
       </section>
     </main>
