@@ -112,12 +112,13 @@ func (s *Service) save(ctx context.Context, uid int64, current, next preferences
 		return current, 0, err
 	}
 	defer tx.Rollback(context.Background())
+	var v2 *layoutV2
 	err = tx.QueryRow(ctx, `UPDATE pilot_workspace_preferences
 		SET layout=$3, revision=revision+1
 		WHERE user_id=$1 AND revision=$2
 		AND NOT EXISTS (SELECT 1 FROM unnest($4::bigint[]) AS desired(id)
 			WHERE NOT EXISTS (SELECT 1 FROM ships WHERE ships.id=desired.id AND user_id=$1))
-		RETURNING revision`, uid, next.Revision, raw, owned).Scan(&next.Revision)
+		RETURNING revision,layout_v2`, uid, next.Revision, raw, owned).Scan(&next.Revision, &v2)
 	if errors.Is(err, pgx.ErrNoRows) {
 		_ = tx.Rollback(ctx)
 		latest, e := s.load(ctx, uid)
@@ -135,25 +136,40 @@ func (s *Service) save(ctx context.Context, uid int64, current, next preferences
 	if err != nil {
 		return current, 0, err
 	}
-	ids := next.Layout.ids()
-	// Claim workspace and module UUIDs in a deterministic order. A different
-	// account can neither reuse a live ID nor partially commit this document.
-	if _, err = tx.Exec(ctx, `INSERT INTO pilot_workspace_ids(id,user_id)
-		SELECT id::uuid,$1 FROM unnest($2::text[]) AS incoming(id) ORDER BY id
-		ON CONFLICT DO NOTHING`, uid, ids); err != nil {
-		return current, 0, err
+	var v2IDs []string
+	if v2 != nil {
+		v2IDs = v2.ids()
 	}
-	var count int
-	if err = tx.QueryRow(ctx, `SELECT count(*) FROM pilot_workspace_ids
-		WHERE user_id=$1 AND id=ANY($2::text[]::uuid[])`, uid, ids).Scan(&count); err != nil {
-		return current, 0, err
-	}
-	if count != len(ids) {
-		return current, http.StatusUnprocessableEntity, nil
-	}
-	if _, err = tx.Exec(ctx, `DELETE FROM pilot_workspace_ids
-		WHERE user_id=$1 AND NOT (id=ANY($2::text[]::uuid[]))`, uid, ids); err != nil {
-		return current, 0, err
+	claimed, err := claimIDs(ctx, tx, uid, next.Layout.ids(), v2IDs)
+	if err != nil || !claimed {
+		return current, http.StatusUnprocessableEntity, err
 	}
 	return next, http.StatusOK, tx.Commit(ctx)
+}
+
+func claimIDs(ctx context.Context, tx pgx.Tx, uid int64, v1, v2 []string) (bool, error) {
+	ids := append([]string(nil), v1...)
+	seen := make(map[string]bool, len(v1))
+	for _, id := range v1 {
+		seen[id] = true
+	}
+	for _, id := range v2 {
+		if !seen[id] {
+			ids = append(ids, id)
+		}
+	}
+	// Both documents share the account's UUID claims, including after cutover.
+	if _, err := tx.Exec(ctx, `INSERT INTO pilot_workspace_ids(id,user_id)
+		SELECT id::uuid,$1 FROM unnest($2::text[]) AS incoming(id) ORDER BY id
+		ON CONFLICT DO NOTHING`, uid, ids); err != nil {
+		return false, err
+	}
+	var count int
+	if err := tx.QueryRow(ctx, `SELECT count(*) FROM pilot_workspace_ids
+		WHERE user_id=$1 AND id=ANY($2::text[]::uuid[])`, uid, ids).Scan(&count); err != nil || count != len(ids) {
+		return false, err
+	}
+	_, err := tx.Exec(ctx, `DELETE FROM pilot_workspace_ids
+		WHERE user_id=$1 AND NOT (id=ANY($2::text[]::uuid[]))`, uid, ids)
+	return err == nil, err
 }

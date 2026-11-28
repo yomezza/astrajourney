@@ -71,10 +71,8 @@ func (l *Layout) valid() bool {
 	ids := map[string]bool{}
 	for i := range l.Workspaces {
 		w := &l.Workspaces[i]
-		w.Name = norm.NFC.String(strings.TrimSpace(w.Name))
-		if !uuid.MatchString(w.ID) || ids[w.ID] || len(w.Name) > 1024 ||
-			w.Name == "" || uniseg.GraphemeClusterCount(w.Name) > 32 ||
-			strings.ContainsFunc(w.Name, unicode.IsControl) ||
+		w.Name = normalizedName(w.Name)
+		if !uuid.MatchString(w.ID) || ids[w.ID] || !validName(w.Name) ||
 			w.ShipID < 0 || w.Modules == nil || len(w.Modules) > 16 {
 			return false
 		}
@@ -94,8 +92,7 @@ func (m Module) valid() bool {
 	if m.View != "" && m.View != "card" && m.View != "window" {
 		return false
 	}
-	if g := m.Geometry; g != nil && (g.X < 0 || g.X > 8192 || g.Y < 0 || g.Y > 8192 ||
-		g.W < 160 || g.W > 8192 || g.H < 160 || g.H > 8192) {
+	if !validGeometry(m.Geometry) {
 		return false
 	}
 	switch m.Type {
@@ -144,4 +141,16 @@ func (l Layout) ids() []string {
 		}
 	}
 	return ids
+}
+
+func normalizedName(name string) string { return norm.NFC.String(strings.TrimSpace(name)) }
+
+func validName(name string) bool {
+	return name != "" && len(name) <= 1024 && uniseg.GraphemeClusterCount(name) <= 32 &&
+		!strings.ContainsFunc(name, unicode.IsControl)
+}
+
+func validGeometry(g *Geometry) bool {
+	return g == nil || (g.X >= 0 && g.X <= 8192 && g.Y >= 0 && g.Y <= 8192 &&
+		g.W >= 160 && g.W <= 8192 && g.H >= 160 && g.H <= 8192)
 }

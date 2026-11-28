@@ -16,6 +16,11 @@ func ReadShip(ctx context.Context, q postgres.Querier, id int64) (Ship, error) {
 	return scanShip(q.QueryRow(ctx, `SELECT `+shipColumns+` FROM ships WHERE id=$1`, id))
 }
 
+// ReadOwnedShip checks ownership in the same snapshot as the ship and equipment.
+func ReadOwnedShip(ctx context.Context, q postgres.Querier, uid, id int64) (Ship, error) {
+	return scanShip(q.QueryRow(ctx, `SELECT `+shipColumns+` FROM ships WHERE id=$1 AND user_id=$2`, id, uid))
+}
+
 // ReadShips loads a fleet in one query, using the same decoding as ReadShip.
 func ReadShips(ctx context.Context, q interface {
 	Query(context.Context, string, ...any) (pgx.Rows, error)
@@ -67,7 +72,15 @@ func scanShip(row pgx.Row) (Ship, error) {
 }
 
 func SettleShips(ctx context.Context, tx pgx.Tx, uid int64) error {
-	rows, err := tx.Query(ctx, `UPDATE ships SET star=destination,destination=NULL,arrival=NULL,object_id='entry',position_mode='approach',departure=NULL,travel_path='[]' WHERE user_id=$1 AND arrival<=now() RETURNING id,star`, uid)
+	return settleShips(ctx, tx, uid, nil)
+}
+
+func SettleShip(ctx context.Context, tx pgx.Tx, uid, id int64) error {
+	return settleShips(ctx, tx, uid, &id)
+}
+
+func settleShips(ctx context.Context, tx pgx.Tx, uid int64, id *int64) error {
+	rows, err := tx.Query(ctx, `UPDATE ships SET star=destination,destination=NULL,arrival=NULL,object_id='entry',position_mode='approach',departure=NULL,travel_path='[]' WHERE user_id=$1 AND arrival<=now() AND ($2::bigint IS NULL OR id=$2) RETURNING id,star`, uid, id)
 	if err != nil {
 		return err
 	}
@@ -94,7 +107,7 @@ func SettleShips(ctx context.Context, tx pgx.Tx, uid int64) error {
 			return err
 		}
 	}
-	rows, err = tx.Query(ctx, `UPDATE ships SET object_id=local_target,position_mode=local_mode,local_target=NULL,local_mode=NULL,local_started=NULL,local_arrival=NULL WHERE user_id=$1 AND local_arrival<=now() RETURNING id,star,object_id`, uid)
+	rows, err = tx.Query(ctx, `UPDATE ships SET object_id=local_target,position_mode=local_mode,local_target=NULL,local_mode=NULL,local_started=NULL,local_arrival=NULL WHERE user_id=$1 AND local_arrival<=now() AND ($2::bigint IS NULL OR id=$2) RETURNING id,star,object_id`, uid, id)
 	if err != nil {
 		return err
 	}

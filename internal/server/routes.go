@@ -62,6 +62,15 @@ func (a *App) Handler() http.Handler {
 	m.HandleFunc("GET /api/fleet", a.Terminal.Fleet)
 	m.HandleFunc("GET /api/workspaces", a.Workspaces.Preferences)
 	m.HandleFunc("POST /api/workspaces", a.Workspaces.Preferences)
+	m.HandleFunc("GET /api/studio/v2/catalog", a.Workspaces.Catalog)
+	m.HandleFunc("GET /api/studio/v2/ships/{ship_id}", a.Terminal.StudioShip)
+	m.HandleFunc("GET /api/studio/v2/ships/{ship_id}/navigation", a.Terminal.StudioNavigation)
+	m.HandleFunc("POST /api/studio/v2/ships/{ship_id}/preview", a.Terminal.StudioPreview)
+	m.HandleFunc("POST /api/studio/v2/ships/{ship_id}/commands", a.Terminal.StudioCommand)
+	m.HandleFunc("GET /api/studio/v2/layout", a.Workspaces.PreferencesV2)
+	m.HandleFunc("PUT /api/studio/v2/layout", a.Workspaces.PreferencesV2)
+	m.HandleFunc("GET /api/studio/v2/inventory", a.Logistics.StudioInventory)
+	m.HandleFunc("POST /api/studio/v2/inventory/transfer", a.Logistics.StudioTransfer)
 	m.HandleFunc("GET /api/ship/modules", a.Terminal.ShipModules)
 	a.registerTerminalRoutes(m)
 	m.HandleFunc("GET /api/gameplay", a.Administration.Gameplay)
@@ -127,7 +136,7 @@ func (a *App) Handler() http.Handler {
 		} else if strings.HasPrefix(r.URL.Path, "/api/") {
 			w.Header().Set("Cache-Control", "no-store")
 		}
-		if r.Method == "POST" {
+		if r.Method == http.MethodPost || r.Method == http.MethodPut {
 			origin := r.Header.Get("Origin")
 			expected := a.origin
 			if expected == "" {
