@@ -422,17 +422,6 @@ body:has(#game:not([hidden])) #sidebar:not(.collapsed) .sidebar-title { justify-
   body:has(#game:not([hidden])) #sidebar:not(.collapsed) { width: 184px; }
   body:has(#game:not([hidden])):has(#sidebar:not([hidden],.collapsed)) main { margin-left: 184px; }
 }
-#studio .matrix-context-link {
-  background: transparent;
-  border: 1px solid transparent;
-  text-align: start;
-  min-height: 24px;
-  padding: 0 3px;
-}
-#studio .matrix-context-link[aria-pressed=true] {
-  color: var(--focus);
-  border-bottom-color: var(--focus);
-}
 @media (max-width: 760px) {
   #sidebar .matrix-nav-group { display: none; }
   #sidebar > button.chat-bottom { margin-top: auto; }

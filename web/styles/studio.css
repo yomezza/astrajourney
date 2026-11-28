@@ -311,16 +311,8 @@ body:has(#game:not([hidden])) #matrix-header-chat {
 }
 #studio .matrix-workspace-heading > .studio-controls { gap: 8px; align-items: center; }
 #studio .matrix-workspace-heading .matrix-add { line-height: 1.2; align-self: center; }
-.matrix-layout-tools { display: flex; gap: 4px; margin-inline-start: auto; }
-#studio .matrix-layout-tools button {
-  min-height: 33px;
-  padding: 4px 8px;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  white-space: nowrap;
-}
-#studio .matrix-layout-tools .line-icon { width: 13px; height: 13px; flex: none; }
+#studio .matrix-edit-toggle { min-height: 32px; }
+#studio .matrix-edit-toggle .line-icon { width: 13px; height: 13px; flex: none; }
 #studio .matrix-workspace-heading label:not(.studio-picker) {
   display: flex;
   align-items: center;
@@ -348,29 +340,52 @@ body:has(#game:not([hidden])) #matrix-header-chat {
   font-size: 12px;
 }
 #studio .matrix-manage { color: #adc3cf; }
-@media (min-width: 351px) {
-  #studio .matrix-manage > summary { display: none; }
-  #studio .matrix-manage:not([open]) { display: none; }
-}
+#studio .matrix-manage > summary, #studio .matrix-manage:not([open]) { display: none; }
 #studio .matrix-manage[open] {
   border: 1px solid var(--matrix-frame);
-  padding: 8px;
+  padding: 12px;
   background: #162630;
 }
-#studio details[open] > .studio-controls {
-  margin-top: 6px;
+.matrix-manage form { margin: 0; display: grid; gap: 10px; }
+#studio .matrix-manage form > .studio-controls { align-items: end; }
+.matrix-settings-tools {
+  display: grid;
+  gap: 6px;
+  border-top: 1px solid var(--studio-border);
+  padding-top: 10px;
 }
-.matrix-catalog[open] {
-  padding: 8px;
+#studio .matrix-manage > .matrix-empty { margin-block: 10px; }
+#studio .matrix-catalog {
+  width: min(440px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  padding: 12px;
+  color: var(--text);
   background: #172835;
-  border: 1px solid #405967;
+  border: 1px solid #56717f;
+  box-shadow: 0 20px 50px #0008;
 }
-.matrix-catalog input { margin-block: 6px !important; width: min(100%, 320px); }
+.matrix-catalog::backdrop { background: #050b10b0; }
+.matrix-catalog-head, .matrix-catalog-item {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.matrix-catalog-head { justify-content: space-between; margin-bottom: 10px; }
+#studio .matrix-catalog input { width: 100%; }
+.matrix-catalog-item {
+  padding: 9px 0;
+  border-bottom: 1px solid var(--studio-border);
+}
+.matrix-catalog-item > .line-icon { flex: none; color: var(--focus); }
+.matrix-catalog-copy { flex: 1; min-width: 0; display: grid; gap: 2px; overflow-wrap: anywhere; }
+.matrix-catalog-copy small { color: var(--studio-muted); }
+.matrix-catalog-item button { flex: none; }
 .matrix-grid {
   margin-top: 10px;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0,1fr));
-  gap: 9px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  max-width: 1200px;
+  gap: 8px;
   align-items: start;
 }
 .matrix-card, .matrix-add-card {
@@ -423,10 +438,6 @@ body:has(#game:not([hidden])) #matrix-header-chat {
 }
 #studio .matrix-card-actions button:hover { color: var(--accent); background: #263e4a; }
 #studio .matrix-card-bar h2 .line-icon { flex: none; width: 14px; height: 14px; }
-.matrix-card-caption {
-  padding: 9px 11px 8px;
-  border-bottom: 1px solid var(--studio-border);
-}
 .matrix-eyebrow {
   margin: 0;
   color: var(--studio-muted);
@@ -434,8 +445,7 @@ body:has(#game:not([hidden])) #matrix-header-chat {
   text-transform: uppercase;
   letter-spacing: .16em;
 }
-.matrix-card-caption h3 { margin: 4px 0 0; font-size: 13px; overflow-wrap: anywhere; }
-.matrix-card-body { display: grid; align-content: start; gap: 8px; padding: 10px 11px; min-width: 0; }
+.matrix-card-body { display: grid; align-content: start; gap: 7px; padding: 8px 10px; min-width: 0; }
 .matrix-card-settings:empty { display: none; }
 .matrix-card-body > button { justify-self: start; }
 #studio .matrix-action, .studio-window .matrix-action {
@@ -471,13 +481,7 @@ body:has(#game:not([hidden])) #matrix-header-chat {
 .matrix-table th.matrix-numeric,
 .matrix-table td.matrix-numeric { text-align: end; font-variant-numeric: tabular-nums; }
 .matrix-table td.matrix-numeric { white-space: nowrap; }
-.matrix-table tbody tr:has([aria-pressed="true"]),
 .matrix-table tbody tr:focus-within { background: #233747; }
-.matrix-fleet-identity { display: grid; justify-items: start; }
-.matrix-fleet-identity small { color: var(--studio-muted); }
-#studio .matrix-fleet-identity button { font-weight: 680; }
-.matrix-table .matrix-gauge { min-width: 50px; width: min(100%, 100px); margin-inline-start: auto; }
-.matrix-table .matrix-gauge-caption > span { display: none; }
 .matrix-status {
   display: inline-block;
   padding: 1px 4px;
@@ -506,7 +510,7 @@ body:has(#game:not([hidden])) #matrix-header-chat {
 }
 .matrix-source-label { margin: 0; color: #b1c7d4; font-size: 12px; }
 #studio .matrix-add-card {
-  min-height: 126px;
+  min-height: 72px;
   display: grid;
   place-content: center;
   gap: 7px;
@@ -531,11 +535,7 @@ body:has(#game:not([hidden])) #matrix-header-chat {
 .studio-readings dd { margin: 0; color: #dfecf2; font-variant-numeric: tabular-nums; }
 .matrix-resource-list .studio-readings > div { grid-template-columns: minmax(0, 1fr) auto; }
 .matrix-resource-list .studio-readings dd { text-align: end; }
-@container (max-width: 1000px) {
-  .matrix-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
-}
-@container (max-width: 620px) {
-  .matrix-grid { grid-template-columns: minmax(0,1fr); }
+@container (max-width: 527px) {
   .matrix-wide { grid-column: auto; }
 }
 @container (max-width: 360px) {
@@ -546,8 +546,7 @@ body:has(#game:not([hidden])) #matrix-header-chat {
   #studio .studio-tabs { flex: 0 1 auto; }
   #studio .studio-tabs button { padding-inline: 6px; gap: 4px; min-height: 34px; }
   #studio .studio-tabs .line-icon { display: none; }
-  #studio .matrix-layout-tools button { width: 32px; flex: none; font-size: 0; padding: 0; }
-  #studio .matrix-layout-tools button:not(.matrix-edit-toggle) { display: none; }
+  #studio .matrix-edit-toggle { width: 32px; flex: none; font-size: 0; padding: 0; }
   #game .overview-stats .panel { padding: 5px 7px; }
   .matrix-header-context:not([hidden]) { display: none; }
   #studio .matrix-heading-line { align-items: flex-start; flex-direction: column; gap: 3px; }
@@ -556,7 +555,6 @@ body:has(#game:not([hidden])) #matrix-header-chat {
   #studio .matrix-workspace-heading label:not(.studio-picker) { flex: 1 1 150px; }
   #studio .matrix-workspace-heading label:not(.studio-picker) select { width: 100%; }
   #studio .matrix-workspace-heading label:not(.studio-picker) > span { display: none; }
-  #studio .matrix-card-caption { padding-block: 8px; }
   #studio .matrix-card-actions button { width: 26px; min-height: 34px; }
 }
 @media (max-width: 350px) {

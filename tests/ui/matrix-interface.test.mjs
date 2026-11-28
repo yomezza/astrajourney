@@ -43,13 +43,15 @@ test("Command summaries distinguish station prices, player offers and real fleet
   await page.locator("#window-market").getByRole("button",{name:"Закрыть",exact:true}).click();
   await market.getByRole("button",{name:"Станция",exact:true}).click();
 
-  await card("overview").getByRole("button",{name:second.name,exact:true}).click();
+  await operations.getByRole("row").filter({hasText:"Добыча"}).waitFor();
+  assert.equal(await operations.getByText("Сканирование",{exact:true}).count(),0);
+  await page.getByLabel("Корабль пространства",{exact:true}).selectOption(String(second.id));
   await market.getByText("Локальные цены доступны для активного корабля у станции").waitFor();
   const scan = operations.getByRole("row").filter({hasText:"Сканирование"});
-  assert.match(await scan.textContent(),/Test vessel 2.*2 \/ 5.*На паузе/);
+  assert.match(await scan.textContent(),/2 \/ 5.*На паузе/);
   assert.equal(await scan.locator("[data-tone]").getAttribute("data-tone"),"paused");
   await operations.getByRole("row").filter({hasText:"Перелёт"}).getByText("Test Altair",{exact:true}).waitFor();
-  assert.equal(await operations.locator("tbody tr").first().getByText(second.name,{exact:true}).count(),1);
+  assert.equal(await operations.getByText("Добыча",{exact:true}).count(),0);
   await page.locator("#studio").getByText("Раскладка сохранена").waitFor();
   assert.deepEqual(g.requests.filter(req => req.method === "POST").map(req => req.path),["workspaces"]);
   assert.equal(data.expedition.ship.id,first.id);

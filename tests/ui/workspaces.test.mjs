@@ -168,34 +168,42 @@ test("Matrix command deck loads presets and persists card order and width", asyn
   const {page} = g;
   await page.locator('.matrix-card[data-module="map"]').getByText("Текущая система").waitFor();
   const grid = page.locator(".matrix-grid");
-  const overview = grid.locator('[data-module="overview"]');
-  assert.equal(await grid.locator(".matrix-card").count(),5);
+  const shipCard = grid.locator('[data-module="fleet"]');
+  const operations = grid.locator('[data-module="operations"]');
+  assert.equal(await grid.locator(".matrix-card").count(),4);
   assert.deepEqual(await page.locator(".studio-tabs button").allTextContents(),["Командование","Добыча","Торговля"]);
-  assert.equal(await overview.locator("tbody tr").count(),2);
-  const ships = overview.locator("[data-ship-context]");
-  const otherShip = ships.last();
-  const otherID = await otherShip.getAttribute("data-ship-context");
+  const otherShip = g.data.fleet.ships[1];
   const originalPilotShip = g.data.expedition.ship.id;
-  assert.notEqual(Number(otherID), originalPilotShip);
-  await otherShip.press("Enter");
-  assert.equal(await otherShip.getAttribute("aria-pressed"),"true");
-  assert.ok(await otherShip.evaluate(el => el === document.activeElement));
-  assert.equal(await page.getByLabel("Корабль пространства",{exact:true}).inputValue(),otherID);
+  await page.getByLabel("Корабль пространства",{exact:true}).selectOption(String(otherShip.id));
+  await shipCard.getByText(otherShip.name,{exact:true}).waitFor();
+  assert.equal(await grid.getByText(g.data.fleet.ships[0].name,{exact:true}).count(),0);
   assert.equal(await page.locator(".studio-window[open]").count(),0);
-  const wide = overview.getByRole("button",{name:"Широкая карточка",includeHidden:true});
+  const wide = operations.getByRole("button",{name:"Широкая карточка",includeHidden:true});
   assert.equal(await wide.isVisible(),false);
-  assert.equal(await overview.locator("h2").getAttribute("draggable"),"false");
   await page.locator(".matrix-edit-toggle").click();
   await wide.click();
-  await overview.getByRole("button",{name:"Переместить карточку вправо"}).click();
-  assert.equal(await overview.locator("h2").getAttribute("draggable"),"true");
+  await operations.getByRole("button",{name:"Переместить карточку влево"}).click();
+  assert.equal(await operations.locator("h2").getAttribute("draggable"),"true");
   await page.locator("#studio").getByText("Раскладка сохранена").waitFor();
   assert.equal(saved.layout.workspaces[0].modules[0].type,"operations");
-  assert.equal(saved.layout.workspaces[0].ship_id,Number(otherID));
+  assert.equal(saved.layout.workspaces[0].ship_id,otherShip.id);
   assert.equal(saved.layout.workspaces[1].ship_id,0);
   assert.equal(g.data.expedition.ship.id,originalPilotShip);
-  assert.equal(saved.layout.workspaces[0].modules[1].type,"overview");
-  assert.ok(!saved.layout.workspaces[0].modules[1].wide);
+  assert.ok(saved.layout.workspaces[0].modules[0].wide);
+  await page.getByRole("button",{name:"Готово",exact:true}).click();
+  await page.locator("#studio .matrix-add").click();
+  const catalog = page.getByRole("dialog",{name:"Добавить модуль"});
+  await catalog.getByRole("searchbox").fill("нет такого модуля");
+  await catalog.getByText("Нет совпадений").waitFor();
+  await page.keyboard.press("Escape");
+  await catalog.waitFor({state:"hidden"});
+  await page.locator("#studio .matrix-add").click();
+  await catalog.getByRole("searchbox").fill("трюм");
+  assert.ok(await catalog.getByRole("button",{name:"Корабль · Добавлен",exact:true}).isDisabled());
+  await catalog.getByRole("button",{name:"Трюм · Добавить",exact:true}).click();
+  await catalog.waitFor({state:"hidden"});
+  await grid.locator('[data-module="cargo"]').getByRole("meter",{name:"Заполнено"}).waitFor();
+  await page.locator("#studio").getByText("Раскладка сохранена").waitFor();
   await page.reload();
   await g.ready();
   assert.equal(await grid.locator(".matrix-card").first().getAttribute("data-module"),"operations");
@@ -226,9 +234,9 @@ test("Studio asks before opening gameplay for a different ship", async (t) => {
     ["workspaces", ({json, data}) => json({
       revision: 1,
       layout: { version: 1, active: workspace, default: workspace, workspaces: [{
-        id: workspace, name: "Добыча", customized: true, ship_id: data.fleet.ships[0].id,
+        id: workspace, name: "Добыча", customized: true, ship_id: data.fleet.ships[1].id,
         modules: [{ id: moduleID, type: "fleet", view: "card", wide: true,
-          binding: "fixed", ship_id: data.fleet.ships[1].id }],
+          binding: "fixed", ship_id: data.fleet.ships[0].id }],
       }] },
     })],
     ["workbench", ({req, json, data}) => {

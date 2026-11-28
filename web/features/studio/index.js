@@ -20,24 +20,26 @@ const actionTitles = {
   ship:"Открыть корабль", cargo:"Открыть трюм", research:"Открыть добычу",
   tasks:"Открыть планировщик", galaxy:"Открыть карту", market:"Открыть рынок",
 };
-const starter = ["overview", "operations", "map", "market", "fleet"];
+const starter = ["fleet", "operations", "map", "market"];
 const presets = [
   ["Командование", starter],
   ["Добыча", ["fleet", "mining", "cargo", "operations"]],
-  ["Торговля", ["market", "cargo", "overview"]],
+  ["Торговля", ["market", "cargo", "fleet"]],
 ];
 const appearance = {
-  overview: ["ship", "Парк кораблей", "Флот"],
-  operations: ["tasks", "Бортовые операции", "Активные задачи"],
-  map: ["galaxy", "Навигация", "Маршрут"],
-  market: ["market", "Торговля", "Рыночная сводка"],
-  fleet: ["ship", "Управление флотом", "Корабль"],
-  mining: ["research", "Ресурсы системы", "Добыча"],
-  cargo: ["cargo", "Ресурсы", "Трюм"],
+  fleet: ["ship", "Топливо, загрузка трюма и местоположение"],
+  overview: ["ship", "Текущее состояние и система"],
+  operations: ["tasks", "Добыча, сканирование и перелёты выбранного корабля"],
+  map: ["galaxy", "Текущая система, пункт назначения и запас топлива"],
+  market: ["market", "Цены станции и предложения игроков в системе"],
+  mining: ["research", "Добыча и оборудование выбранного корабля"],
+  cargo: ["cargo", "Свободное место и список ресурсов"],
 };
+const wideTypes = new Set(["market", "operations"]);
+
 function newModule(type) {
   return {id:id(), type, binding:dashboard[type] ? "none" : "workspace", ship_id:0,
-    view:"card", ...(["overview", "market", "mining"].includes(type) ? {wide:true} : {})};
+    view:"card"};
 }
 
 // getRandomValues is also available on installations served over plain HTTP.
@@ -118,9 +120,6 @@ export function initStudio() {
   const workspace = () => activeWorkspace(layout);
   const activeShipID = () => Session.data.expedition?.ship?.id || 0;
   const focusShipID = () => workspace().ship_id || activeShipID();
-  const moduleShipID = module => module.binding === "fixed" ? module.ship_id :
-    module.binding === "workspace" ? focusShipID() : 0;
-
   function refreshStrip() {
     const shipID = focusShipID();
     const ship = ownedShips().find(({id}) => id === shipID);
@@ -128,7 +127,7 @@ export function initStudio() {
     stripShip.textContent = context;
     headerContext.lastElementChild.textContent = context;
     headerContext.hidden = false;
-    stripOperations.textContent = activeOperations(ownedShips(), Session.data.workbench || {}).length;
+    stripOperations.textContent = activeOperations(ship, Session.data.workbench || {}).length;
   }
 
   function moduleAction(module) {
@@ -146,7 +145,7 @@ export function initStudio() {
       }
       if (target === "tasks") return Modules.open(target);
 
-      const shipID = dashboard[module.type] ? focusShipID() : moduleShipID(module);
+      const shipID = focusShipID();
       const ship = ownedShips().find(({id}) => id === shipID);
       if (!ship) return;
       const open = () => target === "market" ? Game.openMarket(marketSource) : Modules.open(target);
@@ -155,7 +154,7 @@ export function initStudio() {
       const source = workspace();
       UI.confirm(tr("Сменить активный корабль"), `${tr("Сделать активным и открыть окно")}: ${shipLabel(ship)}?`, async () => {
         if (!current?.current() || workspace() !== source || !source.modules.includes(module) ||
-          (dashboard[module.type] ? focusShipID() : moduleShipID(module)) !== ship.id ||
+          (focusShipID()) !== ship.id ||
           !ownedShips().some(({id}) => id === ship.id)) return false;
         if (ship.id !== activeShipID() && !await Game.command({action: "select_ship", ship: ship.id})) return false;
         if (!current.current() || workspace() !== source || !source.modules.includes(module)) return true;
@@ -250,16 +249,16 @@ export function initStudio() {
     if (focus) entry.data.querySelector(`[data-studio-focus="${CSS.escape(focus)}"]`)?.focus({preventScroll:true});
   }
 
-  function paintWindow(module, entry, rebuildControls = false) {
-    const shipID = moduleShipID(module);
+  function paintWindow(module, entry) {
+    const shipID = focusShipID();
     const ship = ownedShips().find(({id}) => id === shipID);
+    if (entry.title) entry.title.textContent = ship ? shipLabel(ship) : tr(types[module.type]);
     if (dashboard[module.type]) {
-      const focus = ownedShips().find(({id}) => id === focusShipID());
-      entry.action.disabled = module.type === "overview" && !focus;
+      entry.action.disabled = !ship;
       if (module.type === "market") {
         const source = marketSources.get(module) || "local";
-        entry.action.disabled = source === "local" && !focus;
-        replaceReadings(entry, marketReading(focus,source,key => {
+        entry.action.disabled = !ship;
+        replaceReadings(entry, marketReading(ship,source,key => {
           if (key === source) return;
           marketSources.set(module,key);
           for (const view of [cards.get(instanceID(module)),mounted.get(instanceID(module))])
@@ -267,38 +266,12 @@ export function initStudio() {
         }));
         return;
       }
-      replaceReadings(entry,dashboardReading(module.type, focus, selectShip));
+      replaceReadings(entry,dashboardReading(module.type, ship));
       return;
     }
     const output = readings(module, ship, shipID);
     entry.action.disabled = !ship;
-    entry.title.textContent = ship ? shipLabel(ship) : tr(labels[module.type]);
-    if (rebuildControls || entry.shipSignature !== shipSignature) {
-      const binding = select("Привязка корабля", [
-        ["workspace",tr("Корабль пространства")], ["fixed",tr("Закрепить корабль")], ["none",tr("Без привязки")],
-      ], module.binding, (value) => {
-        if (value === "fixed" && !ship && ownedShips().length !== 1) {
-          paintWindow(module, entry, true);
-          return;
-        }
-        module.binding = value;
-        module.ship_id = value === "fixed" ? (ship || ownedShips()[0]).id : 0;
-        paintWindow(module, entry, true);
-        entry.tools.querySelector("select")?.focus();
-        changed();
-      });
-      binding.querySelector('option[value="fixed"]').disabled =
-        !ship && ownedShips().length !== 1 && module.binding !== "fixed";
-      entry.tools.replaceChildren(binding);
-      if (module.binding === "fixed") {
-        const field = select("Закреплённый корабль", shipOptions(module.ship_id), module.ship_id, (value) => {
-          module.ship_id = Number(value);
-          paintWindow(module, entry);
-          changed();
-        });
-        field.querySelector('option[value="0"]').disabled = true;
-        entry.tools.append(field);
-      }
+    if (entry.tools && !entry.tools.firstChild) {
       if (module.type === "cargo") entry.tools.append(select("Сортировка трюма", [
         ["name",tr("По названию")], ["quantity",tr("По количеству")],
       ], module.filter || "name", (value) => {
@@ -306,7 +279,6 @@ export function initStudio() {
         paintWindow(module, entry);
         changed();
       }));
-      entry.shipSignature = shipSignature;
     }
     replaceReadings(entry,output);
   }
@@ -328,14 +300,14 @@ export function initStudio() {
     });
     const view = node("section", undefined, "studio-view");
     const tools = node("div", undefined, "studio-controls"), data = node("div");
-    const title = node("h3", tr(appearance[module.type][2]));
     const action = moduleAction(module);
+    const title = node("h3");
     view.append(title, data, action, tools);
     root.append(view);
     const entry = {title, tools, data, action};
     mounted.set(key,entry);
     Modules.header(key).closest("dialog").classList.add("studio-window");
-    paintWindow(module,entry,true);
+    paintWindow(module,entry);
     Modules.open(key);
   }
 
@@ -359,6 +331,7 @@ export function initStudio() {
   function drawCards(focus) {
     const w = workspace();
     grid.replaceChildren();
+    controls.querySelector(".matrix-add").disabled = w.modules.length >= 16;
     cards.clear();
     const reorder = (module, index, target) => {
       if (target === index) return;
@@ -369,10 +342,10 @@ export function initStudio() {
     };
     for (const [index,module] of w.modules.entries()) {
       const card = node("article",undefined,"matrix-card");
-      card.classList.toggle("matrix-wide", !!module.wide);
+      card.classList.toggle("matrix-wide", wideTypes.has(module.type) && !!module.wide);
       card.dataset.module = module.type;
       const head = node("div",undefined,"matrix-card-bar");
-      const [icon, group, name] = appearance[module.type];
+      const [icon] = appearance[module.type];
       const label = node("h2");
       label.append(lineIcon(icon), document.createTextNode(tr(types[module.type])));
       label.draggable = grid.classList.contains("matrix-editing");
@@ -410,7 +383,7 @@ export function initStudio() {
       const resize = tool("wide","Широкая карточка",() => {
         if (module.wide) delete module.wide;
         else module.wide = true;
-        card.classList.toggle("matrix-wide", !!module.wide);
+        card.classList.toggle("matrix-wide", wideTypes.has(module.type) && !!module.wide);
         resize.setAttribute("aria-pressed", String(!!module.wide));
         changed();
       });
@@ -419,7 +392,7 @@ export function initStudio() {
       editing.append(
         tool("left","Переместить карточку влево",() => reorder(module,index,index-1),index === 0),
         tool("right","Переместить карточку вправо",() => reorder(module,index,index+1),index === w.modules.length-1),
-        resize,
+        ...(wideTypes.has(module.type) ? [resize] : []),
         tool("close","Убрать карточку",() => {
           w.modules.splice(index,1);
           mounted.delete(instanceID(module));
@@ -435,20 +408,20 @@ export function initStudio() {
       const data = node("div");
       const settings = node("details",undefined,"matrix-card-settings");
       const binding = node("div",undefined,"studio-controls");
-      if (!dashboard[module.type]) settings.append(node("summary",tr("Настройки карточки")),binding);
-      const caption = node("div", undefined, "matrix-card-caption");
-      const title = node("h3", tr(name), "matrix-context-title");
-      caption.append(node("p", tr(group), "matrix-eyebrow"), title);
       const action = moduleAction(module);
-      body.append(data, action, settings);
-      card.append(head, caption, body);
+      body.append(data, action);
+      if (module.type === "cargo") {
+        settings.append(node("summary", tr("Сортировка трюма")), binding);
+        body.append(settings);
+      }
+      card.append(head, body);
       grid.append(card);
-      const entry = {title, tools:binding, data, action};
+      const entry = {tools: module.type === "cargo" ? binding : null, data, action};
       cards.set(instanceID(module),entry);
-      paintWindow(module,entry,true);
+      paintWindow(module,entry);
       if (module.id === focus) label.focus();
     }
-    if (w.modules.length < 16) {
+    if (!w.modules.length) {
       const add = button("Добавить модуль", () => openCatalog(controls.querySelector(".matrix-catalog")));
       add.prepend(lineIcon("plus"));
       add.className = "matrix-add-card";
@@ -460,9 +433,10 @@ export function initStudio() {
 
   function openCatalog(catalog) {
     if (!catalog) return;
-    catalog.open = true;
-    catalog.querySelector("input").focus();
-    catalog.scrollIntoView({block:"nearest"});
+    const search = catalog.querySelector("input");
+    search.dispatchEvent(new Event("input"));
+    if (!catalog.open) catalog.showModal();
+    search.focus();
   }
 
   function switchTo(value, selector = ".studio-picker select") {
@@ -501,7 +475,9 @@ export function initStudio() {
 
     const manage = node("details",undefined,"matrix-manage");
     manage.open = controls.querySelector(".matrix-manage")?.open || false;
-    manage.append(node("summary",tr("Настроить пространство")));
+    const settingsTitle = node("summary", tr("Настройки пространства"));
+    settingsTitle.tabIndex = -1;
+    manage.append(settingsTitle);
     manage.ontoggle = () => {
       if (!manage.isConnected) return;
       grid.classList.toggle("matrix-editing",manage.open);
@@ -558,7 +534,10 @@ export function initStudio() {
         return true;
       });
     };
-    edit.append(field,rename,
+    const naming = node("div", undefined, "studio-controls");
+    naming.append(field, rename);
+    const management = node("div", undefined, "studio-controls");
+    management.append(
       button("Создать пространство", () => create(false),layout.workspaces.length >= 10),
       button("Дублировать", () => create(true),layout.workspaces.length >= 10),
       button("Переместить влево", () => move(-1),index === 0),
@@ -575,31 +554,60 @@ export function initStudio() {
       },layout.default === w.id),
       button("Удалить пространство",remove,layout.workspaces.length < 2)
     );
-    manage.append(edit);
+    const tools = node("div", undefined, "matrix-settings-tools");
+    tools.append(node("p", tr("Порядок пространства и запуск"), "matrix-eyebrow"), management);
+    edit.append(naming, tools);
+    const done = button("Готово", () => { manage.open = false; controls.querySelector(".matrix-edit-toggle")?.focus(); });
+    manage.append(edit, node("p", tr("Перетащите карточки за заголовки или используйте стрелки."), "matrix-empty"), done);
 
-    const catalog = node("details",undefined,"matrix-catalog");
-    catalog.open = controls.querySelectorAll("details")[1]?.open || false;
-    catalog.append(node("summary",tr("Добавить модуль")));
+    const catalog = node("dialog", undefined, "matrix-catalog");
+    const catalogHead = node("div", undefined, "matrix-catalog-head");
+    const catalogTitle = node("h2", tr("Добавить модуль"));
+    catalogTitle.id = "studio-catalog-title";
+    catalog.setAttribute("aria-labelledby", catalogTitle.id);
+    const closeCatalog = button("Закрыть", () => catalog.close());
+    catalogHead.append(catalogTitle, closeCatalog);
     const search = node("input");
     search.type = "search";
-    search.setAttribute("aria-label",tr("Поиск модулей"));
-    const modules = node("div", undefined, "studio-controls");
+    search.placeholder = tr("Поиск модулей");
+    search.setAttribute("aria-label", tr("Поиск модулей"));
+    const modules = node("div", undefined, "matrix-catalog-list");
     const filter = () => {
       modules.replaceChildren();
-      for (const [type,label] of Object.entries(types)) {
-        if (!tr(label).toLocaleLowerCase().includes(search.value.trim().toLocaleLowerCase())) continue;
-        modules.append(button(label,() => {
+      const query = search.value.trim().toLocaleLowerCase();
+      for (const [type, label] of Object.entries(types)) {
+        const [icon, description] = appearance[type];
+        if (!tr(label + " " + description).toLocaleLowerCase().includes(query)) continue;
+        const present = w.modules.some(module => module.type === type);
+        const add = button(present ? "Добавлен" : "Добавить", () => {
           const module = newModule(type);
           w.modules.push(module);
+          catalog.close();
           drawCards(module.id);
-          filter();
           changed();
-        },w.modules.length >= 16));
+        }, present || w.modules.length >= 16);
+        add.setAttribute("aria-label", tr(label) + " · " + add.textContent);
+        const copy = node("div", undefined, "matrix-catalog-copy");
+        copy.append(node("strong", tr(label)), node("small", tr(description)));
+        const item = node("div", undefined, "matrix-catalog-item");
+        item.append(lineIcon(icon), copy, add);
+        modules.append(item);
       }
+      if (!modules.children.length) modules.append(node("p", tr("Нет совпадений"), "matrix-empty"));
     };
     search.oninput = filter;
+    catalog.addEventListener("keydown", event => {
+      if (event.key !== "Escape" || event.isComposing) return;
+      event.preventDefault();
+      event.stopPropagation();
+      catalog.close();
+    });
+    catalog.addEventListener("close", () => {
+      search.value = "";
+      filter();
+    });
     filter();
-    catalog.append(search,modules);
+    catalog.append(catalogHead, search, modules);
     const heading = node("div",undefined,"matrix-workspace-heading");
     const title = node("h1",w.name,"matrix-workspace-title");
     const identity = node("div", undefined, "matrix-workspace-identity");
@@ -624,13 +632,8 @@ export function initStudio() {
     editToggle.classList.add("matrix-edit-toggle");
     editToggle.setAttribute("aria-expanded", String(manage.open));
     manage.addEventListener("toggle", () => editToggle.setAttribute("aria-expanded", String(manage.open)));
-    const layoutTools = node("div", undefined, "matrix-layout-tools");
-    const copy = button("Копия", () => create(true), layout.workspaces.length >= 10);
-    copy.prepend(lineIcon("studio"));
-    const removeCurrent = button("Удалить", remove, layout.workspaces.length < 2);
-    removeCurrent.prepend(lineIcon("close"));
-    layoutTools.append(copy, editToggle, removeCurrent);
-    tabline.append(tabs, plus, layoutTools);
+    toolbar.append(editToggle);
+    tabline.append(tabs, plus);
     controls.replaceChildren(tabline,heading,overview,manage,catalog);
     refreshStrip();
     grid.classList.toggle("matrix-editing",manage.open);
@@ -662,9 +665,9 @@ export function initStudio() {
     }
     for (const module of workspace().modules) {
       const entry = mounted.get(instanceID(module));
-      if (entry) paintWindow(module,entry,force);
+      if (entry) paintWindow(module,entry);
       const card = cards.get(instanceID(module));
-      if (card) paintWindow(module,card,force);
+      if (card) paintWindow(module,card);
     }
   }
 
