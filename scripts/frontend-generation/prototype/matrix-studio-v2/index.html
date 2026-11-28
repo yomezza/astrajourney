@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="ru">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MATRIX × STUDIO 2.0</title>
+<link rel="stylesheet" href="studio.css">
+<header><strong>ASTRA JOURNEY</strong><span>MATRIX × STUDIO 2.0</span><small>Прототип · тестовые данные</small></header>
+<div class="shell">
+  <nav class="launcher" aria-label="Инструменты">
+    <button id="tools" type="button" title="Каталог инструментов" aria-label="Каталог инструментов">▦</button>
+    <button id="fleet" type="button" title="Выбрать корабль пространства" aria-label="Выбрать корабль пространства">◇</button>
+  </nav>
+  <main>
+    <nav id="workspaces" aria-label="Рабочие пространства"></nav>
+    <section id="heading"></section>
+    <div id="settings" hidden></div>
+    <section id="tiles" aria-label="Плитки пространства"></section>
+  </main>
+</div>
+<aside id="windows" aria-label="Плавающие окна"></aside>
+<dialog id="catalog" aria-labelledby="catalog-title">
+  <header><h2 id="catalog-title">Каталог инструментов</h2><button id="close-catalog">Закрыть</button></header>
+  <div id="catalog-body"></div>
+</dialog>
+<script type="module" src="app.js"></script>
+</html>
