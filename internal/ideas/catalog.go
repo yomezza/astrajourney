@@ -14,19 +14,18 @@ import (
 	textutil "github.com/yomezza/cosmosimulator/internal/platform/text"
 )
 
-func validCategory(value string) bool {
-	switch value {
-	case "gameplay", "interface", "economy", "other":
-		return true
-	}
-	return false
-}
-
 func (a *Service) list(w http.ResponseWriter, ctx context.Context, owner int64, scope string, query url.Values, page int) {
 	category := query.Get("category")
-	if category != "" && !validCategory(category) {
-		httpkit.Fail(w, 400, "Некорректная категория идеи")
-		return
+	if category != "" {
+		var exists bool
+		if err := a.DB.QueryRow(ctx, "SELECT EXISTS(SELECT 1 FROM player_idea_categories WHERE id=$1)", category).Scan(&exists); err != nil {
+			httpkit.Internal(w, err)
+			return
+		}
+		if !exists {
+			httpkit.Fail(w, 400, "Некорректная категория идеи")
+			return
+		}
 	}
 	search := strings.TrimSpace(query.Get("search"))
 	if utf8.RuneCountInString(search) > 120 || !textutil.Valid(search, false) {

@@ -5,12 +5,6 @@ import { api } from "../../core/api.js";
 import { notify } from "../../ui/feedback.js";
 import { UI, Modules } from "../../ui/runtime.js";
 
-const categories = {
-  gameplay: "Игровой процесс",
-  interface: "Интерфейс",
-  economy: "Экономика",
-  other: "Другое",
-};
 const statuses = {
   pending: "На рассмотрении",
   approved: "Одобрено",
@@ -28,7 +22,7 @@ const requestKey = () =>
 const blankDraft = () => ({
   title: "",
   description: "",
-  category: "gameplay",
+  category: "",
   request: requestKey(),
 });
 const count = (s) => Array.from(s.trim()).length;
@@ -44,6 +38,60 @@ export function initIdeas() {
   player.classList.add("ideas-content", "ideas-player");
   review.classList.add("ideas-content");
 
+  let categories = [];
+  const categoryRequests = new RequestScope();
+  const categoryOptions = () => categories.map(({ id, name }) => [id, name]);
+
+  async function refreshCategories() {
+    const task = categoryRequests.begin();
+    try {
+      const next = await api("ideas/categories", undefined, task.signal);
+      if (!task.current() || JSON.stringify(next) === JSON.stringify(categories)) return;
+      categories = next;
+      if (Modules.isOpen("ideas")) renderPlayer();
+      if (admin() && Modules.isOpen("adminideas")) renderAdmin();
+    } catch (error) {
+      if (task.current()) notify(error.message, "error");
+    }
+  }
+
+  function renderAdmin() {
+    review.replaceChildren();
+    const editor = n("details");
+    editor.open = categoryEditorOpen;
+    editor.ontoggle = () => { categoryEditorOpen = editor.open; };
+    editor.append(n("summary", tr("Категории предложений")));
+    const fields = n("div", undefined, "ideas-filters");
+    const selection = addSelect(fields, "Категория", [["", tr("Новая категория")], ...categoryOptions()],
+      selectedCategory, (id) => { selectedCategory = id; updateFields(); });
+    const name = UI.field(fields, "Название категории", "idea-category-name", "");
+    name.maxLength = 80;
+    const label = n("label", tr("Доступна для новых идей") + " ");
+    const enabled = n("input");
+    enabled.type = "checkbox";
+    label.append(enabled);
+    fields.append(label);
+    function updateFields() {
+      const category = categories.find(({ id }) => id === selection.value);
+      name.value = category?.name || "";
+      enabled.checked = category?.active ?? true;
+    }
+    updateFields();
+    editor.append(fields, b("Сохранить категорию", async () => {
+      if (!admin()) return;
+      const epoch = Session.epoch;
+      const saved = await api("admin/ideas/categories", {
+        id: selection.value, name: name.value, active: enabled.checked,
+      });
+      if (epoch !== Session.epoch || !admin()) return;
+      selectedCategory = saved.id;
+      await refreshCategories();
+    }));
+    review.append(editor);
+    makeCatalog(review, "all");
+  }
+
+  let categoryEditorOpen = false, selectedCategory = "";
   const admin = () =>
     Session.signedIn && Session.data.state?.user.role === "admin";
   const active = (scope) =>
@@ -88,7 +136,7 @@ export function initIdeas() {
 
   function badges(item) {
     const group = n("div", undefined, "idea-tags");
-    const category = n("span", tr(categories[item.category] || "Другое"), "idea-category");
+    const category = n("span", categories.find(({ id }) => id === item.category)?.name || item.category, "idea-category");
     category.dataset.category = item.category;
     const status = n("span", tr(statuses[item.status] || statuses.pending), "idea-status");
     status.dataset.status = item.status;
@@ -113,7 +161,14 @@ export function initIdeas() {
     const title = UI.field(form, "Название идеи", "idea-title", draft.title);
     title.required = true;
     title.autocomplete = "off";
-    UI.choice(form, "Категория", Object.entries(categories), draft.category, (value) => {
+    const available = categories.filter((category) => category.active);
+    if (categories.length && !available.length)
+      UI.empty(form, "Сейчас нет доступных категорий для новых идей");
+    if (!available.some(({ id }) => id === draft.category)) {
+      draft.category = available[0]?.id || "";
+      draft.request = requestKey();
+    }
+    addSelect(form, "Категория", available.map(({ id, name }) => [id, name]), draft.category, (value) => {
       draft.category = value;
       draft.request = requestKey();
     });
@@ -154,10 +209,10 @@ export function initIdeas() {
       text.setCustomValidity(validText ? "" : tr("Описание идеи: от 10 до 3000 символов"));
       counter.textContent = d + " / 3000";
       counter.classList.toggle("over-limit", d > 3000);
-      submit.disabled = sending || !validTitle || !validText;
+      submit.disabled = sending || !validTitle || !validText || !draft.category;
     }
     function enableFields() {
-      form.querySelectorAll("input,textarea,button").forEach((element) => {
+      form.querySelectorAll("input,textarea,select,button").forEach((element) => {
         element.disabled = sending;
       });
       form.setAttribute("aria-busy", String(sending));
@@ -218,13 +273,14 @@ export function initIdeas() {
       select = n("select");
     group.append(n("span", tr(label)), select);
     for (const [id, text] of choices) {
-      const option = n("option", tr(text));
+      const option = n("option", text);
       option.value = id;
       select.append(option);
     }
     select.value = value;
     select.onchange = () => change(select.value);
     host.append(group);
+    return select;
   }
 
   function changeFilters(scope, values, delay = 0) {
@@ -263,9 +319,9 @@ export function initIdeas() {
         if (query !== search.value) search.value = query;
         changeFilters(scope, { search: query }, 250);
       };
-      addSelect(filters, "Категория", [["", "Все категории"], ...Object.entries(categories)],
+      addSelect(filters, "Категория", [["", tr("Все категории")], ...categoryOptions()],
         state.category, (category) => changeFilters(scope, { category }));
-      addSelect(filters, "Сортировка", [["newest", "Сначала новые"], ["oldest", "Сначала старые"]],
+      addSelect(filters, "Сортировка", [["newest", tr("Сначала новые")], ["oldest", tr("Сначала старые")]],
         state.sort, (sort) => changeFilters(scope, { sort }));
       host.append(filters);
     }
@@ -469,6 +525,7 @@ export function initIdeas() {
   window.addEventListener("moduleopen", ({ detail: id }) => {
     if (!Session.signedIn) return;
     if (id === "ideas") {
+      refreshCategories();
       renderPlayer();
       if (tab !== "form") load(tab);
     }
@@ -477,8 +534,8 @@ export function initIdeas() {
         Modules.close(id);
         return;
       }
-      review.replaceChildren();
-      makeCatalog(review, "all");
+      refreshCategories();
+      renderAdmin();
       load("all");
     }
   });
@@ -502,12 +559,15 @@ export function initIdeas() {
   window.addEventListener("languagechange", () => {
     if (Modules.isOpen("ideas")) renderPlayer();
     if (active("all")) {
-      review.replaceChildren();
-      makeCatalog(review, "all");
+      renderAdmin();
     }
   });
   window.addEventListener("signedout", () => {
     clearTimeout(searchTimer);
+    categoryRequests.invalidate();
+    categories = [];
+    selectedCategory = "";
+    categoryEditorOpen = false;
     submission++;
     sending = false;
     saved = null;

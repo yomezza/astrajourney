@@ -26,7 +26,7 @@ func init() {
 		"planet":       "planet_runtime_leases planet_local_locations planet_characters planet_visits planet_handoff_uses planet_transition_receipts planet_sector_buildings aj_planet_recovery_diagnostics",
 		"integration":  "planet_transfer_controls planet_handoffs planet_session_lookup aj_planet_return_authorizations",
 		"knowledge":    "surveys research_jobs aj_discovery_objects aj_discovery_name_history aj_guide_categories aj_guide_category_i18n aj_guide_articles aj_guide_article_revisions aj_guide_publications aj_guide_publication_history aj_guide_related aj_guide_state aj_guide_operations aj_guide_media aj_guide_revision_media",
-		"ops":          "world game_settings game_release game_events admin_log benchmark_runs player_ideas planet_schema_state",
+		"ops":          "world game_settings game_release game_events admin_log benchmark_runs player_ideas player_idea_categories planet_schema_state",
 		"archive":      "galaxies",
 	}
 	for domain, list := range groups {

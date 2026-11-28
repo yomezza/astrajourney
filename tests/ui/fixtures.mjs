@@ -64,6 +64,12 @@ export function fixture() {
     },
   ];
   return {
+    "ideas/categories": [
+      { id: "gameplay", name: "Игровой процесс", active: true },
+      { id: "interface", name: "Интерфейс", active: true },
+      { id: "economy", name: "Экономика", active: true },
+      { id: "other", name: "Другое", active: true },
+    ],
     "planet/visit": { state: "none" },
     "guide/catalog": {
       items: [],

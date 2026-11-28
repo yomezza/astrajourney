@@ -310,3 +310,27 @@ test("legacy language preference is migrated and the Russian dictionary remains 
   assert.ok(g.assets.includes("/ru.json"));
   assert.ok(!g.assets.includes("/en.json"));
 });
+
+test("administrators manage database categories and archived categories stay out of the form", async (t) => {
+  const g = await game(t, { signedIn: true, role: "admin" });
+  g.data["ideas/categories"].push({ id: "archived", name: "Архив", active: false });
+  g.handlers.set("ideas", ({ json }) => json(response([])));
+  g.handlers.set("admin/ideas/categories", ({ req, json, data }) => {
+    const { name, active } = req.postDataJSON();
+    data["ideas/categories"].push({ id: "fleet", name, active });
+    return json({ id: "fleet" });
+  });
+  await g.ready();
+  await g.open("adminideas");
+  const review = g.page.locator("#window-adminideas");
+  await review.getByText("Категории предложений", {exact:true}).click();
+  await review.getByLabel("Название категории").fill("Флот");
+  await review.getByRole("button", {name:"Сохранить категорию"}).click();
+  await review.locator('select option[value="fleet"]').waitFor({state:"attached"});
+  await g.page.evaluate(() => window.__testApp.Modules.close("adminideas"));
+  await g.open("ideas");
+  const player = g.page.locator("#window-ideas");
+  await player.getByRole("tab", {name:"Предложить идею"}).click();
+  assert.equal(await player.locator('select option[value="fleet"]').count(), 1);
+  assert.equal(await player.locator('select option[value="archived"]').count(), 0);
+});

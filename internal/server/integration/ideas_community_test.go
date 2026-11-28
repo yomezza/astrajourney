@@ -148,7 +148,7 @@ func TestCommunityIdeas(t *testing.T) {
 		db.Close()
 		status := f.req(nil, "GET", "/api/server-status", nil, 200)
 		var release struct{ Version string }
-		if err := json.Unmarshal(status.Body.Bytes(), &release); err != nil || release.Version != "0.31.6" {
+		if err := json.Unmarshal(status.Body.Bytes(), &release); err != nil || release.Version != "0.31.10" {
 			t.Fatalf("unexpected version after migration: %s", status.Body)
 		}
 	}
@@ -175,5 +175,49 @@ func TestCommunityIdeas(t *testing.T) {
 	for _, q := range []string{"scope=invalid", community + "&category=invalid", community + "&sort=invalid",
 		community + "&search=%", community + "&search=%00", community + "&search=" + strings.Repeat("x", 121)} {
 		f.req(reader, "GET", "/api/ideas?"+q, nil, 400)
+	}
+}
+
+func TestIdeaCategoryAdministration(t *testing.T) {
+	f := newFixture033(t)
+	player, _ := f.signup("category_pilot")
+	admin, id := f.signup("category_admin")
+	f.exec("UPDATE users SET role='admin' WHERE id=$1", id)
+	const read = "/api/ideas/categories"
+	const write = "/api/admin/ideas/categories"
+	f.req(nil, "GET", read, nil, 401)
+	if result := f.req(player, "GET", read, nil, 200); !strings.Contains(result.Body.String(), "Игровой процесс") {
+		t.Fatal(result.Body.String())
+	}
+	data := map[string]any{"name": "Корабли", "active": true}
+	f.req(player, "POST", write, data, 403)
+	created := f.req(admin, "POST", write, data, 200)
+	var category struct{ ID string }
+	if err := json.Unmarshal(created.Body.Bytes(), &category); err != nil || category.ID == "" {
+		t.Fatal(created.Body.String())
+	}
+	f.req(admin, "POST", write, map[string]any{"name": "КОРАБЛИ", "active": true}, 409)
+	idea := map[string]string{"title": "Новая идея", "description": "Проверка новой категории", "category": category.ID, "request": strings.Repeat("e", 32)}
+	f.req(player, "POST", "/api/ideas", idea, 201)
+	f.req(admin, "POST", write, map[string]any{"id": category.ID, "name": "Флот", "active": false}, 200)
+	f.req(player, "POST", "/api/ideas", idea, 200)
+	idea["request"] = strings.Repeat("f", 32)
+	f.req(player, "POST", "/api/ideas", idea, 400)
+	f.req(admin, "POST", write, map[string]any{"id": "gameplay", "name": "Разведка", "active": true}, 200)
+	var schema string
+	if err := f.db.QueryRow(f.ctx, "SELECT current_schema()").Scan(&schema); err != nil {
+		t.Fatal(err)
+	}
+	db, err := openDatabase(f.ctx, f.db.Config().ConnString(), schema)
+	if err != nil {
+		t.Fatal(err)
+	}
+	db.Close()
+	if result := f.req(player, "GET", read, nil, 200); !strings.Contains(result.Body.String(), "Разведка") || !strings.Contains(result.Body.String(), "Флот") {
+		t.Fatal(result.Body.String())
+	}
+	result := f.req(player, "GET", "/api/ideas?scope=community&category="+category.ID, nil, 200)
+	if !strings.Contains(result.Body.String(), "Новая идея") {
+		t.Fatal(result.Body.String())
 	}
 }
